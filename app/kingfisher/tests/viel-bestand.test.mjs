@@ -22,14 +22,15 @@ test('nur Suchen, Menschen, Projekte und Entscheidungen laden den ganzen Gedäch
 });
 
 test('die Zeile über den Aufgaben nennt keine Seitengröße als Zahl', () => {
-  const seite1 = {seite: 1, weitere: true};
-  assert.equal(heuteKopfZeile(50, 50, seite1), 'Mehr als 50 Aufgaben brauchen dich heute.');
-  assert.equal(heuteKopfZeile(12, 50, seite1), '12 Aufgaben brauchen dich heute.');
-  assert.equal(heuteKopfZeile(1, 1, {seite: 1, weitere: false}), 'Eine Aufgabe braucht dich heute.');
-  assert.equal(heuteKopfZeile(7, 7, {seite: 1, weitere: false}), '7 Aufgaben brauchen dich heute.');
-  assert.equal(heuteKopfZeile(0, 50, seite1), undefined);
-  assert.equal(heuteKopfZeile(50, 50, {seite: 2, weitere: true}), undefined);
-  assert.match(quelle('App.tsx'), /heuteKopfZeile\(heuteDran, listTasks\?\.length \?\? 0, \{seite: taskPage\.page, weitere: taskPage\.canNext\}\)/);
+  // Seit Paket Z1 zählt der Sidecar die ganze Auswahl (`heute_dran`); die Seite zählt ihre Zeilen nicht mehr, und ein
+  // „Mehr als 50“ gibt es nicht mehr: Bei 300 fälligen Aufgaben steht 300, wie auf Heute (eine-zahl.test.mjs).
+  assert.equal(heuteKopfZeile(300), '300 Aufgaben brauchen dich heute.');
+  assert.equal(heuteKopfZeile(12), '12 Aufgaben brauchen dich heute.');
+  assert.equal(heuteKopfZeile(1), 'Eine Aufgabe braucht dich heute.');
+  assert.equal(heuteKopfZeile(0), undefined);
+  assert.equal(heuteKopfZeile(null), undefined);
+  assert.match(quelle('App.tsx'), /heuteKopfZeile\(panel === "tasks" && view === "mine" && !search \? taskPage\.heuteDran : null\)/);
+  assert.doesNotMatch(quelle('App.tsx'), /listTasks\?\.length \?\? 0, \{seite: taskPage\.page/);
 });
 
 test('ein gekürzter Betreff in der Mailliste steht ganz im Titel', () => {

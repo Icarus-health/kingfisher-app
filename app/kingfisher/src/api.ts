@@ -21,6 +21,8 @@ export type Attention = {
   reason?: string;
   action?: string | null;
   review_required?: boolean;
+  /** Für wie viele Dinge die Zeile steht: „Heute sind 3 Aufgaben fällig.“ steht für drei (Paket Z1). */
+  anzahl?: number;
   /** Bei Aufgaben unter „Braucht dich“: die Aufgabe selbst (wie `/api/v1/tasks`) und ihr Projektname (V1). */
   task?: Task | null;
   project_name?: string | null;
@@ -53,6 +55,9 @@ export type MorningBriefing = {
     attribution_url?: string;
   };
   partial_failures: Array<{ section: string; message: string }>;
+  /** Was dich heute braucht, ganz gezählt (Paket Z1, `zaehlung.py`): Aufgaben nach derselben Regel wie unter
+   * „Aufgaben“ und die übrigen Punkte, auch die hinter den drei sichtbaren. */
+  braucht_dich?: { aufgaben: number; weitere: number };
 };
 
 /** Ein Beleg der Satzantwort. `kennzeichen` trägt die Arten `andere_person` und `ausserhalb_zeitraum` (kennzeichnung.py). */
@@ -1505,9 +1510,11 @@ export const api = {
     request<KalenderAnmeldung>("/api/v1/integrations/calendar/anmelden", { method: "POST", body: JSON.stringify(data) }),
   removeIntegration: (kind: "mail" | "calendar", id: string) =>
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
-  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
+  // `bereich` filtert im Sidecar, vor Zählen und Blättern; `heute_dran` kommt mit der ersten Seite von „Meine Aufgaben“
+  // (Paket Z1, zaehlung.py). „Heute“ gilt in der eingestellten Zeitzone, wie auf Heute (ohne die des Browsers).
+  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number; bereich?: string} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number; heute_dran?: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {}), ...(options.bereich && options.bereich !== "alle" ? {bereich: options.bereich} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
-  projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
+  projectOverview: (id: string, bereich = "") => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview${bereich && bereich !== "alle" ? `?${new URLSearchParams({bereich})}` : ""}`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),

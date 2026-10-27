@@ -45,7 +45,7 @@ function driver(render) {
 
 const task = (id, title, due = null, extra = {}) => ({id, title, due, status: 'open', overdue: false, project_id: null, wartet_auf: null, notes: null, ...extra});
 
-async function withTasks(run, {tasks = [], total = tasks.length} = {}) {
+async function withTasks(run, {tasks = [], total = tasks.length, heuteDran} = {}) {
   const oldWindow = globalThis.window, oldDocument = globalThis.document;
   const timers = [], listeners = {}, calls = [];
   globalThis.window = {location: {search: '', href: 'http://synthetic/vorhaben', pathname: '/vorhaben'}, history: {state: null, replaceState() {}},
@@ -55,7 +55,7 @@ async function withTasks(run, {tasks = [], total = tasks.length} = {}) {
   const {Tasks} = await server.ssrLoadModule('/src/App.tsx');
   const {api} = await server.ssrLoadModule('/src/api.ts');
   const saved = {tasks: api.tasks, projects: api.projects};
-  api.tasks = async (view, projectId, options) => { calls.push({view, projectId, ...options}); return {tasks: options?.q ? tasks.filter(t => t.title.includes(options.q)) : tasks, total, next_cursor: null, limit: 50}; };
+  api.tasks = async (view, projectId, options) => { calls.push({view, projectId, ...options}); return {tasks: options?.q ? tasks.filter(t => t.title.includes(options.q)) : tasks, total, next_cursor: null, limit: 50, ...(view === 'mine' && heuteDran !== undefined ? {heute_dran: heuteDran} : {})}; };
   api.projects = async () => [];
   const d = driver(() => Tasks({recentConversation: null}));
   try {
@@ -229,6 +229,7 @@ test('Segmente zählen offene und wartende Aufgaben (nur über null); die Kopfze
     const optionen = nodes(tree, n => n.type?.name === 'Segmente')[0].props.optionen;
     assert.equal(optionen.find(o => o.wert === 'mine').zahl, 3);
     assert.equal(optionen.find(o => o.wert === 'done').zahl, undefined, 'done is not counted');
+    // Die Zahl zählt der Sidecar für die ganze Auswahl (`heute_dran`, Paket Z1), nicht die Seite.
     assert.equal(nodes(tree, n => n.type?.name === 'Seitenkopf')[0].props.zeile, '2 Aufgaben brauchen dich heute.');
-  }, {tasks: [task('a', 'Überfälliges', gestern.toISOString()), task('b', 'Heutiges', heute.toISOString()), task('c', 'Später', '2030-01-01T10:00:00')]});
+  }, {tasks: [task('a', 'Überfälliges', gestern.toISOString()), task('b', 'Heutiges', heute.toISOString()), task('c', 'Später', '2030-01-01T10:00:00')], heuteDran: 2});
 });

@@ -14,6 +14,7 @@ import {Leer, Seitenkopf, Segmente} from './grundlage';
 import {ganztaegig, nachTagen, terminZeit} from './calendarAnzeige';
 import './CalendarPage.css';
 import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
+import {ausgeblendetLage} from './zahlen';
 import {kontenApi} from './kontenApi';
 import {ALLE, bereichName, gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
 type View = WorkspaceCalendarView;
@@ -194,6 +195,17 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const selectedSources = new Set(sourceOptions.filter(source=>!hiddenSources.has(source.id)).map(source=>source.id));
   const kalenderSichtbar = calendarVisibleEvents(visibleData?.items || [], sourceOptions.length?selectedSources:null);
   const items = kalenderSichtbar.filter(bereichFilter.passt);
+  // Zeigt der Zeitraum nichts, obwohl ausgeblendete Kalender (im gewählten Bereich) Termine haben (Paket Z1).
+  const ausgeblendet = visibleData?.configured && !loading && items.length === 0
+    ? ausgeblendetLage({termine: visibleData.items, quellen: sourceOptions, ausgeblendet: new Set(sourceOptions.filter(q => hiddenSources.has(q.id)).map(q => q.id)),
+      passt: bereichFilter.passt, quelleVon: termin => calendarSourceVersions(termin).map(calendarDisplaySource)}) : null;
+  function einblenden(ids: string[]) {
+    ausgeblendetGeladen.current = true;
+    const next = new Set(hiddenSources);
+    for (const id of ids) next.delete(id);
+    setHiddenSources(next);
+    kontenApi.ausblenden([...next]).catch(() => { /* Gilt dann bis zum Neuladen. */ });
+  }
   const detailsEvent = items.find(item=>calendarEventKey(item)===detailsKey) || null;
   const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarDisplaySource(calendarSourceVersions(item).find(copy=>!hiddenSources.has(calendarDisplaySource(copy)))||item));
   function eventActions(item:CalendarOverview['items'][number]) {
@@ -276,6 +288,8 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {ohneKalender ? <Leer className="calendar-leer" satz="Noch kein Kalender verbunden." aktion={kalenderLink("Kalender verbinden", formOffen ? "g-knopf-getoent" : "g-knopf")} /> : <>
       <div className="calendar-actions"><Segmente label="Kalenderansicht" className="calendar-ansicht" optionen={ANSICHTEN.map(v => ({wert: v, titel: v}))} wert={view} onWahl={setView} />{bereichFilter.segmente}</div>
       <div className="calendar-period"><h2>{periodTitle}</h2><span className="calendar-period-nav"><button type="button" className="g-knopf-getoent g-kompakt calendar-pfeil" aria-label="Vorheriger Zeitraum" onClick={() => shift(-1)}>‹</button><button type="button" className="g-knopf-getoent g-kompakt" onClick={() => setFocus(midnight(today))}>Heute</button><button type="button" className="g-knopf-getoent g-kompakt calendar-pfeil" aria-label="Nächster Zeitraum" onClick={() => shift(1)}>›</button></span></div>
+      {/* Leer, weil die Termine in ausgeblendeten Kalendern liegen: ehrlich sagen, mit einem Klick zurück (Paket Z1). */}
+      {ausgeblendet ? <p className="calendar-hinweis calendar-ausgeblendet" role="status">{ausgeblendet.satz} <button type="button" className="g-knopf-schlicht g-kompakt" onClick={() => einblenden(ausgeblendet.kalender.map(k => k.id))}>{ausgeblendet.knopf}</button></p> : null}
       <section className={`calendar-board calendar-board-${view.toLowerCase()}`} aria-label="Kalenderübersicht" aria-busy={loading}>
       {loading && !visibleData && !error && <p className="calendar-hinweis" role="status">Termine werden geladen …</p>}
       {view === "Monat" && grid(focus.getMonth())}
@@ -283,7 +297,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {(view === 'Woche' || view === 'Tag') && timeGrid()}
       {view === "Liste" && <section aria-label="Terminliste">{shown.length ? agenda() : visibleData && !loading ? <Leer satz="Keine Termine in diesen sieben Tagen." /> : null}</section>}
       </section>
-      {visibleData?.configured && !loading && items.length === 0 && visibleData.items.length > 0 && <p className="calendar-fussnote" role="status">{kalenderSichtbar.length > 0 && bereichFilter.wahl !== ALLE ? `In diesem Zeitraum gibt es keine Termine im Bereich ${bereichName(bereichKonten, bereichFilter.wahl)}.` : 'Die Termine dieses Zeitraums stehen in ausgeblendeten Kalendern.'}</p>}
+      {visibleData?.configured && !loading && items.length === 0 && visibleData.items.length > 0 && !ausgeblendet && bereichFilter.wahl !== ALLE && <p className="calendar-fussnote" role="status">{`In diesem Zeitraum gibt es keine Termine im Bereich ${bereichName(bereichKonten, bereichFilter.wahl)}.`}</p>}
       {view !== "Jahr" && view !== "Liste" && shown.length > 0 && <div className="calendar-agenda"><button type="button" className="text-action" aria-expanded={agendaOpen} onClick={()=>setAgendaOpen(open=>!open)}>{shown.length} {shown.length === 1 ? 'Termin' : 'Termine'} am {focus.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} als Liste</button>{agendaOpen && agenda()}</div>}
       </>}
       </div></div>

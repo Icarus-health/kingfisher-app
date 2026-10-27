@@ -3,7 +3,8 @@ import {CommandBar} from "./CommandBar";
 import {ConversationCapture} from "./ConversationCapture";
 import {ConversationNavigation} from "./ConversationNavigation";
 import {MessageText} from "./MessageText";
-import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
+import { TodayOverview, TodayPersonal } from "./TodayOverview";
+import { brauchtDichSatz, heuteZahlen } from "./zahlen";
 import { FassungHeute } from "./Fassung";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { AudioBriefing } from "./AudioBriefing";
@@ -204,7 +205,6 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
     <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page today-state"><div className="g-flaeche today-fehler error-state" role="alert"><Leer zeichen="house" satz="Dein Überblick ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div></main></div>
   );
 
-  const attentionCount = todayAttention(briefing).length;
   const stand = standText(briefing);
   return (
     <div className="shell">
@@ -217,7 +217,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           {/* Ein großer Titel, eine Zeile darunter (Nachtrag 23.10.: wenig Text, Verständnis auf einen Blick). */}
           <div className="hero-copy"><h1>{briefing.greeting}</h1>
             <p className="today-hero-summary">
-              <span>{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht dich." : `${attentionCount} Punkte brauchen dich.`}</span>
+              {/* Eine Zahl je Begriff (Paket Z1): derselbe Satz und dieselbe Zahl wie unter „Aufgaben“, ganz gezählt im
+                  Sidecar, auch was hinter den drei sichtbaren Punkten steht. */}
+              <span>{brauchtDichSatz(heuteZahlen(briefing))}</span>
               {/* Ein Zeitpunkt, keine zweite Uhr: Die Uhr steht nur in der Seitenleiste (Fremdprobe 2, Befund 11). */}
               {/* Während das volle Briefing kommt, atmet „Stand“ leise, statt Text anzuhängen: Der angehängte Text brach
                   bei 390 px die Zeile um und schob beim Verschwinden die ganze Seite hoch (V7, CLS 0,18). */}
@@ -627,13 +629,21 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [search, setSearch] = useState('');
   const currentSearch = useRef(search);
   currentSearch.current = search;
+  // „Alle · Arbeit · Privat“ ab zwei Bereichen (Paket K, BereichFilter.tsx). Der Sidecar filtert (Paket Z1): Liste, Zahl
+  // am Segment und Projektüberblick sind dieselbe Auswahl, und über einer leeren Liste steht keine „1“.
+  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
+  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("aufgaben"));
+  useEffect(() => kontenFuerFilter(setBereichKonten), []);
+  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
+  const currentBereich = useRef(bereichFilter.wahl);
+  currentBereich.current = bereichFilter.wahl;
   const pager = useRef<TaskPager | null>(null);
-  if (!pager.current) pager.current = new TaskPager((selection, cursor) => api.tasks(selection.view, selection.projectId, {q: selection.q, cursor}), setTaskPage);
+  if (!pager.current) pager.current = new TaskPager((selection, cursor) => api.tasks(selection.view, selection.projectId, {q: selection.q, cursor, bereich: selection.bereich}), setTaskPage);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState(() => new URLSearchParams(window.location.search).get("project") ?? "");
-  const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search}) ? taskPage.tasks : null;
+  const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search, bereich: bereichFilter.wahl}) ? taskPage.tasks : null;
   // Während Suche oder Änderung neu laden, bleibt die bisherige Liste derselben Ansicht stehen statt zu flackern.
-  const listKey = JSON.stringify({view, projectId});
+  const listKey = JSON.stringify({view, projectId, bereich: bereichFilter.wahl});
   const shownTasks = useRef<{key: string; tasks: LocalTask[]} | null>(null);
   if (tasks) shownTasks.current = {key: listKey, tasks};
   const listTasks = tasks ?? (taskPage.loading && shownTasks.current?.key === listKey ? shownTasks.current.tasks : null);
@@ -652,16 +662,17 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
   const lastLoad = useRef(0);
-  // Zahlen an den Segmenten (nur über null): offene eigene und wartende Aufgaben, wie die Liste gefiltert.
+  // Zahlen an den Segmenten (nur über null): offene eigene und wartende Aufgaben, wie die Liste gefiltert (Projekt und
+  // Bereich, im Sidecar; Paket Z1).
   const [zahlen, setZahlen] = useState<{mine?: number; waiting?: number}>({});
   const [zahlenStand, setZahlenStand] = useState(0);
   useEffect(() => {
     let aktiv = true;
-    Promise.all([api.tasks("mine", projectId, {limit: 1}), api.tasks("waiting", projectId, {limit: 1})])
+    Promise.all([api.tasks("mine", projectId, {limit: 1, bereich: bereichFilter.wahl}), api.tasks("waiting", projectId, {limit: 1, bereich: bereichFilter.wahl})])
       .then(([mine, waiting]) => { if (aktiv) setZahlen({mine: mine.total, waiting: waiting.total}); })
       .catch(() => { if (aktiv) setZahlen({}); });
     return () => { aktiv = false; };
-  }, [projectId, zahlenStand]);
+  }, [projectId, zahlenStand, bereichFilter.wahl]);
 
   const currentView = useRef(view);
   currentView.current = view;
@@ -688,7 +699,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setZahlenStand(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
-    void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
+    void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current, bereich: currentBereich.current});
   }
 
   // Kein Knopf „Liste aktualisieren“: Kommt das Fenster wieder in den Blick, lädt die Liste still nach (wie Heute).
@@ -723,7 +734,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     window.history.replaceState(window.history.state, "", url);
   }, [view, projectId, selectedTask]);
 
-  useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search]);
+  useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search, bereichFilter.wahl]);
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -825,12 +836,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
   }
-  // „Alle · Arbeit · Privat“ ab zwei Bereichen (Paket K, BereichFilter.tsx).
-  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
-  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("aufgaben"));
-  useEffect(() => kontenFuerFilter(setBereichKonten), []);
-  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
-  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId) && bereichFilter.passt(task));
+  const visibleTasks = listTasks?.filter(task => !projectId || task.project_id === projectId);
   const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
@@ -848,9 +854,9 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   }
   // Rollt die Segmentleiste (schmales Fenster), steht der gewählte Abschnitt auch beim Öffnen per Adresse im Blick.
   useEffect(() => { document.querySelector?.<HTMLElement>('.aufgaben-segmente [aria-selected="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
-  // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
-  const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
-  const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
+  // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind. Die Zahl
+  // zählt der Sidecar für die ganze Auswahl, mit derselben Regel und demselben Satz wie Heute (Paket Z1).
+  const kopfZeile = heuteKopfZeile(panel === "tasks" && view === "mine" && !search ? taskPage.heuteDran : null);
   const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as "mine" | "waiting" | "done"} />;
   const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
@@ -883,7 +889,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {panel === "projects" ? null : projectError ? projectsFailedLine : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
         {listView && panel !== "projects" ? bereichFilter.segmente : null}
       </form>}
-      {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
+      {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} bereich={bereichFilter.wahl} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {panel !== 'review' && listView && <>
         {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" className="text-action" onClick={() => load()}>Erneut laden</button></p>}
         {taskPage.notice && <p role="status" className="task-hinweis">{taskPage.notice}</p>}
