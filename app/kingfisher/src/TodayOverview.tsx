@@ -23,6 +23,14 @@ import { navigate } from "./ui";
 
 // A calendar reminder already shown with its preparation belongs with the
 // day's appointments. Keep unmatched reminders visible in the attention list.
+/** „Mehr“ unter „Neu eingegangen“ (Paket S, Befund 7): weitere neue Mails stehen unter Nachrichten (neueste zuerst),
+ * weitere Quellen im Gedächtnis. Vorher führte es immer ins Gedächtnis, in die allgemeine Suche. */
+export function mehrZiel(briefing: {neu_mehr?: "nachrichten" | "gedaechtnis" | null; working_memory_more?: boolean}): string | null {
+  if (briefing.neu_mehr === "nachrichten") return "/nachrichten";
+  if (briefing.neu_mehr === "gedaechtnis" || (briefing.neu_mehr === undefined && briefing.working_memory_more)) return "/memory";
+  return null;
+}
+
 export function todayAttention(briefing: MorningBriefing) {
   return briefing.needs_you.filter(item => !(item.source === "termin" && item.source_ref
     && briefing.later_today.filter(event => event.source_ref === item.source_ref).length === 1
@@ -156,7 +164,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
     </section>
 
     {briefing.happening_now.length > 0 && <section className="today-panel today-news" aria-labelledby="today-news-title">
-      <header className="today-panel-heading"><h2 id="today-news-title">Neu eingegangen</h2>{briefing.working_memory_more ? <a className="today-text-link" href="/memory">Mehr</a> : null}</header>
+      <header className="today-panel-heading"><h2 id="today-news-title">Neu eingegangen</h2>{mehrZiel(briefing) ? <a className="today-text-link" href={mehrZiel(briefing)!}>Mehr</a> : null}</header>
       <div className="today-flaeche">
       <ul className="today-news-list">{briefing.happening_now.map(item => {
         const {zeile, titel} = eingangZeile(item, briefing.timezone, briefing.generated_at);

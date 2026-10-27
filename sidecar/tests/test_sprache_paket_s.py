@@ -267,3 +267,52 @@ def test_zwei_klaerungen_auf_heute_tragen_je_einen_eigenen_titel_ohne_namen_und_
     # Heute zeigt drei; gleiche Titel werden durchgezählt.
     assert len(set(titel)) == len(titel), titel
     assert all("Kranz" not in t for t in titel)
+
+
+# -- Befund 7: Aufgabensuche findet Projektnamen ---------------------------------------------------------------------
+
+
+def test_die_aufgabensuche_findet_auch_den_namen_des_projekts(tmp_path, monkeypatch) -> None:
+    app = _app(tmp_path, monkeypatch)
+    nordlicht = app.state.workspace.add_project("Restrukturierung Nordlicht", Provenance(SourceType.USER_STATED))
+    weiss = app.state.workspace.add_project("Interim-Controlling Weiss", Provenance(SourceType.USER_STATED))
+    app.state.tasks.add("Folien zur Kostenanalyse schicken", Provenance(SourceType.USER_STATED), project_id=nordlicht.id)
+    app.state.tasks.add("Interviews planen", Provenance(SourceType.USER_STATED), project_id=nordlicht.id)
+    app.state.tasks.add("Monatsabschluss prüfen", Provenance(SourceType.USER_STATED), project_id=weiss.id)
+    app.state.tasks.add("Nordlicht-Rechnung ablegen", Provenance(SourceType.USER_STATED))
+    client = TestClient(app)
+
+    def titel(q):
+        antwort = client.get("/api/v1/tasks", params={"q": q})
+        assert antwort.status_code == 200, antwort.text
+        return sorted(t["title"] for t in antwort.json()["tasks"])
+
+    assert titel("nordlicht") == ["Folien zur Kostenanalyse schicken", "Interviews planen", "Nordlicht-Rechnung ablegen"]
+    assert titel("Weiss") == ["Monatsabschluss prüfen"]
+    # Mehrere Wörter: jedes muss passen, im Titel oder im Projekt.
+    assert titel("nordlicht folien") == ["Folien zur Kostenanalyse schicken"]
+    # Gegenrichtung: ein Wort, das weder im Titel noch im Projekt steht, findet nichts.
+    assert titel("lahnwerke") == []
+    assert client.get("/api/v1/tasks", params={"q": "nordlicht"}).json()["total"] == 3
+
+
+def test_mehr_unter_neu_eingegangen_fuehrt_zu_den_neuen_mails() -> None:
+    from datetime import date, timedelta
+
+    from icarus_memory.morning import compose
+    jetzt = datetime(2026, 10, 26, 8, 0, tzinfo=timezone.utc)
+
+    def dashboard(mails: int, quellen: int) -> dict:
+        return {"briefing": {"punkte": []}, "calendar": {"items": []}, "tasks": {}, "episodes": {}, "proposals": {},
+                "mail": {"items": [{"uid": f"m{i}", "subject": f"Mail {i}", "unread": True,
+                                    "date": (jetzt - timedelta(minutes=10 + i)).isoformat()} for i in range(mails)]},
+                "working_memory": {"items": [{"episode_id": f"e{i}", "title": f"Quelle {i}", "kinds": [],
+                                              "source_type": "email", "source_ref": f"mail-a:<q{i}@x.example>",
+                                              "occurred_at": (jetzt - timedelta(minutes=30 + i)).isoformat(),
+                                              "recorded_at": jetzt.isoformat()} for i in range(quellen)]}}
+
+    assert compose(dashboard(5, 0), now=jetzt, target=date(2026, 10, 26))["neu_mehr"] == "nachrichten"
+    assert compose(dashboard(5, 4), now=jetzt, target=date(2026, 10, 26))["neu_mehr"] == "nachrichten"
+    assert compose(dashboard(1, 4), now=jetzt, target=date(2026, 10, 26))["neu_mehr"] == "gedaechtnis"
+    # Genau drei Mails, keine weiteren Quellen: kein „Mehr“.
+    assert compose(dashboard(3, 0), now=jetzt, target=date(2026, 10, 26))["neu_mehr"] is None

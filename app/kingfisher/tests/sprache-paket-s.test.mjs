@@ -118,3 +118,14 @@ test("der Satz unter den Häkchen passt zu ihrer Zahl: kein „beides“ unter e
   assert.match(quelle("Einrichtung/FertigSchritt.tsx"), /beiAenderung=\{\(_, zeilen\) => setMailImLernen\(zeilen\.some\(zeile => zeile\.id === "mail"\)\)\}/);
   assert.match(quelle("Einrichtung/KingfisherLernt.tsx"), /const kennung = `\$\{neu\.length > 0\}:\$\{neu\.map\(zeile => zeile\.id\)\.join\(","\)\}`/);
 });
+
+// -- Befund 7: „Neu eingegangen → Mehr“ ---------------------------------------------------------------------------
+
+test("„Mehr“ unter „Neu eingegangen“ führt zu den neuen Mails, nicht in die allgemeine Suche", async () => {
+  const { mehrZiel } = await server.ssrLoadModule("/src/TodayOverview.tsx");
+  assert.equal(mehrZiel({ neu_mehr: "nachrichten", working_memory_more: true }), "/nachrichten");
+  assert.equal(mehrZiel({ neu_mehr: "gedaechtnis" }), "/memory");
+  assert.equal(mehrZiel({ neu_mehr: null, working_memory_more: true }), null);
+  assert.equal(mehrZiel({ working_memory_more: true }), "/memory", "ein älterer Sidecar: wie bisher");
+  assert.match(quelle("TodayOverview.tsx"), /\{mehrZiel\(briefing\) \? <a className="today-text-link" href=\{mehrZiel\(briefing\)!\}>Mehr<\/a>/);
+});

@@ -5172,8 +5172,14 @@ def create_app(
         gewaehlt = zaehlung.bereich_gewaehlt(bereich)
         ids = zaehlung.ids_im_bereich(app, gewaehlt, project_id=project_id)
         try:
+            projekte = None
+            if q.strip():
+                try:
+                    projekte = {p.id: p.name for p in app.state.workspace.projects(include_closed=True)}
+                except Exception:  # noqa: BLE001 - ohne Projektliste sucht die Suche nur in den Aufgaben selbst
+                    projekte = None
             seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor, ids=ids,
-                                         auswahl=gewaehlt)
+                                         auswahl=gewaehlt, projekte=projekte)
             antwort = {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
             if view == 'mine' and cursor is None:
                 antwort['heute_dran'] = zaehlung.heute_dran_zahl(app, _aufgaben_jetzt(timezone_name),

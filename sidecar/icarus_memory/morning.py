@@ -221,6 +221,17 @@ _MERKMALE = {
 }
 
 
+def _wm_mehr(dashboard: dict[str, Any], happening: list[dict[str, Any]], now: datetime) -> bool:
+    """Gibt es mehr neue Quellen aus dem Gedächtnis, als „Neu eingegangen“ zeigt? (Dieselbe Regel wie
+    `working_memory_more`.)"""
+    from .episodes import ist_eigene_quelle
+    wm = dashboard.get('working_memory', {}) or {}
+    return bool(wm.get('truncated') or sum(
+        not ist_eigene_quelle(r.get('source_type'), r.get('source_ref'))
+        and ist_neu(r.get('occurred_at'), r.get('recorded_at'), jetzt=now) for r in wm.get('items') or [])
+        > sum(item['source'] == 'working_memory' for item in happening[:3]))
+
+
 def klaerung_titel(merkmal: str) -> str:
     """Der Titel einer offenen Klärung auf Heute: worum es geht („Angabe klären: Anschrift“), ohne Namen und ohne die
     widersprüchlichen Werte, denn die stammen aus fremden Quellen und Heute wird auch vorgelesen. Ohne bekanntes Merkmal
@@ -357,6 +368,8 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         }
 
     happening: list[dict[str, Any]] = []
+    #: Neue Mails über die drei sichtbaren hinaus: Dann führt „Mehr“ zu den Nachrichten (Paket S, Befund 7).
+    mails_mehr = False
     # „Neu eingegangen“ nur mit dem, was wirklich neu ist (`neu_eingegangen.py`): Eine ungelesene Mail vom Juni ist
     # Altbestand, auch wenn sie noch ungelesen im Posteingang liegt. Der Posteingang ist ein Blick von jetzt, keine
     # Bestandsaufnahme: Fehlt einer Mail das Datum, gilt sie als jetzt erfasst.
@@ -365,6 +378,9 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             continue
         if not ist_neu(mail.get("date"), mail.get("recorded_at") or now, jetzt=now):
             continue
+        if len(happening) == 3:
+            mails_mehr = True
+            break
         title = str(mail.get("subject") or "Neue E-Mail")
         happening.append({
             "id": _stable_id("activity", "mail", mail.get("uid"), title),
@@ -374,8 +390,6 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             "occurred_at": mail.get("date"), "recorded_at": mail.get("recorded_at"),
             "reason": "Ungelesene Nachricht", "action": None,
         })
-        if len(happening) == 3:
-            break
     # A new report is an activity, not an accepted task or an inferred deadline.
     from .working_memory_answers import KINDS
     from .episodes import ist_eigene_quelle
@@ -519,6 +533,9 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
                 and ist_neu(r.get('occurred_at'), r.get('recorded_at'), jetzt=now)
                 for r in dashboard.get('working_memory', {}).get('items') or []) >
             sum(item['source'] == 'working_memory' for item in happening[:3])),
+        # Wohin „Mehr“ unter „Neu eingegangen“ führt (Paket S, Befund 7: es führte immer in das Gedächtnis, auch wenn
+        # das Weitere Mails waren): weitere neue Mails zu den Nachrichten, sonst weitere Quellen ins Gedächtnis.
+        "neu_mehr": "nachrichten" if mails_mehr else ("gedaechtnis" if _wm_mehr(dashboard, happening, now) else None),
         "later_today": later,
         "naechster_termin": naechster_termin,
         "timeline": [

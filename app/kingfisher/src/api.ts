@@ -43,6 +43,8 @@ export type MorningBriefing = {
   needs_you: Attention[];
   happening_now: Attention[];
   working_memory_more?: boolean;
+  /** Wohin „Mehr“ unter „Neu eingegangen“ führt (Paket S, Befund 7); fehlt es, gilt `working_memory_more`. */
+  neu_mehr?: "nachrichten" | "gedaechtnis" | null;
   later_today: CalendarItem[];
   /** Der nächste Termin nach heute (bis eine Woche), für „Heute keine Termine. Nächster: …“ (Paket U, H8). */
   naechster_termin?: { title: string; start: string; ganztags: boolean } | null;
