@@ -114,9 +114,9 @@ def vorbereitung_eines(app, eintrag: dict[str, Any], jetzt: datetime) -> terminv
     termin = terminvorbereitung.Termin.aus_dict(eintrag, notiz=notiz, episode_id=episode_id)
     if termin is None:
         return None
-    return terminvorbereitung.vorbereiten(termin, akten=akten, episodes=app.state.episodes,
-                                          eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None)),
-                                          jetzt=jetzt, workspace=getattr(app.state, 'workspace', None))
+    return terminvorbereitung.vorbereiten_gemerkt(app, termin, akten=akten,
+                                                  eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None)),
+                                                  jetzt=jetzt, workspace=getattr(app.state, 'workspace', None))
 
 
 def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> list[terminvorbereitung.Vorbereitung]:
@@ -133,9 +133,8 @@ def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> l
         if termin is None:
             continue
         try:
-            vorbereitung = terminvorbereitung.vorbereiten(termin, akten=akten, episodes=app.state.episodes,
-                                                          eigene=eigene, jetzt=jetzt,
-                                                          workspace=getattr(app.state, 'workspace', None))
+            vorbereitung = terminvorbereitung.vorbereiten_gemerkt(app, termin, akten=akten, eigene=eigene, jetzt=jetzt,
+                                                                  workspace=getattr(app.state, 'workspace', None))
         except Exception:  # noqa: BLE001 - der Termin bleibt sichtbar, nur ohne Vorbereitung
             logger.exception('Termin konnte nicht vorbereitet werden')
             vorbereitung = terminvorbereitung.Vorbereitung(termin=termin)

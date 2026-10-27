@@ -133,7 +133,7 @@ def nach_stand_gemerkt(app, art: str, zusatz: Any, berechnen: Any) -> Any:
 
     speicher = getattr(app.state, 'akten_lesungen', None)
     if speicher is None:
-        speicher = app.state.akten_lesungen = Zwischenspeicher(8)
+        speicher = app.state.akten_lesungen = Zwischenspeicher(64)
     wert = speicher.nachsehen((art, zusatz, stand()))
     if wert is not None:
         return wert

@@ -295,7 +295,8 @@ def _wuensche(adresse: str, quellen: list[dict[str, Any]], episodes: Any, jetzt:
 def _person(name: str, adresse: str | None, akten: Any, arten: _Arten, eigene: list[str],
             jetzt: datetime) -> Person:
     sache = sache_id('person', 'a:' + adresse) if adresse else None
-    akte = akten.akte(sache, jetzt=jetzt, alle=True) if sache else None
+    # Ohne die Namen aller Beteiligten (Befund A4): gebraucht wird nur der Name der ersten Organisation, unten.
+    akte = akten.akte(sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False) if sache else None
     if akte is None:
         return Person(name=name, adresse=adresse, sache=sache, bekannt=False)
     # Verlauf: jüngste zuerst; der Termin selbst und Künftiges gehören nicht zu „zuletzt“.
@@ -322,7 +323,7 @@ def _person(name: str, adresse: str | None, akten: Any, arten: _Arten, eigene: l
     person.stand = [z for z in (_zeile(g, quelle_art(arten(g['episode_id']))) for g in gruppen[:STAND])
                     if (z.beleg.episode_id, z.text) not in gezeigt]  # was schon unter „Letzter Kontakt“ steht, nicht noch einmal
     organisationen = [b for b in akte['beteiligte']['eintraege'] if b['art'] == 'organisation']
-    person.organisation = organisationen[0]['name'] if organisationen else ''
+    person.organisation = akten.bezuege.beschriftung(organisationen[0]['sache']) if organisationen else ''
     person.fristen = fristlage.nach_dringlichkeit(
         fristlage.aus_akte(akte, heute=jetzt.date(), eigene=eigene, tage_voraus=30, quellenart=arten))
     return person
@@ -347,7 +348,7 @@ def _vergangen(datum: str | None, jetzt: datetime) -> bool:
 
 
 def _hintergrund(sache: str, herkunft: str, akten: Any, arten: _Arten, jetzt: datetime) -> Hintergrund | None:
-    akte = akten.akte(sache, jetzt=jetzt, alle=True)
+    akte = akten.akte(sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False)
     if akte is None:
         return None
     stand = akte['stand_der_dinge']
@@ -370,7 +371,7 @@ def _gemeinsame(personen: list[Person], akten: Any, jetzt: datetime) -> list[str
     ausmass: dict[str, int] = {}
     bekannte = [p for p in personen if p.bekannt and p.sache]
     for p in bekannte:
-        akte = akten.akte(p.sache, jetzt=jetzt, alle=True)
+        akte = akten.akte(p.sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False)
         for b in (akte['beteiligte']['eintraege'] if akte else ()):
             if b['art'] in ('organisation', 'projekt'):
                 zaehler[b['sache']] = zaehler.get(b['sache'], 0) + 1
@@ -450,8 +451,11 @@ def _aufnehmen(quellen: dict[str, einpacken.Quelle], episode_id: str, episodes: 
 
 
 def vorbereiten(termin: Termin, *, akten: Any, episodes: Any, eigene: Iterable[str] = (), jetzt: datetime,
-                workspace: Any = None) -> Vorbereitung:
-    """Die Vorbereitung eines Termins aus den Akten. Ohne Modell, ohne Netz, ohne Schreibzugriff."""
+                workspace: Any = None, nur_teilnehmer: bool = False) -> Vorbereitung:
+    """Die Vorbereitung eines Termins aus den Akten. Ohne Modell, ohne Netz, ohne Schreibzugriff.
+
+    `nur_teilnehmer`: nur die Personen (für „vorbereitet: 2 Teilnehmer in den Akten“ in „Was brauche ich morgen?“),
+    ohne Projekt, Hintergrund, Fristen und Packliste."""
     eigene = list(eigene)
     arten = _Arten(episodes)
     index = episodes.participants_for_addresses(termin.teilnehmer)
@@ -463,6 +467,8 @@ def vorbereiten(termin: Termin, *, akten: Any, episodes: Any, eigene: Iterable[s
             ergebnis.personen.append(person)
         else:
             ergebnis.unbekannt.append(t['name'])
+    if nur_teilnehmer:
+        return ergebnis
     if workspace is not None:
         ergebnis.projekt = _projekt(termin, workspace, episodes, eigene)
     herkuenfte: list[tuple[str, str]] = []
@@ -485,6 +491,24 @@ def vorbereiten(termin: Termin, *, akten: Any, episodes: Any, eigene: Iterable[s
     ergebnis.fristen = fristlage.nach_dringlichkeit(f for p in ergebnis.personen for f in p.fristen)
     ergebnis.einpacken = einpacken.packliste(_packquellen(termin, ergebnis.personen, akten, episodes, eigene, jetzt))
     return ergebnis
+
+
+def vorbereiten_gemerkt(app: Any, termin: Termin, *, akten: Any, eigene: Iterable[str] = (), jetzt: datetime,
+                        workspace: Any = None, nur_teilnehmer: bool = False) -> Vorbereitung:
+    """`vorbereiten`, gemerkt je Termin, Stunde und Stand der Grundlagen (Befund A4 der Persona-Prüfung).
+
+    Briefing, „Was brauche ich morgen?“ und die Vorbereitung im Kalender lesen denselben Termin oft mehrmals
+    hintereinander; jede Vorbereitung liest die ganze Akte jedes Teilnehmers. Ändert sich eine Quelle, eine Akte, eine
+    Aufgabe oder ein Projekt, gilt der gemerkte Stand nicht mehr (`akten_routes.nach_stand_gemerkt`).
+    """
+    from .akten_routes import nach_stand_gemerkt
+    eigene = list(eigene)
+    schluessel = (termin.uid, termin.beginn.isoformat(), termin.ende.isoformat() if termin.ende else '', termin.titel,
+                  termin.ort, tuple(termin.teilnehmer), termin.notiz, termin.episode_id or '', termin.ganztaegig,
+                  jetzt.strftime('%Y-%m-%dT%H'), tuple(eigene), nur_teilnehmer)
+    return nach_stand_gemerkt(app, 'terminvorbereitung', schluessel, lambda: vorbereiten(
+        termin, akten=akten, episodes=app.state.episodes, eigene=eigene, jetzt=jetzt, workspace=workspace,
+        nur_teilnehmer=nur_teilnehmer))
 
 
 def termin_im_gedaechtnis(episodes: Any, uid: str, quelle: str = '') -> tuple[str | None, str]:
@@ -516,4 +540,4 @@ def _projekt(termin: Termin, workspace: Any, episodes: Any, eigene: list[str]) -
         return None
 
 
-__all__ = ['Beleg', 'Hintergrund', 'Person', 'Termin', 'Vorbereitung', 'Zeile', 'vorbereiten']
+__all__ = ['Beleg', 'Hintergrund', 'Person', 'Termin', 'Vorbereitung', 'Zeile', 'vorbereiten', 'vorbereiten_gemerkt']

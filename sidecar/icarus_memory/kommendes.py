@@ -144,8 +144,9 @@ def _vorbereitung(app, eintrag: dict[str, Any], akten: Any, eigene: list[str], j
     if termin is None or not termin.teilnehmer or akten is None:
         return episode_id, ''
     try:
-        v = terminvorbereitung.vorbereiten(termin, akten=akten, episodes=app.state.episodes, eigene=eigene,
-                                           jetzt=jetzt, workspace=getattr(app.state, 'workspace', None))
+        # Für „vorbereitet: …“ genügen die Teilnehmer (`bereit` hängt nur an ihnen).
+        v = terminvorbereitung.vorbereiten_gemerkt(app, termin, akten=akten, eigene=eigene, jetzt=jetzt,
+                                                   workspace=getattr(app.state, 'workspace', None), nur_teilnehmer=True)
     except Exception:  # noqa: BLE001 - der Termin bleibt in der Antwort, nur ohne Vorbereitung
         logger.exception('Termin konnte für die Antwort nicht vorbereitet werden')
         return episode_id, ''

@@ -804,7 +804,7 @@ class Akten:
                 'fristen': [f for f in roh['fristen'] if e['ziel'](f['ref']) not in e['abgelegt']]}
 
     def akte(self, sache: str, *, jetzt: datetime | None = None, alle: bool = False,
-             ansicht: bool = False, nur_offen: bool = False) -> dict[str, Any] | None:
+             ansicht: bool = False, nur_offen: bool = False, namen_der_beteiligten: bool = True) -> dict[str, Any] | None:
         """Die Akte einer Sache für die Anzeige, oder None, wenn keine Quelle zu ihr gehört.
 
         `ansicht`: zusätzlich „Braucht dich“ und den Zeitstrahl (nur die eigene Seite der Akte braucht sie;
@@ -815,6 +815,9 @@ class Akten:
         leer). Für Leser, die viele Akten durchgehen („Worauf warte ich noch?“, Fristen im Briefing und in „Was
         brauche ich morgen?“) und die Namen der wenigen gezeigten Akten danach in einem Durchgang lesen
         (`Bezuege.beschriftungen`). Die Namen aller Beteiligten jeder Akte kosteten dort fast die ganze Zeit.
+
+        `namen_der_beteiligten=False`: Beteiligte ohne Namen (`name` leer); für Leser, die nur Kennung und Anzahl
+        brauchen (Terminvorbereitung, die je Teilnehmer eine ganze Akte liest).
         """
         quellen = self.bezuege.quellen_von(sache) if zerlegen(sache) else []
         roh = self.roh(sache, quellen)
@@ -873,7 +876,7 @@ class Akten:
             return daten
         daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
         daten['stand_der_dinge'] = self._stand_zeigen(roh['stand'], leser, kurz)
-        daten['beteiligte'] = self._beteiligte_zeigen(roh['beteiligte'], lang)
+        daten['beteiligte'] = self._beteiligte_zeigen(roh['beteiligte'], lang, namen=namen_der_beteiligten)
         daten['termine'] = self._termine_zeigen(roh['termine'], jetzt, kurz, leser, termin_gesagt)
         daten['aufgaben'] = mappe._aufgaben(aufgaben, jetzt, lang)
         daten['einordnung'] = self.store.classification_state(ids)
@@ -1230,10 +1233,10 @@ class Akten:
                 'vorher_gesamt': gegenstaende[0]['vorher_gesamt'] if gegenstaende else 0,
                 'weitere': gegenstaende[1:1 + anzahl], 'weitere_gesamt': max(len(gegenstaende) - 1, 0)}
 
-    def _beteiligte_zeigen(self, beteiligte: dict[str, Any], anzahl: int) -> dict[str, Any]:
+    def _beteiligte_zeigen(self, beteiligte: dict[str, Any], anzahl: int, *, namen: bool = True) -> dict[str, Any]:
         eintraege = []
         gezeigt = beteiligte['eintraege'][:max(anzahl, 10)]
-        namen = self.bezuege.beschriftungen([e['sache'] for e in gezeigt])
+        namen = self.bezuege.beschriftungen([e['sache'] for e in gezeigt]) if namen else {e['sache']: '' for e in gezeigt}
         for eintrag in gezeigt:
             art, _ = zerlegen(eintrag['sache']) or ('', '')
             eintraege.append({'sache': eintrag['sache'], 'art': art, 'anzahl': eintrag['anzahl'],

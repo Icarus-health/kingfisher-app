@@ -151,3 +151,29 @@ def test_schnelles_briefing_zeigt_den_fertigen_teil_mit_zwischenstand(api, monke
         assert app.state.logbuch._marke('blick') is not None
     finally:
         logbuch.verbinde(None)
+
+
+def test_terminvorbereitung_einmal_je_stand_und_neu_nach_einer_neuen_mail(core, tmp_path, monkeypatch):  # noqa: F811
+    """Briefing, „Was brauche ich morgen?“ und Kalender lesen denselben Termin: vorbereitet wird einmal je Stand; eine
+    neue Mail des Teilnehmers steht beim nächsten Blick darin."""
+    from icarus_memory import terminvorbereitung
+    from tests.test_source_answers_http import _api
+    from tests.test_terminvorbereitung import ANNA, ICH as LEA_VOLL, _mail, kalender, termin
+    app, client, _ = _api(core, tmp_path, monkeypatch)
+    try:
+        app.state.settings.mail.user = ICH
+        _mail(app, 'Druckdaten', [('Bitte schick mir die Druckdaten.', 'request')], [ANNA, LEA_VOLL], tage=3)
+        kalender(app, termin(tage=1, teilnehmer=(ANNA, LEA_VOLL)))
+        aufrufe = []
+        echt = terminvorbereitung.vorbereiten
+        monkeypatch.setattr(terminvorbereitung, 'vorbereiten', lambda *a, **k: aufrufe.append(1) or echt(*a, **k))
+        erste = client.get('/api/v1/tag/briefing').json()['termine'][0]
+        client.get('/api/v1/tag/briefing')
+        assert len(aufrufe) == 1
+        _mail(app, 'Format', [('Das Plakat hätte ich gern im Format A2.', 'fact')], [ANNA, LEA_VOLL], tage=1)
+        zweite = client.get('/api/v1/tag/briefing').json()['termine'][0]
+        assert len(aufrufe) == 2
+        texte = lambda v: [z['text'] for p in v['personen'] for z in p['will']]  # noqa: E731
+        assert 'Das Plakat hätte ich gern im Format A2.' in texte(zweite) and 'Das Plakat hätte ich gern im Format A2.' not in texte(erste)
+    finally:
+        client.close()
