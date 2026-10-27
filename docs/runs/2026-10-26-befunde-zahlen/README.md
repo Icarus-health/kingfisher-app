@@ -110,7 +110,10 @@ Platz und Lage am Handy.
 ## Zahlen
 
 - Backend gezielt: `test_eine_zahl.py` 10, `test_rueckweg.py` 6, verwandte (`-k task/briefing/morning/project/konten`)
-  653 und 535 grün. Volle Suite: siehe unten.
+  653 und 535 grün. Volle Suite (`-n 4`): 8310 bestanden, 3 übersprungen, 1 rot:
+  `test_gespraech_nachfrage.py::test_zugeordnete_mitschrift_ersetzt_die_nachfrage_und_erscheint_am_termin`. Er hängt an
+  der Wanduhr (Lauf um 02:20 UTC, der Termin liegt dann am Vortag) und ist auf dem Ausgangsstand `d5b0326` ebenso rot;
+  mit diesem Paket hat er nichts zu tun.
 - Oberfläche: `tsc` ohne Befund, 978 Tests grün, `vite build` ok.
 - `probe_seiten_ui.py` hell und dunkel: je 75 Breiten geprüft, 0 nicht in Ordnung.
 
