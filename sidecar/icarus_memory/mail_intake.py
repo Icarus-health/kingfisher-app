@@ -5,6 +5,7 @@ import json
 import time
 from collections import Counter
 
+from .person_sperre import GesperrteQuelle
 from . import logbuch
 from .mail_filter import Decision, excluded_folder, intake_screen
 from .episodes import sql_nicht_ignoriert
@@ -392,10 +393,16 @@ class Intake:
                     identity = 'gmail:'+provider_id if provider_id else (message.uid if item['folder'].upper()=='INBOX' else json.dumps([item['folder'],message.uid]))
                     qualified=replace(message,account_id=account,uid=f'{account}:{message.uid}')
                     beim_speichern=True
-                    with self.episodes.transaction():
-                        result=remember(self.episodes,qualified,claims=claims,source_identity=identity,
-                                        frueher=lambda episode_id,item=item:self._frueher_geholt(item,episode_id))
-                        self._captured(item,result['episode']['id'],result['new'])
+                    try:
+                        with self.episodes.transaction():
+                            result=remember(self.episodes,qualified,claims=claims,source_identity=identity,
+                                            frueher=lambda episode_id,item=item:self._frueher_geholt(item,episode_id))
+                            self._captured(item,result['episode']['id'],result['new'])
+                    except GesperrteQuelle:
+                        # Eine Mail nur von oder an eine gelöschte Person (Sperrvermerk): ausgelassen wie Werbung,
+                        # nicht als Fehler wiederholt (`person_sperre.py`).
+                        with self.episodes.transaction():self._filtered(item,'gesperrt')
+                        continue
                     captured.append(result['episode']['id']); neu+=bool(result['new'])
                     captured.extend(result.get('anhaenge') or ())
             except Exception as fehler:

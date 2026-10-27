@@ -94,7 +94,7 @@ STORE_SPECS: tuple[tuple[str, StoreFactory, set[str]], ...] = (
                                 "working_memory_scan", "task_rechecks", "task_recheck_turn", "episode_mail_headers",
                                  "akten_entscheidungen", "akten_vorschlag_entscheidungen", "projekt_automatik_anlagen",
                                  "projekt_automatik_zuordnungen", "projekt_automatik_sperren",
-                                 "projekt_automatik_stand"} | set(EXTENSION_TABLES)),
+                                 "projekt_automatik_stand", "personen_sperre"} | set(EXTENSION_TABLES)),
     ("tasks", TaskStore, {"tasks", "task_events", "task_requests", "aufgaben_post_mails", "aufgaben_post_getrennt",
                           "aufgaben_post_stand", "aufgaben_auto_geprueft", "aufgaben_auto_zurueck",
                           "aufgaben_auto_einstellung"}),
@@ -121,7 +121,7 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (25 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
+    assert _version(path) == (26 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
     assert _tables(path) == expected
 
 
@@ -496,7 +496,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (25 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
+        assert _version(paths[name]) == (26 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]
@@ -514,7 +514,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             assert actual_snapshot.pop("akten_entscheidungen") == []
             assert actual_snapshot.pop("akten_vorschlag_entscheidungen") == []
             for table in ("projekt_automatik_anlagen", "projekt_automatik_zuordnungen", "projekt_automatik_sperren",
-                          "projekt_automatik_stand"):
+                          "projekt_automatik_stand", "personen_sperre"):
                 assert actual_snapshot.pop(table) == []
             assert actual_snapshot.pop("task_rechecks") == []
             assert actual_snapshot.pop("task_recheck_turn") == [(1, 1)]

@@ -301,10 +301,16 @@ class KalenderGedaechtnis:
             else:
                 ergebnis.ausgeschlossen += 1
             return
-        episode, neu = self.episodes.record(
-            EpisodeKind.EVENT, (termin.summary or "").strip() or "(ohne Titel)", text,
-            Provenance(source_type=SourceType.CALENDAR, source_ref=ref, captured_at=termin.start),
-            occurred_at=termin.start, participants=_teilnehmer(termin), source_key=schluessel, at=at)
+        from .person_sperre import GesperrteQuelle
+        try:
+            episode, neu = self.episodes.record(
+                EpisodeKind.EVENT, (termin.summary or "").strip() or "(ohne Titel)", text,
+                Provenance(source_type=SourceType.CALENDAR, source_ref=ref, captured_at=termin.start),
+                occurred_at=termin.start, participants=_teilnehmer(termin), source_key=schluessel, at=at)
+        except GesperrteQuelle:
+            # Ein Termin nur mit einer gelöschten Person (Sperrvermerk): bleibt im Kalender, kommt nicht herein.
+            ergebnis.ausgeschlossen += 1
+            return
         geaendert = track_source(self.episodes, self.claims, schluessel, episode)
         if (episode.state is EpisodeState.IGNORED and episode.id != (kopf[1] if kopf else None)
                 and self._wiederherstellen(episode.id, ersetzt=True)):

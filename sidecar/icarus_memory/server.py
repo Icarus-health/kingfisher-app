@@ -1462,6 +1462,14 @@ def _close_persistent_state(app: FastAPI) -> None:
             close()
 
 
+def _eigene_fuer_sperre(app: FastAPI) -> None:
+    """Die Personensperre (`person_sperre.py`) muss „ich“ erkennen: Bleibt nach dem Herausnehmen gesperrter
+    Beteiligter nur der Nutzer, wird eine Quelle nicht aufgenommen."""
+    episodes = getattr(app.state, "episodes", None)
+    if episodes is not None and hasattr(episodes, "eigene_adressen"):
+        episodes.eigene_adressen = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
+
+
 def _reopen_persistent_state(app: FastAPI) -> None:
     """Verdrahtet nach einem vollständigen Restore jeden Store neu.
 
@@ -1491,6 +1499,7 @@ def _reopen_persistent_state(app: FastAPI) -> None:
         from .workspace_views import WorkspaceViews
         app.state.workspace_views = WorkspaceViews(data_dir / 'workspace-views.sqlite3')
     app.state.episodes = EpisodeStore(data_dir / "episodes.sqlite3")
+    _eigene_fuer_sperre(app)
     if getattr(app.state, "settings", None) is not None:
         from . import suchindex_routes
         suchindex_routes.anwenden(app)
@@ -1637,6 +1646,7 @@ def create_app(
     if episodes is None:
         episodes = EpisodeStore(_data_dir() / "episodes.sqlite3")
     app.state.episodes = episodes
+    _eigene_fuer_sperre(app)
 
     if proposals is None:
         proposals = ProposalStore(_data_dir() / "proposals.sqlite3")
@@ -6162,6 +6172,10 @@ def create_app(
 
     from .person_merge_api import install_routes as install_person_merge_routes
     install_person_merge_routes(app, guard)
+
+    # Alles zu einer Person: Auskunft, Löschen, Sperrvermerke (Persona-Prüfung, Paket P, D7).
+    from .person_routes import install_routes as install_person_routes
+    install_person_routes(app, guard)
 
     @app.get("/api/v1/memory/graph", dependencies=guard)
     def memory_graph() -> JSONResponse:

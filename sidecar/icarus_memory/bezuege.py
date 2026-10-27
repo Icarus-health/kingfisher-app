@@ -265,6 +265,15 @@ class Register:
     #: Adressen, die die Aufnahme als eigene gekennzeichnet hat („ich“). Nur zum Erkennen des Nutzers (Kreis); geht
     #: nicht in die Kennung ein und ändert keine Bezüge.
     ich_adressen: frozenset[str] = frozenset()
+    #: Prüfsummen gelöschter Personen (`person_sperre.py`): Ihre Erwähnung im Text einer geteilten Quelle wird keine
+    #: Akte. Geht in die Kennung ein, wenn es welche gibt: Löschen oder Aufheben rechnet die Bezüge neu.
+    gesperrt: frozenset[str] = frozenset()
+
+    def name_gesperrt(self, name: str) -> bool:
+        if not self.gesperrt or not str(name or '').strip():
+            return False
+        from .person_sperre import namens_schluessel
+        return namens_schluessel(name) in self.gesperrt
 
     def organisation(self, name: str) -> str:
         """Die Kennung einer erwähnten Organisation. Gibt es genau eine Organisation aus einer Adresse mit demselben
@@ -283,7 +292,7 @@ class Register:
 
     @classmethod
     def bauen(cls, episoden: Iterable[Episode], *, eigene: Iterable[str] = (),
-              projekte: dict[str, str] | None = None) -> 'Register':
+              projekte: dict[str, str] | None = None, gesperrt: Iterable[str] = ()) -> 'Register':
         eigene = [a for a in eigene if a]
         verzeichnis = Verzeichnis()
         ich_namen: set[str] = set()
@@ -299,6 +308,7 @@ class Register:
                     verzeichnis.aufnehmen(nennung)
         domaenen = frozenset(domaene(a).casefold() for a in eigene if domaene(a))
         register = cls(verzeichnis, frozenset(ich_namen), domaenen, dict(projekte or {}))
+        register.gesperrt = frozenset(gesperrt)
         register.token = register._digest()
         register.ich_adressen = frozenset(ich_adressen)
         return register
@@ -308,6 +318,9 @@ class Register:
                                for a in self.verzeichnis.adressen()},
                   'ich': sorted(self.ich_namen), 'domaenen': sorted(self.eigene_domaenen),
                   'projekte': sorted(self.projekte.items())}
+        if self.gesperrt:
+            # Nur wenn es Sperren gibt: Ohne bleibt die Kennung, wie sie war, und nichts wird neu gerechnet.
+            inhalt['gesperrt'] = sorted(self.gesperrt)
         return hashlib.sha256(json.dumps(inhalt, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:24]
 
     def person(self, name: str) -> tuple[str, tuple[str, ...]]:
@@ -454,7 +467,8 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
             if organisation:
                 gefunden.append(Bezug(sache_id('organisation', organisation), 'organisation', 'anker',
                                       rolle=nennung.rolle))
-        elif nennung.name and name_schluessel(nennung.name) not in register.ich_namen:
+        elif nennung.name and name_schluessel(nennung.name) not in register.ich_namen \
+                and not register.name_gesperrt(nennung.name):
             sache, kandidaten = register.person(nennung.name)
             gefunden.append(Bezug(sache, 'person', 'anker', rolle=nennung.rolle, kandidaten=kandidaten,
                                   abhaengig=True))
@@ -469,6 +483,9 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
         if art == 'person':
             # Der Absender ist über seine Adresse schon verknüpft; der Nutzer selbst ist keine Sache.
             if eintrag.get('role') == 'sender':
+                continue
+            if register.name_gesperrt(name):
+                # Eine gelöschte Person (Sperrvermerk): Ihre Erwähnung im Text bleibt, wird aber keine Akte.
                 continue
             kurzname = _quellen_kurzname(episode, name, start, ende, beteiligte)
             if kurzname is not None:
@@ -591,14 +608,17 @@ class Bezuege:
         """Das Verzeichnis; nur neu gebaut, wenn sich Bestand, eigene Adressen oder Projekte geändert haben."""
         projekte = projekte_aus(self.workspace)
         eigene = tuple(sorted(a for a in self._eigene() if a))
+        from .person_sperre import fuer as sperre_fuer
+        gesperrt = sperre_fuer(self.episodes).schluessel()
         with self._register_lock:
             for _ in range(3):
-                stand = (self.episodes.geltender_stand(), eigene, tuple(sorted(projekte.items())))
+                stand = (self.episodes.geltender_stand(), eigene, tuple(sorted(projekte.items())), gesperrt)
                 if self._register is not None and self._register_stand == stand:
                     return self._register
                 # Gebaut wird seitenweise und ohne den Speicher zu sperren; hat sich der Bestand währenddessen
                 # geändert, gilt der Bau nicht als aktuell und wird wiederholt.
-                register = Register.bauen(self.episodes.each_geltende(), eigene=eigene, projekte=projekte)
+                register = Register.bauen(self.episodes.each_geltende(), eigene=eigene, projekte=projekte,
+                                          gesperrt=gesperrt)
                 if self.episodes.geltender_stand() == stand[0]:
                     self._register, self._register_stand = register, stand
                     return register

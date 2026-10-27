@@ -46,7 +46,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
 from .migrations import (
     IndexContract,
@@ -650,7 +650,7 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False, vorschlaege=False, automatik=False) -> None:
+                entscheidungen=False, vorschlaege=False, automatik=False, sperre=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
@@ -664,6 +664,10 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         from . import projekt_automatik
         extra_tables.update(projekt_automatik.TABLES)
         extra_keys.update(projekt_automatik.PRIMARY_KEYS)
+    if sperre:
+        from . import person_sperre
+        extra_tables.update(person_sperre.TABLES)
+        extra_keys.update(person_sperre.PRIMARY_KEYS)
     if mail_headers:
         from . import mail_header_index
         extra_tables.update(mail_header_index.TABLES)
@@ -869,11 +873,11 @@ def _migrate_v20(connection):
 
 
 def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False,
-               automatik=False):
+               automatik=False, sperre=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
                 task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
-                vorschlaege=vorschlaege, automatik=automatik)
+                vorschlaege=vorschlaege, automatik=automatik, sperre=sperre)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -935,6 +939,18 @@ def _verify_v25(connection):
                 automatik=True)
 
 
+def _migrate_v26(connection):
+    # Sperrvermerke (Persona-Prüfung, Paket P, D7): Wen der Nutzer gelöscht hat, legt das nächste Einlesen nicht
+    # wieder an. Nur Prüfsummen und ein Anzeigename, nie die Daten selbst (`person_sperre.py`).
+    from .person_sperre import migrate
+    migrate(connection)
+
+
+def _verify_v26(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True,
+                automatik=True, sperre=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -961,6 +977,7 @@ _MIGRATIONS = (
     Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
     Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
     Migration(25, "projekt_automatik", _migrate_v25, _verify_v25),
+    Migration(26, "personen_sperre", _migrate_v26, _verify_v26),
 )
 
 
@@ -981,6 +998,9 @@ class EpisodeStore:
         self._teilnehmer_zwischen = Zwischenspeicher(16)
         self._teilnehmer_alle: dict[bool, tuple] = {}
         self._teilnehmer_sperre = threading.Lock()
+        #: Die eigenen Adressen (Einstellungen), für die Personensperre: Bleibt nach dem Herausnehmen gesperrter
+        #: Beteiligter nur „ich“, wird die Quelle nicht aufgenommen. Der Server setzt das; ohne gilt jeder als fremd.
+        self.eigene_adressen: Callable[[], Iterable[str]] | None = None
         try:
             with self._lock:
                 run_migrations(
@@ -1143,6 +1163,12 @@ class EpisodeStore:
         Episode käme erneut in die Verdichtung, und der Nutzer bekäme Vorschläge
         vorgelegt, die er längst entschieden hat.
         """
+        # Gelöschte Personen (Sperrvermerk, `person_sperre.py`): Sie fallen aus den Beteiligten; betrifft die Quelle
+        # außer dem Nutzer nur sie, wird sie nicht aufgenommen (`GesperrteQuelle`).
+        if participants or contacts:
+            gefiltert, kontakte, entfernt = self._ohne_gesperrte(participants, contacts)
+            if entfernt:
+                participants, contacts = gefiltert, kontakte
         metadata_digest = source_metadata_digest({
             "kind": kind.value, "title": title,
             "occurred_at": occurred_at.isoformat() if occurred_at else None,
@@ -1257,6 +1283,11 @@ class EpisodeStore:
         späteres, gleichlautendes Einlesen keine zweite Fassung anlegt, und die
         Stützgeneration steigt, damit die Auswertung die Quelle neu ansieht.
         """
+        from .person_sperre import GesperrteQuelle
+        try:
+            participants, contacts, _ = self._ohne_gesperrte(participants, contacts)
+        except GesperrteQuelle:  # nur gesperrte Nachträge: nichts zu ergänzen
+            return self.get(episode_id)
         with self.transaction():
             episode = self.get(episode_id)
             if episode.state is EpisodeState.IGNORED:
@@ -1279,6 +1310,16 @@ class EpisodeStore:
                 (json.dumps(document, ensure_ascii=False),
                  source_metadata_digest(document) if row[0] else "", episode_id))
             return episode
+
+    def _ohne_gesperrte(self, participants, contacts) -> tuple[list[str], list[dict[str, Any]], bool]:
+        from .person_sperre import fuer
+        eigene = ()
+        if self.eigene_adressen is not None:
+            try:
+                eigene = list(self.eigene_adressen() or ())
+            except Exception:  # noqa: BLE001 - ohne eigene Adressen gilt jeder als fremd
+                eigene = ()
+        return fuer(self).filtern(participants, contacts, eigene)
 
     def remove_contacts(self, episode_id: str, contacts: list[dict[str, Any]],
                         participants: list[str]) -> Episode:
