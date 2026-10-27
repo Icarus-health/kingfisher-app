@@ -34,6 +34,9 @@ def _mail(app, titel, text, *, von, an=(), cc=(), stunden=2, schluessel=None):
         Provenance(SourceType.EMAIL, source_ref=f'test:<{titel}@x.invalid>'),
         participants=teilnehmer_texte(kontakte, absender_text=von), contacts=kontakte,
         occurred_at=JETZT - timedelta(hours=stunden), source_key=schluessel or f'mail:test:{titel}')
+    # Wie die Mailaufnahme: Die Quelle wird die geltende Fassung (und kommt damit in den Suchindex).
+    from icarus_memory.source_versions import track_source
+    track_source(app.state.episodes, app.state.claims, schluessel or f'mail:test:{titel}', episode)
     return episode
 
 
@@ -47,7 +50,8 @@ def welt(tmp_path, monkeypatch):
     nur2 = _mail(app, 'Nebenkosten', 'Hallo Lea,\ndie Nebenkostenabrechnung liegt bei.\nDora Lind',
                  von=DORA, an=[lea], stunden=30)
     geteilt = _mail(app, 'Rechnung 4711',
-                    'Hallo Lea,\nAnna prüft die Rechnung 4711 bis Mittwoch.\nDora Lind bekommt eine Kopie.\nGruß Ben',
+                    'Hallo Lea,\nAnna prüft die Rechnung 4711 bis Mittwoch.\nDora Lind bekommt eine Kopie, '
+                    'Anna (anna.keller@praxis-umbau.example) auch.\nGruß Ben',
                     von=BEN, an=[lea, ANNA], cc=[DORA], stunden=5)
     anna = _mail(app, 'Vollmacht', 'Hallo Lea,\nbitte die Vollmacht schicken.\nAnna', von=ANNA, an=[lea], stunden=3)
     from icarus_memory.model import Provenance as P
@@ -101,7 +105,7 @@ def test_auskunft_ist_zip_mit_html_und_json_nur_zu_ihr(welt):
     entwurf = next(q for q in daten['quellen'] if q['titel'] == 'Entwurf')
     assert 'Entwurf schicken' in ' '.join(entwurf['auszug'])
     geteilt = next(q for q in daten['quellen'] if q['titel'] == 'Rechnung 4711')
-    assert geteilt['auszug'] == ['Dora Lind bekommt eine Kopie.']
+    assert geteilt['auszug'] == ['Dora Lind bekommt eine Kopie, Anna ([Adresse]) auch.']
     assert geteilt['weitere_beteiligte'] == 2
     # Nichts von anderen: weder Adressen noch Sätze ohne sie, weder Annas Mail noch ihre Aufgabe.
     for text in (json.dumps(daten, ensure_ascii=False), seite):
@@ -141,7 +145,7 @@ def test_loeschen_entfernt_alles_und_sperrt(welt):
     geteilt = app.state.episodes.get(d['geteilt'].id)
     assert all(DORA_ADR not in t for t in geteilt.participants)
     assert all(c.get('adresse') != DORA_ADR for c in geteilt.contacts)
-    assert 'Dora Lind bekommt eine Kopie.' in geteilt.body
+    assert 'Dora Lind bekommt eine Kopie' in geteilt.body
     assert any(ANNA_ADR in t for t in geteilt.participants)
     # Ihre Aufgabe weg, Annas bleibt.
     assert app.state.tasks.get(d['aufgabe'].id) is None
@@ -159,7 +163,12 @@ def test_loeschen_laesst_keine_spur_in_suche_und_akten(welt):
     from icarus_memory import source_index
     from icarus_memory.akten_routes import nachfuehren
     nachfuehren(app, warten=True)
-    assert client.get('/api/v1/akten', params={'suche': 'Dora'}).status_code in (200, 404)
+    with app.state.episodes._lock:
+        # Vorbedingung: Ihre Quellen und ihre Adresse stehen im Volltextindex.
+        assert len(app.state.episodes._conn.execute("SELECT episode_id FROM source_index_docs WHERE episode_id IN (?, ?)",
+                                                    (d['nur'].id, d['nur2'].id)).fetchall()) == 2
+        assert app.state.episodes._conn.execute("SELECT COUNT(*) FROM source_index WHERE source_index MATCH ?",
+                                                ('"lind-verwaltung"',)).fetchone()[0] >= 3
     client.post(f'/api/v1/memory/people/{NAME}/loeschen')
     nachfuehren(app, warten=True)
     conn = app.state.episodes._conn
@@ -323,3 +332,35 @@ def test_aufheben_laesst_sich_zuruecknehmen(welt):
     with pytest.raises(GesperrteQuelle):
         _mail(app, 'Nochmal', 'Hallo Lea', von=DORA, an=[f'Lea <{LEA}>'])
     assert client.post(f'/api/v1/personen/sperre/{kennung}/zurueck').status_code == 404
+
+
+def test_bedeutungssuche_liefert_nichts_mehr_und_vergisst_die_vektoren(welt):
+    """Semantische Suche: Ihre Quelle hatte einen Vektor; nach dem Löschen findet die Suche sie nicht, der Vektor ist weg."""
+    import threading
+    from icarus_memory.working_memory_semantic_index import DurableSemanticIndex
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    app, client, d = welt
+    speicher = WorkingMemoryStore(app.state.episodes)
+    for schluessel in ('nur', 'anna'):
+        snapshot = speicher._snapshot(d[schluessel].id)
+        assert speicher.commit(snapshot, [{'start': 0, 'end': len(d[schluessel].body), 'kind': 'fact'}], model='test')
+    index = DurableSemanticIndex(app.state.episodes, 'local-test:' + 'c' * 64)
+    stapel = index.pending(8)
+    assert {r['episode_id'] for r in stapel.refs} == {d['nur'].id, d['anna'].id}
+    vektoren = [[1., 0., 0.] if r['episode_id'] == d['nur'].id else [0., 1., 0.] for r in stapel.refs]
+    assert index.commit(stapel, vektoren) == 2
+    assert [r['episode_id'] for r in index.search([1., 0., 0.]).refs] == [d['nur'].id]
+
+    class Dienst:
+        _index = index
+        _lock = threading.RLock()
+    app.state.semantic_search = Dienst()
+    try:
+        assert client.post(f'/api/v1/memory/people/{NAME}/loeschen').json()['vektoren'] == 1
+        assert index.search([1., 0., 0.]).refs == ()
+        assert [r['episode_id'] for r in index.search([0., 1., 0.]).refs] == [d['anna'].id]
+        with index._lock:
+            assert index._conn.execute('SELECT COUNT(*) FROM entries WHERE episode_id=?', (d['nur'].id,)).fetchone()[0] == 0
+    finally:
+        app.state.semantic_search = None
+        index.close()
