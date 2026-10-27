@@ -118,6 +118,9 @@ test("am Handy bekommt die Seite unten Platz in Höhe des Hinweises, und was du 
   assert.match(anzeige, /wurzel\.classList\.add\("g-hinweis-offen"\)/);
   assert.match(anzeige, /wurzel\.style\.setProperty\("--g-hinweis-platz", `\$\{hoehe\}px`\)/);
   assert.match(anzeige, /freiRuecken\(/);
+  // Würde er unten Bedienbares verdecken und oben nicht, steht er oben.
+  assert.match(css, /\.g-hinweis-ort\.g-hinweis-oben \{ top: max\(var\(--g-a5\), env\(safe-area-inset-top\)\); bottom: auto; \}/);
+  assert.match(anzeige, /if \(verdeckt\(r\.top, r\.bottom, r\.left, r\.right\) > 0 && verdeckt\(abstand, abstand \+ r\.height, r\.left, r\.right\) === 0\)/);
 });
 
 // -- Z2: ein Weg zurück, der bleibt -----------------------------------------------------------------------------------

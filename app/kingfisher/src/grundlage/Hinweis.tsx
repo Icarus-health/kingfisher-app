@@ -132,10 +132,34 @@ export function HinweisAnzeige({ ort = hinweise }: { ort?: HinweisOrt }) {
   </div>;
 }
 
-/** Liegt das zuletzt Bediente unter dem Hinweis (am Handy unten), rückt die Seite es darüber. */
+const BEDIENBAR = "button, a[href], input, select, textarea, summary, [tabindex='0'], [role=button], [role=switch]";
+
+/** Wie viele bedienbare Dinge eine Fläche des Bildschirms verdeckt (der Hinweis selbst zählt nicht). */
+function verdeckt(oben: number, unten: number, links: number, rechts: number): number {
+  let n = 0;
+  for (const e of document.querySelectorAll(BEDIENBAR)) {
+    if (e.closest(".g-hinweis-ort")) continue;
+    const b = e.getBoundingClientRect();
+    if (b.width && b.height && b.bottom > oben && b.top < unten && b.right > links && b.left < rechts) n += 1;
+  }
+  return n;
+}
+
+/** Am Handy (bis 700 px): Der Hinweis steht dort, wo er nichts Bedienbares verdeckt, unten oder oben; liegt das zuletzt
+ * Bediente trotzdem darunter, rückt die Seite es darüber (unten ist dafür Platz, `g-hinweis-offen`). */
 function freiRuecken(hinweis: HTMLElement, bedient: Element | null) {
+  const ort = hinweis.parentElement;
+  const schmal = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 700px)").matches;
+  if (ort && schmal) {
+    ort.classList.remove("g-hinweis-oben");
+    const r = hinweis.getBoundingClientRect();
+    const abstand = window.innerHeight - r.bottom;
+    if (verdeckt(r.top, r.bottom, r.left, r.right) > 0 && verdeckt(abstand, abstand + r.height, r.left, r.right) === 0)
+      ort.classList.add("g-hinweis-oben");
+  }
   if (!bedient || !bedient.isConnected || bedient.closest(".g-hinweis-ort")) return;
-  const oben = hinweis.getBoundingClientRect().top;
-  const unten = bedient.getBoundingClientRect().bottom;
-  if (unten > oben - 8 && unten < window.innerHeight + 1) window.scrollBy({ top: unten - oben + 16, behavior: "auto" });
+  const h = hinweis.getBoundingClientRect();
+  const b = bedient.getBoundingClientRect();
+  if (b.bottom > h.top - 8 && b.top < h.bottom + 8 && b.bottom < window.innerHeight + 1)
+    window.scrollBy({ top: ort?.classList.contains("g-hinweis-oben") ? -(h.bottom - b.top + 16) : b.bottom - h.top + 16, behavior: "auto" });
 }

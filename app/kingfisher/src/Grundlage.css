@@ -348,10 +348,12 @@
 .g-hinweis-knopf:focus-visible { outline: 2px solid var(--g-hinweis-tinte); outline-offset: -2px; }
 .g-hinweis[data-fehler] { background: var(--g-rot); }
 @keyframes g-hinweis-kommt { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-/* Am Handy verdeckt der Hinweis nichts (Paket Z3): Solange er steht, hat die Seite unten Platz in seiner Höhe
-   (`--g-hinweis-platz`, gesetzt in Hinweis.tsx); was man gerade bedient hat, rückt darüber. */
+/* Am Handy verdeckt der Hinweis nichts (Paket Z3): Er steht unten oder, wenn er dort Bedienbares verdecken würde, oben;
+   solange er steht, hat die Seite unten Platz in seiner Höhe (`--g-hinweis-platz`, gesetzt in Hinweis.tsx), und was man
+   gerade bedient hat, rückt aus ihm heraus. */
 @media (max-width: 700px) {
   html.g-hinweis-offen body { padding-bottom: calc(var(--g-hinweis-platz, 0px) + var(--g-a5)); }
+  .g-hinweis-ort.g-hinweis-oben { top: max(var(--g-a5), env(safe-area-inset-top)); bottom: auto; }
 }
 
 /* Knöpfe in drei Stufen. Gefüllt: genau einer je Ansicht. Getönt: der zweite. Schlicht: nur Text. */
