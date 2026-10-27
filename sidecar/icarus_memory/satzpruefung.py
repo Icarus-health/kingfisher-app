@@ -311,6 +311,9 @@ _STUNDE_MUSTER = r'(ein|eins|zwei|drei|vier|fünf|fuenf|sechs|sieben|acht|neun|z
 #: Tageszeit nach der Uhrzeit: macht „halb sieben“ oder „sechs Uhr“ erst eindeutig.
 _TAGESZEIT = r'(?:\s+(?:Uhr\s+)?(morgens|früh|frueh|vormittags|nachmittags|abends))'
 _HALB = re.compile(r'\bhalb\s+' + _STUNDE_MUSTER + r'\b' + _TAGESZEIT + '?', re.I)
+#: „Viertel nach sieben“ = 7:15, „Viertel vor acht“ = 7:45 (Paket S, offener Rest aus A-I); wie „halb“ mit zwei Lesarten.
+_VIERTEL_NACH = re.compile(r'\bViertel\s+nach\s+' + _STUNDE_MUSTER + r'\b' + _TAGESZEIT + '?', re.I)
+_VIERTEL_VOR = re.compile(r'\bViertel\s+vor\s+' + _STUNDE_MUSTER + r'\b' + _TAGESZEIT + '?', re.I)
 _WORT_UHR = re.compile(r'\b' + _STUNDE_MUSTER.replace('|1[0-2]|0?[1-9]', '') + r'\s+Uhr\b' + _TAGESZEIT + '?', re.I)
 _ZIFFER_UHR_TAGESZEIT = re.compile(r'(?<![\d.:])(1[0-2]|0?[1-9])\s*Uhr' + _TAGESZEIT, re.I)
 #: „um 18.00“ ohne „Uhr“: nach „um“ oder „gegen“ eine Uhrzeit, kein Datum (dem folgte ein Punkt oder eine Jahreszahl).
@@ -345,7 +348,8 @@ class _Wortzeit:
 def _uhrzeiten_in_worten(text: str) -> tuple[str, list[_Wortzeit]]:
     """Schreibt eindeutige Uhrzeiten in Worten als „18:30 Uhr“ und nennt die mehrdeutigen.
 
-    „halb sieben abends“ = 18:30, „sechs Uhr abends“ = „6 Uhr abends“ = 18:00, „um 18.00“ = 18:00. Ohne Tageszeit
+    „halb sieben abends“ = 18:30, „Viertel nach sieben abends“ = 19:15, „Viertel vor acht morgens“ = 7:45, „sechs Uhr
+    abends“ = „6 Uhr abends“ = 18:00, „um 18.00“ = 18:00. Ohne Tageszeit
     bleibt „halb sieben“ stehen und wird als mehrdeutig gemeldet: 6:30 oder 18:30. Was davon gilt, entscheidet nur ein
     Beleg, der genau eine der beiden Uhrzeiten trägt (`_wortzeiten_aufloesen`). Ziffern ohne Tageszeit („7 Uhr“)
     bleiben, wie sie sind: 7:00.
@@ -368,11 +372,13 @@ def _uhrzeiten_in_worten(text: str) -> tuple[str, list[_Wortzeit]]:
             return f'{zeit[0]}:{zeit[1]:02d} Uhr' if zeit else t.group(0)
         return lesen
 
+    ersetzen(_VIERTEL_NACH, eindeutig(15, 0))
+    ersetzen(_VIERTEL_VOR, eindeutig(45, 1))
     ersetzen(_HALB, eindeutig(30, 1))
     ersetzen(_WORT_UHR, eindeutig(0, 0))
     ersetzen(_ZIFFER_UHR_TAGESZEIT, eindeutig(0, 0))
     offen = []
-    for muster, minute, versatz in ((_HALB, 30, 1), (_WORT_UHR, 0, 0)):
+    for muster, minute, versatz in ((_VIERTEL_NACH, 15, 0), (_VIERTEL_VOR, 45, 1), (_HALB, 30, 1), (_WORT_UHR, 0, 0)):
         for t in muster.finditer(text):
             if not t[2]:
                 offen.append(_Wortzeit(' '.join(t.group(0).split()), _zwei_lesarten(_stunde(t[1]) - versatz, minute),
@@ -735,8 +741,9 @@ _ZULAESSIGKEIT_WENN = re.compile(
     r'\b(?:ist|sind)\s+(?:nur\s+)?(?:zulässig|zulaessig|gestattet|erlaubt)\s*,?\s+wenn\b', re.I)
 _PASSIV = re.compile(r'\b([a-zäöüß]+)\s+werden\b')
 _FEHLT = re.compile(r'(?:(?:die|der|das|eine|ein)\s+)?([a-zäöüß]+)\s+(?:liegt|liegen)\s+(?:noch\s+)?nicht\s+vor')
+#: „Viertel nach sieben“ ist eine Uhrzeit, kein Zeitrahmen „nach …“ (Paket S, offener Rest aus A-I).
 _ZEITRAHMEN = re.compile(
-    r'\b(?P<relation>vor|nach|während|waehrend|bevor|nachdem)\s+'
+    r'(?<!viertel )\b(?P<relation>vor|nach|während|waehrend|bevor|nachdem)\s+'
     r'(?:(?:der|dem|den|die|das|des|einer|einem|eines)\s+)?'
     r'(?:(?P<adjektiv>[a-zäöüß]+(?:e|en|em|er|es))\s+)?'
     r'(?!(?:darf|dürfen|duerfen|ist|sind|war|waren|wird|werden|wurde|wurden|hat|haben|'

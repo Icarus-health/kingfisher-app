@@ -348,3 +348,48 @@ def test_eingetragene_oeffentliche_seiten_ruft_der_zeitplan_nur_mit_schalter_ab(
     client.put("/api/v1/darf/quellen", json={"an": True})
     client.post("/schedule/run")
     assert len(abrufe) == 2
+
+
+# -- Offener Rest aus A-I: „Viertel nach“ und „Viertel vor“ in der Satzprüfung -----------------------------------------
+
+
+import pytest  # noqa: E402
+
+from icarus_memory.satzpruefung import Beleg, Satz, satz_pruefen  # noqa: E402
+
+_QZ = datetime(2026, 10, 23, 19, 48, tzinfo=timezone.utc)
+
+
+def _urteil(satz: str, quelle: str):
+    return satz_pruefen(Satz(satz, ("q",)), {"q": Beleg("q", quelle, _QZ)})
+
+
+@pytest.mark.parametrize(("quelle", "satz"), [
+    ("Wir treffen uns um Viertel nach sieben abends am Tor.", "Wir treffen uns um 19:15 Uhr am Tor."),
+    ("Wir treffen uns um 19:15 Uhr am Tor.", "Wir treffen uns um Viertel nach sieben abends am Tor."),
+    ("Abfahrt um Viertel vor acht morgens am Tor.", "Die Abfahrt ist um 7:45 Uhr am Tor."),
+    ("Die Abfahrt ist um 7:45 Uhr am Tor.", "Abfahrt um Viertel vor acht morgens am Tor."),
+    # Ohne Tageszeit: nur, wenn der Beleg genau eine Lesart trägt oder denselben Wortlaut.
+    ("Wir treffen uns um 18:15 Uhr am Tor.", "Wir treffen uns um Viertel nach sechs am Tor."),
+    ("Wir treffen uns um Viertel vor neun am Tor.", "Wir treffen uns um Viertel vor neun am Tor."),
+    ("Wir treffen uns um 12:45 Uhr am Tor.", "Wir treffen uns um Viertel vor eins am Tor."),
+])
+def test_viertel_nach_und_viertel_vor_bestehen_wo_eindeutig(quelle, satz) -> None:
+    urteil = _urteil(satz, quelle)
+    assert urteil.bestanden, urteil
+
+
+@pytest.mark.parametrize(("quelle", "satz"), [
+    # Gegenrichtung: eine falsche Zeit fällt weiter.
+    ("Wir treffen uns um 19:15 Uhr am Tor.", "Wir treffen uns um Viertel vor sieben abends am Tor."),
+    ("Wir treffen uns um 19:45 Uhr am Tor.", "Wir treffen uns um Viertel nach sieben abends am Tor."),
+    ("Wir treffen uns um Viertel nach sieben abends am Tor.", "Wir treffen uns um 7:15 Uhr am Tor."),
+    ("Wir treffen uns um Viertel nach sieben am Tor.", "Wir treffen uns um 19:15 Uhr am Tor."),
+    ("Wir treffen uns um 18:15 Uhr und um 6:15 Uhr am Tor.", "Wir treffen uns um Viertel nach sechs am Tor."),
+    ("Wir treffen uns um 18:30 Uhr am Tor.", "Wir treffen uns um Viertel nach sechs am Tor."),
+])
+def test_falsche_viertelstunde_faellt_weiter(quelle, satz) -> None:
+    urteil = _urteil(satz, quelle)
+    assert not urteil.bestanden
+    # Verworfen an der Uhrzeit, nicht an etwas anderem (sonst fiele der Satz aus dem falschen Grund).
+    assert urteil.gruende and not any("gibt es nicht" in g for g in urteil.gruende), urteil.gruende
