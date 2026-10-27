@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from icarus_memory.calendar_memory import KalenderGedaechtnis, fenster
 from icarus_memory.connectors.calendar import Event
-from icarus_memory.model import Provenance, SourceType
+from icarus_memory.model import Provenance, SourceType, user_timezone
 from icarus_memory.nachbereitung import MAX_KARTEN, externe, frage_zu, offene
 from tests.test_context_identity import core  # noqa: F401 - Fixture
 from tests.test_nachbereitung import JETZT, Kalender, _offen, _vorbei
@@ -111,7 +111,9 @@ def test_zugeordnete_mitschrift_ersetzt_die_nachfrage_und_erscheint_am_termin(co
         KalenderGedaechtnis(app.state.episodes, app.state.claims).abgleichen(
             'k', 'Arbeit', [termin], von, bis, at=datetime.now(timezone.utc))
         assert len(_offen(client)) == 1
-        lokal = termin.start.astimezone()
+        # Der Dateiname kommt vom Aufnahmeprogramm auf dem Rechner des Nutzers, also in dessen Zeitzone. Die
+        # Rechnerzone des Testlaufs (UTC auf der CI) gab um Mitternacht einen anderen Tag als die Zeitzone des Nutzers.
+        lokal = termin.start.astimezone(user_timezone() or timezone.utc)
         name = f'{lokal:%Y-%m-%d %H.%M} Abstimmung Druck.txt'
         anna = 'Anna Keller: Guten Tag.\nIch: Hallo.\nAnna Keller: Wir schicken das Angebot.\nIch: Danke.\n'
         anmeldung = client.post('/api/v1/transkripte/ordner', json={'modus': 'waehlen'}).json()['pick_request']['id']
