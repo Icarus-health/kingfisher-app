@@ -151,7 +151,7 @@ Beteiligten ist jetzt einer für alle Adressen (`None`), nicht einer für die ge
 
 - Neue Tests: 55 Backend, 6 Oberfläche. Oberfläche: `tsc` ohne Befund, 962/962 Tests, `vite build` grün.
 - `probe_seiten_ui.py` hell und dunkel: je 75 Breiten geprüft, 0 nicht in Ordnung.
-- Volle Suite (`sidecar/tests`, `messlatte/tests`, `-n 4`): siehe unten.
+- Volle Suite (`sidecar/tests` und `messlatte/tests`, `-n 4`): 8.598 bestanden, 3 übersprungen, 0 rot (13:27 min).
 
 ## Sabotageproben
 
