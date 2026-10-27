@@ -18,6 +18,7 @@ import { DocumentImport } from "./DocumentImport";
 import { MemoryFolders } from "./MemoryFolders";
 import { MemorySearch } from "./MemorySearch";
 import { Leer, Seitenkopf, Segmente } from "./grundlage";
+import { PROJEKTE_ORT } from "./projekteOrt";
 import "./MemoryWorkspace.css";
 import "./Gedaechtnis.css";
 
@@ -27,7 +28,6 @@ const FILTERS: Array<{ id: FilterId; label: string; icon: "people" | "project" |
   { id: "search", label: "Suchen", icon: "brain" },
   { id: "areas", label: "Bereiche", icon: "brain" },
   { id: "people", label: "Menschen", icon: "people" },
-  { id: "projects", label: "Projekte", icon: "project" },
   { id: "documents", label: "Dokumente", icon: "document" },
 ];
 const MORE_FILTERS: typeof FILTERS = [
@@ -296,6 +296,8 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
           {MORE_FILTERS.map(item => <button type="button" disabled={reviewSubmitting} key={item.id} aria-pressed={section === "browse" && filter === item.id} onClick={() => {updateBrowse({tab:item.id,q:"",page:1,people:"people"});zumAnfang();}}>{item.label}</button>)}
           <button type="button" disabled={reviewSubmitting} aria-pressed={section === "support"} onClick={() => {navigate("/memory?view=support");zumAnfang();}}>Aussagen prüfen</button>
           <button type="button" disabled={reviewSubmitting} aria-pressed={section === "status"} onClick={() => {navigate("/memory?view=status");zumAnfang();}}>Verarbeitung & Verlauf</button>
+          {/* Projekte haben einen Ort: unter Aufgaben, wo man sie anlegt und ihre Aufgaben sieht (Paket H, H2). */}
+          <a href={PROJEKTE_ORT}>Projekte unter Aufgaben</a>
           <a href="/settings#ki">KI-Zugänge & Modelle</a>
         </nav>
       </main>

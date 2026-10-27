@@ -75,6 +75,7 @@ import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK
 import {TaskRetryReview} from './TaskRetryReview';
 import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
 import {gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
+import { PROJEKTE_ORT, projekteImGedaechtnis } from "./projekteOrt";
 
 
 
@@ -643,7 +644,8 @@ const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
 function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Die Aufgabenseite zeigt Aufgaben, nicht Bedienung: Suche filtert beim Tippen, die Liste lädt selbst nach, leere
   // Gruppen und Nullzähler entfallen, „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist.
-  const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => new URLSearchParams(window.location.search).get("pruefen") === "1" ? "review" : "tasks");
+  // „?view=projects“ öffnet die Projekte: ihr einer Ort (Paket H, H2, `projekteOrt.ts`).
+  const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => { const q = new URLSearchParams(window.location.search); return q.get("pruefen") === "1" ? "review" : q.get("view") === "projects" ? "projects" : "tasks"; });
   const [board,setBoard] = useState(false);
   const [projektFormular, setProjektFormular] = useState(false);
   const [groupTime,setGroupTime] = useState(()=>new Date());
@@ -910,7 +912,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>
         {panel === "projects" && (projects.length ? <Gruppe className="workspace-project-list">{projects.map(project=><Zeile key={project.id} onClick={()=>setProjectId(project.id)} aktiv={projectId===project.id} titel={project.name} neben={project.description || undefined} wert={project.status === "done" ? "Erledigt" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : project.status === "idea" ? "Idee" : "Aktiv"} />)}</Gruppe> : projectError ? null : <Leer className="task-empty" zeichen="project" satz="Noch keine Projekte." />)}
         {projectError ? projectsFailedLine : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} onFormular={setProjektFormular} />}
-        {panel === "projects" && projectId && <div className="workspace-project-actions"><Segmente kompakt label="Darstellung" optionen={[{wert: "liste", titel: "Liste"}, {wert: "board", titel: "Board"}]} wert={board ? "board" : "liste"} onWahl={wert => setBoard(wert === "board")} /><a className="g-knopf-schlicht" href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
+        {panel === "projects" && projectId && <div className="workspace-project-actions"><Segmente kompakt label="Darstellung" optionen={[{wert: "liste", titel: "Liste"}, {wert: "board", titel: "Board"}]} wert={board ? "board" : "liste"} onWahl={wert => setBoard(wert === "board")} /><a className="g-knopf-schlicht" href={`/memory/projects/${encodeURIComponent(projectId)}?${new URLSearchParams({return_to: "/memory?tab=projects"})}`}>Akte öffnen</a></div>}
         {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
       </section>
       <div className="task-review" hidden={panel !== "review"}>
@@ -1016,6 +1018,11 @@ export function App() {
   if (akteMatch) return <SachenAkte sache={decodeURIComponent(akteMatch[1])} recentConversation={recentConversation} />;
   const registryMatch = path.match(/^\/memory\/registry\/([^/]+)$/);
   if (registryMatch) return <RegistryProfile key={registryMatch[1]} identifier={decodeURIComponent(registryMatch[1])} recentConversation={recentConversation} />;
+  // Projekte stehen nur unter Aufgaben (Paket H, H2); das frühere „Gedächtnis → Projekte“ führt dorthin.
+  if (path === "/memory" && projekteImGedaechtnis(window.location.search)) {
+    window.history.replaceState({}, "", PROJEKTE_ORT);
+    return <Tasks recentConversation={recentConversation} />;
+  }
   if (path === "/memory") return <MemoryGraph recentConversation={recentConversation} />;
   if (path !== "/today") window.history.replaceState({}, "", "/today");
   return <Morning chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} recentConversation={recentConversation} rememberConversation={rememberConversation} />;

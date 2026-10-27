@@ -68,7 +68,8 @@ test("die Navigation als Streifen rollt nicht und steht nur in Seitenbreite.css"
   }
   const css = ohneKommentare(quelle("Seitenbreite.css"));
   assert.match(css, /@media \(max-width: 900px\) \{[\s\S]*\.shell > \.sidebar nav \{[^}]*flex-wrap: wrap;[^}]*overflow: visible;/);
-  // Unter 700 px nur Symbole, der aktive Bereich mit Namen; die Namen werden nie abgeschnitten.
-  assert.match(css, /@media \(max-width: 700px\) \{[\s\S]*\.shell > \.sidebar \.nav-item:not\(\.active\) span \{ position: absolute;/);
+  // Unter 700 px (am Handy) eine feste, beschriftete Leiste unten statt Symbolen ohne Namen (Paket H, H2;
+  // tests/handy-leiste.test.mjs); die Namen werden nie abgeschnitten.
+  assert.match(css, /@media \(max-width: 700px\) \{[\s\S]*\.shell > \.sidebar \{ position: fixed; inset: auto 0 0 0;/);
   assert.doesNotMatch(css, /\.nav-item[^{]*\{[^}]*text-overflow: ellipsis/);
 });

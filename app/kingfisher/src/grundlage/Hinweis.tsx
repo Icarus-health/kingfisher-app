@@ -145,11 +145,26 @@ function verdeckt(oben: number, unten: number, links: number, rechts: number): n
   return n;
 }
 
-/** Am Handy (bis 700 px): Der Hinweis steht dort, wo er nichts Bedienbares verdeckt, unten oder oben; liegt das zuletzt
- * Bediente trotzdem darunter, rückt die Seite es darüber (unten ist dafür Platz, `g-hinweis-offen`). */
+/** Die feste Navigationsleiste am Handy, wenn sie zu sehen ist (Paket H, H2). */
+function festeLeiste(): HTMLElement | null {
+  const leiste = document.querySelector<HTMLElement>(".shell > .sidebar > .handy-leiste");
+  return leiste && leiste.getBoundingClientRect().height > 0 ? leiste : null;
+}
+
+/** Am Handy (bis 700 px): Mit der Navigationsleiste unten hat der Hinweis einen festen Platz direkt darüber (Paket H, H2).
+ * Lag dort etwas Bedienbares, rückt die Seite um diesen Platz nach oben (unten ist dafür Platz, `g-hinweis-offen`): Was
+ * eben zu sehen war, bleibt zu sehen, und der Hinweis verdeckt nichts Bedienbares. Ohne Leiste (Einrichtung) steht er
+ * unten oder oben, wo er nichts verdeckt; liegt das zuletzt Bediente trotzdem darunter, rückt die Seite es darüber. */
 function freiRuecken(hinweis: HTMLElement, bedient: Element | null) {
   const ort = hinweis.parentElement;
   const schmal = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 700px)").matches;
+  const leiste = schmal ? festeLeiste() : null;
+  if (ort && leiste) {
+    ort.classList.remove("g-hinweis-oben");
+    const platz = { oben: hinweis.getBoundingClientRect().top - 8, unten: leiste.getBoundingClientRect().top };
+    if (verdeckt(platz.oben, platz.unten, 0, window.innerWidth) > 0) window.scrollBy({ top: platz.unten - platz.oben, behavior: "auto" });
+    return;
+  }
   if (ort && schmal) {
     ort.classList.remove("g-hinweis-oben");
     const r = hinweis.getBoundingClientRect();
