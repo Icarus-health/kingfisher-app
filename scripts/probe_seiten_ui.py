@@ -71,9 +71,14 @@ UEBERSTAND_JS = """() => {
   return { seite: document.documentElement.scrollWidth - w, aus: aus.slice(0, 10), breite: w };
 }"""
 
-# Liegt die Seitenleiste über einem Bedienelement der Seite? (Bei schmalem Fenster ist sie ein Streifen oben.)
+# Liegt die Seitenleiste über einem Bedienelement der Seite? (Bis 900 px ist sie ein Streifen oben.) Am Handy (bis 700 px)
+# ist sie eine feste Leiste unten (Paket H, H2): Was beim Rollen darunter liegt, rollt wieder hervor; gemessen wird deshalb
+# am Ende der Seite, ob dort noch etwas unter ihr bleibt (die Seite hat unten Platz in ihrer Höhe).
 VERDECKT_JS = """() => {
   const leiste = document.querySelector('.sidebar'); if (!leiste) return [];
+  const fest = getComputedStyle(leiste).position === 'fixed' && leiste.getBoundingClientRect().top > innerHeight / 2;
+  const vorher = scrollY;
+  if (fest) scrollTo(0, document.documentElement.scrollHeight);
   const l = leiste.getBoundingClientRect(), weg = [];
   for (const el of document.querySelectorAll('main button, main a, main input, main select, main h1')) {
     if (el.closest('[aria-hidden="true"]')) continue;
@@ -83,6 +88,7 @@ VERDECKT_JS = """() => {
     const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
     if (r.left < l.right - 1 && r.right > l.left + 1 && r.top < l.bottom - 1 && r.bottom > l.top + 1) weg.push((el.textContent || el.tagName).trim().slice(0, 40));
   }
+  if (fest) scrollTo(0, vorher);
   return weg.slice(0, 6);
 }"""
 
