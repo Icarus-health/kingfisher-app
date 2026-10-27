@@ -78,10 +78,10 @@ export function CloudAccess() {
   return <section className="source-section cloud-access" aria-labelledby="cloud-access-heading">
     <div className="compact-integration-heading"><div><h2 id="cloud-access-heading">Cloud-Zugänge</h2>
       <p>Anthropic, OpenAI, Mistral und OpenRouter · optional</p></div></div>
-    <p className="source-hint">Speichern schaltet Cloud nicht ein und sendet keine Fragen oder Quellen. Dafür brauchst du eine gesonderte Zustimmung zur jeweiligen Rolle oder zum konkreten Importpaket.</p>
+    <p className="source-hint">Speichern schaltet Cloud nicht ein und sendet keine Fragen oder Quellen. Dafür stimmst du eigens zu: unter „Was Kingfisher darf“ oder beim Einordnen deiner Mails.</p>
     {loadingError ? <p role="alert">Die Cloud-Einstellungen konnten nicht geladen werden. <button type="button" className="secondary-action" onClick={() => void load()}>Erneut versuchen</button></p> : null}
-    {state && !state.storage_available ? <p className="model-rec-warn" role="status">Der sichere Schlüsselspeicher ist auf diesem Rechner nicht verfügbar. Schlüssel können hier nicht gespeichert werden.</p> : null}
-    {state?.notice ? <p className="source-hint">{state.notice}</p> : null}
+    {state && !state.storage_available ? <p className="model-rec-warn" role="status">Der sichere Speicher für Schlüssel ist auf diesem Rechner nicht verfügbar. Schlüssel können hier nicht gespeichert werden.</p> : null}
+    {/* Der Satz des Sidecars (`notice`) sagte dasselbe ein zweites Mal (Paket S, Befund 6); er steht nur noch hier oben. */}
     {state?.providers.map(provider => {
       const draft = drafts[provider.id] ?? {apiKey: "", model: vorbelegtesModell(provider)};
       const disabled = busy !== null;

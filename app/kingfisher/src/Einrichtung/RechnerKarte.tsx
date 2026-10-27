@@ -118,7 +118,7 @@ export function RechnerKarte({beiFertig, beiLaden}: {beiFertig?: () => void; bei
     </div> : null}
     {laeuft && laden ? <div className="rechner-laden" role="status" aria-live="polite">
       <p>{ladenLaeuftSatz(laden)}</p>
-      <progress max={100} value={laden.prozent} aria-label="Sprachmodell wird geladen" />
+      <progress max={100} value={laden.prozent} aria-label="Die KI wird geladen" />
     </div> : null}
     {zeigeStart ? <div className="rechner-laden">
       {satz ? <p>{satz}</p> : <p>Es muss nichts geladen werden; Kingfisher übernimmt, was schon da ist.</p>}

@@ -94,12 +94,12 @@ export function ChatGPTAccess() {
 
   const active=state?.accounts.find(a=>a.id===state.active_account);
   return <section className="source-section chatgpt-access" aria-labelledby="chatgpt-title">
-    <header><h2 id="chatgpt-title">Cloud für dein Gedächtnis</h2><p>Optional · Mails nach Freigabe über dein ChatGPT-Abo oder die Claude API einordnen.</p></header>
+    <header><h2 id="chatgpt-title">Cloud für dein Gedächtnis</h2><p>Optional · Mails nach Freigabe über dein ChatGPT-Abo oder deinen Claude-Zugang einordnen.</p></header>
     {state?.connected ? <div className="chatgpt-connected">
       <strong>{state.plan_usage ? "ChatGPT-Abo verbunden" : "Konto verbunden · Abo-Nutzung nicht freigegeben"}</strong>
       <span>{active?.label??"ChatGPT-Konto"}</span>
       <details className="quiet-details"><summary>Konto & Nutzung</summary>
-      <p>Die Nutzung zählt gegen dein ChatGPT-Kontingent. Bei einem Limit pausiert Kingfisher; es verwendet keine zusätzlich bezahlte API als Ersatz.</p>
+      <p>Die Nutzung zählt gegen dein ChatGPT-Kontingent. Bei einem Limit pausiert Kingfisher; es verwendet keinen zusätzlich bezahlten Zugang als Ersatz.</p>
       <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noopener noreferrer">Nutzung in ChatGPT verwalten</a>
       <button type="button" className="secondary-action" disabled={busy} onClick={()=>void disconnect()}>ChatGPT trennen und Verarbeitung widerrufen</button>
       </details>

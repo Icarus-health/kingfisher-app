@@ -150,6 +150,8 @@ export const FACHWOERTER: readonly string[] = [
   "Rolle", "Rollen", "Orchester", "Feed", "Feeds", "RSS", "Atom", "Ollama", "Routing", "Lint", "Suchindex", "FTS", "BM25",
   "Sidecar", "Docker", "Adapter", "Markdown", "JSON", "Prompt", "Kontext", "Inferenz", "Quantisierung", "Parameter", "GiB", "RAM",
   "Median", "Prüfmodell", "Schlüsselspeicher", "Keychain", "Webhook", "Cron", "Zeitplan", "Launch", "Agent", "HTTPS", "URL",
+  // Persona-Prüfung, Paket S, Befund 1: die Wörter, an denen Rentnerin, Ärztin und Student hängen blieben.
+  "Sprachmodell", "Quellenzeit", "Endpunkt", "API-Schlüssel", "Befehl", "Forbidden",
 ];
 
 const WOERTER = FACHWOERTER.map(wort => ({ wort, muster: new RegExp(`(?<![\\p{L}\\p{N}])${wort}(?![\\p{L}\\p{N}])`, "iu") }));
@@ -190,6 +192,10 @@ export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/KontoZeile.tsx", "kontenBereiche.ts",
   // Fassung und Update-Angebot (docs/53): die Zeile unter „Kingfisher und du“ und der Hinweis auf Heute.
   "Fassung.tsx",
+  // Paket S, Befund 1: KI & Modelle, Belege, das Eingabefeld, das Laden der KI und der Stand des Sortierens.
+  "CloudAccess.tsx", "ChatGPTAccess.tsx", "BefundeAnsicht.tsx", "CommandBar.tsx", "verarbeitung.ts", "MemoryStatus.tsx",
+  "Einrichtung/rechner.ts", "Einrichtung/lernt.ts", "Einrichtung/KingfisherLernt.tsx", "Einrichtung/FertigSchritt.tsx",
+  "Einrichtung/RechnerKarte.tsx", "technik.ts", "Einstellungen/CloudSchalter.tsx",
 ];
 
 /**
@@ -200,4 +206,5 @@ export const AUSNAHMEN: ReadonlyArray<{ datei: string; wort: string; grund: stri
   { datei: "Einrichtung/AutostartWahl.tsx", wort: "Agent", grund: "steht nur in einem Kommentar über dem Schalter" },
   { datei: "PostfachMitAdresse.tsx", wort: "Port", grund: "nur als letzte Möglichkeit, wenn Kingfisher den Mailserver der Domain nicht selbst findet, mit Vorgabe 993" },
   { datei: "postfachWeg.ts", wort: "IMAP", grund: "das Wort, unter dem der Anbieter den Servernamen in seiner Anleitung nennt; danach sucht der Mensch" },
+  { datei: "Einrichtung/rechner.ts", wort: "Ollama", grund: "der Name des Programms, das der Mensch laden und starten muss; ein anderes Wort fände er nicht" },
 ];

@@ -75,7 +75,7 @@ export function laeufeAus(laden: ModellLaden | null): Record<string, Lauf> {
 
 /** Während des Ladens: ein Satz mit Prozent und dass man weitergehen kann. */
 export const ladenLaeuftSatz = (laden: Pick<ModellLaden, "prozent">) =>
-  `Kingfisher lädt sein Sprachmodell: ${laden.prozent} %. Du kannst schon weitermachen; das Laden läuft im Hintergrund weiter, den Stand siehst du auf Heute.`;
+  `Kingfisher lädt seine KI: ${laden.prozent} %. Du kannst schon weitermachen; das Laden läuft im Hintergrund weiter, den Stand siehst du auf Heute.`;
 
 /**
  * Was nach dem Lauf oben steht, genau einmal (Befund 7): alles, teilweise oder nichts eingerichtet. Nie „Fast alles“,

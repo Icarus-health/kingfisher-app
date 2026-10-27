@@ -37,8 +37,8 @@ export function BefundZeile({ befund, arbeitet, onAktion }: {
       <p className="befund-hinweis">Quellenaussagen · keine bestätigten Fakten</p>
       {befund.belege.map((beleg, index) => <div className="befund-beleg" key={`${beleg.episode_id}:${index}`}>
         <blockquote>{beleg.zitat || "Originalzitat nicht verfügbar."}</blockquote>
-        <small className="befund-kopf">{tag(beleg.datum) ? `Quellenzeit: ${tag(beleg.datum)}` : <><strong>Quellenzeit unbekannt</strong></>}
-          {tag(beleg.recorded_at) ? ` · Erfasst: ${tag(beleg.recorded_at)}` : ""}</small>
+        <small className="befund-kopf">{tag(beleg.datum) ? `Vom ${tag(beleg.datum)}` : <><strong>Datum unbekannt</strong></>}
+          {tag(beleg.recorded_at) ? ` · aufgenommen am ${tag(beleg.recorded_at)}` : ""}</small>
         <ProfileSource kind="episode" id={beleg.episode_id} label="Originalquelle prüfen" readOnly />
       </div>)}
     </div> : null}

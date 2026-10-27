@@ -13,7 +13,7 @@ export function sortierStand(a: Pick<MemoryAutomation, "state" | "cloud_modell" 
     return `Automatik eingeschaltet. Die Verarbeitung wartet: ${a.execution_pause_reason}`;
   // Eingeschaltet, aber das Modell lädt noch oder antwortet noch nicht: kein „Pausiert“, es beginnt von selbst (Befund 3).
   if (a.requested && (a.state === "model_missing" || a.state === "local_model_unavailable"))
-    return "An: Kingfisher sortiert deine Quellen selbst, sobald das Sprachmodell auf diesem Rechner bereit ist.";
+    return "An: Kingfisher sortiert deine Quellen selbst, sobald die KI auf diesem Rechner bereit ist.";
   switch (a.state) {
     case "unverified": return "An: Die automatische Verarbeitung ist eingeschaltet. Ob das lokale Modell bereit ist, wird beim nächsten Arbeitsschritt geprüft.";
     case "active": return "An: Kingfisher sortiert deine Quellen selbst, auf diesem Rechner.";

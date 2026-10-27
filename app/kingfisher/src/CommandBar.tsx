@@ -85,14 +85,14 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
           event.preventDefault();
           if (!busy && !disabled && !recording) event.currentTarget.form?.requestSubmit();
         }}
-        placeholder={placeholder ?? 'Nachricht, Notizen oder Befehl …'}
+        placeholder={placeholder ?? 'Frage, Notiz oder Bitte …'}
         ref={element=>{input.current=element;}}
         value={message}
       /> : <input
         aria-label="Kingfisher fragen"
         disabled={busy || disabled || recording}
         onChange={(event) => setMessage(event.target.value)}
-        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher …")}
+        placeholder={placeholder ?? (conversation ? "Deine Nachricht an Kingfisher …" : "Frag Kingfisher …")}
         ref={element=>{input.current=element;}}
         value={message}
       />}

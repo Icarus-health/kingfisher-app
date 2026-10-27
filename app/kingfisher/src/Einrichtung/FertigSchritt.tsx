@@ -101,7 +101,7 @@ export function FertigSchritt({stand, weiter, zurueck, gehe}: SchrittProps) {
       {angebote.einlesen.length ? <label><input type="checkbox" checked={einlesenAn} onChange={event => setEinlesenAn(event.target.checked)} />
         {" "}Mails von {namen(angebote.einlesen)} jetzt und danach regelmäßig einlesen</label> : null}
       {angebote.sortieren ? <label><input type="checkbox" checked={sortierenAn} onChange={event => setSortierenAn(event.target.checked)} />
-        {" "}Quellen auf diesem Rechner sortieren{angebote.sortierenSpaeter ? ", sobald das Sprachmodell bereit ist" : ""}; daraus entstehen nur Vorschläge, zur Tatsache wird etwas erst mit deinem Ja</label> : null}
+        {" "}Quellen auf diesem Rechner sortieren{angebote.sortierenSpaeter ? ", sobald die KI bereit ist" : ""}; daraus entstehen nur Vorschläge, zur Tatsache wird etwas erst mit deinem Ja</label> : null}
       <p className="source-hint">{PAUSIEREN_AUF_HEUTE}</p>
     </fieldset> : null}
     <div className="erststart-hintergrund">

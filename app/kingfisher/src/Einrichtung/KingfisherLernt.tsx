@@ -6,7 +6,7 @@ import "./Einrichtung.css";
 
 function kurzerFortschritt(zeile: LerntZeile) {
   const zahl = (wert: number) => wert.toLocaleString("de-DE");
-  if (zeile.id === "modell") return zeile.fertig === null ? "Sprachmodell wird geladen" : `Sprachmodell: ${zahl(zeile.fertig)} %`;
+  if (zeile.id === "modell") return zeile.fertig === null ? "Die KI wird geladen" : `KI: ${zahl(zeile.fertig)} %`;
   const einheit = zeile.id === "mail" || zeile.id === "sortieren" ? "Mails" : "Quellen";
   if (zeile.fertig !== null && zeile.gesamt !== null) return `${zahl(zeile.fertig)} von ${zahl(zeile.gesamt)} ${einheit}`;
   if (zeile.id === "mail" && zeile.fertig !== null) return `${zahl(zeile.fertig)} Mails bisher gelesen`;

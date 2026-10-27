@@ -19,9 +19,10 @@ test("Heute priorisiert wichtige und verwaiste Punkte vor übrigen Befunden", ()
   assert.match(today, /sachen\.length === 0/);
 });
 
-test("Quellen zeigen Originalzitat, unbekannte Quellenzeit und Erfassungszeit", () => {
+test("Quellen zeigen Originalzitat, unbekanntes Datum und Erfassungszeit", () => {
   assert.match(rows, /beleg\.zitat/);
-  assert.match(rows, /Quellenzeit unbekannt/);
+  assert.match(rows, /Datum unbekannt/);
+  assert.doesNotMatch(rows, /Quellenzeit/, "Paket S, Befund 1: kein Fachwort");
   assert.match(rows, /beleg\.recorded_at/);
   assert.match(rows, /ProfileSource[\s\S]*readOnly/);
   assert.match(rows, /keine bestätigte Aussage/);

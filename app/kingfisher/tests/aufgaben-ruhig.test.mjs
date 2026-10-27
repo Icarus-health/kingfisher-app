@@ -210,7 +210,7 @@ test('ein gefüllter Knopf je Ansicht: offenes Formular und „Zur Prüfung“ l
     let tree = d.render();
     assert.deepEqual(gefuellt(tree), ['Aufgabe']);
     nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe')[0].props.onClick(); tree = d.render();
-    assert.deepEqual(gefuellt(tree), ['Lokal speichern'], 'with the form open its submit is the only filled button');
+    assert.deepEqual(gefuellt(tree), ['Speichern'], 'with the form open its submit is the only filled button');
     assert.equal(nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe')[0].props.className, 'g-knopf-getoent');
     nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(2); tree = d.render();
     nodes(tree, n => n.type?.name === 'Segmente')[0].props.onWahl('review'); tree = d.render();

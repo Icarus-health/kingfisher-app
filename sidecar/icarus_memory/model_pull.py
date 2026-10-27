@@ -121,7 +121,7 @@ def _standard_client() -> httpx.Client:
 
 
 #: Der eine Satz, solange das Laden läuft (Heute, Gespräch, Assistent); `{prozent}` wird eingesetzt.
-LAEDT_SATZ = "Kingfisher lädt noch sein Sprachmodell ({prozent} %)."
+LAEDT_SATZ = "Kingfisher lädt noch seine KI ({prozent} %)."
 
 
 class PullManager:

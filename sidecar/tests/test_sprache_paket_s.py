@@ -174,3 +174,32 @@ def test_jeder_cloudanbieter_hat_ein_vorbelegtes_modell_in_alltagsworten(tmp_pat
             # Speicherbar (Feld) und als Rollenmodell gültig (Mistral, OpenRouter verlangen einen Namen).
             assert muster.fullmatch(modell["id"]) and _MODELLNAME.fullmatch(modell["id"]), modell
             assert modell["id"] not in modell["titel"], "der Titel sagt, wofür es taugt, nicht die Kennung"
+
+
+# -- Befund 1: Kalender-Abo nicht abrufbar, in einem Satz -------------------------------------------------------------
+
+
+def test_abo_ohne_freigabe_sagt_was_los_ist_und_was_zu_tun_ist() -> None:
+    import httpx
+    import pytest
+
+    from icarus_memory.connectors.calendar import CalendarError
+    from icarus_memory.connectors.collections import ICalendarSubscription
+
+    def antwort(status):
+        return httpx.MockTransport(lambda request: httpx.Response(status, text="nein"))
+
+    for status, teil in ((403, "nicht mehr freigegeben"), (401, "nicht mehr freigegeben"), (404, "gibt es ihn nicht mehr"),
+                         (503, "versucht es von selbst wieder")):
+        with pytest.raises(CalendarError) as fehler:
+            ICalendarSubscription("https://kalender.example/abo.ics", transport=antwort(status)).events()
+        satz = str(fehler.value)
+        assert satz.startswith("Der Kalender lässt sich") and teil in satz, satz
+        for fachwort in ("iCalendar", "Forbidden", "403", "HTTP", "Abo nicht erreichbar"):
+            assert fachwort not in satz, (fachwort, satz)
+
+    def kein_netz(request):
+        raise httpx.ConnectError("keine Verbindung")
+    with pytest.raises(CalendarError) as fehler:
+        ICalendarSubscription("https://kalender.example/abo.ics", transport=httpx.MockTransport(kein_netz)).events()
+    assert "nicht erreichbar" in str(fehler.value) and "keine Verbindung" not in str(fehler.value)

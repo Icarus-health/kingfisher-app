@@ -244,7 +244,7 @@ def main() -> int:  # noqa: PLR0915 - eine Probe ist eine lange Folge von Schrit
             pruef['6_laeuft_im_hintergrund_steht_da'] = 'im Hintergrund' in vorher
             bild('05-dieser-rechner-1280')
             start.click()
-            karte.get_by_text('Kingfisher lädt sein Sprachmodell:', exact=False).wait_for(timeout=15000)
+            karte.get_by_text('Kingfisher lädt seine KI:', exact=False).wait_for(timeout=15000)
             weiter = seite.get_by_role('button', name='Weiter', exact=True)
             pruef['6_weiter_sofort'] = weiter.is_enabled()
             pruef['6_kein_bereit_waehrenddessen'] = karte.get_by_text('Alles eingerichtet').count() == 0 \
@@ -260,7 +260,7 @@ def main() -> int:  # noqa: PLR0915 - eine Probe ist eine lange Folge von Schrit
 
             # -- 8: Fertig ----------------------------------------------------------------------------------------
             seite.get_by_role('heading', name='Fertig – dein erstes Briefing entsteht jetzt').wait_for(timeout=15000)
-            seite.get_by_text('Kingfisher lädt sein Sprachmodell:', exact=False).first.wait_for(timeout=15000)
+            seite.get_by_text('Kingfisher lädt seine KI:', exact=False).first.wait_for(timeout=15000)
             hintergrund = seite.locator('.erststart-hintergrund').inner_text()
             pruef['8_nur_verbundenes'] = 'Kingfisher liest deine Mails und Termine.' in hintergrund
             pruef['8_kein_bereit_beim_laden'] = seite.get_by_text('Dein Briefing ist bereit').count() == 0
@@ -281,14 +281,14 @@ def main() -> int:  # noqa: PLR0915 - eine Probe ist eine lange Folge von Schrit
             pruef['9_zeitzone'] = api_morning['timezone'] == 'Europe/Berlin' and pruef['9_kopf'].startswith('Stand ') \
                 and abs(int(pruef['9_kopf'][6:8]) * 60 + int(pruef['9_kopf'][9:11]) - int(erwartet[:2]) * 60 - int(erwartet[3:])) <= 1
             bild('08-briefing-1280')
-            seite.get_by_text('Kingfisher lädt sein Sprachmodell:', exact=False).first.wait_for(timeout=15000)
+            seite.get_by_text('Kingfisher lädt seine KI:', exact=False).first.wait_for(timeout=15000)
             pruef['6_heute_zeigt_fortschritt'] = True
             gespraech = seite.request.post(basis + '/api/v1/conversations', data={'title': 'Probe'}).json()
             gid = gespraech['conversation']['id']
             antwort = seite.request.post(basis + f'/api/v1/conversations/{gid}/messages',
                                          data={'message': 'Was steht heute an?'}).json()
             texte = json.dumps(antwort, ensure_ascii=False)
-            pruef['6_antwort_ehrlich'] = bool(re.search(r'Kingfisher lädt noch sein Sprachmodell \(\d+ %\)', texte))
+            pruef['6_antwort_ehrlich'] = bool(re.search(r'Kingfisher lädt noch seine KI \(\d+ %\)', texte))
             bild('09-heute-laedt-1280')
             halt.set()
             app.state.pull_manager.warte(30)
@@ -298,7 +298,7 @@ def main() -> int:  # noqa: PLR0915 - eine Probe ist eine lange Folge von Schrit
                 time.sleep(0.5)
             stand = seite.request.get(basis + '/api/v1/models/laden').json()
             pruef['7_am_ende'] = (stand['laeuft'], sorted(stand['eingerichtet']), stand['fehlgeschlagen'])
-            seite.get_by_text('Kingfisher lädt sein Sprachmodell:', exact=False).first.wait_for(state='detached', timeout=30000)
+            seite.get_by_text('Kingfisher lädt seine KI:', exact=False).first.wait_for(state='detached', timeout=30000)
             pruef['6_heute_ohne_ladezeile_danach'] = True
             seite.goto(basis + '/willkommen?schritt=modell')
             seite.get_by_text('Alles eingerichtet und geprüft.').wait_for(timeout=20000)
@@ -327,7 +327,7 @@ def main() -> int:  # noqa: PLR0915 - eine Probe ist eine lange Folge von Schrit
             technik.get_by_label('IMAP-Server').fill('127.0.0.1')
             technik.get_by_label('IMAP-Port').fill(str(imap.port))
             technik.get_by_label('Postfachpasswort').fill('vertippt')
-            speichern = technik.get_by_role('button', name='Lokal speichern')
+            speichern = technik.get_by_role('button', name='Speichern')
             speichern.click()
             meldung = technik.locator('[role=alert]')
             pruef['4_zugaenge'] = am_knopf(meldung, speichern)
