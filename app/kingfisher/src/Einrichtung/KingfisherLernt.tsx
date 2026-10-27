@@ -35,7 +35,7 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
   useEffect(() => {
     let lebt = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let vorher: boolean | null = null;
+    let vorher: string | null = null;
     async function lesen() {
       if (document.visibilityState !== "visible") { timer = setTimeout(lesen, abfrageAbstandMs(false)); return; }
       const [intake, akten, hinten, laden] = await Promise.allSettled([api.mailIntake(), api.lernt(), api.hintergrund(), api.modellLaden()]);
@@ -48,7 +48,10 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
       const neu = lerntZeilen(status, stand, hintergrundStand, zuletzt.current.laden);
       setHintergrund(hintergrundStand);
       setZeilen(neu);
-      if (vorher !== neu.length > 0) { vorher = neu.length > 0; meldung.current?.(vorher, neu); }
+      // Gemeldet wird, wenn sich ändert, ob etwas läuft oder welche Zeilen dastehen (die Fertig-Seite zeigt eine Zahl
+      // nur einmal, Paket S, Befund 6).
+      const kennung = `${neu.length > 0}:${neu.map(zeile => zeile.id).join(",")}`;
+      if (vorher !== kennung) { vorher = kennung; meldung.current?.(neu.length > 0, neu); }
       timer = setTimeout(lesen, abfrageAbstandMs(neu.length > 0));
     }
     void lesen();

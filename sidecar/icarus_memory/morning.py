@@ -205,6 +205,40 @@ def _braucht_dich(briefing: dict[str, Any], attention: dict[str, dict[str, Any]]
     return {"aufgaben": int(gezaehlt.get("aufgaben") or 0), "weitere": int(gezaehlt.get("weitere") or 0) + klaerungen}
 
 
+#: Merkmale einer Aussage in Alltagsworten, für den Titel einer Klärung. Nur diese Liste: Ein unbekanntes Merkmal kann
+#: aus einer fremden Quelle stammen (das Modell schlägt es vor) und steht deshalb nicht auf Heute.
+_MERKMALE = {
+    "works_on": "Mitarbeit", "status": "Stand", "has_status": "Stand", "budget": "Budget", "role": "Rolle",
+    "rolle": "Rolle", "project_role": "Rolle im Projekt", "observed_email": "Mailadresse", "email": "Mailadresse",
+    "reports": "Berichtet an", "reports_to": "Berichtet an", "note": "Notiz", "birthday": "Geburtstag",
+    "geburtstag": "Geburtstag", "geburtsdatum": "Geburtstag", "address": "Anschrift", "adresse": "Anschrift",
+    "phone": "Telefon", "telefon": "Telefon", "deadline": "Frist", "frist": "Frist", "employer": "Arbeitgeber",
+    "arbeitgeber": "Arbeitgeber", "wohnort": "Wohnort", "location": "Ort", "anschrift": "Anschrift",
+    "rechnungsanschrift": "Rechnungsanschrift", "lieferanschrift": "Lieferanschrift", "postanschrift": "Anschrift",
+    "telefonnummer": "Telefon", "mailadresse": "Mailadresse", "e-mail": "Mailadresse", "position": "Position",
+    "abteilung": "Abteilung", "firma": "Firma", "zustaendigkeit": "Zuständigkeit", "zuständigkeit": "Zuständigkeit",
+    "ansprechpartner": "Ansprechpartner", "termin": "Termin", "preis": "Preis", "betrag": "Betrag",
+}
+
+
+def klaerung_titel(merkmal: str) -> str:
+    """Der Titel einer offenen Klärung auf Heute: worum es geht („Angabe klären: Anschrift“), ohne Namen und ohne die
+    widersprüchlichen Werte, denn die stammen aus fremden Quellen und Heute wird auch vorgelesen. Ohne bekanntes Merkmal
+    bleibt es beim allgemeinen Titel; gleiche Titel zählt `compose` durch („… (2)“)."""
+    wort = _MERKMALE.get(" ".join(str(merkmal or "").split()).casefold())
+    return f"Angabe klären: {wort}" if wort else "Gedächtnis klären"
+
+
+def gruss(stunde: int) -> str:
+    """Der Gruß zur Tageszeit des Nutzers (`now` ist schon in seiner Zeitzone): morgens bis 12 Uhr, tagsüber bis 18 Uhr,
+    danach und in der Nacht „Guten Abend“. Vorher stand um 19:47 „Guten Tag“ da (Persona-Prüfung, Paket S, Befund 6)."""
+    if 4 <= stunde < 12:
+        return "Guten Morgen"
+    if 12 <= stunde < 18:
+        return "Guten Tag"
+    return "Guten Abend"
+
+
 def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             wetter=None, nutzername: str = "", verlauf: list[str] | None = None) -> dict[str, Any]:
     if os.environ.get("KINGFISHER_FIXTURE", "").lower() == "morning":
@@ -299,15 +333,20 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
     # Morning-Screen verwendet dafür dieselbe bestehende Aufmerksamkeitszeile,
     # ohne einen neuen Review-Screen vorwegzunehmen. Details bleiben bis zur
     # späteren, genehmigten Kläransicht im lokalen API-Bestand.
+    titel_gesehen: dict[str, int] = {}
     for clarification in (dashboard.get("knowledge", {}).get("clarifications") or []):
         reference = str(clarification.get("id") or "")
         if not reference:
             continue
         item_id = _stable_id("clarification", "knowledge", reference, "Gedächtnis klären")
+        titel = klaerung_titel(str(clarification.get("merkmal") or ""))
+        titel_gesehen[titel] = titel_gesehen.get(titel, 0) + 1
+        if titel_gesehen[titel] > 1:
+            titel = f"{titel} ({titel_gesehen[titel]})"
         attention[item_id] = {
             "id": item_id,
             "kind": "need",
-            "title": "Gedächtnis klären",
+            "title": titel,
             "detail": "Widersprüchliche Angaben warten auf deine Einordnung",
             "priority": "Hoch",
             "source": "knowledge",
@@ -461,7 +500,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
     # Der bestätigte Name aus dem Assistenten oder den Einstellungen gilt vor der Umgebung: Wer den angebotenen Namen
     # ändert, wird mit dem geänderten gegrüßt (V3, 25.10.2026; vorher schlug die Umgebung die Datei).
     user = nutzername.strip() or os.environ.get("KINGFISHER_USER_NAME", "").strip()
-    greeting = "Guten Morgen" if now.hour < 12 else "Guten Tag"
+    greeting = gruss(now.hour)
     return {
         "generated_at": now.isoformat(),
         "timezone": str(now.tzinfo),

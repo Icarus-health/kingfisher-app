@@ -216,3 +216,54 @@ def test_ein_gefundener_kalender_heisst_nach_seinem_namen_nicht_nach_dem_server(
     zweiter = kalender_name("", "Privat", "praxis@praxis-fehr.example", ["privat"])
     assert zweiter == "Privat · praxis@praxis-fehr.example"
     assert kalender_name("", "  ", "a@b.example", []) == "Kalender"
+
+
+# -- Befund 6: Texte ------------------------------------------------------------------------------------------------
+
+
+def test_der_gruss_folgt_der_tageszeit_in_der_zeitzone_des_nutzers() -> None:
+    from datetime import date
+    from zoneinfo import ZoneInfo
+
+    from icarus_memory.morning import compose, gruss
+    leer = {"briefing": {"punkte": []}, "calendar": {"items": []}, "mail": {"items": []}, "tasks": {}, "episodes": {},
+            "proposals": {}}
+    # 18:47 UTC ist am 26.10.2026 in Berlin 19:47: Abend, nicht „Guten Tag“.
+    abends = datetime(2026, 10, 26, 18, 47, tzinfo=timezone.utc).astimezone(ZoneInfo("Europe/Berlin"))
+    assert abends.hour == 19
+    assert compose(leer, now=abends, target=date(2026, 10, 26), nutzername="Helga")["greeting"] == "Guten Abend, Helga."
+    assert [gruss(h) for h in (0, 3, 4, 11, 12, 17, 18, 23)] == [
+        "Guten Abend", "Guten Abend", "Guten Morgen", "Guten Morgen", "Guten Tag", "Guten Tag", "Guten Abend", "Guten Abend"]
+
+
+def test_heute_gruesst_ohne_angabe_in_der_eingestellten_zeitzone(tmp_path, monkeypatch) -> None:
+    """Der Container läuft in UTC; der Gruß richtet sich nach der Zeitzone des Nutzers."""
+    from zoneinfo import ZoneInfo
+
+    from icarus_memory.morning import gruss
+    monkeypatch.setenv("KINGFISHER_TIMEZONE", "Pacific/Auckland")
+    app = _app(tmp_path, monkeypatch)
+    erwartet = gruss(datetime.now(timezone.utc).astimezone(ZoneInfo("Pacific/Auckland")).hour)
+    antwort = TestClient(app).get("/api/v1/morning-briefing?post=false").json()["greeting"]
+    assert antwort.startswith(erwartet), (antwort, erwartet)
+
+
+def test_zwei_klaerungen_auf_heute_tragen_je_einen_eigenen_titel_ohne_namen_und_wert() -> None:
+    from datetime import date
+
+    from icarus_memory.morning import compose, klaerung_titel
+    leer = {"briefing": {"punkte": []}, "calendar": {"items": []}, "mail": {"items": []}, "tasks": {}, "episodes": {},
+            "proposals": {}}
+    leer["knowledge"] = {"clarifications": [{"id": "c:1", "merkmal": "rolle"}, {"id": "c:2", "merkmal": "address"},
+                                            {"id": "c:3", "merkmal": "Lieferanschrift laut Kranz GmbH"},
+                                            {"id": "c:4", "merkmal": "x_7f"}]}
+    jetzt = datetime(2026, 10, 26, 8, 0, tzinfo=timezone.utc)
+    titel = [p["title"] for p in compose(leer, now=jetzt, target=date(2026, 10, 26))["needs_you"]
+             if p["source"] == "knowledge"]
+    alle = [klaerung_titel(m) for m in ("rolle", "address", "Lieferanschrift laut Kranz GmbH", "x_7f")]
+    assert alle[:2] == ["Angabe klären: Rolle", "Angabe klären: Anschrift"]
+    # Ein freies Merkmal kann aus der fremden Quelle stammen: es steht nicht auf Heute.
+    assert alle[2] == alle[3] == "Gedächtnis klären"
+    # Heute zeigt drei; gleiche Titel werden durchgezählt.
+    assert len(set(titel)) == len(titel), titel
+    assert all("Kranz" not in t for t in titel)

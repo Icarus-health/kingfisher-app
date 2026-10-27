@@ -3286,10 +3286,13 @@ def create_app(
         # nie den fremden Quelltext oder die behaupteten Werte.
         try:
             clarifications = app.state.knowledge_service.clarifications()
+            # Je Klärung ein eigener Titel (Paket S, Befund 6: zwei hießen beide „Gedächtnis klären“). Mitgegeben wird
+            # nur das Merkmal, und `morning.klaerung_titel` nimmt es nur aus einer festen Liste: kein Name, kein Wert,
+            # nichts aus der fremden Quelle.
             result["knowledge"] = {
                 "pending": len(app.state.knowledge_service.pending()),
                 "clarifications": [
-                    {"id": item["id"]} for item in clarifications
+                    {"id": item["id"], "merkmal": str(item.get("predicate") or "")} for item in clarifications
                 ],
                 "error": None,
             }

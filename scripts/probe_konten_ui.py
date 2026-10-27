@@ -229,7 +229,7 @@ def schritte(seite, neue_seite, bild, schmal, hinweis, basis, pruef) -> None:  #
         bild('2-eigener-bereich')
         seite.get_by_role('button', name='Anlegen').click()
         text = hinweis('Verein').inner_text()
-        assert 'Gemeinsam gehört jetzt zu Verein.' in text, repr(text)
+        assert '„Gemeinsam“ gehört jetzt zum Bereich Verein.' in text, repr(text)
         seite.wait_for_timeout(300)
         assert seite.locator('.konto-bereich').all_inner_texts() == ['Privat', 'Privat', 'Arbeit', 'Arbeit', 'Verein']
 

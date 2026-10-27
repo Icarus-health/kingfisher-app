@@ -97,3 +97,24 @@ test("die Zeiten unter einer Antwort stehen hinter einem zugeklappten „Details
   assert.match(html, /10 s · /);
   assert.equal(renderToStaticMarkup(createElement(AntwortZeile, { zeiten: null })), "", "ohne Zeiten nichts, auch kein „Details“");
 });
+
+// -- Befund 6: Texte ----------------------------------------------------------------------------------------------
+
+test("der Satz unter den Häkchen passt zu ihrer Zahl: kein „beides“ unter einem", async () => {
+  const { pausierenSatz, PAUSIEREN_AUF_HEUTE, schonDaZahlen } = await import("../src/Einrichtung/fertig.ts");
+  assert.equal(pausierenSatz({ einlesen: true, sortieren: true }), PAUSIEREN_AUF_HEUTE);
+  for (const eines of [{ einlesen: true, sortieren: false }, { einlesen: false, sortieren: true }]) {
+    assert.doesNotMatch(pausierenSatz(eines), /beides/);
+    assert.match(pausierenSatz(eines), /auf Heute mit „Pausieren“/);
+  }
+  assert.equal(pausierenSatz({ einlesen: false, sortieren: false }), null);
+  assert.match(quelle("Einrichtung/FertigSchritt.tsx"), /pausierenSatz\(\{einlesen: angebote\.einlesen\.length > 0, sortieren: angebote\.sortieren\}\)/);
+  // Die gelesenen Mails stehen einmal: zeigt „Kingfisher lernt gerade“ sie, fehlt die Kachel.
+  const ordner = { folder: "INBOX", inventory_complete: true, total: 5, captured: 5, duplicates: 0, failed: 0, pending: 0,
+    live_pending: 0, analyzed: 0, analysis_failed: 0, deferred: 0, excluded: 0, categorized: 0, categories_pending: 0, categories_failed: 0 };
+  const intake = { accounts: [{ account_id: "a", label: "A", connected: true, started: true, paused: false, folders: [ordner] }] };
+  assert.deepEqual(schonDaZahlen({ mail: true, kalender: false, intake, termine: null }).map(z => z.titel), ["Mails gelesen"]);
+  assert.deepEqual(schonDaZahlen({ mail: true, kalender: false, intake, termine: null, mailImLernen: true }), []);
+  assert.match(quelle("Einrichtung/FertigSchritt.tsx"), /beiAenderung=\{\(_, zeilen\) => setMailImLernen\(zeilen\.some\(zeile => zeile\.id === "mail"\)\)\}/);
+  assert.match(quelle("Einrichtung/KingfisherLernt.tsx"), /const kennung = `\$\{neu\.length > 0\}:\$\{neu\.map\(zeile => zeile\.id\)\.join\(","\)\}`/);
+});

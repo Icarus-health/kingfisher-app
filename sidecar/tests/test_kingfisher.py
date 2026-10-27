@@ -309,7 +309,8 @@ def test_morning_marks_memory_clarification_as_an_explicit_decision(
 
     morning = client.get("/api/v1/morning-briefing").json()
     clarification = next(item for item in morning["needs_you"] if item["source"] == "knowledge")
-    assert clarification["title"] == "Gedächtnis klären"
+    # Paket S, Befund 6: ein eigener Titel aus dem Merkmal, weiter ohne Namen und Wert.
+    assert clarification["title"] == "Angabe klären: Rolle"
     assert clarification["source_ref"] == dashboard["knowledge"]["clarifications"][0]["id"]
     assert "Kranz" not in str(clarification)
 
