@@ -5421,10 +5421,12 @@ def create_app(
     @app.post("/api/v1/task-candidates/{proposal_id}/accept", dependencies=guard)
     def accept_task_candidate(proposal_id: str, body: TaskCandidateIn):
         try:
+            # Die Herkunft „übernommen“ trägt den Rückweg zur Prüfung, auch Tage später (Paket Z2, Z4).
             return task_candidate_service().accept(proposal_id, title=body.title,
                 project_id=body.project_id, new_project_name=body.new_project_name,
                 due=body.due, waiting_for=body.waiting_for, zuordnung_aus_vorschlag=body.zuordnung_aus_vorschlag,
-                eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None))).to_dict()
+                eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None)),
+                angelegt={'art': 'uebernommen', 'am': datetime.now(timezone.utc).isoformat()}).to_dict()
         except (ProposalError, EpisodeError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:

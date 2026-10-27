@@ -763,6 +763,24 @@ class TaskStore:
                      task.id, row["document"], now().isoformat()))
             return task
 
+    def anlage_zurueckgenommen(self, limit: int = 50) -> list[dict[str, Any]]:
+        """Was Kingfisher selbst angelegt und der Nutzer zurückgenommen hat und was nicht wieder in der Liste steht,
+        jüngste zuerst: der dauerhafte Rückweg neben dem Hinweis (Paket Z2). Je `id`, `title`, `zurueck_am`, `satz`."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT task_id, dokument, zurueck_am FROM aufgaben_auto_zurueck z WHERE task_id IS NOT NULL "
+                "AND dokument IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = z.task_id) "
+                "ORDER BY zurueck_am DESC LIMIT ?", (limit,)).fetchall()
+        ergebnis = []
+        for row in rows:
+            try:
+                task = self._from_row({"document": row["dokument"]})  # type: ignore[arg-type]
+            except (ValueError, KeyError, TypeError):
+                continue
+            ergebnis.append({"id": row["task_id"], "title": task.title, "zurueck_am": row["zurueck_am"],
+                             "satz": str((task.angelegt or {}).get("satz") or "")})
+        return ergebnis
+
     def anlage_wiederherstellen(self, task_id: str) -> tuple[Task, str]:
         """Nimmt das Zurücknehmen zurück: dieselbe Aufgabe wie vorher, und sie gilt nicht mehr als zurückgenommen.
 

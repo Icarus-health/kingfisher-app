@@ -439,6 +439,26 @@ class Durchlauf:
                 fehler.append({'id': proposal_id, 'grund': str(exc)})
         return {'gruppe': gruppe, 'aufgaben': [t.to_dict() for t in angelegt], 'fehler': fehler}
 
+    def zur_pruefung(self, task_id: str) -> dict[str, Any]:
+        """Ein übernommener Vorschlag (einzeln oder mit „Alle übernehmen“) geht zurück zur Prüfung, auch Tage später
+        (Paket Z2, Z4): Die Aufgabe geht, der Vorschlag steht wieder offen da. `KeyError` unbekannt, `LookupError` mit
+        Satz, wenn die Aufgabe nicht aus einem übernommenen Vorschlag stammt oder dir schon gehört (erledigt)."""
+        task = self.tasks.get(task_id)
+        if task is None:
+            raise KeyError(task_id)
+        art = (task.angelegt or {}).get('art')
+        if art not in ('uebernommen', 'alle_uebernehmen') or not task.id.startswith('t-suggestion-'):
+            raise LookupError('Diese Aufgabe stammt nicht aus einem übernommenen Vorschlag; sie bleibt.')
+        if task.status is not TaskStatus.OPEN:
+            raise LookupError('Diese Aufgabe ist schon erledigt oder verworfen; sie bleibt.')
+        self.tasks.anlage_entfernen(task.id)
+        proposal_id = task.id[len('t-suggestion-'):]
+        try:
+            self.proposals.entscheidung_aendern(proposal_id, ProposalState.PENDING, von=(ProposalState.ACCEPTED,))
+        except ProposalError:
+            pass
+        return {'proposal_id': proposal_id, 'satz': 'Der Vorschlag steht wieder zur Prüfung.'}
+
     def gruppe_zuruecknehmen(self, gruppe: str) -> dict[str, Any]:
         """Nimmt eine gemeinsame Übernahme ganz zurück: Die Aufgaben gehen, die Vorschläge stehen wieder offen da.
         Eine Aufgabe, die inzwischen erledigt oder geändert wurde, bleibt (sie gehört jetzt dem Nutzer)."""

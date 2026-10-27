@@ -9,12 +9,16 @@
 * `POST /api/v1/task-candidates/alle-uebernehmen` `{ids}`: „Alle übernehmen“ mit vorbefülltem Projekt, Person und
   Frist; `POST /api/v1/task-candidates/gruppe/{gruppe}/rueckgaengig` nimmt die ganze Gruppe zurück.
 * `POST /api/v1/aufgaben-von-selbst/durchlauf`: ein Durchlauf sofort (für Proben; sonst nach jeder Mailaufnahme).
+* `GET  /api/v1/aufgaben-von-selbst/zurueckgenommen`: was du zurückgenommen hast, dauerhaft wiederherstellbar (unter
+  „Erledigt“ in der Aufgabenliste; Paket Z2).
+* `POST /api/v1/task-candidates/aufgabe/{task_id}/zurueck`: ein übernommener Vorschlag zurück zur Prüfung, jederzeit
+  (404, 409 mit Satz; Paket Z2, Z4).
 """
 from __future__ import annotations
 
 from typing import Any
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from .aufgaben_von_selbst import ALLE_HOECHSTENS, durchlauf_fuer, schritt_fuer
@@ -110,6 +114,20 @@ def register(app, guard) -> None:
             return dienst.accept(proposal_id, eigene=adressen, **daten)
         # `TaskCandidates.accept` nimmt die Sperre je Vorschlag selbst; der Durchlauf liest nur.
         return durchlauf_fuer(app).alle_uebernehmen(body.ids, annehmen=annehmen)
+
+    @app.get('/api/v1/aufgaben-von-selbst/zurueckgenommen', dependencies=guard)
+    def zurueckgenommen(limit: int = Query(default=50, ge=1, le=200)) -> dict[str, Any]:
+        return {'aufgaben': app.state.tasks.anlage_zurueckgenommen(limit)}
+
+    @app.post('/api/v1/task-candidates/aufgabe/{task_id}/zurueck', dependencies=guard)
+    def zur_pruefung(task_id: str) -> dict[str, Any]:
+        with app.state.conversation_lock:
+            try:
+                return durchlauf_fuer(app).zur_pruefung(task_id)
+            except KeyError as exc:
+                raise HTTPException(404, 'Aufgabe nicht gefunden.') from exc
+            except LookupError as exc:
+                raise HTTPException(409, str(exc)) from exc
 
     @app.post('/api/v1/task-candidates/gruppe/{gruppe}/rueckgaengig', dependencies=guard)
     def gruppe_zurueck(gruppe: str) -> dict[str, Any]:
