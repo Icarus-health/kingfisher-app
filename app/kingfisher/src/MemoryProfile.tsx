@@ -11,6 +11,7 @@ import { TaskSource } from "./TaskSource";
 import { IdentityControls } from "./IdentityControls";
 import { displayLabel } from "./displayIdentity";
 import { PersonDigest } from "./PersonDigest";
+import { PersonMehr } from "./PersonMehr";
 import { Chronik, MappeDetails } from "./MappeDetails";
 import { AkteAnsicht } from "./AkteAbschnitte";
 import { GeburtstagKarte, KreisKarte } from "./KreisKarten";
@@ -91,6 +92,7 @@ function PersonProfile({ data, tab, setTab, avatarId }: { avatarId: string; data
   return <>
     <div className="person-profile-header"><MemoryAvatarEditor id={avatarId} label={person.anzeige ?? displayLabel(person.name).name} />
     <header className="profile-heading"><h1>{person.anzeige ?? displayLabel(person.name).name}</h1>{(person.adressen?.length ?? 0) > 0 ? <p>{person.adressen!.join(", ")}</p> : displayLabel(person.name).detail && <p>{displayLabel(person.name).detail}</p>}{(person.namen?.length ?? 0) > 1 && <p>Auch bekannt als: {person.namen!.slice(1).join(", ")}</p>}{(person.offen_mit?.length ?? 0) > 0 && <p>Nicht eindeutig zuzuordnen: passt zu {person.offen_mit!.join(" oder ")}.</p>}<span>{person.nur_von_aussen ? "Nur aus fremden Quellen bekannt" : kontakteText(person)}</span></header></div>
+    <PersonMehr angabe={person.verweis ?? person.name} name={person.anzeige ?? displayLabel(person.name).name} />
     <Segmente className="profile-segmente" label="Personenprofilbereiche" wert={tab} optionen={tabs.map(([wert, titel]) => ({wert, titel}))} onWahl={setTab} />
     {tab === "overview" ? <div className="profile-grid">
       <section className="profile-card profile-wide person-at-a-glance"><div><h2>Zusammenfassung</h2><p><span className="profile-fact-label">Letzter Kontakt</span> {profileDate(person.letzter_kontakt) !== "—" ? profileDate(person.letzter_kontakt) : "Nicht belegt"}</p></div><div><h2>Wie verbunden?</h2>{data.contexts.length ? <div className="person-project-links">{data.contexts.slice(0,3).map(context=><MemoryEntityLink kind="project" key={String(context.project.id)} href={`/memory/projects/${encodeURIComponent(String(context.project.id))}`}>{field(context.project,"name")}</MemoryEntityLink>)}{data.contexts.length>3 && <button type="button" onClick={()=>setTab('projects')}>Alle {data.contexts.length} Projekte</button>}</div> : <p>Noch kein belegter Projektbezug.</p>}<details className="quiet-details"><summary>{person.kontakte ?? data.interactions.length} {(person.kontakte ?? data.interactions.length) === 1 ? "Quellenkontakt" : "Quellenkontakte"} · Herkunft</summary><p>{person.nur_von_aussen ? "Bisher aus Erwähnungen in fremden Quellen bekannt." : "Bezug aus den vorhandenen Quellen."}</p><p>{person.herkuenfte.length ? person.herkuenfte.map(sourceLabel).join(", ") : "Keine Quelle angegeben."}</p></details></div></section>

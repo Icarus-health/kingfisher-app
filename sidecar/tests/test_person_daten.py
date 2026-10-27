@@ -310,3 +310,16 @@ def test_logbuch_vermerke_zu_ihr_fallen_weg_und_der_schutz_bleibt(welt, tmp_path
     buch._conn.rollback()
     # Die Ablage öffnet sich wieder mit geprüftem Schutz.
     logbuch.Logbuch(tmp_path / 'logbuch.sqlite3').close()
+
+
+def test_aufheben_laesst_sich_zuruecknehmen(welt):
+    app, client, d = welt
+    client.post(f'/api/v1/memory/people/{NAME}/loeschen')
+    kennung = client.get('/api/v1/personen/sperre').json()['sperren'][0]['kennung']
+    antwort = client.delete(f'/api/v1/personen/sperre/{kennung}').json()
+    assert 'schluessel' not in antwort['aufgehoben']
+    assert client.post(f'/api/v1/personen/sperre/{kennung}/zurueck').status_code == 200
+    assert [s['kennung'] for s in client.get('/api/v1/personen/sperre').json()['sperren']] == [kennung]
+    with pytest.raises(GesperrteQuelle):
+        _mail(app, 'Nochmal', 'Hallo Lea', von=DORA, an=[f'Lea <{LEA}>'])
+    assert client.post(f'/api/v1/personen/sperre/{kennung}/zurueck').status_code == 404

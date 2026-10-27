@@ -4,6 +4,7 @@ import { FassungEinstellung } from "../Fassung";
 import { useEinrichtung } from "../Einrichtung/useEinrichtung";
 import { KreisStandAnzeige } from "../KreisKarten";
 import { KreisTon } from "../StilKreis";
+import { PersonSperren } from "../PersonSperren";
 import { WorkingProfileSettings } from "../WorkingProfileSettings";
 import { Aufklapp } from "./Aufklapp";
 import { ICH } from "./gliederung";
@@ -80,6 +81,7 @@ export function Ich() {
       <div className="ich"><div className="ich-feld"><KreisTon /></div></div>
       <details className="quiet-details ich-mehr"><summary>Woher kommt der Ton?</summary><p className="source-hint">{ICH.ton.text}</p></details>
     </section>
+    <PersonSperren />
     <div className="ich"><FassungEinstellung /></div>
     <div className="technik"><Aufklapp id="antwort" praefix="ich" titel={ICH.antwort.titel} satz={ICH.antwort.hilfe}><WorkingProfileSettings /></Aufklapp></div>
   </div>;

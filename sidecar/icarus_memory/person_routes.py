@@ -62,10 +62,25 @@ def install_routes(app: FastAPI, guard: list[Any]) -> None:
         from .person_sperre import fuer
         return {'sperren': fuer(app.state.episodes).liste()}
 
+    #: Zuletzt aufgehobene Vermerke, nur im Speicher: Der Hinweis danach bietet „Rückgängig“ an.
+    aufgehoben: dict[str, dict[str, Any]] = {}
+
     @app.delete('/api/v1/personen/sperre/{kennung}', dependencies=guard)
     def sperre_aufheben(kennung: str) -> dict[str, Any]:
         from .person_sperre import fuer
         eintrag = fuer(app.state.episodes).aufheben(kennung)
         if eintrag is None:
             raise HTTPException(status_code=404, detail='Diesen Vermerk gibt es nicht mehr.')
-        return {'aufgehoben': eintrag}
+        aufgehoben[kennung] = eintrag
+        while len(aufgehoben) > 20:
+            aufgehoben.pop(next(iter(aufgehoben)))
+        return {'aufgehoben': {k: eintrag[k] for k in ('kennung', 'anzeige', 'angelegt')}}
+
+    @app.post('/api/v1/personen/sperre/{kennung}/zurueck', dependencies=guard)
+    def sperre_zurueck(kennung: str) -> dict[str, Any]:
+        from .person_sperre import fuer
+        eintrag = aufgehoben.pop(kennung, None)
+        if eintrag is None:
+            raise HTTPException(status_code=404, detail='Das lässt sich nicht mehr zurücknehmen.')
+        fuer(app.state.episodes).wieder_eintragen(eintrag)
+        return {'sperre': {k: eintrag[k] for k in ('kennung', 'anzeige', 'angelegt')}}

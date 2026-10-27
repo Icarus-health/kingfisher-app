@@ -1045,6 +1045,17 @@ export function geraeteZone(): string {
   try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { return ""; }
 }
 
+/** Zahlen zu einer Person: was gelöscht würde und was bleibt (`person_daten.Umfang.zahlen`). */
+export type PersonZahlen = {
+  quellen_nur_ihre: number; quellen_geteilt: number; aussagen: number; vorschlaege: number; offene_vorschlaege: number;
+  aufgaben: number; zusammenfuehrungen: number; schreibweisen: number; adressen: number; vermerke: number;
+  zusammenfassungen: number; gespraeche: number; projekte: number;
+};
+export type PersonLoeschVorschau = { name: string; zahlen: PersonZahlen; projekte: string[] };
+export type PersonSperre = { kennung: string; anzeige: string; angelegt: number };
+export type SicherungEintrag = { name: string; erstellt: string; art: "regelmaessig" | "vor_update" | "vor_wiederherstellung"; bytes: number };
+export type SicherungStand = { name: string; stand: string; art: SicherungEintrag["art"]; am: string; rueckgaengig: string };
+
 export class ApiError extends Error {
   // `detail` ist der Grund, den der Server nennt, wenn er einen nennt.
   // `grund` ist die Kennung dazu, wo der Server eine nennt (etwa `adresse_fehlt` beim Kalender).
@@ -1372,6 +1383,26 @@ export const api = {
     const name = /filename="([^"]+)"/.exec(response.headers.get("content-disposition") ?? "")?.[1] ?? "Kingfisher-Sicherung.recovery";
     return { datei: await response.blob(), name };
   },
+  // Alles zu einer Person (Persona-Prüfung, Paket P, D7): Auskunft als Datei, Löschen mit Rückfrage, Sperrvermerke.
+  personAuskunft: async (name: string): Promise<{ datei: Blob; name: string }> => {
+    const response = await fetch(`/api/v1/memory/people/${encodeURIComponent(name)}/auskunft`);
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new ApiError(response.status, typeof payload?.detail === "string" ? payload.detail.slice(0, 500) : undefined);
+    }
+    const kopf = response.headers.get("x-kingfisher-datei");
+    let datei = "Auskunft.zip";
+    try { if (kopf) datei = decodeURIComponent(kopf); } catch { /* Name bleibt „Auskunft.zip“ */ }
+    return { datei: await response.blob(), name: datei };
+  },
+  personLoeschenVorschau: (name: string) => request<PersonLoeschVorschau>(`/api/v1/memory/people/${encodeURIComponent(name)}/loeschen`),
+  personLoeschen: (name: string) => request<{name: string; sperre: string; zahlen: PersonZahlen}>(`/api/v1/memory/people/${encodeURIComponent(name)}/loeschen`, {method: "POST"}),
+  personenSperren: () => request<{sperren: PersonSperre[]}>("/api/v1/personen/sperre"),
+  personSperreAufheben: (kennung: string) => request<{aufgehoben: PersonSperre}>(`/api/v1/personen/sperre/${encodeURIComponent(kennung)}`, {method: "DELETE"}),
+  personSperreZurueck: (kennung: string) => request<{sperre: PersonSperre}>(`/api/v1/personen/sperre/${encodeURIComponent(kennung)}/zurueck`, {method: "POST"}),
+  // Sicherung wiederherstellen (Paket P, D7): aus der Liste wählen, nie einen Pfad.
+  sicherungen: () => request<{sicherungen: SicherungEintrag[]; zuletzt: SicherungStand | null}>("/api/v1/sicherungen"),
+  sicherungWiederherstellen: (name: string) => request<SicherungStand>("/api/v1/sicherungen/wiederherstellen", {method: "POST", body: JSON.stringify({name})}),
   goals: () => request<{items: Array<{id: string; satz: string; marken: string[]; beurteilbar: boolean; letzte_regung: string | null; woran: string | null; tage_still: number | null; schlaeft: boolean}>; completed: Array<{id: string; goal_id: string; statement: string; outcome: "achieved" | "stopped"; note: string; recorded_at: string}>}>("/api/v1/goals"),
   goalHistory: (id: string) => request<Array<{id: string; statement: string; kind: string; status: string; recorded_at: string; status_changed_at?: string; provenance: {source_type: string}}>>(`/api/v1/assertions/${encodeURIComponent(id)}/history`),
   saveGoal: (statement: string, tags: string[], previous?: string) => request("/api/v1/assertions", {method: "POST", body: JSON.stringify({statement, tags, kind: "goal", provenance: {source_type: "user_stated", source_ref: "ui:goals", verbatim: statement}, supersedes: previous ? [previous] : []})}),

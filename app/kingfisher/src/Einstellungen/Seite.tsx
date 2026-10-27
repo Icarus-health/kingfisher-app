@@ -3,6 +3,7 @@ import { EinrichtungKopf } from "../Einrichtung/EinrichtungKopf";
 import { offeneSchritte } from "../Einrichtung/schritte";
 import { useEinrichtung } from "../Einrichtung/useEinrichtung";
 import { RecoverySettings } from "../RecoverySettings";
+import { SicherungZurueck } from "../SicherungZurueck";
 import { SettingsSections } from "../SettingsSections";
 import { Aufklapp } from "./Aufklapp";
 import { Sidebar } from "../chrome";
@@ -62,7 +63,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
       <ModelRecommendation compact><Aufklapp id="geraet" praefix="ki" titel="Gerät und installierte Modelle" satz="Speicherbedarf und vorhandene Modelle."><DeviceModelHelp /></Aufklapp></ModelRecommendation></>,
     darf: <><Darf /><WorkspaceOnlineSettings /></>,
     ich: <Ich />,
-    sicherung: <RecoverySettings />,
+    sicherung: <><RecoverySettings /><SicherungZurueck /></>,
     technik: <Technik integrationen={integrationen} ziel={ziel} zuBereich={waehlen} />,
   };
 

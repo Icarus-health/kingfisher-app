@@ -176,13 +176,23 @@ class Sperre:
         """Hebt einen Sperrvermerk auf; der aufgehobene Eintrag (für die Antwort) oder None."""
         with self.episodes.transaction():
             zeile = self.episodes._conn.execute(
-                'SELECT kennung, anzeige, angelegt FROM personen_sperre WHERE kennung = ?', (kennung,)).fetchone()
+                'SELECT kennung, anzeige, angelegt, schluessel FROM personen_sperre WHERE kennung = ?',
+                (kennung,)).fetchone()
             if zeile is None:
                 return None
             self.episodes._conn.execute('DELETE FROM personen_sperre WHERE kennung = ?', (kennung,))
         with self._sperre:
             self._gemerkt = None
-        return {'kennung': zeile[0], 'anzeige': zeile[1], 'angelegt': zeile[2]}
+        return {'kennung': zeile[0], 'anzeige': zeile[1], 'angelegt': zeile[2], 'schluessel': zeile[3]}
+
+    def wieder_eintragen(self, eintrag: dict[str, Any]) -> None:
+        """Nimmt ein Aufheben zurück (der Eintrag, wie `aufheben` ihn gab)."""
+        with self.episodes.transaction():
+            self.episodes._conn.execute(
+                'INSERT OR IGNORE INTO personen_sperre (kennung, anzeige, schluessel, angelegt) VALUES (?, ?, ?, ?)',
+                (eintrag['kennung'], eintrag['anzeige'], eintrag['schluessel'], eintrag['angelegt']))
+        with self._sperre:
+            self._gemerkt = None
 
 
 def fuer(episodes: Any) -> Sperre:
