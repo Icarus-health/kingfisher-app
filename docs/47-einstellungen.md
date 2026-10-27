@@ -364,12 +364,20 @@ Entscheidung des Nutzers ([66-automatik.md](66-automatik.md)): **Bereich je Post
   ihrer Adresse (`konten_routes.namen_eindeutig_machen`; nur der Anzeigename).
 * **Doppelt**: Ein Postfach mit derselben Anmeldung beim selben Server wird beim Passwortweg nicht ein zweites Mal
   angelegt; stattdessen ein Satz („Dieses Postfach ist schon verbunden: … Kingfisher liest es bereits.“), noch vor der
-  Anmeldung. Google und Microsoft erkannten das schon.
+  Anmeldung. Google und Microsoft erkannten das schon. Seit Paket S (27.10.2026) steht der Satz schon nach der Adresse,
+  ruhig (kein roter Rahmen) und mit „Zum Postfach“, das zur Zeile führt; ein Passwort wird gar nicht erst verlangt
+  (`postfachWeg.schonVerbunden`). Jedes Passwortfeld vorne hat „Anzeigen“ (`grundlage/PasswortFeld.tsx`).
 * **Bereich**: Ohne Bestätigung steht unter der Zeile der **Vorschlag mit Grund** („Vorschlag: Privat. gmail.com ist ein
-  privater Anbieter.“) mit „Übernehmen“ und „Anderer Bereich“. Regeln (`bereiche.py`): private Anbieter-Adresse →
-  Privat, eigene Domäne → Arbeit; Kalender aus eindeutigen Wörtern im Namen („Arbeit“, „Team“, „Familie“), sonst aus dem
+  privater Anbieter, und nichts darin klingt nach Arbeit.“) mit „Übernehmen“ und „Anderer Bereich“. Regeln
+  (`bereiche.py`): eigene Domäne → Arbeit; ein privater Anbieter (Gmail, GMX …) allein entscheidet seit Paket S nichts
+  mehr, denn viele führen Kundenkonten bei Gmail. Erst was darin steht, gibt den Ausschlag (`inhalt_des_postfachs`,
+  `mail_einschaetzen`): Geschäftspartner (ein Mensch bei einer Firma mit Projekt, eigener Antwort, förmlicher Anrede
+  oder Firma in der Signatur; Rechnungen, Verträge und Newsletter an Privatkunden zählen nicht) in klarer Mehrheit →
+  Arbeit, nichts Berufliches → Privat, gemischt oder noch nichts gelesen → kein Vorschlag; Kalender aus eindeutigen Wörtern im Namen („Arbeit“, „Team“, „Familie“), sonst aus dem
   Postfach mit derselben Adresse, sonst aus der Adresse; sonst **kein Vorschlag**, die Zeile fragt „Welcher Bereich?“.
-  Ab zwei offenen Vorschlägen steht im Kopf der Gruppe „Alle Vorschläge übernehmen“. Bestätigt steht der Bereich als
+  Ab zwei offenen Vorschlägen steht im Kopf der Gruppe „Alle Vorschläge übernehmen“. Neben dem Namen steht sichtbar
+  „Umbenennen“ (Paket S; vorher war der Name selbst der unsichtbare Knopf). Ein über die Mailadresse gefundener Kalender
+  heißt nach seinem Namen („Privat“, bei einem bekannten Anbieter „GMX: Privat“), nicht nach dem Server. Bestätigt steht der Bereich als
   leise Pille rechts; ein Klick ändert ihn, „Ohne“ löst ihn, „Eigener Bereich …“ legt einen mit Namen an (etwa
   „Verein“). Alles ohne Rückfrage, danach der Hinweis mit „Rückgängig“ (`PUT /api/v1/konten/bereich` mit dem Vorwert,
   `PUT /api/v1/konten/name` mit dem alten Namen).

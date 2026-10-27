@@ -207,7 +207,9 @@ wählen), `saetze_modell` (zweiter Aufruf), `satzpruefung` und `gesamt`. Ein Abs
 „0“). Die Zahlen stehen in `answer['zeiten']` und damit im gespeicherten Gespräch, nie mit Frage oder Text; eine
 Auswahl aus früheren Quellen (`choose`) trägt keine, weil dort kein Modell lief.
 
-* **Zeile unter der Antwort:** „3,2 s · Suche 0,3 · Sätze 2,1“, klein, ohne Farbe, nur mit vorhandenen Zeiten. Über
+* **Zeile unter der Antwort:** „3,2 s · Suche 0,3 · Sätze 2,1“, klein, ohne Farbe, nur mit vorhandenen Zeiten, seit
+  Paket S (27.10.2026) hinter einem zugeklappten „Details“: Die Zahlen sagen nur Technikern etwas; dass es lokal dauert,
+  sagt der Hinweis darüber in Worten. Über
   8 s (`LANGSAM_S` in `antwortzeit.ts`, gleich dem Ziel der Messlatte) steht ein Satz mit der Ursache, etwa „Der zweite
   Modellaufruf für die Sätze brauchte 12 s.“
 * **Protokoll:** Einstellungen, Lokale KI, „Antwortzeit“: Median und 90-Prozent-Wert je Abschnitt über die letzten 50
@@ -709,7 +711,8 @@ Protokoll: [runs/2026-10-26-befunde-antworten-1](runs/2026-10-26-befunde-antwort
   dieser Uhrzeit ein Beginn ist; „erst nach 18 Uhr“ daneben, das Ende eines Zeitraums („um 20 Uhr“) oder ein offenes
   „ab 18 Uhr“ fallen weiter. Uhrzeiten in Worten mit Tageszeit („sechs Uhr abends“, „halb sieben abends“), „um 18.00“
   und „18h“ sind Uhrzeiten; „halb sieben“ ohne Tageszeit gilt nur, wenn der Beleg genau eine der beiden Lesarten
-  (6:30, 18:30) trägt oder denselben Wortlaut. Datumsformen, Wochentage und Zahlwörter bis zwölf waren schon
+  (6:30, 18:30) trägt oder denselben Wortlaut. Ebenso „Viertel nach sieben“ (7:15/19:15) und „Viertel vor acht“
+  (7:45/19:45), seit Paket S; „nach sieben“ darin ist dann kein Zeitrahmen. Datumsformen, Wochentage und Zahlwörter bis zwölf waren schon
   gleichwertig; Tests decken beide Richtungen ab (`test_satzpruefung_schreibweisen.py`).
 - **Antwortwörter (A1).** „Ja, …“, „Genau.“, „Richtig, …“ am Satzanfang behaupten nichts und brauchen keinen Beleg
   (`satzpruefung.antwortpartikel`). Ein „Nein“ besteht nur vor einem Satz, der selbst verneint und belegt verneint;
