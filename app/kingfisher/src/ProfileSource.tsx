@@ -5,6 +5,7 @@ import { SourceCategories } from "./SourceCategories";
 import { SourceBezuege } from "./SourceBezuege";
 import { SourceProject } from "./SourceProject";
 import { Herkunft } from "./HerkunftAnzeige";
+import { Rueckfrage } from "./grundlage";
 
 type Source = Awaited<ReturnType<typeof api.profileSource>>;
 function sourceTime(value: string | null | undefined) {
@@ -94,32 +95,27 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
   const korrekturUngueltig = data?.provenance?.source_type === "manual_correction" && data?.correction_current === false;
   const berichtigt = () => {setRevision(value => value + 1); if (onChange) onChange("correction"); else window.location.reload();};
   const verwerfen = allowDismiss && !readOnly && kind === "episode" && data?.state !== "ignored" && !korrekturUngueltig ? <div>
-    {!confirmDismiss && <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmDismiss(true)}>Sortierergebnis verwerfen</button>}
-    {confirmDismiss && <div role="group" aria-label="Automatisches Sortierergebnis verwerfen">
-      <p>Das automatische Sortierergebnis dieser Quelle wird nicht weiter verwendet und nicht erneut erzeugt. Die Originalquelle und bereits bestätigte Angaben bleiben erhalten.</p>
-      <button type="button" className="primary-action" disabled={changing} onClick={() => void dismiss()}>Sortierergebnis jetzt verwerfen</button>
-      <button type="button" className="secondary-action" disabled={changing} onClick={() => setConfirmDismiss(false)}>Abbrechen</button>
-    </div>}
+    {/* Rückfragen als Dialog (Paket B, B3): Der Auslöser bleibt stehen, der Fokus kehrt zu ihm zurück. */}
+    <button className="secondary-action" type="button" disabled={changing && !confirmDismiss} onClick={() => setConfirmDismiss(true)}>Sortierergebnis verwerfen</button>
+    {confirmDismiss && <Rueckfrage frage="Automatisches Sortierergebnis verwerfen?"
+      satz="Das automatische Sortierergebnis dieser Quelle wird nicht weiter verwendet und nicht erneut erzeugt. Die Originalquelle und bereits bestätigte Angaben bleiben erhalten."
+      bestaetigen="Sortierergebnis jetzt verwerfen" rot arbeitet={changing} fehler={reopenError} onBestaetigen={() => void dismiss()} onAbbrechen={() => { setConfirmDismiss(false); setReopenError(null); }} />}
   </div> : null;
   const schlicht = data && kind === "episode" ? <>
     <p className="eigene-frage-satz">{data.state === "ignored" ? "Kingfisher verwendet diese Frage nicht mehr; gespeichert bleibt sie." : "So hat Kingfisher deine Frage gespeichert; als Wissen zählt sie erst, wenn du etwas daraus bestätigst."}</p>
     <div className="task-source-body">{data.body.slice(0, 20000)}</div>
     {data.state !== "ignored" && !readOnly && !korrekturUngueltig ? <div className="eigene-frage-knoepfe">
       {allowDismiss ? <SourceCorrection key={id} id={id} knopf="Wortlaut berichtigen" onChange={berichtigt} /> : null}
-      {mayIgnore && !confirmIgnore ? <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmIgnore(true)}>Nicht mehr verwenden</button> : null}
-      {mayIgnore && confirmIgnore ? <div role="group" aria-label="Nicht mehr verwenden">
-        <p>Kingfisher verwendet diese Frage und die Antworten, die darauf beruhen, dann nicht mehr; gespeichert bleibt sie.</p>
-        <button type="button" className="primary-action" disabled={changing} onClick={() => void ignore()}>Ja, nicht mehr verwenden</button>
-        <button type="button" className="secondary-action" disabled={changing} onClick={() => setConfirmIgnore(false)}>Abbrechen</button>
-      </div> : null}
+      {mayIgnore ? <button className="secondary-action" type="button" disabled={changing && !confirmIgnore} onClick={() => setConfirmIgnore(true)}>Nicht mehr verwenden</button> : null}
+      {mayIgnore && confirmIgnore ? <Rueckfrage frage="Diese Frage nicht mehr verwenden?"
+        satz="Kingfisher verwendet diese Frage und die Antworten, die darauf beruhen, dann nicht mehr; gespeichert bleibt sie."
+        bestaetigen="Ja, nicht mehr verwenden" arbeitet={changing} fehler={reopenError} onBestaetigen={() => void ignore()} onAbbrechen={() => { setConfirmIgnore(false); setReopenError(null); }} /> : null}
     </div> : null}
     {data.state === "ignored" && !data.correction_id && !reopenBlocked && !readOnly && !korrekturUngueltig ? <div className="eigene-frage-knoepfe">
-      {!confirmReopen ? <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmReopen(true)}>Wieder verwenden</button>
-        : <div role="group" aria-label="Wieder verwenden">
-          <p>Kingfisher verwendet die Frage dann wieder; was früher daraus folgte, bestätigst du einzeln neu.</p>
-          <button className="primary-action" type="button" disabled={changing} onClick={() => void reopen()}>Ja, wieder verwenden</button>
-          <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmReopen(false)}>Abbrechen</button>
-        </div>}
+      <button className="secondary-action" type="button" disabled={changing && !confirmReopen} onClick={() => setConfirmReopen(true)}>Wieder verwenden</button>
+      {confirmReopen ? <Rueckfrage frage="Diese Frage wieder verwenden?"
+        satz="Kingfisher verwendet die Frage dann wieder; was früher daraus folgte, bestätigst du einzeln neu."
+        bestaetigen="Ja, wieder verwenden" arbeitet={changing} fehler={reopenError} onBestaetigen={() => void reopen()} onAbbrechen={() => { setConfirmReopen(false); setReopenError(null); }} /> : null}
     </div> : null}
     {data.correction_id ? <div><p>Du hast den Wortlaut berichtigt; es gilt deine Fassung.</p><ProfileSource kind="episode" id={data.correction_id} label="Deine Fassung ansehen" allowDismiss={!readOnly} readOnly={readOnly} originalOnly={originalOnly} onChange={onChange} /></div> : null}
     {reopenError ? <p role="alert">{reopenError}</p> : null}
@@ -164,21 +160,17 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
           {verwerfen}
         </div>}
         {kind === "episode" && data.state !== "ignored" && mayIgnore && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <div>
-          {!confirmIgnore && <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmIgnore(true)}>Quelle ausschließen</button>}
-          {confirmIgnore && <div role="group" aria-label="Quelle ausschließen">
-            <p>Diese Quelle wird nicht weiter als Beleg verwendet. Davon abhängige Angaben und Gesprächsantworten werden nicht mehr verwendet. Das Original bleibt gespeichert.</p>
-            <button type="button" className="primary-action" disabled={changing} onClick={() => void ignore()}>Ausschluss bestätigen</button>
-            <button type="button" className="secondary-action" disabled={changing} onClick={() => setConfirmIgnore(false)}>Abbrechen</button>
-          </div>}
+          <button className="secondary-action" type="button" disabled={changing && !confirmIgnore} onClick={() => setConfirmIgnore(true)}>Quelle ausschließen</button>
+          {confirmIgnore && <Rueckfrage frage="Quelle ausschließen?"
+            satz="Diese Quelle wird nicht weiter als Beleg verwendet. Davon abhängige Angaben und Gesprächsantworten werden nicht mehr verwendet. Das Original bleibt gespeichert."
+            bestaetigen="Ausschluss bestätigen" arbeitet={changing} fehler={reopenError} onBestaetigen={() => void ignore()} onAbbrechen={() => { setConfirmIgnore(false); setReopenError(null); }} />}
         </div>}
         {kind === "episode" && data.correction_id && <div><p>Zu dieser Quelle gibt es eine eigene Berichtigung. Das Original bleibt ausgeschlossen.</p><ProfileSource kind="episode" id={data.correction_id} label="Berichtigung öffnen" allowDismiss={!readOnly} readOnly={readOnly} originalOnly={originalOnly} onChange={onChange} /></div>}
         {kind === "episode" && data.state === "ignored" && !data.correction_id && !reopenBlocked && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <div>
-          {!confirmReopen && <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmReopen(true)}>Quelle wieder zulassen</button>}
-          {confirmReopen && <div role="group" aria-label="Quelle wieder zulassen">
-            <p>Der gespeicherte Inhalt wird erneut zur Prüfung zugelassen. Frühere Aussagen bleiben fraglich und müssen einzeln bestätigt werden.</p>
-            <button className="primary-action" type="button" disabled={changing} onClick={() => void reopen()}>Wiederzulassung bestätigen</button>
-            <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmReopen(false)}>Abbrechen</button>
-          </div>}
+          <button className="secondary-action" type="button" disabled={changing && !confirmReopen} onClick={() => setConfirmReopen(true)}>Quelle wieder zulassen</button>
+          {confirmReopen && <Rueckfrage frage="Quelle wieder zulassen?"
+            satz="Der gespeicherte Inhalt wird erneut zur Prüfung zugelassen. Frühere Aussagen bleiben fraglich und müssen einzeln bestätigt werden."
+            bestaetigen="Wiederzulassung bestätigen" arbeitet={changing} fehler={reopenError} onBestaetigen={() => void reopen()} onAbbrechen={() => { setConfirmReopen(false); setReopenError(null); }} />}
         </div>}
         {reopenError && <p role="alert">{reopenError}</p>}
         {reopened && data.state !== "ignored" && <p role="status">Die Quelle ist wieder zur Prüfung zugelassen. Frühere Aussagen wurden nicht bestätigt.</p>}

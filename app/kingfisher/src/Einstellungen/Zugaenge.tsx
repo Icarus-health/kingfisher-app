@@ -65,6 +65,8 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   // Was beim Speichern abgelehnt wurde, steht am Formular und nicht oben auf der Seite (Fremdprobe 2, Befund 4).
   const [formFehler, setFormFehler] = useState("");
   const [removing, setRemoving] = useState<{ kind: "mail" | "calendar"; id: string } | null>(null);
+  // Scheitert das Entfernen, steht der Grund im Dialog, nicht hinter ihm auf der Seite (Paket B, B3).
+  const [removeError, setRemoveError] = useState("");
   // Die eine Aussage je Postfach (mail_stand.py): Verweist sie hierher (Anmeldung abgelaufen, Passwort fehlt), steht am
   // Postfach „Neu anmelden“. Nach dem Anmelden gilt der Satz erst beim nächsten Abruf als erledigt; bis dahin steht hier,
   // dass es geklappt hat, statt derselben Aufforderung noch einmal.
@@ -122,7 +124,7 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   const alleKnopf = offenAnzahl > 1 ? <button type="button" className="g-knopf-schlicht konto-alle" disabled={submitting} onClick={() => void alleUebernehmen()}>Alle Vorschläge übernehmen</button> : null;
   const kontoZeile = (konto: Konto, iconName: "mail" | "calendar-days", neben: string, ersatz: string | undefined, entfernen?: { kind: "mail" | "calendar" }, kinder?: ReactNode) =>
     <KontoZeile key={konto.id} konto={konto} konten={konten} iconName={iconName} neben={neben} ersatzStand={ersatz} busy={submitting}
-      entfernen={entfernen ? { aktiv: removing?.kind === entfernen.kind && removing.id === konto.id, onRemove: () => remove(entfernen.kind, konto.id), onCancel: () => setRemoving(null) } : undefined}
+      entfernen={entfernen ? { aktiv: removing?.kind === entfernen.kind && removing.id === konto.id, onRemove: () => remove(entfernen.kind, konto.id), onCancel: () => { setRemoving(null); setRemoveError(""); }, fehler: removeError } : undefined}
       onUmbenennen={name => umbenennen(konto, name)} onBereich={bereich => void bereichSetzen(konto, bereich)} onNeuerBereich={name => neuerBereich(konto, name)}>{kinder}</KontoZeile>;
   // Heißt das Postfach nach seiner Adresse, steht sie nicht noch einmal darunter.
   const nebenDerAdresse = (name: string, adresse: string) => name.trim().toLowerCase() === adresse.trim().toLowerCase() ? "" : adresse;
@@ -189,15 +191,17 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   async function remove(kind: "mail" | "calendar", id: string) {
     if (!removing || removing.kind !== kind || removing.id !== id) {
       setRemoving({ kind, id });
+      setRemoveError("");
       return;
     }
     setSubmitting(true);
     setError("");
+    setRemoveError("");
     try {
       setOverview(await api.removeIntegration(kind, id));
       setRemoving(null);
     } catch {
-      setError("Der Zugang konnte nicht getrennt werden. Bitte erneut versuchen.");
+      setRemoveError("Der Zugang konnte nicht getrennt werden. Bitte erneut versuchen.");
     } finally {
       setSubmitting(false);
     }

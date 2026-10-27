@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { ApiError, api, type GraphNode, type MemoryGraph, type PersonMerge, type PersonMergePreview } from "./api";
 import { navigate } from "./ui";
+import { Rueckfrage } from "./grundlage";
 import { PersonDigest } from "./PersonDigest";
 import { PeopleMentions } from "./PeopleMentions";
 import { nichtMehrZuordenbar } from "./personMergeLost";
@@ -86,9 +87,13 @@ function SavedMerge({ merge, onChanged, verloren = [] }: { merge: PersonMerge; o
       <ul>{verloren.map(eintrag => <li key={eintrag.id}>{eintrag.label}</li>)}</ul>
     </section> : null}
     {!merge.undone_at ? <PersonDigest personId={merge.id} /> : null}
-    {!merge.undone_at && !confirming ? <button className="people-review-secondary" type="button" onClick={() => setConfirming(true)}>Zusammenführung aufheben</button> : null}
-    {!merge.undone_at && confirming ? <div className="people-review-confirm" role="group" aria-label="Aufhebung bestätigen"><p>Die Akten wieder einzeln im Gedächtnis anzeigen?</p><button className="people-review-action" type="button" disabled={busy} onClick={() => void undo()}>{busy ? "Wird aufgehoben …" : "Ja, aufheben"}</button><button className="people-review-secondary" type="button" disabled={busy} onClick={() => setConfirming(false)}>Abbrechen</button></div> : null}
-    {error ? <p className="people-review-error" role="alert">Die Zusammenführung konnte nicht aufgehoben werden. Bitte erneut versuchen.</p> : null}
+    {!merge.undone_at ? <button className="people-review-secondary" type="button" onClick={() => setConfirming(true)}>Zusammenführung aufheben</button> : null}
+    {/* Die Rückfrage als Dialog (Paket B, B3). */}
+    {!merge.undone_at && confirming ? <Rueckfrage frage="Zusammenführung aufheben?" satz="Die Akten stehen dann wieder einzeln im Gedächtnis."
+      bestaetigen={busy ? "Wird aufgehoben …" : "Ja, aufheben"} arbeitet={busy}
+      fehler={error ? "Die Zusammenführung konnte nicht aufgehoben werden. Bitte erneut versuchen." : null}
+      onBestaetigen={() => void undo()} onAbbrechen={() => { setConfirming(false); setError(false); }} /> : null}
+    {error && !confirming ? <p className="people-review-error" role="alert">Die Zusammenführung konnte nicht aufgehoben werden. Bitte erneut versuchen.</p> : null}
   </article>;
 }
 

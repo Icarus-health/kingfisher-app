@@ -12,3 +12,5 @@ export { Bestaetigung } from "./Bestaetigung";
 export { segmentNachTaste, segmentImFokus } from "./segmentTasten.ts";
 export { HinweisAnzeige } from "./Hinweis";
 export { zeigeHinweis, zitat, hinweise, HinweisOrt, type HinweisDaten } from "./hinweisOrt.ts";
+export { Rueckfrage } from "./Rueckfrage";
+export { fallenZiel, startSelektor, RUECKFRAGE_ROLLE, type RueckfrageStart } from "./rueckfrageModell.ts";

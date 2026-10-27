@@ -3,6 +3,7 @@ import { useImBlick } from "../useImBlick";
 import { type CalendarSource, type MailAccount, type MailProvider } from "../api";
 import { icon } from "../ui";
 import { InterfaceIcon } from "../InterfaceIcon";
+import { Rueckfrage } from "../grundlage";
 import { ServerFelder } from "./ServerFelder";
 
 export type MailForm = {
@@ -54,7 +55,9 @@ export function SourceRow({ iconName, label, detail, state, removing, busy, onRe
   return <div className="source-row g-zeile">
     <span className="g-zeile-symbol" aria-hidden="true"><InterfaceIcon name={iconName} /></span>
     <span className="g-zeile-text"><strong className="g-zeile-titel">{label}</strong><small className="g-zeile-neben">{detail}</small></span>
-    {removing ? <span className="source-remove-confirm" role="group" aria-label={`${label} entfernen`}>Quelle wirklich entfernen?<button disabled={busy} onClick={onRemove} type="button">Entfernen</button><button disabled={busy} onClick={onCancel} type="button">Abbrechen</button></span> : <><em className="g-zeile-wert">{state}</em><button aria-label={`${label} entfernen`} className="source-remove" disabled={busy} onClick={onRemove} type="button"><img src={icon("trash2", "Outline")} alt="" /></button></>}
+    <em className="g-zeile-wert">{state}</em><button aria-label={`${label} entfernen`} className="source-remove" disabled={busy && !removing} onClick={onRemove} type="button"><img src={icon("trash2", "Outline")} alt="" /></button>
+    {removing ? <Rueckfrage frage={`„${label}“ wirklich entfernen?`} satz="Das lässt sich nicht zurücknehmen." bestaetigen="Entfernen" rot
+      arbeitet={busy} onBestaetigen={onRemove} onAbbrechen={onCancel} /> : null}
   </div>;
 }
 

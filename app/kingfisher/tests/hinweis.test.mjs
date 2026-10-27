@@ -238,8 +238,8 @@ test("vor einer umkehrbaren Aktion keine Rückfrage mehr; vor einer nicht umkehr
   assert.doesNotMatch(kreis, /Ja, festlegen|setFrage|kreis-frage/, "Kollegen gesammelt festlegen ist umkehrbar: ein Klick");
   assert.match(kreis, /onClick=\{\(\) => void sammeln\(kollegen\)\}>\{sammelKnopf\(kollegen\)\}<\/button>/);
   // Bleiben: was sich nicht (vollständig) zurücknehmen lässt.
-  assert.match(quelle("DecisionControls.tsx"), /Wirklich zurücknehmen\?/);
+  assert.match(quelle("DecisionControls.tsx"), /<Rueckfrage frage="Entscheidung wirklich zurücknehmen\?"/);
   assert.match(quelle("ProfileSource.tsx"), /Ja, nicht mehr verwenden/);
   assert.match(quelle("ProfileSource.tsx"), /Sortierergebnis jetzt verwerfen/);
-  assert.match(quelle("Einstellungen/Quellenformulare.tsx"), /Quelle wirklich entfernen\?/);
+  assert.match(quelle("Einstellungen/Quellenformulare.tsx"), /<Rueckfrage frage=\{`„\$\{label\}“ wirklich entfernen\?`\}/);
 });

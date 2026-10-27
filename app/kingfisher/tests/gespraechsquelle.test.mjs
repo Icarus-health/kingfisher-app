@@ -23,7 +23,7 @@ test("unter der eigenen Frage steht vorne kein Fachwort; alles Technische liegt 
   // Knöpfe, deren Wirkung man am Namen erkennt, und je ein Satz.
   assert.match(vorne, /knopf="Wortlaut berichtigen"/);
   assert.match(vorne, />Nicht mehr verwenden</);
-  assert.match(vorne, />Ja, nicht mehr verwenden</);
+  assert.match(vorne, /bestaetigen="Ja, nicht mehr verwenden"/);  // die Rückfrage ist ein Dialog (Paket B, B3)
   assert.match(vorne, />Wieder verwenden</);
   for (const satz of vorne.matchAll(/<p[^>]*>([^<{]+)<\/p>/g)) assert.equal(satz[1].split(/[.!?](?:\s|$)/).filter(t => t.trim()).length, 1, satz[1]);
 });

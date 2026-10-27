@@ -5,7 +5,7 @@ import {Sidebar} from './chrome';
 import {ProfileSource} from './ProfileSource';
 import {HealthObservationEditor} from './HealthObservationEditor';
 import {HealthTrend} from './HealthTrend';
-import {Gruppe, Leer, Seitenkopf, Zeile} from './grundlage';
+import {Gruppe, Leer, Rueckfrage, Seitenkopf, Zeile} from './grundlage';
 
 function measurementTime(value: string) {return value.replace('T',' · ').replace('Z',' UTC');}
 
@@ -59,10 +59,11 @@ function HealthEntry({item,onCorrect,onChange}: {item: HealthObservation;onCorre
     {item.note && <p className="health-note">{item.note}</p>}
     <div className="health-actions"><ProfileSource kind="episode" id={item.id} readOnly label="Originalquelle öffnen" />
       <button type="button" onClick={onCorrect}>Korrigieren</button>
-      <button type="button" disabled={busy} onClick={()=>setConfirm(!confirm)}>Nicht mehr verwenden</button></div>
-    {confirm && <div className="health-confirm"><p>Diese Angabe wird als Quelle ausgeschlossen. Das Original bleibt erhalten; abgeleitete Aussagen verlieren diesen Beleg.</p>
-      <button type="button" disabled={busy} onClick={exclude}>Quelle ausschließen</button><button type="button" disabled={busy} onClick={()=>setConfirm(false)}>Behalten</button></div>}
-    {error && <p role="alert">{error}</p>}
+      <button type="button" disabled={busy && !confirm} onClick={()=>setConfirm(true)}>Nicht mehr verwenden</button></div>
+    {/* Die Rückfrage als Dialog (Paket B, B3). */}
+    {confirm && <Rueckfrage frage="Diese Angabe nicht mehr verwenden?" satz="Diese Angabe wird als Quelle ausgeschlossen. Das Original bleibt erhalten; abgeleitete Aussagen verlieren diesen Beleg."
+      bestaetigen="Quelle ausschließen" abbrechen="Behalten" arbeitet={busy} fehler={error || null} onBestaetigen={() => void exclude()} onAbbrechen={() => { setConfirm(false); setError(''); }} />}
+    {error && !confirm && <p role="alert">{error}</p>}
     <HealthHistory id={item.id} />
   </article>;
 }

@@ -4,6 +4,7 @@ import { api } from "./api";
 import { SourceFolderAssignment } from "./MemoryFolders";
 import { canonicalSourceId } from "./WorkspaceMemoryModel";
 import { ProfileSource } from "./ProfileSource";
+import { Rueckfrage } from "./grundlage";
 
 type Page = Awaited<ReturnType<typeof api.uploadedDocuments>>;
 export function DocumentSources() {
@@ -33,7 +34,7 @@ export function DocumentSources() {
   async function ignore(id: string) {
     if (busy) return;
     setBusy(true);setError(false);
-    try {await api.ignoreSource(id);setRevision(value => value + 1);}
+    try {await api.ignoreSource(id);setSelected(null);setRevision(value => value + 1);}
     catch {setError(true);}
     finally {setBusy(false);}
   }
@@ -47,11 +48,11 @@ export function DocumentSources() {
       <ProfileSource kind="episode" id={item.id} allowIgnore={false} onChange={() => setRevision(value => value + 1)} />
       <SourceFolderAssignment sourceId={canonicalSourceId(item.id)} />
       {item.project_id && <p><MemoryEntityLink kind="project" href={`/memory/projects/${encodeURIComponent(item.project_id)}`}>Projektakte öffnen</MemoryEntityLink></p>}
-      {item.state !== "ignored" && <button className="secondary-action" type="button" disabled={busy} onClick={() => setSelected(item.id)}>Quelle ausschließen</button>}
-      {selected === item.id && <div role="group" aria-label="Quelle ausschließen"><p>Diese Quelle wird nicht weiter als Beleg verwendet. Daraus bestätigtes und davon abhängiges Wissen wird als fraglich markiert. Der gespeicherte Inhalt bleibt im Verlauf erhalten.</p>
-        <button type="button" className="primary-action" disabled={busy} onClick={() => void ignore(item.id)}>Ausschluss bestätigen</button>
-        <button type="button" className="secondary-action" disabled={busy} onClick={() => setSelected(null)}>Abbrechen</button>
-      </div>}
+      {item.state !== "ignored" && <button className="secondary-action" type="button" disabled={busy && selected !== item.id} onClick={() => setSelected(item.id)}>Quelle ausschließen</button>}
+      {/* Die Rückfrage als Dialog (Paket B, B3). */}
+      {selected === item.id && <Rueckfrage frage={`„${item.title}“ als Quelle ausschließen?`} satz="Diese Quelle wird nicht weiter als Beleg verwendet. Daraus bestätigtes und davon abhängiges Wissen wird als fraglich markiert. Der gespeicherte Inhalt bleibt im Verlauf erhalten."
+        bestaetigen="Ausschluss bestätigen" arbeitet={busy} fehler={error ? "Das hat nicht geklappt. Bitte erneut versuchen." : null}
+        onBestaetigen={() => void ignore(item.id)} onAbbrechen={() => { setSelected(null); setError(false); }} />}
     </article>)}
     {(offset > 0 || page?.next_offset != null) && <div><button className="secondary-action" disabled={offset === 0 || busy || !page} onClick={() => setOffset(value => Math.max(0, value - 50))} type="button">Vorherige Dateien</button><button className="secondary-action" disabled={page?.next_offset == null || busy} onClick={() => {if (page?.next_offset != null) setOffset(page.next_offset);}} type="button">Weitere Dateien</button></div>}
     {error && <p role="alert">Die Dateiliste oder Änderung konnte nicht geladen werden. <button type="button" disabled={busy} onClick={() => setRevision(value => value + 1)}>Erneut versuchen</button></p>}

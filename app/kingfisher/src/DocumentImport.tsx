@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, DocumentPreviewError, type Project } from "./api";
 import { DocumentSources } from "./DocumentSources";
 import { ProfileSource } from "./ProfileSource";
+import { Rueckfrage } from "./grundlage";
 
 export function DocumentImport({initiallyExpanded=false, showLibrary=true, title='Dateien', onClose}: {
   initiallyExpanded?: boolean; showLibrary?: boolean; title?: string; onClose?: ()=>void;
@@ -76,11 +77,9 @@ export function DocumentImport({initiallyExpanded=false, showLibrary=true, title
       <button className="primary-action" type="button" disabled={busy} onClick={() => void save()}>Datei als Quelle aufnehmen</button>
       <button className="secondary-action" type="button" disabled={busy} onClick={() => {setFile(null);setClosing(false);}}>Abbrechen</button>
     </div>}
-    {closing && file && <div className="health-confirm" role="group" aria-label="Dateivorschau schließen">
-      <p>Die Dateivorschau ist noch nicht gespeichert. Beim Schließen wird dieser Entwurf verworfen; die Originaldatei bleibt erhalten.</p>
-      <button type="button" className="secondary-action" disabled={busy} onClick={()=>setClosing(false)}>Weiter bearbeiten</button>
-      <button type="button" className="secondary-action" disabled={busy} onClick={()=>onClose?.()}>Vorschau verwerfen und schließen</button>
-    </div>}
+    {/* Die Rückfrage als Dialog (Paket B, B3). */}
+    {closing && file && <Rueckfrage frage="Vorschau verwerfen?" satz="Die Dateivorschau ist noch nicht gespeichert. Beim Schließen wird dieser Entwurf verworfen; die Originaldatei bleibt erhalten."
+      bestaetigen="Vorschau verwerfen und schließen" abbrechen="Weiter bearbeiten" arbeitet={busy} onBestaetigen={() => onClose?.()} onAbbrechen={() => setClosing(false)} />}
     {result && <div role="status"><p>{result.created ? "Datei als Quelle aufgenommen." : "Dieser Inhalt ist bereits vorhanden. Herkunft und Projektzuordnung wurden nicht verändert."}</p><ProfileSource key={result.id} kind="episode" id={result.id} />{result.project_id && <p><a href={`/memory/projects/${encodeURIComponent(result.project_id)}`}>Projektakte öffnen</a></p>}</div>}
     {showLibrary && <DocumentSources key={result ? `${result.id}:${result.created}` : "initial"} />}
     {error && <p role="alert">{error}</p>}

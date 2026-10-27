@@ -4,7 +4,7 @@ import { api, ApiError } from "./api";
 import {TaskSaveAttempt, TaskSavePreparationError, goalTaskRequestKey, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
 import {TaskRetryReview} from './TaskRetryReview';
 import { taskHref } from "./taskWorkflow";
-import { Leer } from "./grundlage";
+import { Leer, Rueckfrage } from "./grundlage";
 
 type Goal = Awaited<ReturnType<typeof api.goals>>["items"][number];
 export function GoalControls() {
@@ -92,8 +92,11 @@ export function GoalControls() {
       <div className="goal-aktionen">{nextStepGoal?.id !== goal.id && <button className="secondary-action g-kompakt" disabled={busy || nextStepBusy} type="button" onClick={() => openNextStep(goal)}>Nächsten Schritt festhalten</button>}
       <button className="text-action" disabled={busy} onClick={() => {setClosing(goal);setEditing(null);setConfirming(null);setOutcome("achieved");setNote("");}} type="button">Abschließen</button>
       <button className="text-action" disabled={busy} onClick={() => edit(goal)} type="button">Korrigieren</button>
-      <button className="text-action" disabled={busy} onClick={() => setConfirming(goal.id)} type="button">Widerrufen</button></div>
-      {confirming === goal.id && <div className="goal-rueckfrage" role="group" aria-label="Zielangabe widerrufen"><p>War diese Zielangabe falsch? Der Widerruf bleibt nachvollziehbar. Er bedeutet nicht, dass das Ziel erreicht wurde.</p><button className="secondary-action decision-confirm g-kompakt" disabled={busy} onClick={() => void run(() => api.retractGoal(goal.id))} type="button">Widerruf bestätigen</button><button className="text-action" disabled={busy} onClick={() => setConfirming(null)} type="button">Abbrechen</button></div>}
+      <button className="text-action" disabled={busy && confirming !== goal.id} onClick={() => setConfirming(goal.id)} type="button">Widerrufen</button></div>
+      {/* Die Rückfrage als Dialog (Paket B, B3). */}
+      {confirming === goal.id && <Rueckfrage frage="War diese Zielangabe falsch?" satz="Der Widerruf bleibt nachvollziehbar. Er bedeutet nicht, dass das Ziel erreicht wurde."
+        bestaetigen="Widerruf bestätigen" rot arbeitet={busy} fehler={error ? "Das hat nicht geklappt. Bitte erneut versuchen." : null}
+        onBestaetigen={() => void run(() => api.retractGoal(goal.id))} onAbbrechen={() => { setConfirming(null); setError(false); }} />}
       <GoalHistory key={`${goal.id}:${revision}`} id={goal.id} />
     </div></article>)}</div>}
     {completed.length > 0 && <details className="g-aufklapper goal-abgeschlossen"><summary><span className="g-aufklapper-titel">Abgeschlossene Ziele</span><span className="g-aufklapper-neben">{completed.length}</span></summary><div className="decision-list">{completed.map(goal => <article className="decision-row" key={goal.id}><div className="decision-row-main"><p className="decision-statement">{goal.statement}</p><p>{goal.outcome === "achieved" ? "Erreicht" : "Nicht mehr verfolgt"} · {new Date(goal.recorded_at).toLocaleDateString("de-DE")}</p>{goal.note && <p>{goal.note}</p>}<div className="goal-aktionen"><button className="text-action" disabled={busy} onClick={() => void run(() => api.reopenGoal(goal.id))} type="button">Wieder aufnehmen</button></div><GoalHistory key={`${goal.id}:${revision}`} id={goal.id} /></div></article>)}</div></details>}
