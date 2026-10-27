@@ -41,7 +41,9 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); margin: var(--g-a2) 0 0;
   font: 500 17px/1.4 var(--g-schrift); color: var(--g-tinte);
 }
-.today-stand { color: var(--g-leise); font-weight: 400; font-variant-numeric: tabular-nums; }
+/* Auf dem Bergbild in Tinte (Paket B, B4): Leise erreichte dort nur 3,2–3,8:1. Zurück tritt der Stand über die
+   Strichstärke (400 statt 500), nicht über die Farbe (docs/16-gestaltung.md: Hierarchie über Größe und Strichstärke). */
+.today-stand { color: var(--g-tinte); font-weight: 400; font-variant-numeric: tabular-nums; }
 /* Wird aktualisiert: „Stand“ atmet wie das Skelett, statt Text anzuhängen; nichts bricht um oder springt (V7). */
 @media (prefers-reduced-motion: no-preference) {
   .today-stand[aria-busy="true"] { animation: today-atmen 1.6s ease-in-out infinite; }

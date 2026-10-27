@@ -59,7 +59,8 @@
   --g-rot: var(--kf-schrift-bf3b44, #bf3b44);
   /* Bestätigt, gespeichert: das ruhige Grün des Bestands. Platzhalter in Feldern. */
   --g-gruen: var(--kf-schrift-197a58, #197a58);
-  --g-platzhalter: #8592a0;
+  /* Platzhalter mindestens 4,5:1 auch auf dem dunkelsten Feldgrund (#e8eaec), Paket B, B4: bis 1.0.29 #8592a0 (2,6–3,2:1). */
+  --g-platzhalter: #5a6776;
 
   /* Weitere Rollen (V5, 25.10.2026): Jede Farbe außerhalb dieser Definitionen ist eine Rolle (tests/farbrollen.test.mjs).
      Die RGB-Tripel tragen Hauch, Haarlinie, Schatten und Schleier mit eigener Deckkraft: rgba(var(--g-tinte-rgb), .05).
@@ -135,7 +136,7 @@
     --g-segment-grund: rgba(227,232,237,.08);
     --g-fokus: 0 0 0 3px rgba(121,174,224,.38);
     --g-rot: var(--kf-schrift-bf3b44);
-    --g-platzhalter: #8a96a3;
+    --g-platzhalter: #9aa6b2;
     --g-tinte-rgb: 227,232,237;
     --g-schatten-rgb: 0,0,0;
     --g-grund-rgb: 24,29,35;
@@ -270,7 +271,8 @@
 .g-segment[aria-selected="true"] { background: var(--g-segment-gewaehlt); font-weight: 600; box-shadow: var(--g-schatten-segment); }
 .g-segment:disabled { opacity: .45; cursor: default; }
 .g-segment:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
-.g-segment-zahl { font-weight: 500; color: var(--g-leise); font-variant-numeric: tabular-nums; }
+/* Tinte zu 72 %: Leise erreichte auf dem Grund der Leiste nur 4,4:1 (Paket B, B4); hell 5,6:1, dunkel über 8:1. */
+.g-segment-zahl { font-weight: 500; color: rgba(var(--g-tinte-rgb),.72); font-variant-numeric: tabular-nums; }
 .g-segmente.g-kompakt { padding: 2px; }
 .g-segmente.g-kompakt .g-segment { min-height: 32px; padding: 0 12px; font-size: 13px; }
 
@@ -511,7 +513,7 @@
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input):focus-visible {
-  outline: 2px solid transparent; border-color: var(--g-auswahl-kante); box-shadow: var(--g-fokus);
+  outline: 2px solid var(--g-auswahl-kante); outline-offset: 1px; border-color: var(--g-auswahl-kante);
 }
 .shell main :is(input, select, textarea)::placeholder { color: var(--g-platzhalter); }
 .shell main :is(button, a, summary, [tabindex]):focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
