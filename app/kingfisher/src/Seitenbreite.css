@@ -178,7 +178,7 @@
   #root .g-segmente.g-kompakt .g-segment { min-height: 40px; }
   /* Knöpfe mit Grund, Felder und Aufklapper: 44 hoch. */
   #root :is(.g-kompakt, .secondary-action, .primary-action, .tasks-add, .akte-knopf, .g-knopf-getoent, .g-knopf, .calendar-all-day-event,
-    .text-action, .document-folders button, .memory-view-actions button) { min-height: var(--g-ziel) !important; }
+    .text-action:not(small *), .document-folders button, .memory-view-actions button) { min-height: var(--g-ziel) !important; }
   #root .calendar-all-day-event { display: flex; align-items: center; }
   #root .shell main :is(select, input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file'])) { min-height: var(--g-ziel) !important; }
   #root .command-bar input { align-self: stretch; min-height: var(--g-ziel); }

@@ -29,7 +29,7 @@ test("mit dem Finger: leise Knöpfe, Verweise und Segmente haben eine unsichtbar
 
 test("Knöpfe mit Grund, Felder und Aufklapper sind am Finger 44 hoch; der Zeitstrahl nimmt die ganze Spur", () => {
   const css = grob();
-  assert.match(css, /#root :is\(\.g-kompakt, \.secondary-action, \.primary-action, \.tasks-add, \.akte-knopf, [^{]*\.text-action[^{]*\) \{ min-height: var\(--g-ziel\) !important; \}/);
+  assert.match(css, /#root :is\(\.g-kompakt, \.secondary-action, \.primary-action, \.tasks-add, \.akte-knopf, [^{]*\.text-action:not\(small \*\)[^{]*\) \{ min-height: var\(--g-ziel\) !important; \}/);
   assert.match(css, /#root details > summary \{ min-height: var\(--g-ziel\) !important;/);
   assert.match(css, /#root \.shell main :is\(select, input[^{]*\) \{ min-height: var\(--g-ziel\) !important; \}/);
   assert.match(css, /#root \.akte-punkt \{ pointer-events: none; \}/);
