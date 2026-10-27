@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { api, type CalendarOverview } from "./api";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
@@ -12,6 +12,7 @@ import {calendarColor, calendarDayLayout, calendarDisplaySource, calendarEventKe
 import {DetailPanel} from './DetailPanel';
 import {Leer, Seitenkopf, Segmente} from './grundlage';
 import {ganztaegig, nachTagen, terminZeit} from './calendarAnzeige';
+import {monatsWochen, tabTag, tagBeschriftung, tagNachTaste, tagSchluessel} from './calendarGrid';
 import './CalendarPage.css';
 import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
 import {ausgeblendetLage} from './zahlen';
@@ -225,19 +226,46 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const onDay = (day: Date) => eventsInRange(items, midnight(day), plusDays(day, 1));
   const weekStart = plusDays(focus, -(focus.getDay() + 6) % 7);
   const time = (value: string) => new Date(value).toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+  // Der Monat als Raster (Paket B, B5): ein Tab-Halt auf dem gewählten Tag, Pfeiltasten wandern, Pos1/Ende zur Woche,
+  // Bild auf/ab einen Monat; Enter öffnet die Termine des Tages in der Liste darunter. Der ganze Tag ist das Ziel, die
+  // Termine im Tag sind nur Zeichen und keine eigenen Tab-Halte (die Liste führt zu ihnen).
+  const rasterFokus = useRef(false);
+  useEffect(() => {
+    if (!rasterFokus.current) return;
+    rasterFokus.current = false;
+    document.querySelector<HTMLButtonElement>(`.calendar-page [data-tag="${tagSchluessel(focus)}"]`)?.focus();
+  }, [focus, view]);
+  function rasterTaste(event: KeyboardEvent<HTMLDivElement>, small: boolean) {
+    const ziel = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>("[data-tag]") : null;
+    if (!ziel) return;
+    if ((event.key === "Enter" || event.key === " ") && !small) {
+      // Enter: die Termine des Tages öffnen und den ersten fokussieren (ohne Termine wählt Enter nur den Tag).
+      event.preventDefault();
+      setAgendaOpen(true);
+      window.setTimeout(() => document.querySelector<HTMLButtonElement>(".calendar-page .calendar-agenda .calendar-entry")?.focus(), 0);
+      return;
+    }
+    const neu = tagNachTaste(event.key, focus);
+    if (!neu) return;
+    event.preventDefault();
+    rasterFokus.current = true;
+    setFocus(neu);
+  }
   function grid(month: number, small = false, gridYear = focus.getFullYear()) {
-    const first = new Date(gridYear, month, 1), offset = (first.getDay() + 6) % 7;
-    const count = new Date(gridYear, month + 1, 0).getDate();
-    return <div className={`month-grid ${small ? "mini-month" : ""}`}>
-      {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => <span className="weekday" key={d}>{d}</span>)}
-      {Array.from({length: offset}, (_, i) => <span key={`blank-${i}`} />)}
-      {Array.from({length: count}, (_, i) => {
-        const day = new Date(gridYear, month, i + 1), events = onDay(day);
-        return <div key={i} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${dateKey(day) === dateKey(focus) ? "is-selected" : ""} ${events.length ? "has-events" : ""}`}>
-          <button type="button" className="calendar-month-date" aria-label={`${day.toLocaleDateString("de-DE")}, ${events.length} Termine im geladenen Zeitraum`} aria-pressed={dateKey(day) === dateKey(focus)} onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong>{i + 1}</strong>{small && events.length>0 && <span className="event-dot" />}</button>
-          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" className="calendar-month-event" key={calendarEventKey(event)} title={event.summary} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span><span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
+    const haltTag = tagSchluessel(tabTag(gridYear, month, focus));
+    const name = new Date(gridYear, month, 1).toLocaleDateString("de-DE", {month: "long", year: "numeric"});
+    return <div className={`month-grid ${small ? "mini-month" : ""}`} role="grid" aria-label={name} aria-readonly="true" onKeyDown={event => rasterTaste(event, small)}>
+      <div className="month-reihe" role="row">{["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"].map(d => <span className="weekday" role="columnheader" aria-label={d} key={d}><span aria-hidden="true">{d.slice(0, 2)}</span></span>)}</div>
+      {monatsWochen(gridYear, month).map((woche, w) => <div className="month-reihe" role="row" key={w}>{woche.map((day, i) => {
+        if (!day) return <span className="month-leer" role="gridcell" key={`leer-${i}`} />;
+        const events = onDay(day), schluessel = tagSchluessel(day), gewaehlt = dateKey(day) === dateKey(focus);
+        return <div key={schluessel} role="gridcell" aria-selected={gewaehlt} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${gewaehlt ? "is-selected" : ""} ${events.length ? "has-events" : ""}`}>
+          <button type="button" className="calendar-month-date" data-tag={schluessel} tabIndex={schluessel === haltTag ? 0 : -1}
+            aria-label={tagBeschriftung(day, events.length, today)} aria-current={dateKey(day) === dateKey(today) ? "date" : undefined}
+            onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong aria-hidden="true">{day.getDate()}</strong>{small && events.length>0 && <span className="event-dot" aria-hidden="true" />}</button>
+          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" tabIndex={-1} className="calendar-month-event" key={calendarEventKey(event)} title={event.summary} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span><span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" tabIndex={-1} onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
         </div>;
-      })}
+      })}</div>)}
     </div>;
   }
   const shown = view === "Liste" ? eventsInRange(items, midnight(focus), plusDays(focus, 7)) : onDay(focus);

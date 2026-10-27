@@ -38,7 +38,7 @@ export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, pa
         <input type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder={title === "Projekte" ? "Projekt suchen …" : "Name oder E-Mail suchen …"} />
       </label></header>
     {imageError && <p role="alert" className="gd-hinweis">Eigene Bilder konnten nicht geladen werden. <button type="button" className="g-knopf-schlicht g-kompakt" onClick={() => void retryImages()}>Bilder erneut laden</button></p>}
-    {visible.length ? <Gruppe titel={<span className="directory-count" aria-live="polite">{query ? `${matches.length} von ${nodes.length}` : `${nodes.length} ${nodes.length === 1 ? "Eintrag" : "Einträge"}`}</span>}><ul className="directory-list gd-liste">{visible.map(node => {
+    {visible.length ? <Gruppe titel={<><span className="visually-hidden">{title}: </span><span className="directory-count" aria-live="polite">{query ? `${matches.length} von ${nodes.length}` : `${nodes.length} ${nodes.length === 1 ? "Eintrag" : "Einträge"}`}</span></>}><ul className="directory-list gd-liste">{visible.map(node => {
       const label = displayLabel(node.label);
       const neben = [label.detail, node.kind === "person" ? "" : node.attributes.area ? String(node.attributes.area) : "", zuordnung(node)].filter(Boolean).join(" · ");
       const kontakt = node.kind === "person" && graph ? contactDateFromGraph(graph, node.id) : "";

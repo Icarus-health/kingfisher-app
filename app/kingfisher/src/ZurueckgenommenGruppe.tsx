@@ -37,7 +37,7 @@ export function ZurueckgenommenGruppe({ revision, onChanged }: { revision: numbe
     }
   }
 
-  return <Gruppe className="workspace-task-group task-zurueckgenommen" titel="Zurückgenommen">
+  return <Gruppe className="workspace-task-group task-zurueckgenommen" titel="Zurückgenommen" stufe={3}>
     {fehler ? <p className="tasks-error" role="alert">{fehler}</p> : null}
     {eintraege.map(eintrag => <Zeile key={eintrag.id} titel={eintrag.title} neben={zurueckgenommenNeben(eintrag)}
       zusatz={<button type="button" className="g-knopf-schlicht g-kompakt" disabled={arbeitet !== null}

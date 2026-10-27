@@ -31,7 +31,7 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
  const goTo=async(iso)=>{const [y,m,day]=iso.split('-').map(Number);ansicht(d.render(),'Jahr').props.onClick();d.render();await d.flush();
 let shown=Number(text(nodes(d.render(),n=>n.props?.className==='calendar-period')[0]).match(/\d{4}/)[0]);
   while(shown!==y){nodes(d.render(),n=>n.type==='button'&&n.props['aria-label']===(shown<y?'Nächster Zeitraum':'Vorheriger Zeitraum'))[0].props.onClick();d.render();await d.flush();shown+=shown<y?1:-1;}
-  const label=new Date(y,m-1,day).toLocaleDateString('de-DE')+',';nodes(d.render(),n=>n.type==='button'&&String(n.props['aria-label']??'').startsWith(label))[0].props.onClick();d.render();await d.flush();
+  const label=new Date(y,m-1,day).toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+','; /* Tagesname im Raster (Paket B, B5) */ nodes(d.render(),n=>n.type==='button'&&String(n.props['aria-label']??'').startsWith(label))[0].props.onClick();d.render();await d.flush();
   ansicht(d.render(),'Woche').props.onClick();d.render();await d.flush();tree=d.render();await d.flush();tree=d.render();};
  await goTo('2026-10-12');
  const oldZone=process.env.TZ;process.env.TZ='Europe/Berlin';

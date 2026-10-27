@@ -49,7 +49,7 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
   const current = Math.min(page, pages);
   const visible = entries.slice((current - 1) * 25, current * 25);
   return <section data-memory-loading={busy || (!documents && submitted.length >= 2 && submitted === needle && !result && !error)} className="memory-directory memory-search gd-verzeichnis" aria-label={documents ? 'Dokumente' : 'Gedächtnissuche'}>
-    {documents && <header><h1>Dokumente</h1></header>}
+    {documents && <header><h2>Dokumente</h2></header>}
     <form className="memory-search-form" onSubmit={event => {event.preventDefault(); setSubmitted(needle); setRetry(n => n + 1);}}>
       <label className="directory-search">{documents ? 'Dokumenttitel suchen' : <span className="visually-hidden">Gedächtnis durchsuchen</span>}
         <input type="search" maxLength={200} value={query} onChange={event => onQueryChange(event.target.value)} placeholder={documents ? 'Titel oder Teil des Dateinamens …' : 'Name, Projekt oder Begriff …'} /></label>
