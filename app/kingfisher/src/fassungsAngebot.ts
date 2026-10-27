@@ -5,6 +5,8 @@
 // Damit die Seite danach sagen kann, ob es geklappt hat, merkt sie sich Ziel- und Ausgangsfassung im Browser
 // (`localStorage`, jeder Zugriff in try/catch: im privaten Fenster fehlt er, dann gibt es eben keine Rückmeldung).
 
+import { SCHALTER } from "./Einstellungen/gliederung.ts";
+
 export type FassungManifest = {
   fassung: string; datum: string; image: string; dmg: string; hinweise: string[]; app_mindestens: string;
 };
@@ -27,7 +29,9 @@ export const MERKER = "kingfisher.update";
 export const SATZ_VORHER = "Kingfisher sichert vorher deine Daten und ist etwa eine Minute weg.";
 export const SATZ_OHNE_APP = "Öffne Kingfisher über die App, um zu aktualisieren.";
 export const SATZ_FEHLGESCHLAGEN = "Das Update hat nicht geklappt; deine Daten sind gesichert.";
-export const SATZ_PRUEFEN = "Einmal am Tag fragt Kingfisher bei GitHub, ob es eine neue Fassung gibt. Über dich geht dabei nichts hinaus.";
+/** Der Satz unter „Nach neuen Fassungen sehen“ (Was Kingfisher darf): was abgerufen wird, wer die IP-Adresse sieht,
+ * und was „aus“ kostet (Persona-Prüfung, D3). Er steht einmal, in der Gliederung der Einstellungen. */
+export const SATZ_PRUEFEN: string = SCHALTER.updates.verlaesst;
 
 /** Die Brücke zur Mac-App, wenn diese Seite im Fenster der App läuft; im Browser null. */
 export function brueckeFinden(fenster: unknown = globalThis): Bruecke | null {

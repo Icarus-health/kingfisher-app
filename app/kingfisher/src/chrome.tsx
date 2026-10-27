@@ -1,9 +1,14 @@
 import { ASSET, NAV, navigate, type NavigationLabel } from "./ui";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { LiveClock } from "./LiveClock";
+import { HandyLeiste } from "./HandyLeiste";
 
 // Heute ist das Briefing (Paket U, H1): „Heute“ führt immer nach Heute; keine Schublade, die die Leiste sperrt.
 // navigationDisabled sperrt die Leiste, solange eine Seite etwas speichert, das nicht verloren gehen darf (Gedächtnis).
+//
+// Zwei Gestalten derselben Navigation, je Breite genau eine sichtbar (Seitenbreite.css): breit die Seitenleiste (ab 701 px,
+// bis 900 px als Streifen oben), am Handy die feste Leiste unten mit vier Zielen und „Mehr“ (Paket H, H2; `HandyLeiste.tsx`).
+// Die jeweils andere ist `display: none` und damit auch für Vorleser und Tab nicht da.
 export function Sidebar({ active, navigationDisabled = false }: {
   active: NavigationLabel | "Einstellungen";
   recentConversation: string | null;
@@ -22,7 +27,7 @@ export function Sidebar({ active, navigationDisabled = false }: {
     <aside className="sidebar">
       <img className="brand-lockup" src={ASSET.brand} alt="Kingfisher" />
       <LiveClock />
-      <nav aria-label="Hauptnavigation">
+      <nav aria-label="Hauptnavigation" className="seiten-navigation">
         {NAV.map(([label, image]) => {
           const available = label === "Kalender" || label === "Heute" || label === "Gedächtnis" || label === "Gespräche" || label === "Aufgaben" || label === "Nachrichten";
           return (
@@ -46,6 +51,7 @@ export function Sidebar({ active, navigationDisabled = false }: {
           <span>Einstellungen</span>
         </button>
       </div>
+      <HandyLeiste active={active} gesperrt={navigationDisabled} />
     </aside>
   );
 }

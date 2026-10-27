@@ -139,7 +139,7 @@ def test_unknown_source_time_does_not_render_import_as_an_outside_source_date(tm
         answer = prepare('Was kam letzte Woche zur Freigabe Orion?', episodes, claims, selector)
         text, _, _ = render(answer, episodes, claims)
         assert episode.body in text
-        assert 'Quellenzeit: unbekannt' in text and 'Erfasst:' in text
+        assert 'ohne eigenes Datum, aufgenommen am' in text
         assert 'Außerhalb des gefragten Zeitraums' not in text
         assert 'ausserhalb_zeitraum' not in selector.rows[0]
     finally:

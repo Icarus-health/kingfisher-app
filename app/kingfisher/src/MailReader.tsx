@@ -267,7 +267,7 @@ function RemoteMailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
     {error ? <div className="mail-reader-error" role="alert"><p>{error}</p><button className="g-knopf-schlicht" onClick={load} type="button">Wiederholen</button></div> : null}
     {detail ? <>
       <section className="mail-reader-meta">
-        <h1>{detail.subject || "(Ohne Betreff)"}</h1>
+        <h2>{detail.subject || "(Ohne Betreff)"}</h2>
         <p className="mail-sender-line"><Absender von={detail.from} /><time dateTime={detail.date || undefined}>{readableDate(detail.date)}</time></p>
         <details className="mail-source-details"><summary>Details zur Nachricht</summary><dl>
           <div><dt>Antwort an</dt><dd>{detail.answer_to || detail.from}</dd></div>
@@ -357,7 +357,7 @@ function SavedMailReader({episodeId, localRevision, onClose, onTaskSaved}: MailR
     {loading && !detail && <p className="mail-reader-loading" role="status">Wird geladen …</p>}
     {error && <p className="mail-reader-error" role="alert">{error} <button className="g-knopf-schlicht" type="button" onClick={() => setRevision(n => n + 1)}>Wiederholen</button></p>}
     {detail && <>
-      <section className="mail-reader-meta"><h1>{detail.subject || '(Ohne Betreff)'}</h1><p className="mail-sender-line"><Absender von={detail.from} /><time dateTime={detail.date || undefined}>{readableDate(detail.date)}</time></p></section>
+      <section className="mail-reader-meta"><h2>{detail.subject || '(Ohne Betreff)'}</h2><p className="mail-sender-line"><Absender von={detail.from} /><time dateTime={detail.date || undefined}>{readableDate(detail.date)}</time></p></section>
       {error && <p className="mail-reader-status">Zuletzt geladene Vorschau · Quellenstand ungeprüft. Deine bearbeiteten Aufgaben bleiben erhalten.</p>}
       <section className="mail-reader-body" aria-label={error ? "Zuletzt geladener Originaltext, Quellenstand ungeprüft" : "Originaltext der gespeicherten Nachricht"}><pre>{detail.body || detail.preview || 'Kein lesbarer Text gespeichert.'}</pre></section>
       {detail.truncated && <p className="mail-reader-status" role="status">Gespeicherter Ausschnitt; weitere Textteile oder Anlagen können fehlen.</p>}

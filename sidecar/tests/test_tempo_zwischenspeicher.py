@@ -401,7 +401,9 @@ def test_heute_schlaegt_die_teilnehmer_einmal_nach(api, monkeypatch):
         return echt(gesucht, **k)
     monkeypatch.setattr(app.state.episodes, '_participants_for_addresses', zaehlen)
     schnell = client.get('/api/v1/morning-briefing', params={'post': 'false'}).json()
-    assert len(durchgaenge) == 1 and set(durchgaenge[0]) == {'anna@agentur.example', 'ben@druck.example'}
+    # Ein Durchgang über den Bestand: seit Paket A-II (Befund A4) einer für alle Adressen (`None`), aus dem jede Abfrage liest.
+    assert len(durchgaenge) == 1 and (durchgaenge[0] is None
+                                      or set(durchgaenge[0]) == {'anna@agentur.example', 'ben@druck.example'})
     client.get('/api/v1/morning-briefing')
     # Die volle Fassung fragt für die Termine dieselben Adressen: aus dem Zwischenspeicher. (Namen der Akten fragt sie
     # mit `anzeigenamen` eigens; die zählen hier nicht.)

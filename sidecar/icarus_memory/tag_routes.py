@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from . import fristlage, identitaet, tagesbriefing, terminvorbereitung, wegezeit, wiederkehrendes
-from .akten_routes import bausteine, nachfuehren
+from .akten_routes import bausteine, nach_stand_gemerkt, nachfuehren
 from .logbuch_routes import zeilen as logbuch_zeilen
 from .model import user_timezone
 from .wegezeit_routes import dienst as wegezeit_dienst
@@ -98,6 +98,27 @@ def termine(app, jetzt: datetime) -> list[dict[str, Any]]:
     return sorted(ergebnis, key=lambda e: e['start'])
 
 
+def vorbereitung_eines(app, eintrag: dict[str, Any], jetzt: datetime) -> terminvorbereitung.Vorbereitung | None:
+    """Die Vorbereitung eines beliebigen Termins aus den Akten seiner Teilnehmer, ohne Weg (Befund A6).
+
+    Dieselbe Vorbereitung wie im Briefing (`terminvorbereitung.vorbereiten`): wer kommt, was offen ist (Bitten an
+    dich, deine Bitten, Zusagen), letzter Kontakt, Stand, Fristen und der Hintergrund des Projekts oder der
+    gemeinsamen Organisation. Niemand muss dafür ein Projekt oder eine Person wählen."""
+    try:
+        nachfuehren(app)
+    except Exception:  # noqa: BLE001 - dann gilt der vorhandene Stand der Akten
+        logger.exception('Bezüge konnten nicht nachgeführt werden')
+    _, akten = bausteine(app)
+    episode_id, notiz = terminvorbereitung.termin_im_gedaechtnis(
+        app.state.episodes, str(eintrag.get('uid') or ''), str(eintrag.get('source_id') or ''))
+    termin = terminvorbereitung.Termin.aus_dict(eintrag, notiz=notiz, episode_id=episode_id)
+    if termin is None:
+        return None
+    return terminvorbereitung.vorbereiten_gemerkt(app, termin, akten=akten,
+                                                  eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None)),
+                                                  jetzt=jetzt, workspace=getattr(app.state, 'workspace', None))
+
+
 def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> list[terminvorbereitung.Vorbereitung]:
     """Jeder Termin mit Teilnehmern vorbereitet, dazu der Weg. Ein Fehler kostet nur diesen Termin."""
     _, akten = bausteine(app)
@@ -112,9 +133,8 @@ def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> l
         if termin is None:
             continue
         try:
-            vorbereitung = terminvorbereitung.vorbereiten(termin, akten=akten, episodes=app.state.episodes,
-                                                          eigene=eigene, jetzt=jetzt,
-                                                          workspace=getattr(app.state, 'workspace', None))
+            vorbereitung = terminvorbereitung.vorbereiten_gemerkt(app, termin, akten=akten, eigene=eigene, jetzt=jetzt,
+                                                                  workspace=getattr(app.state, 'workspace', None))
         except Exception:  # noqa: BLE001 - der Termin bleibt sichtbar, nur ohne Vorbereitung
             logger.exception('Termin konnte nicht vorbereitet werden')
             vorbereitung = terminvorbereitung.Vorbereitung(termin=termin)
@@ -129,10 +149,31 @@ def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> l
     return ergebnis
 
 
-def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
+#: Was die schnelle Fassung des Briefings noch nicht enthält (Befund A4: sofort der fertige Teil und der Zwischenstand).
+ZWISCHENSTAND = 'Vorbereitung der Termine, Wege und Wetter folgen gleich.'
+
+
+def _ohne_vorbereitung(app, eintraege: list[dict[str, Any]]) -> list[terminvorbereitung.Vorbereitung]:
+    """Die Termine wie im Kalender, ohne Akten, Wege und Wetter (schnelle Fassung)."""
+    ergebnis = []
+    for eintrag in eintraege:
+        episode_id, notiz = terminvorbereitung.termin_im_gedaechtnis(
+            app.state.episodes, str(eintrag.get('uid') or ''), str(eintrag.get('source_id') or ''))
+        termin = terminvorbereitung.Termin.aus_dict(eintrag, notiz=notiz, episode_id=episode_id)
+        if termin is not None:
+            ergebnis.append(terminvorbereitung.Vorbereitung(termin=termin))
+    return ergebnis
+
+
+def briefing(app, *, buchen: bool = True, schnell: bool = False) -> dict[str, Any]:
+    """Das Morgenbriefing. `schnell`: nur, was ohne Akten der Teilnehmer, Wege, Wetter und Welt sofort da ist
+    (Termine, Fristen, Post, Geburtstage, Verlauf), mit `zwischenstand`; die Oberfläche zeigt es, bis die volle
+    Fassung kommt. Die schnelle Fassung zählt nie als Blick ins Logbuch."""
     jetzt = _jetzt()
     ergebnis: dict[str, Any] = {'jetzt': jetzt.isoformat(), 'tageslage': None, 'termine': [], 'fristen': [],
-                                'geburtstage': [], 'fehler': {}}
+                                'geburtstage': [], 'fehler': {}, 'zwischenstand': ZWISCHENSTAND if schnell else None}
+    if schnell:
+        buchen = False
     eigene = identitaet.eigene_adressen(getattr(app.state, 'settings', None))
     try:
         nachfuehren(app)
@@ -140,14 +181,17 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
         logger.exception('Bezüge konnten nicht nachgeführt werden')
     vorbereitungen: list[terminvorbereitung.Vorbereitung] = []
     try:
-        vorbereitungen = vorbereiten_alle(app, jetzt, termine(app, jetzt))
+        vorbereitungen = (_ohne_vorbereitung(app, termine(app, jetzt)) if schnell
+                          else vorbereiten_alle(app, jetzt, termine(app, jetzt)))
     except Exception as exc:  # noqa: BLE001
         ergebnis['fehler']['termine'] = 'Die Termine sind gerade nicht erreichbar.'
         logger.warning('Termine für das Tagesbriefing nicht lesbar: %s', type(exc).__name__)
     fristen: list[fristlage.Frist] = []
     try:
         bezuege, akten = bausteine(app)
-        fristen = fristlage.sammeln(akten, bezuege, jetzt=jetzt, eigene=eigene)
+        # Einmal je Stand berechnet, wie in „Was brauche ich morgen?“ (Befund A4).
+        fristen = nach_stand_gemerkt(app, 'fristlage', (jetzt.date().isoformat(), fristlage.TAGE_VORAUS, tuple(eigene)),
+                                     lambda: fristlage.sammeln(akten, bezuege, jetzt=jetzt, eigene=eigene))
     except Exception:  # noqa: BLE001
         logger.exception('Fristen konnten nicht gelesen werden')
         ergebnis['fehler']['fristen'] = 'Die Fristen sind gerade nicht lesbar.'
@@ -159,7 +203,7 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
         logger.exception('Geburtstage konnten nicht gelesen werden')
     termin_wetter = None
     try:
-        termin_wetter = wetter_am_termin(app, vorbereitungen, jetzt)
+        termin_wetter = None if schnell else wetter_am_termin(app, vorbereitungen, jetzt)
     except Exception:  # noqa: BLE001
         logger.exception('Wetter am Termin konnte nicht bestimmt werden')
     post: list[dict[str, Any]] = []
@@ -168,10 +212,14 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
         post = post_heute(app.state.tasks, jetzt)
     except Exception:  # noqa: BLE001 - die Zeile ist Beiwerk; das Briefing darf nie daran scheitern
         logger.exception('Aufgaben nach der Post konnten nicht gelesen werden')
-    lage = tagesbriefing.erstellen(vorbereitungen, fristen, _wetter(app), jetzt=jetzt,
-                                   termin_wetter=termin_wetter, welt=_welt(app), verlauf=logbuch_zeilen(app, jetzt, buchen=buchen),
+    lage = tagesbriefing.erstellen(vorbereitungen, fristen, None if schnell else _wetter(app), jetzt=jetzt,
+                                   termin_wetter=termin_wetter, welt=None if schnell else _welt(app),
+                                   verlauf=logbuch_zeilen(app, jetzt, buchen=buchen),
                                    geburtstage=geburtstage, aufgaben_post=post)
     ergebnis['tageslage'] = lage.to_dict()
+    if schnell and not lage.zeilen:
+        # Noch nichts Fertiges: kein „Heute liegt nichts an“, bevor die Termine vorbereitet sind.
+        ergebnis['tageslage']['einleitung'] = 'Kingfisher stellt die Tageslage zusammen.'
     ergebnis['termine'] = [v.to_dict() for v in vorbereitungen]
     ergebnis['fristen'] = [f.to_dict() for f in fristen]
     ergebnis['geburtstage'] = geburtstage
@@ -181,10 +229,11 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
 
 def register(app, guard) -> None:
     @app.get('/api/v1/tag/briefing', dependencies=guard)
-    def tag_briefing(nachladen: bool = False) -> dict[str, Any]:
-        """`nachladen`: das stille Erneuern der Oberfläche bei offenem Tab; es zählt nicht als Blick (`logbuch_routes.zeilen`)."""
-        return briefing(app, buchen=not nachladen)
+    def tag_briefing(nachladen: bool = False, schnell: bool = False) -> dict[str, Any]:
+        """`nachladen`: das stille Erneuern der Oberfläche bei offenem Tab; es zählt nicht als Blick (`logbuch_routes.zeilen`).
+        `schnell`: der sofort fertige Teil mit Zwischenstand (`briefing`)."""
+        return briefing(app, buchen=not nachladen, schnell=schnell)
 
 
-__all__ = ['briefing', 'register', 'termine', 'vorbereiten_alle', 'wetter_am_termin']
+__all__ = ['briefing', 'register', 'termine', 'vorbereiten_alle', 'vorbereitung_eines', 'wetter_am_termin']
 

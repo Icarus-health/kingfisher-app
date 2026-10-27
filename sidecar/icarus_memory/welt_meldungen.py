@@ -26,6 +26,7 @@ Die Auswahl (`waehlen`) ist eine reine Funktion; die Verdrahtung mit Einstellung
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import logging
@@ -79,6 +80,9 @@ class Welt:
     """`{tag, meldung, abbestellt}`: die Wahl des Tages. `abbestellt`: Die Meldung wurde heute abbestellt, dann
     folgt heute keine andere."""
     gezeigt: list[str] = field(default_factory=list)
+    rueckweg: dict[str, Any] = field(default_factory=dict)
+    """Der Stand vor dem letzten Abbestellen (`{art, ziel, feed_an, weltquelle, sache_war, heute}`), für „Rückgängig“
+    im Hinweis (Paket S: Abbestellen fragt nicht vorher, es lässt sich zurücknehmen, samt der Meldung des Tages)."""
 
     @classmethod
     def aus(cls, daten: Any) -> 'Welt':
@@ -95,11 +99,13 @@ class Welt:
                    heute={'tag': str(heute.get('tag') or ''),
                           'meldung': heute.get('meldung') if isinstance(heute.get('meldung'), dict) else None,
                           'abbestellt': heute.get('abbestellt') is True} if heute else {},
-                   gezeigt=[str(x) for x in daten.get('gezeigt') or [] if isinstance(x, str)][-MAX_GEZEIGT:])
+                   gezeigt=[str(x) for x in daten.get('gezeigt') or [] if isinstance(x, str)][-MAX_GEZEIGT:],
+                   rueckweg=daten.get('rueckweg') if isinstance(daten.get('rueckweg'), dict) else {})
 
     def to_dict(self) -> dict[str, Any]:
         return {'aktiv': self.aktiv, 'feeds': self.feeds, 'weltquellen': self.weltquellen,
-                'abbestellt_sachen': self.abbestellt_sachen, 'heute': self.heute, 'gezeigt': self.gezeigt[-MAX_GEZEIGT:]}
+                'abbestellt_sachen': self.abbestellt_sachen, 'heute': self.heute, 'gezeigt': self.gezeigt[-MAX_GEZEIGT:],
+                'rueckweg': self.rueckweg}
 
 
 # -- Abgleich (rein) -----------------------------------------------------------
@@ -299,8 +305,13 @@ class WeltDienst:
         """Prüft die Adresse und liest den Feed einmal, damit ein kaputter nicht still eingetragen wird."""
         from .world_sources import _validate_url
         from .security import SecurityError
+        from .security import HostNichtAufloesbar
         try:
             adresse = _validate_url(url)
+        except HostNichtAufloesbar:
+            if not str(url).strip().casefold().startswith('https://'):
+                raise FeedFehler('Diese Adresse ist nicht erlaubt: Sie muss öffentlich sein und mit https beginnen.') from None
+            raise FeedFehler(welt_feeds.nicht_erreichbar(url)) from None
         except (SecurityError, ValueError):
             raise FeedFehler('Diese Adresse ist nicht erlaubt: Sie muss öffentlich sein und mit https beginnen.') from None
         name = ' '.join(str(label or '').split())[:80]
@@ -343,6 +354,9 @@ class WeltDienst:
             return False
 
         def abbestellen(w: Welt) -> None:
+            w.rueckweg = {'art': 'quelle', 'ziel': quelle_id,
+                          'feed_an': next((f['enabled'] for f in w.feeds if f['id'] == quelle_id), None),
+                          'weltquelle': quelle_id in w.weltquellen, 'heute': copy.deepcopy(w.heute)}
             for f in w.feeds:
                 if f['id'] == quelle_id:
                     f['enabled'] = False
@@ -369,10 +383,36 @@ class WeltDienst:
             return False
 
         def abbestellen(w: Welt) -> None:
+            w.rueckweg = {'art': 'sache', 'ziel': sache, 'sache_war': sache in w.abbestellt_sachen,
+                          'heute': copy.deepcopy(w.heute)}
             if sache not in w.abbestellt_sachen:
                 w.abbestellt_sachen.append(sache)
             _heutige_streichen(w, sache=sache)
         self._aendern(abbestellen)
+        return True
+
+    def abbestellen_rueckgaengig(self, *, quelle_id: str | None = None, sache: str | None = None) -> bool:
+        """Nimmt das letzte Abbestellen zurück, genau dieses: Feed, Weltquelle oder Sache wie vorher, und die Meldung des
+        Tages steht wieder da, wenn noch derselbe Tag ist. False, wenn es nichts zurückzunehmen gibt."""
+        art, ziel = ('quelle', quelle_id) if quelle_id else ('sache', sache)
+        vorher = self.welt().rueckweg
+        if not ziel or vorher.get('art') != art or vorher.get('ziel') != ziel:
+            return False
+
+        def zurueck(w: Welt) -> None:
+            if art == 'quelle':
+                for f in w.feeds:
+                    if f['id'] == ziel and vorher.get('feed_an') is not None:
+                        f['enabled'] = bool(vorher['feed_an'])
+                if vorher.get('weltquelle') and ziel not in w.weltquellen:
+                    w.weltquellen.append(ziel)
+            elif not vorher.get('sache_war'):
+                w.abbestellt_sachen = [s for s in w.abbestellt_sachen if s != ziel]
+            alt = vorher.get('heute') if isinstance(vorher.get('heute'), dict) else {}
+            if alt and alt.get('tag') == (w.heute or {}).get('tag'):
+                w.heute = alt
+            w.rueckweg = {}
+        self._aendern(zurueck)
         return True
 
     def sache_zulassen(self, sache: str) -> bool:

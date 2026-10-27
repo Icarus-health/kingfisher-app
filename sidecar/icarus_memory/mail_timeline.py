@@ -8,6 +8,11 @@ from .model import SourceType
 
 # A selection window for unconfirmed suggestions, not an expiry for real tasks.
 RECENT_WINDOW = timedelta(days=7)
+# Befund A5 der Persona-Prüfung: Die Bestandsaufnahme beim ersten Einlesen holt auch Post von gestern und heute.
+# Eine solche Mail ist so zeitnah wie neue Post, wenn sie höchstens drei Tage (ein Wochenende) vor dem Einlesen ankam;
+# ältere Post aus dem Bestand bleibt zur Prüfung („Ob diese Bitte noch offen ist, muss geprüft werden“). Selbst
+# angelegt wird aus dem Bestand nichts (`aufgaben_von_selbst`, Grund `bestand`).
+INVENTAR_ZEITNAH = timedelta(days=3)
 SELF = 'mail:message:'
 REPLY = 'mail:reply:'
 REASONS = {
@@ -100,7 +105,8 @@ def timings(episodes, sources, *, now, relations=None):
         for e in sources:
             date = e.occurred_at
             status = date_status(date, now=now)
-            if e.provenance.source_type is SourceType.EMAIL and status == 'recent' and e.id in history:
+            if (e.provenance.source_type is SourceType.EMAIL and status == 'recent' and e.id in history
+                    and date < e.recorded_at - INVENTAR_ZEITNAH):
                 status = 'history'
             result[e.id] = {'received_at': date.astimezone(timezone.utc).isoformat() if date else None,
                 'recorded_at': e.recorded_at.astimezone(timezone.utc).isoformat(), 'temporal_status': status,

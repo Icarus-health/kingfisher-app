@@ -5,6 +5,7 @@ import {api, ApiError, type ModelPullState, type ModelRecommendation as Recommen
 import {ModelRolesExpert} from "./ModelRolesExpert";
 import {actionLabel, allConfirmation, describePull, isRunning, orchesterZeile, pendingRoles, pullPercent, setupFits, statusLabel, watchPull} from "./modelSetup";
 import {listenForCloudAccessChange} from "./cloudAccessEvents";
+import {Rueckfrage} from "./grundlage";
 import "./ModelRecommendation.css";
 
 type Confirm = {kind: "one"; rolle: string} | {kind: "all"} | null;
@@ -121,11 +122,9 @@ export function ModelRecommendation({beiFertig, compact=false, children}: {beiFe
           <span className={`model-rec-status is-${row.status}`}>{statusLabel(row.status)}</span>
           {action ? <button className="secondary-action" type="button" disabled={busy || !data.ollama.erreichbar || !row.empfohlen.passt}
             aria-label={`${row.titel}: ${action}`} onClick={() => ask(row)}>{action}</button> : <span className="model-rec-spacer" />}
-          {confirm?.kind === "one" && confirm.rolle === row.rolle ? <div className="model-rec-confirm" role="group" aria-label="Bestätigung">
-            <p>{row.empfohlen.bestaetigung}</p>
-            <button className="primary-action" type="button" onClick={() => void setUp([row.rolle])}>Laden und einrichten</button>
-            <button className="secondary-action" type="button" onClick={() => setConfirm(null)}>Abbrechen</button>
-          </div> : null}
+          {/* Die Rückfrage als Dialog (Paket B, B3): Laden braucht Zeit und Platz. */}
+          {confirm?.kind === "one" && confirm.rolle === row.rolle ? <Rueckfrage frage={`${row.empfohlen.name} laden und einrichten?`} satz={row.empfohlen.bestaetigung}
+            bestaetigen="Laden und einrichten" onBestaetigen={() => void setUp([row.rolle])} onAbbrechen={() => setConfirm(null)} /> : null}
         </li>;
       })}
     </ul> : null}
@@ -134,13 +133,10 @@ export function ModelRecommendation({beiFertig, compact=false, children}: {beiFe
       {data.orchester.hinweise.map(text => <p key={text} className="model-rec-warn" role="status">{text}</p>)}
     </div> : null}
     {data?.ollama.cloud_ueber_ollama?.length ? <p className="source-hint model-rec-meta" role="status">Läuft in Ollamas Cloud, nicht auf diesem Rechner: {data.ollama.cloud_ueber_ollama.join(", ")}. Die Anfragen gehen über Ollama an dessen Server in den USA. Diese Modelle werden hier nicht als lokale Vorauswahl angeboten.</p> : null}
-    {data && pending.length > 1 && confirm?.kind !== "all" ? <div className="source-form-actions">
+    {data && pending.length > 1 ? <div className="source-form-actions">
       <button className="primary-action" type="button" disabled={busy || !data.ollama.erreichbar || !setupFits(rows, data.orchester, pending)} onClick={() => setConfirm({kind: "all"})}>Alles einrichten</button></div> : null}
-    {data && confirm?.kind === "all" ? <div className="model-rec-confirm" role="group" aria-label="Bestätigung">
-      <p>{allConfirmation(rows.filter(row => pending.includes(row.rolle)))}</p>
-      <button className="primary-action" type="button" disabled={!setupFits(rows, data.orchester, pending)} onClick={() => void setUp(pending)}>Laden und einrichten</button>
-      <button className="secondary-action" type="button" onClick={() => setConfirm(null)}>Abbrechen</button>
-    </div> : null}
+    {data && confirm?.kind === "all" ? <Rueckfrage frage="Alle Modelle laden und einrichten?" satz={allConfirmation(rows.filter(row => pending.includes(row.rolle)))}
+      bestaetigen="Laden und einrichten" gesperrt={!setupFits(rows, data.orchester, pending)} onBestaetigen={() => void setUp(pending)} onAbbrechen={() => setConfirm(null)} /> : null}
     {data ? <p className="source-hint">{data.hinweis} Stand der Empfehlungen: {new Date(data.stand).toLocaleDateString("de-DE")}. Es wird nichts ohne deine Bestätigung geladen, und es werden keine deiner Inhalte gesendet.</p> : null}
     {data ? <details className="model-rec-expert"><summary>Für Fortgeschrittene: Modell je Aufgabe wählen</summary>
       <ModelRolesExpert installed={data.ollama.installiert} rows={rows} onChanged={() => void load()} /></details> : null}

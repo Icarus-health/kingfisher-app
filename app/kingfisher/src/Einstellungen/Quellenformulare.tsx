@@ -3,6 +3,7 @@ import { useImBlick } from "../useImBlick";
 import { type CalendarSource, type MailAccount, type MailProvider } from "../api";
 import { icon } from "../ui";
 import { InterfaceIcon } from "../InterfaceIcon";
+import { Rueckfrage } from "../grundlage";
 import { ServerFelder } from "./ServerFelder";
 
 export type MailForm = {
@@ -54,7 +55,9 @@ export function SourceRow({ iconName, label, detail, state, removing, busy, onRe
   return <div className="source-row g-zeile">
     <span className="g-zeile-symbol" aria-hidden="true"><InterfaceIcon name={iconName} /></span>
     <span className="g-zeile-text"><strong className="g-zeile-titel">{label}</strong><small className="g-zeile-neben">{detail}</small></span>
-    {removing ? <span className="source-remove-confirm" role="group" aria-label={`${label} entfernen`}>Quelle wirklich entfernen?<button disabled={busy} onClick={onRemove} type="button">Entfernen</button><button disabled={busy} onClick={onCancel} type="button">Abbrechen</button></span> : <><em className="g-zeile-wert">{state}</em><button aria-label={`${label} entfernen`} className="source-remove" disabled={busy} onClick={onRemove} type="button"><img src={icon("trash2", "Outline")} alt="" /></button></>}
+    <em className="g-zeile-wert">{state}</em><button aria-label={`${label} entfernen`} className="source-remove" disabled={busy && !removing} onClick={onRemove} type="button"><img src={icon("trash2", "Outline")} alt="" /></button>
+    {removing ? <Rueckfrage frage={`„${label}“ wirklich entfernen?`} satz="Das lässt sich nicht zurücknehmen." bestaetigen="Entfernen" rot
+      arbeitet={busy} onBestaetigen={onRemove} onAbbrechen={onCancel} /> : null}
   </div>;
 }
 
@@ -95,7 +98,7 @@ export function MailSourceForm({ form, provider, providers, submitting, fehler =
     <label>{provider?.app_password ? "App-Passwort" : "Postfachpasswort"}<input autoComplete="new-password" onChange={(event) => onChange({ ...form, password: event.target.value })} type="password" value={form.password} /></label>
     {provider?.hint ? <p className="source-hint">{provider.hint}{provider.help_url ? <> <a href={provider.help_url} rel="noreferrer" target="_blank">{provider.help_label || "Mehr erfahren"}</a></> : null}</p> : null}
     <p className="source-hint">Das Passwort wird nur im lokalen Schlüsselbund abgelegt und nicht erneut angezeigt.</p>
-    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Lokal speichern</button></div>
+    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Speichern</button></div>
     <FehlerAmKnopf text={fehler} />
   </form>;
 }
@@ -115,7 +118,7 @@ export function CalendarSourceForm({ form, submitting, fehler = "", onCancel, on
     <label>{form.kind === "ical" ? "Adresse des Kalender-Abos" : "Adresse des Kalenders"}<input onChange={(event) => onChange({ ...form, url: event.target.value })} placeholder="https://…" required type="url" value={form.url} /></label>
     {form.kind === "caldav" ? <><label>Benutzername<input onChange={(event) => onChange({ ...form, user: event.target.value })} required value={form.user} /></label><label>App-Passwort<input autoComplete="new-password" onChange={(event) => onChange({ ...form, password: event.target.value })} type="password" value={form.password} /></label></> : <p className="source-hint">Für Google-Kalender kannst du die persönliche HTTPS-iCalendar-Adresse jedes einzelnen Kalenders abonnieren.</p>}
     <p className="source-hint">Der Zugang bleibt lokal. Ein Abo wird nicht an weitere Dienste weitergegeben.</p>
-    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Lokal speichern</button></div>
+    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Speichern</button></div>
     <FehlerAmKnopf text={fehler} />
   </form>;
 }

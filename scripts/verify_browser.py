@@ -276,11 +276,17 @@ def main() -> int:
                     "retraction": True, "context_exclusion": True, "reload": True, "viewport": "1440x1000"}
             else:
                 goto("/today", "today")
-                require(page.title() == "Kingfisher", "Die gerenderte Seite hat nicht den Titel Kingfisher.")
+                # Seit Paket B (B2) trägt jede Seite ihren Namen vor der Marke („Heute – Kingfisher“); geprüft wird die Marke.
+                try:
+                    page.wait_for_function("document.title.endsWith(' – Kingfisher')", timeout=5000)
+                except Exception:
+                    pass
+                titel = page.title()
+                require(titel.endswith(" – Kingfisher"), f"Die gerenderte Seite trägt die Marke nicht im Titel: {titel!r}.")
                 require(page.get_by_alt_text("Kingfisher").count() > 0, "Das sichtbare Kingfisher-Branding fehlt.")
                 navigation = page.get_by_role("navigation", name="Hauptnavigation")
                 require(navigation.count() == 1 and navigation.inner_text().strip(), "Die Hauptnavigation ist leer.")
-                summary["checks"]["today"] = {"title": "Kingfisher", "navigation": True, "images": True, "fonts": True}
+                summary["checks"]["today"] = {"title": titel, "navigation": True, "images": True, "fonts": True}
                 screenshot("today")
 
                 conversation_path = f"/conversations/{state['conversation_id']}"
@@ -318,7 +324,9 @@ def main() -> int:
                 goto("/memory", "memory")
                 # Die Bereiche des Gedächtnisses sind eine Segmentsteuerung (Reiter, Grundlage vom 23.10.2026).
                 bereiche = page.get_by_role("tablist", name="Gedächtnisbereich")
-                require(bereiche.get_by_role("tab", name="Projekte", exact=True).count() == 1, "Der Projekte-Filter fehlt.")
+                # Projekte haben seit Paket H (H2) einen Ort unter Aufgaben; das Gedächtnis verweist dorthin.
+                require(page.get_by_role("link", name="Projekte unter Aufgaben", exact=True).count() == 1,
+                        "Der Verweis auf die Projekte unter Aufgaben fehlt.")
                 require(bereiche.get_by_role("tab", name="Menschen", exact=True).count() == 1, "Der Menschen-Filter fehlt.")
                 screenshot("memory")
                 page.reload(wait_until="domcontentloaded")
@@ -326,14 +334,16 @@ def main() -> int:
                 audit("memory-reload")
                 screenshot("memory-reload")
 
-                bereiche = page.get_by_role("tablist", name="Gedächtnisbereich")
-                projects = bereiche.get_by_role("tab", name="Projekte", exact=True)
-                people = bereiche.get_by_role("tab", name="Menschen", exact=True)
-                projects.click()
-                require(projects.get_attribute("aria-selected") == "true" and people.get_attribute("aria-selected") == "false", "Der Projekte-Filter wurde nicht aktiviert.")
+                # Projekte: der Verweis führt zu ihrem einen Ort unter Aufgaben (Paket H, H2).
+                page.get_by_role("link", name="Projekte unter Aufgaben", exact=True).click()
+                page.wait_for_url("**/vorhaben?view=projects", timeout=10000)
+                settle()
                 screenshot("memory-projects")
+                goto("/memory", "memory")
+                bereiche = page.get_by_role("tablist", name="Gedächtnisbereich")
+                people = bereiche.get_by_role("tab", name="Menschen", exact=True)
                 people.click()
-                require(people.get_attribute("aria-selected") == "true" and projects.get_attribute("aria-selected") == "false", "Der Menschen-Filter wurde nicht aktiviert.")
+                require(people.get_attribute("aria-selected") == "true", "Der Menschen-Filter wurde nicht aktiviert.")
                 summary["checks"]["memory"] = {"direct": True, "reload": True, "projects": True, "people": True}
                 screenshot("memory-people")
 

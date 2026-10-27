@@ -46,20 +46,21 @@ def _render(tmp_path, days):
 def test_newest_source_comes_first_and_is_marked(tmp_path):
     text, links, answer = _render(tmp_path, [3, 18, 9])
     assert text.index('Stand 1') < text.index('Stand 2') < text.index('Stand 0')
-    assert 'Stand 1 · neueste Quelle' in text and text.count('neueste Quelle') == 1
+    assert 'Stand 1“' in text and text.count(', die neueste') == 1
+    assert next(z for z in text.splitlines() if 'Stand 1' in z).endswith(', die neueste:')
     assert [link['label'] for link in links] == ['Quelle 1 öffnen', 'Quelle 2 öffnen', 'Quelle 3 öffnen']
 
 
 def test_same_time_sources_are_not_marked(tmp_path):
     text, _, _ = _render(tmp_path, [5, 5])
-    assert 'neueste Quelle' not in text
+    assert 'die neueste' not in text
 
 
 def test_single_source_is_not_marked(tmp_path):
     text, _, _ = _render(tmp_path, [5])
-    assert 'neueste Quelle' not in text
+    assert 'die neueste' not in text
 
 
 def test_unknown_source_time_is_never_called_newest(tmp_path):
     text, _, _ = _render(tmp_path, [5, None])
-    assert 'neueste Quelle' not in text
+    assert 'die neueste' not in text

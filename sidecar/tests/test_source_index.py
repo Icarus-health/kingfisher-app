@@ -235,7 +235,7 @@ def test_migration_fuellt_den_index_aus_dem_bestand(tmp_path):
     downgrade(path)
 
     store = EpisodeStore(path)
-    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 25
+    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 26
     assert indexed(store) == {frisch.id, neu.id}
     assert alt.id not in indexed(store) and ignoriert.id not in indexed(store)
     assert set(ids(find(store, "Stromrechnung"))) == {frisch.id, neu.id}
@@ -392,11 +392,15 @@ def test_index_findet_quelle_die_die_wortsuche_verfehlt(episodes):
     assert result.zaehlung["index"] == "ok" and result.zaehlung["ohne_einordnung"] == 0
 
 
-def test_nicht_eingeordnete_quelle_wird_gezaehlt_und_nicht_zum_beleg(episodes):
-    put(episodes, "Mail", "Rechnung Strom für Oktober wurde überwiesen.")
+def test_nicht_eingeordnete_kurze_quelle_wird_als_ganzes_beleg(episodes):
+    """Befund A2: frische Post vor der Einordnung. Lange Quellen bleiben gezählt (`test_antwort_beim_einlesen.py`)."""
+    from icarus_memory.working_memory_store import ROH
+    quelle = put(episodes, "Mail", "Rechnung Strom für Oktober wurde überwiesen.")
     memory = WorkingMemoryStore(episodes)  # nichts eingeordnet
     result = source_candidates.zusammenfuehren(memory, "Stromrechnung", limit=12)
-    assert result.refs == [] and result.zaehlung["ohne_einordnung"] == 1
+    assert [(ref["episode_id"], ref["kind"], ref["start"], ref["end"]) for ref in result.refs] == [
+        (quelle.id, ROH, 0, len(quelle.body))]
+    assert result.zaehlung["ohne_einordnung"] == 0 and result.zaehlung["roh"] == 1
 
 
 def test_entzogene_quelle_im_arbeitsgedaechtnis_wird_kein_kandidat(episodes):

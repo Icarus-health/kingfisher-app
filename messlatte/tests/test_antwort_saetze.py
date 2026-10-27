@@ -80,7 +80,7 @@ def test_sorgfaeltiges_modell_ergibt_einen_satz_mit_beleg_und_keine_falsche_auss
 
 def test_freie_fristparaphrase_ersetzt_keine_vollstaendige_originalregel(stufe):
     ergebnis, _ = fragen(stufe, freie_fristparaphrase)
-    assert 'Quelle berichtet' in ergebnis.text
+    assert 'So steht es in deinen Quellen' in ergebnis.text
     assert 'Das Angebot muss bis zum 26. Oktober raus.' not in ergebnis.text
     assert ergebnis.verworfen_satzpruefung == 1
 
@@ -92,19 +92,19 @@ def test_unaufmerksames_modell_wird_gestoppt_oder_als_falsch_erkannt(stufe):
     if ergebnis.text.startswith('Das Angebot muss bis zum 12. Oktober'):
         assert bewertung.falsche_aussage and bewertung.klasse == 'falsch'
     else:
-        assert 'Quelle berichtet' in ergebnis.text
+        assert 'So steht es in deinen Quellen' in ergebnis.text
         assert 'Das Angebot muss bis zum 12. Oktober raus.' not in ergebnis.text
 
 
 def test_erfundene_zahl_faellt_durch_die_satzpruefung(stufe):
     ergebnis, _ = fragen(stufe, erfindet)
     assert '30. Oktober' not in ergebnis.text
-    assert 'Quelle berichtet' in ergebnis.text, 'Kein Satz besteht: Zitatmodus statt einer unbelegten Antwort'
+    assert 'So steht es in deinen Quellen' in ergebnis.text, 'Kein Satz besteht: Zitatmodus statt einer unbelegten Antwort'
 
 
 def test_satzabstention_entfernt_keine_bereits_ausgewaehlten_originale(stufe):
     ergebnis, bewertung = fragen(stufe, {'status': 'nichts_vorliegend', 'saetze': []})
-    assert ergebnis.status == 'working_reports' and 'Quelle berichtet' in ergebnis.text
+    assert ergebnis.status == 'working_reports' and 'So steht es in deinen Quellen' in ergebnis.text
     assert 'keine Information vor' not in ergebnis.text
     assert '26. Oktober' in ergebnis.text
     assert 'mainz-003' in (ergebnis.belege or ())

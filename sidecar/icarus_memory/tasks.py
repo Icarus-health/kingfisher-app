@@ -763,6 +763,24 @@ class TaskStore:
                      task.id, row["document"], now().isoformat()))
             return task
 
+    def anlage_zurueckgenommen(self, limit: int = 50) -> list[dict[str, Any]]:
+        """Was Kingfisher selbst angelegt und der Nutzer zurückgenommen hat und was nicht wieder in der Liste steht,
+        jüngste zuerst: der dauerhafte Rückweg neben dem Hinweis (Paket Z2). Je `id`, `title`, `zurueck_am`, `satz`."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT task_id, dokument, zurueck_am FROM aufgaben_auto_zurueck z WHERE task_id IS NOT NULL "
+                "AND dokument IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tasks t WHERE t.id = z.task_id) "
+                "ORDER BY zurueck_am DESC LIMIT ?", (limit,)).fetchall()
+        ergebnis = []
+        for row in rows:
+            try:
+                task = self._from_row({"document": row["dokument"]})  # type: ignore[arg-type]
+            except (ValueError, KeyError, TypeError):
+                continue
+            ergebnis.append({"id": row["task_id"], "title": task.title, "zurueck_am": row["zurueck_am"],
+                             "satz": str((task.angelegt or {}).get("satz") or "")})
+        return ergebnis
+
     def anlage_wiederherstellen(self, task_id: str) -> tuple[Task, str]:
         """Nimmt das Zurücknehmen zurück: dieselbe Aufgabe wie vorher, und sie gilt nicht mehr als zurückgenommen.
 
@@ -880,10 +898,13 @@ class TaskStore:
         return [self._from_row(row) for row in rows]
 
     def page(self, view: str = 'mine', *, project_id: str | None = None,
-             q: str = '', limit: int = 200, cursor: str | None = None) -> dict[str, Any]:
+             q: str = '', limit: int = 200, cursor: str | None = None,
+             ids: set[str] | None = None, auswahl: str | None = None,
+             projekte: dict[str, str] | None = None) -> dict[str, Any]:
         from .task_pages import query_page
         with self._lock:
-            page = query_page(self._conn, view, project_id=project_id, q=q, limit=limit, cursor=cursor)
+            page = query_page(self._conn, view, project_id=project_id, q=q, limit=limit, cursor=cursor,
+                              ids=ids, auswahl=auswahl, projekte=projekte)
         page['tasks'] = [self._from_row(row).to_dict() for row in page.pop('rows')]
         return page
 
@@ -931,14 +952,18 @@ class TaskStore:
             items = [t for t in items if t.status is TaskStatus.OPEN]
         return items
 
-    def project_overview(self, project_id: str, at: datetime | None = None) -> dict[str, Any]:
+    def project_overview(self, project_id: str, at: datetime | None = None,
+                         ids: set[str] | None = None) -> dict[str, Any]:
         """Full-project counts and bounded previews from one read snapshot.
 
         Waiting work is not the user's overdue work. Dropped tasks are not
         completed tasks. No task, event, or deadline is changed by this read.
+        `ids` begrenzt auf die Aufgaben eines Bereichs (Paket Z1): dieselbe Auswahl wie die Liste darunter.
         """
         moment = ensure_aware(at) or now()
         waiting = "json_extract(document, '$.wartet_auf')"
+        nur = '' if ids is None else ' AND id IN (SELECT value FROM json_each(?))'
+        nur_wert = () if ids is None else (json.dumps(sorted(ids)),)
         with self._lock:
             self._conn.execute('BEGIN')
             try:
@@ -950,16 +975,16 @@ class TaskStore:
                       coalesce(sum(status='dropped'),0) AS dropped,
                       coalesce(sum(status='open' AND {waiting} IS NULL AND julianday(due)<julianday(?)),0) AS overdue,
                       coalesce(sum(status='open' AND {waiting} IS NULL AND due IS NULL),0) AS undated
-                    FROM tasks WHERE project_id=?
-                """, (moment.isoformat(), project_id)).fetchone()
+                    FROM tasks WHERE project_id=?{nur}
+                """, (moment.isoformat(), project_id, *nur_wert)).fetchone()
                 mine = self._conn.execute(f"""
-                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NULL
+                    SELECT document FROM tasks WHERE project_id=?{nur} AND status='open' AND {waiting} IS NULL
                     ORDER BY due IS NULL, julianday(due), julianday(created_at), id LIMIT 3
-                """, (project_id,)).fetchall()
+                """, (project_id, *nur_wert)).fetchall()
                 waiting_rows = self._conn.execute(f"""
-                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NOT NULL
+                    SELECT document FROM tasks WHERE project_id=?{nur} AND status='open' AND {waiting} IS NOT NULL
                     ORDER BY coalesce(julianday(json_extract(document,'$.wartet_seit')),julianday(created_at)), id LIMIT 3
-                """, (project_id,)).fetchall()
+                """, (project_id, *nur_wert)).fetchall()
             finally:
                 self._conn.rollback()
         def preview(row: sqlite3.Row) -> dict[str, Any]:

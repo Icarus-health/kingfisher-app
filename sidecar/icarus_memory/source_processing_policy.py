@@ -33,6 +33,9 @@ class ScopedProvider:
     is_remote = True
     category_evidence_repair = True
 
+    #: Wofür die Anfragen hinausgehen (`nach_draussen.WOFUER`); `hintergrund_cloud.Einordnung` setzt `einordnung`.
+    wofuer = "import"
+
     def __init__(self, provider, policy, before_request):
         self._provider = provider
         self._policy = policy
@@ -53,11 +56,17 @@ class ScopedProvider:
         if callable(guarded_call):
             return guarded_call(
                 messages, max_tokens=max_tokens, schema=schema,
-                before_send=self._before_request,
+                before_send=self._vor_dem_senden,
                 still_permitted=lambda: self._policy is not None and self._policy.permits(self, self._episode),
             )
-        self._before_request()
+        self._vor_dem_senden()
         return self._provider.complete_json(messages, max_tokens=max_tokens, schema=schema)
+
+    def _vor_dem_senden(self):
+        """Prüfen und zählen (Aufrufer), danach den Versand ohne Inhalt ins Logbuch (`nach_draussen.vermerken`)."""
+        self._before_request()
+        from . import nach_draussen
+        nach_draussen.vermerken(self._provider, self.wofuer)
 
 
 #: Bisheriger Name in `cloud_memory.py`.

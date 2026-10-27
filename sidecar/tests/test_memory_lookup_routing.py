@@ -8,6 +8,7 @@ from icarus_memory.working_memory_store import WorkingMemoryStore
 from tests.test_context_identity import core  # noqa: F401
 from tests.test_conversation_retraction import _close_app
 from tests.test_source_answers_http import _api, _ask, _conversation, _upload
+from tests.test_working_memory_flow import classifier
 
 QUESTION = ('Welche Markierungsfarbe hat die Prüfschachtel KF-Moosprobe? '
             'Suche im Gedächtnis nach der Gedächtniskernprobe.')
@@ -80,11 +81,13 @@ def test_authenticated_auto_lookup_does_not_show_free_chat_fact_during_pause(cor
         source = _upload(client, BODY)
         store = WorkingMemoryStore(app.state.episodes)
         assert store.search(QUESTION, limit=1)['refs'] == []
+        classifier(provider)
         answer = _ask(client, _conversation(client), QUESTION)
         context = answer['metadata']['context']
-        assert context.get('answer_mode') == 'memory_evidence'
-        assert context['answer_contract']['status'] == 'unknown'
-        assert 'mit den gefundenen Belegen nicht beantworten' in answer['content']
+        # Befund A2: Die noch nicht eingeordnete Quelle ist als Rohquelle Beleg, auch in der Pause; die Antwort bleibt
+        # an sie gebunden, und die Pause ordnet nichts ein.
+        assert context['answer_contract']['status'] == 'working_reports'
+        assert BODY in answer['content'] and context['working_answer']['refs'][0]['kind'] == 'quelle'
         assert 'Signalrot' not in answer['content']
         assert app.state.episodes.get(source).body == BODY
         assert store.search(QUESTION, limit=1)['refs'] == []

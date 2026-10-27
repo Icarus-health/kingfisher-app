@@ -20,6 +20,7 @@ import {
   type Konten, type Konto,
 } from "../kontenBereiche";
 import { KontoZeile } from "./KontoZeile";
+import { kalenderZeilen } from "../zahlen";
 import { gefuellterZugang, ZUGAENGE, zugangListe } from "./gliederung";
 import { NeuAnmelden } from "./NeuAnmelden";
 import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
@@ -64,6 +65,8 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   // Was beim Speichern abgelehnt wurde, steht am Formular und nicht oben auf der Seite (Fremdprobe 2, Befund 4).
   const [formFehler, setFormFehler] = useState("");
   const [removing, setRemoving] = useState<{ kind: "mail" | "calendar"; id: string } | null>(null);
+  // Scheitert das Entfernen, steht der Grund im Dialog, nicht hinter ihm auf der Seite (Paket B, B3).
+  const [removeError, setRemoveError] = useState("");
   // Die eine Aussage je Postfach (mail_stand.py): Verweist sie hierher (Anmeldung abgelaufen, Passwort fehlt), steht am
   // Postfach „Neu anmelden“. Nach dem Anmelden gilt der Satz erst beim nächsten Abruf als erledigt; bis dahin steht hier,
   // dass es geklappt hat, statt derselben Aufforderung noch einmal.
@@ -121,7 +124,7 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   const alleKnopf = offenAnzahl > 1 ? <button type="button" className="g-knopf-schlicht konto-alle" disabled={submitting} onClick={() => void alleUebernehmen()}>Alle Vorschläge übernehmen</button> : null;
   const kontoZeile = (konto: Konto, iconName: "mail" | "calendar-days", neben: string, ersatz: string | undefined, entfernen?: { kind: "mail" | "calendar" }, kinder?: ReactNode) =>
     <KontoZeile key={konto.id} konto={konto} konten={konten} iconName={iconName} neben={neben} ersatzStand={ersatz} busy={submitting}
-      entfernen={entfernen ? { aktiv: removing?.kind === entfernen.kind && removing.id === konto.id, onRemove: () => remove(entfernen.kind, konto.id), onCancel: () => setRemoving(null) } : undefined}
+      entfernen={entfernen ? { aktiv: removing?.kind === entfernen.kind && removing.id === konto.id, onRemove: () => remove(entfernen.kind, konto.id), onCancel: () => { setRemoving(null); setRemoveError(""); }, fehler: removeError } : undefined}
       onUmbenennen={name => umbenennen(konto, name)} onBereich={bereich => void bereichSetzen(konto, bereich)} onNeuerBereich={name => neuerBereich(konto, name)}>{kinder}</KontoZeile>;
   // Heißt das Postfach nach seiner Adresse, steht sie nicht noch einmal darunter.
   const nebenDerAdresse = (name: string, adresse: string) => name.trim().toLowerCase() === adresse.trim().toLowerCase() ? "" : adresse;
@@ -188,15 +191,17 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   async function remove(kind: "mail" | "calendar", id: string) {
     if (!removing || removing.kind !== kind || removing.id !== id) {
       setRemoving({ kind, id });
+      setRemoveError("");
       return;
     }
     setSubmitting(true);
     setError("");
+    setRemoveError("");
     try {
       setOverview(await api.removeIntegration(kind, id));
       setRemoving(null);
     } catch {
-      setError("Der Zugang konnte nicht getrennt werden. Bitte erneut versuchen.");
+      setRemoveError("Der Zugang konnte nicht getrennt werden. Bitte erneut versuchen.");
     } finally {
       setSubmitting(false);
     }
@@ -205,6 +210,8 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   const selectedProvider = providers.find((item) => item.id === mail.provider);
   const accounts = overview?.mail_accounts ?? [];
   const calendars = overview?.calendar_sources ?? [];
+  // Was unter „Kalender“ steht, auch die Mac-Kalender; die Zahl darüber ist die Länge dieser Liste (Paket Z1).
+  const kalenderListe = kalenderZeilen(overview, konten);
   // Genau ein gefüllter Knopf: Ist die Einrichtung offen, ist es „Einrichtung fortsetzen“; sonst der erste fehlende Zugang.
   const gefuellt = gefuellterZugang(einrichtungOffen, overview ? accounts.length : null, overview ? calendars.length : null);
   const knopf = (art: "mail" | "calendar") => gefuellt === art ? "g-knopf zugang-neu" : "g-knopf-getoent zugang-neu";
@@ -240,7 +247,8 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
         die Servereinstellungen stehen eingeklappt für Techniker. */}
     {openForm === "mail" ? <div className="source-form postfach-hinzufuegen zugang-formular" aria-label="Postfach hinzufügen">
       <div className="zugang-formular-kopf"><h2>Postfach hinzufügen</h2><button className="g-knopf-schlicht" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
-      <PostfachMitAdresse anbieter={providers} idPraefix="zugang-postfach" beiVerbunden={() => { setOpenForm(null); load(); }} />
+      <PostfachMitAdresse anbieter={providers} idPraefix="zugang-postfach" beiVerbunden={() => { setOpenForm(null); load(); }}
+        zumPostfach={kontoId => { setOpenForm(null); requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-konto="${CSS.escape(kontoId)}"] .konto-name`)?.focus()); }} />
       <details className="kalender-techniker">
         <summary>Für Techniker: Servereinstellungen von Hand</summary>
         <MailSourceForm form={mail} provider={selectedProvider} providers={providers} submitting={submitting} fehler={formFehler} onCancel={() => setOpenForm(null)} onChange={setMail} onProviderChange={chooseProvider} onSubmit={addMail} />
@@ -248,18 +256,19 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
     </div> : null}
 
     <Gruppe className="zugang-gruppe" label={ZUGAENGE.kalender.titel} titel={ZUGAENGE.kalender.titel} flaecheKlasse="zugang-liste"
-      zahl={calendars.length && !(alleKnopf && !konten?.postfaecher.some(k => offen[k.id])) ? zaehlen(calendars.length, "Kalender", "Kalender") : null}
+      zahl={kalenderListe.length && !(alleKnopf && !konten?.postfaecher.some(k => offen[k.id])) ? zaehlen(kalenderListe.length, "Kalender", "Kalender") : null}
       aktion={alleKnopf && !konten?.postfaecher.some(k => offen[k.id]) ? alleKnopf : null}
       fussnote={calendars.length ? ZUGAENGE.trennen : system.mac_helfer ? "Google, Mac oder ein Kalender-Abo." : "Google oder ein Kalender-Abo."}
       fussAktion={openForm === "calendar" ? null : <button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button">{plus}Kalender hinzufügen</button>}>
         {ohneListe}
-        {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
-        {calendars.map((source) => {
-          const konto = konten?.kalender.find(k => k.id === source.id) ?? { ...ohneKonto(source.id, source.label, ""), art: source.kind };
+        {overview && kalenderListe.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
+        {/* Eingetragene Kalender, dann die Mac-Kalender, die Kingfisher liest: Bereich ja, Name und Trennen am Mac (unten
+            „Kalender auf diesem Mac“). */}
+        {kalenderListe.map(({ id, quelle: source, konto: gefunden }) => {
+          if (!source) return gefunden ? kontoZeile(gefunden, "calendar-days", kalenderNeben(gefunden), undefined) : null;
+          const konto = gefunden ?? { ...ohneKonto(id, source.label, ""), art: source.kind };
           return kontoZeile(konto, "calendar-days", kalenderNeben(konto), source.configured ? undefined : sourceState(source), { kind: "calendar" });
         })}
-        {/* Die Mac-Kalender, die Kingfisher liest: Bereich ja, Name und Trennen am Mac (unten „Kalender auf diesem Mac“). */}
-        {konten?.kalender.filter(k => k.art === "mac").map(konto => kontoZeile(konto, "calendar-days", kalenderNeben(konto), undefined))}
     </Gruppe>
     {/* Kalender wie Mail (Befund 7): vorne die Mailadresse; das Abo mit eigener Adresse steht eingeklappt für Techniker. */}
     {openForm === "calendar" ? <div className="source-form kalender-hinzufuegen zugang-formular" aria-label="Kalender hinzufügen">

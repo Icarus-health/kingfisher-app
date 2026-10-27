@@ -37,7 +37,7 @@ test("initial unavailable state preserves unknown counts and explains pending id
   const html = render({ status: "unavailable", identity_checked_at: null,
     total: null, indexed: null, pending: null, failed: null, updated_at: null, source_pending: null });
   assert.match(html, /Abschnittszahl noch nicht verfügbar/);
-  assert.match(html, /Suchmodell und der Suchindex wurden noch nicht geprüft/);
+  assert.match(html, /Die Suche auf diesem Rechner wurde noch nicht geprüft/);
   assert.doesNotMatch(html, /<progress|0 von|sind vorbereitet|keine Quellen/);
 });
 

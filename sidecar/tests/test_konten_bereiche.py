@@ -69,9 +69,12 @@ def _mail(app, konto: str, nummer: int, project_id: str | None = None):
 
 
 def test_vorschlag_postfach_privat_arbeit_und_ohne_adresse_keiner() -> None:
-    assert bereiche.vorschlag_postfach("anna.probe@gmail.com").bereich == "privat"
-    assert "gmail.com" in bereiche.vorschlag_postfach("anna.probe@gmail.com").grund
-    assert bereiche.vorschlag_postfach("anna@web.de").bereich == "privat"
+    # Ein privater Anbieter allein entscheidet nichts mehr (Paket S, Befund 3): erst was darin steht.
+    privat = bereiche.Inhalt(privat=3)
+    assert bereiche.vorschlag_postfach("anna.probe@gmail.com") is None
+    assert bereiche.vorschlag_postfach("anna.probe@gmail.com", privat).bereich == "privat"
+    assert "gmail.com" in bereiche.vorschlag_postfach("anna.probe@gmail.com", privat).grund
+    assert bereiche.vorschlag_postfach("anna@web.de", privat).bereich == "privat"
     assert bereiche.vorschlag_postfach("anna@firma.example").bereich == "arbeit"
     assert bereiche.vorschlag_postfach("") is None
     assert bereiche.vorschlag_postfach("kein-at-zeichen") is None
@@ -88,7 +91,9 @@ def test_vorschlag_kalender_aus_name_konto_oder_adresse_sonst_keiner() -> None:
     assert bereiche.vorschlag_kalender("Arbeit und Familie") is None
     konto = bereiche.vorschlag_kalender("Kalender", konto=("Firma", "arbeit"))
     assert konto.bereich == "arbeit" and "Firma" in konto.grund
-    assert bereiche.vorschlag_kalender("Kalender", adresse="anna.probe@gmail.com").bereich == "privat"
+    assert bereiche.vorschlag_kalender("Kalender", adresse="anna.probe@gmail.com") is None
+    assert bereiche.vorschlag_kalender("Kalender", adresse="anna.probe@gmail.com",
+                                       inhalt=bereiche.Inhalt(privat=2)).bereich == "privat"
 
 
 # -- Vererbung --------------------------------------------------------------------------------------------------------
@@ -177,10 +182,18 @@ def test_zwei_gmail_konten_heissen_nach_ihrer_adresse(tmp_path, monkeypatch) -> 
 
 def test_konten_zeigen_vorschlag_mit_grund_und_bestaetigen_vererbt(tmp_path, monkeypatch) -> None:
     app = _app(tmp_path, monkeypatch)
+    for nummer in (1, 2):
+        app.state.episodes.record(
+            EpisodeKind.MESSAGE, f"Samstag {nummer}", "Hi Anna, kommst du am Samstag?",
+            Provenance(source_type=SourceType.EMAIL, source_ref=f"mail-a:<f{nummer}@probe.example>"),
+            contacts=[{"adresse": "mara.probe@web.example", "name": "Mara", "rolle": "von", "ich": False}],
+            occurred_at=datetime(2026, 10, 20, 9, nummer, tzinfo=timezone.utc))
     client = TestClient(app)
     konten = client.get("/api/v1/konten").json()
     postfaecher = {p["id"]: p for p in konten["postfaecher"]}
     assert postfaecher["mail-a"]["bereich"] is None
+    # Noch nichts gelesen: kein Vorschlag, die Zeile fragt.
+    assert postfaecher["mail-b"]["vorschlag"] is None
     assert postfaecher["mail-a"]["vorschlag"]["bereich"] == "privat"
     assert postfaecher["mail-c"]["vorschlag"]["bereich"] == "arbeit"
     kalender = {k["id"]: k for k in konten["kalender"]}

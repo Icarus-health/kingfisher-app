@@ -134,7 +134,8 @@ def test_sentence_projection_preserves_search_coverage_notices(raum, coverage):
     episodes, claims, _ = raum
     wandel(episodes)
     if coverage == 'unclassified':
-        quelle(episodes, 'Noch offen', 'Die Einreichfrist wird erneut geprüft.', [STIFTUNG], tage=1)
+        # Lang genug, um keine Rohquelle zu sein (Befund A2): Sie bleibt gezählt und ohne Beleg.
+        quelle(episodes, 'Noch offen', 'Die Einreichfrist wird erneut geprüft.' + ' Weitere Hinweise folgen später.' * 500, [STIFTUNG], tage=1)
         search = None
         expected = 'fehlt ein nutzbarer Belegabschnitt'
     else:
@@ -155,7 +156,8 @@ def test_pending_source_metadata_change_invalidates_already_limited_answer(raum)
 
     episodes, claims, _ = raum
     wandel(episodes)
-    pending = source(episodes, 'Die Einreichfrist wird erneut geprüft.')
+    # Lang genug, um keine Rohquelle zu sein (Befund A2): Sie bleibt gezählt und macht die Antwort begrenzt.
+    pending = source(episodes, 'Die Einreichfrist wird erneut geprüft.' + ' Weitere Hinweise folgen später.' * 500)
     saved = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
     assert saved['limited'] is True
     assert wma.render(saved, episodes, claims)[2] == 'working_reports'
@@ -257,7 +259,7 @@ def test_saved_automatic_wandel_sentence_restores_originals_without_another_mode
     before = len(model.satzanfragen)
     text, links, status = wma.render(saved, episodes, claims)
     assert status == 'working_reports' and wma.satz_struktur(saved, episodes, claims) is None
-    assert 'Quelle berichtet' in text and '15. Oktober 2026' in text and '12. November 2026' in text
+    assert 'So steht es in deinen Quellen' in text and '15. Oktober 2026' in text and '12. November 2026' in text
     assert {link['episode_id'] for link in links} == {alt.id, neu.id}
     reopened = wma.project_message({'role': 'assistant', 'content': 'legacy program inference',
         'metadata': {'context': {'working_answer': saved}}}, episodes, claims)
@@ -314,7 +316,7 @@ def test_erfundene_zahl_wird_verworfen_und_ohne_rest_gilt_der_zitatmodus(raum):
     assert satz['status'] == 'zitate' and satz['verworfen'] == 1
     assert 'kein Satz bestand' in satz['grund'] and '13.11.2026' in satz['gruende'][0]
     text, links, status = wma.render(gespeichert, episodes, claims)
-    assert status == 'working_reports' and text.startswith('Quelle berichtet')
+    assert status == 'working_reports' and 'So steht es in deinen Quellen' in text.split('\n', 1)[0]
     assert 'Die neue Einreichfrist ist der 12. November 2026.' in text and '13. November' not in text
 
 
@@ -471,7 +473,7 @@ def test_gespeicherte_saetze_werden_beim_anzeigen_erneut_geprueft(raum):
     fremd['satzantwort']['saetze'][0]['roh'] = 'Die Einreichfrist wurde auf 30. Dezember 2026 verschoben.'
     fremd['satzantwort']['saetze'][0]['text'] = fremd['satzantwort']['saetze'][0]['roh']
     text, _, _ = wma.render(fremd, episodes, claims)
-    assert text.startswith('Quelle berichtet') and '30. Dezember' not in text, 'Manipulierte Sätze fallen auf die Zitate zurück'
+    assert 'So steht es in deinen Quellen' in text.split('\n', 1)[0] and '30. Dezember' not in text, 'Manipulierte Sätze fallen auf die Zitate zurück'
     verschoben = copy.deepcopy(gespeichert)
     verschoben['satzantwort']['saetze'][0]['text'] += ' Zusatz.'
     assert satzantwort.wiederherstellen(verschoben['satzantwort'], episodes, claims) is None
@@ -599,8 +601,9 @@ def test_auch_im_zitatmodus_steht_das_ueberholte_hinten_und_sagt_es(raum):
     gespeichert = antwort(raum, Skript({'status': 'unklar', 'saetze': []}))
     assert gespeichert['satzantwort']['status'] == 'zitate'
     text, _, _ = wma.render(gespeichert, episodes, claims)
-    assert text.index('Verlängerung') < text.index('Ausschreibung · vermutlich überholt'), 'Die aktuelle Quelle steht vor der überholten'
+    assert text.index('Verlängerung') < text.index('Ausschreibung“ '), 'Die aktuelle Quelle steht vor der überholten'
     assert 'Vermutlich überholt: 15. Oktober 2026, neuere Angabe 12. November 2026 (neuere Quelle: Verlängerung)' in text
+    assert next(z for z in text.splitlines() if 'Ausschreibung“' in z).endswith(', vermutlich überholt:')
 
 
 def test_die_kennzeichnung_fehlt_ohne_akten_und_nichts_wird_entfernt(raum):

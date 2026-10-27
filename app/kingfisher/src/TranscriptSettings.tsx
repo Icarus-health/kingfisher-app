@@ -3,6 +3,7 @@ import { api, type TranskriptEintrag, type TranskriptUebersicht } from "./api";
 import { OrdnerImBrowser } from "./OrdnerImBrowser";
 import { ordnerWeg, wartetSatz } from "./ordnerWahl";
 import { ProfileSource } from "./ProfileSource";
+import { Rueckfrage } from "./grundlage";
 import { fuerSystem, nurAufDemMac } from "./system";
 import { useSystem } from "./useSystem";
 import "./TranscriptSettings.css";
@@ -107,14 +108,13 @@ export function TranscriptSettings({ beiAenderung, compact = false }: { beiAende
         <div className="transkript-aktionen">
           <button className="secondary-action" type="button" disabled={busy} onClick={() => void tun(() => api.transkriptAktiv(!ordner.enabled))}>{ordner.enabled ? "Pausieren" : "Fortsetzen"}</button>
           <button className="secondary-action" type="button" disabled={busy || wartet} onClick={() => weg === "helfer" ? void tun(() => api.transkriptOrdnerWaehlen("waehlen")) : setAndererOrdner(wert => !wert)}>Anderen Ordner wählen …</button>
-          <button className="text-action" type="button" disabled={busy} onClick={() => setTrennen(true)}>Ordner trennen</button>
+          <button className="text-action" type="button" disabled={busy && !trennen} onClick={() => setTrennen(true)}>Ordner trennen</button>
         </div>
         {andererOrdner && weg === "browser" ? <OrdnerImBrowser prefix="/api/v1/transcript-sync" beiGewaehlt={gewaehlt} /> : null}
-        {trennen ? <div className="transkript-bestaetigung" role="alertdialog" aria-label="Ordner trennen">
-          <p>Beim Trennen nimmt Kingfisher alle Mitschriften aus diesem Ordner aus dem Gedächtnis. Deine Dateien bleiben unverändert.</p>
-          <button className="secondary-action decision-confirm" type="button" disabled={busy} onClick={() => void tun(async () => { const antwort = await api.transkriptOrdnerTrennen(); setTrennen(false); setHinweis(`Getrennt. ${antwort.entzogen} ${antwort.entzogen === 1 ? "Mitschrift wurde" : "Mitschriften wurden"} entzogen.`); })}>Ordner trennen</button>
-          <button className="text-action" type="button" disabled={busy} onClick={() => setTrennen(false)}>Abbrechen</button>
-        </div> : null}
+        {/* Die Rückfrage als Dialog (Paket B, B3). */}
+        {trennen ? <Rueckfrage frage="Ordner trennen?" satz="Beim Trennen nimmt Kingfisher alle Mitschriften aus diesem Ordner aus dem Gedächtnis. Deine Dateien bleiben unverändert."
+          bestaetigen="Ordner trennen" rot arbeitet={busy} fehler={fehler || null} onAbbrechen={() => { setTrennen(false); setFehler(""); }}
+          onBestaetigen={() => void tun(async () => { const antwort = await api.transkriptOrdnerTrennen(); setTrennen(false); setHinweis(`Getrennt. ${antwort.entzogen} ${antwort.entzogen === 1 ? "Mitschrift wurde" : "Mitschriften wurden"} entzogen.`); })} /> : null}
       </div> : null}
       {ordner.getrennt && !ordner.folder && !wartet && !hinweis ? <p className="transkript-hinweis">Der Ordner ist getrennt. Die Mitschriften sind nicht mehr im Gedächtnis.</p> : null}
       {fehlerLauf.length ? <p role="alert">{fehlerLauf.join(" ")}</p> : null}

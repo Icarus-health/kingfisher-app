@@ -9,7 +9,12 @@ class TaskPageChanged(ValueError):
     pass
 
 
-def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cursor=None):
+def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cursor=None, ids=None, auswahl=None,
+               projekte=None):
+    """`ids` begrenzt auf diese Aufgaben (Bereichsfilter, `zaehlung.ids_im_bereich`); `auswahl` benennt diese Begrenzung
+    im Stand, damit ein Cursor nur in der Auswahl gilt, aus der er stammt. `projekte` ({Kennung: Name}) lässt die Suche
+    auch den Projektnamen finden (Persona-Prüfung, Paket S, Befund 7: „Nordlicht“ fand keine Aufgabe des Projekts
+    „Restrukturierung Nordlicht“); gesucht wird außerdem in der Person einer Aufgabe."""
     if view not in ('mine', 'waiting', 'done') or type(limit) is not int or not 1 <= limit <= 200:
         raise ValueError('Ungültige Aufgabenansicht oder Seitengröße.')
     if not isinstance(q, str) or len(q) > 200:
@@ -20,6 +25,8 @@ def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cur
     try:
         latest = connection.execute('SELECT sequence, recorded_at, task_id FROM task_events ORDER BY sequence DESC LIMIT 1').fetchone()
         state = [list(latest) if latest else [], view, project_id or None, terms, limit]
+        if auswahl is not None:
+            state.append(auswahl)
         stand = hashlib.sha256(json.dumps(state, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
         offset = 0
         if cursor is not None:
@@ -41,10 +48,20 @@ def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cur
         if project_id:
             conditions.append('project_id = ?')
             params.append(project_id)
-        searchable = "kf_casefold(title || char(10) || COALESCE(json_extract(document, '$.notes'), '') || char(10) || COALESCE(" + waiting + ", ''))"
+        if ids is not None:
+            conditions.append('id IN (SELECT value FROM json_each(?))')
+            params.append(json.dumps(sorted(ids)))
+        searchable = ("kf_casefold(title || char(10) || COALESCE(json_extract(document, '$.notes'), '') || char(10) || COALESCE("
+                      + waiting + ", '') || char(10) || COALESCE(json_extract(document, '$.person'), ''))")
+        namen = {str(k): str(v or '').casefold() for k, v in (projekte or {}).items()}
         for term in terms:
-            conditions.append('instr(' + searchable + ', ?) > 0')
-            params.append(term)
+            treffer = sorted(k for k, name in namen.items() if term in name)
+            if treffer:
+                conditions.append('(instr(' + searchable + ', ?) > 0 OR project_id IN (SELECT value FROM json_each(?)))')
+                params.extend([term, json.dumps(treffer)])
+            else:
+                conditions.append('instr(' + searchable + ', ?) > 0')
+                params.append(term)
         where = ' AND '.join(conditions)
         total = connection.execute('SELECT COUNT(*) FROM tasks WHERE ' + where, params).fetchone()[0]
         if cursor is not None and offset >= total:

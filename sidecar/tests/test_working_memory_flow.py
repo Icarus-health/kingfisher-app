@@ -42,7 +42,7 @@ def test_uploaded_conditional_source_is_answered_without_acceptance(core, tmp_pa
         run_working(app)
         message = _ask(client, _conversation(client), QUESTION)
         assert TEXT in message['content']
-        assert 'Quelle berichtet' in message['content']
+        assert 'So steht es in deinen Quellen' in message['content']
         assert message['metadata']['context']['working_answer']['refs'][0]['episode_id'] == source
         assert app.state.claims.revision == claims_before
         assert app.state.proposals.counts() == proposals_before
@@ -170,11 +170,13 @@ def test_pending_related_source_invalidates_saved_nonsemantic_answer(core, tmp_p
         _upload(client, TEXT)
         run_working(app)
         if already_incomplete:
-            _upload(client, 'Mainz: Anna wartet auf die Freigabe für den Entwurf.')
+            _upload(client, 'Mainz: Anna wartet auf die Freigabe für den Entwurf.' + ' Weitere Hinweise folgen später.' * 500)
         turn = agent.answer_memory(QUESTION, retrieval_query=QUESTION)
         assert turn.context['answer_contract']['status'] == 'working_reports'
         saved = {'role': 'assistant', 'content': turn.reply, 'metadata': {'context': turn.context}}
-        pending = _upload(client, 'Mainz: Anna hat den 25. September abgesagt. Der Entwurf bleibt offen.')
+        # Lang genug, um keine Rohquelle zu sein (Befund A2, kurze siehe test_antwort_beim_einlesen.py).
+        pending = _upload(client, 'Mainz: Anna hat den 25. September abgesagt. Der Entwurf bleibt offen.'
+                          + ' Weitere Hinweise folgen später.' * 500)
         assert WorkingMemoryStore(app.state.episodes).source_state(pending) == 'pending'
         reopened = working_memory_answers.project_message(saved, app.state.episodes, app.state.claims)
         assert reopened['metadata']['context']['answer_contract']['status'] == 'working_unavailable'

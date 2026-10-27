@@ -154,6 +154,11 @@ class Policy:
         "aufgaben", "projekte", "projekt_stand", "notizen_suchen", "notiz_lesen",
     })
 
+    #: Werkzeuge, die nie ohne Freigabe laufen, auch nicht mit einer Dauerregel (Persona-Prüfung, D2). Ein Webabruf
+    #: zeigt der fremden Seite die IP-Adresse und alles, was in der Adresse steht; der Mensch soll ihn sehen und mit
+    #: einem Klick erlauben. In einer Runde mit fremdem Inhalt gilt weiter die genaue Freigabe (siehe unten).
+    _IMMER_FREIGABE: dict[str, ApprovalLevel] = {"web_abruf": ApprovalLevel.CONFIRM}
+
     def decide(
         self,
         tool: str,
@@ -193,6 +198,12 @@ class Policy:
                 f"Deine Regel „{regel.name}“ greift hier nicht: zuvor wurden "
                 "fremde Inhalte gelesen."
             )
+
+        mindestens = self._IMMER_FREIGABE.get(tool)
+        if mindestens is not None and _RANG[level] < _RANG[mindestens]:
+            level = mindestens
+            reasons.append("Ein Webabruf zeigt der Seite deine IP-Adresse und alles, was in der Adresse steht; "
+                           "er braucht immer deine Freigabe.")
 
         # Netzwerk-Lesen kann private Daten in URL oder Suchbegriff übertragen.
         # Ohne nachgewiesenen lokalen Leseweg braucht es die genaue Freigabe.

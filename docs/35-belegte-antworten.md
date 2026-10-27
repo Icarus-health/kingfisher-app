@@ -207,7 +207,9 @@ wählen), `saetze_modell` (zweiter Aufruf), `satzpruefung` und `gesamt`. Ein Abs
 „0“). Die Zahlen stehen in `answer['zeiten']` und damit im gespeicherten Gespräch, nie mit Frage oder Text; eine
 Auswahl aus früheren Quellen (`choose`) trägt keine, weil dort kein Modell lief.
 
-* **Zeile unter der Antwort:** „3,2 s · Suche 0,3 · Sätze 2,1“, klein, ohne Farbe, nur mit vorhandenen Zeiten. Über
+* **Zeile unter der Antwort:** „3,2 s · Suche 0,3 · Sätze 2,1“, klein, ohne Farbe, nur mit vorhandenen Zeiten, seit
+  Paket S (27.10.2026) hinter einem zugeklappten „Details“: Die Zahlen sagen nur Technikern etwas; dass es lokal dauert,
+  sagt der Hinweis darüber in Worten. Über
   8 s (`LANGSAM_S` in `antwortzeit.ts`, gleich dem Ziel der Messlatte) steht ein Satz mit der Ursache, etwa „Der zweite
   Modellaufruf für die Sätze brauchte 12 s.“
 * **Protokoll:** Einstellungen, Lokale KI, „Antwortzeit“: Median und 90-Prozent-Wert je Abschnitt über die letzten 50
@@ -699,6 +701,47 @@ Gedächtnispunkte.“. Jetzt (`beleg.ts belegStand`):
 
 Der Container-Vertrag (`scripts/verify_browser.py`, `visible_evidence`) verlangt zusätzlich, dass unter der Antwort
 „Gestützt auf“ mit demselben Hinweis wie im Text sichtbar ist; `probe_quellen_ui.py` prüft dasselbe.
+
+## Verlässliche Antworten (Persona-Prüfung, Paket A-I, 26.10.2026)
+
+Protokoll: [runs/2026-10-26-befunde-antworten-1](runs/2026-10-26-befunde-antworten-1/README.md).
+
+- **Gleichwertige Schreibweisen (A1).** „um 18 Uhr“ besteht gegen den Termin „18:00 bis 20:00 Uhr“: Der Satz nennt den
+  Beginn eines Zeitraums ohne Einschränkung (`satzpruefung._beginn_gleichwertig`). Nur wenn **jede** Angabe der Belege zu
+  dieser Uhrzeit ein Beginn ist; „erst nach 18 Uhr“ daneben, das Ende eines Zeitraums („um 20 Uhr“) oder ein offenes
+  „ab 18 Uhr“ fallen weiter. Uhrzeiten in Worten mit Tageszeit („sechs Uhr abends“, „halb sieben abends“), „um 18.00“
+  und „18h“ sind Uhrzeiten; „halb sieben“ ohne Tageszeit gilt nur, wenn der Beleg genau eine der beiden Lesarten
+  (6:30, 18:30) trägt oder denselben Wortlaut. Ebenso „Viertel nach sieben“ (7:15/19:15) und „Viertel vor acht“
+  (7:45/19:45), seit Paket S; „nach sieben“ darin ist dann kein Zeitrahmen. Datumsformen, Wochentage und Zahlwörter bis zwölf waren schon
+  gleichwertig; Tests decken beide Richtungen ab (`test_satzpruefung_schreibweisen.py`).
+- **Antwortwörter (A1).** „Ja, …“, „Genau.“, „Richtig, …“ am Satzanfang behaupten nichts und brauchen keinen Beleg
+  (`satzpruefung.antwortpartikel`). Ein „Nein“ besteht nur vor einem Satz, der selbst verneint und belegt verneint;
+  „Nein, die Sitzung ist am 29. Oktober“ fällt, weil es gegen den Beleg gelesen den Sinn umkehrt. Ein Antwortwort
+  allein ist nicht prüfbar.
+- **Absender als Sprecher (A1).** „Herr Meier hat die Rechnung geschickt“ aus Meiers „anbei erhalten Sie unsere
+  Rechnung“: Der Name steht im Belegkopf als Absender, nicht in der Stelle. Er trägt eine Statusaussage nur in der
+  ersten Person oder beim Anhang („anbei“, „beigefügt“, „anliegend“ zählen als „geschickt“), nie in einer
+  weitergeleiteten oder zitierten Mail. Eine Zahlung belegt „anbei“ nicht. Der Punkt von „Nr.“ oder „Dr.“ trennt die
+  Stelle nicht mehr von ihrer Kennung.
+- **Lesbarer Rückfall (A1).** Der Zitatmodus beginnt mit „So steht es in deinen Quellen:“ (nach verworfenen Sätzen:
+  „Eine kurze Antwort ließ sich nicht sicher genug belegen. So steht es in deinen Quellen:“) und nennt jede Quelle in
+  einem Satz: „E-Mail „Einladung zur Vorstandssitzung“ von Erika Schulte vom 23. Oktober 2026, 20:48 Uhr, die
+  neueste:“, dann der Wortlaut. Ohne eigenes Datum: „…, ohne eigenes Datum, aufgenommen am …“. Statt „Angabe ·“,
+  „Quellenzeit:“ und „Urheber in Quelle prüfen“ stehen Wörter („vermutlich überholt“, „(darin: Bitte)“, „Wer darin
+  etwas zusagt, steht nur im Text selbst“).
+- **Frische Post ist Beleg (A2).** Ursache von „Das kann ich mit den gefundenen Belegen nicht beantworten“ kurz nach der
+  Einrichtung: Der Volltextindex fand Mail und Termin, aber eine noch nicht eingeordnete Quelle konnte kein Beleg
+  werden (`source_candidates`, Zählung `ohne_einordnung`). Jetzt wird eine kurze, noch nicht eingeordnete Quelle
+  (höchstens `ROH_MAX_ZEICHEN` = 12.000 Zeichen, Zustand `pending` oder `failed`) als Ganzes Beleg, Art `quelle`
+  (`WorkingMemoryStore.roh_verweis`). Ein zitierter Verlauf („Am … schrieb …:“, „> …“) gehört nicht dazu
+  (`mail_quote_history`). `resolve` prüft den Verweis jedes Mal: dieselbe Fassung, genau der eigene Text, nicht
+  ausgenommen. Auswahl, Sätze, Satzprüfung und Frischeprüfung laufen unverändert; nach der Einordnung gilt der
+  eingeordnete Abschnitt, und eine damals gespeicherte Antwort bietet „Mit aktuellem Stand neu beantworten“ an.
+  Längere Quellen bleiben gezählt und ohne Beleg.
+- **Ehrlich beim Einlesen (A2).** Findet Kingfisher nichts, während ein Postfach eingelesen wird oder die eingeschaltete,
+  nicht pausierte Einordnung noch Quellen vor sich hat, sagt die Antwort das: „Kingfisher liest deine Post gerade noch
+  ein (120 von 4.300 Mails). Bisher habe ich dazu nichts gefunden. Frag gleich noch einmal.“, mit dem Knopf „Mit
+  aktuellem Stand neu beantworten“ (`agent_verdrahtung.lesestand_satz`, `Agent._lesestand_satz`, Kontext `einlesen`).
 
 ## Tempo im Gespräch (Paket T, 26.10.2026)
 

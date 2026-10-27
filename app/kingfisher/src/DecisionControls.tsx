@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { api, type Decision, type DecisionBasis } from "./api";
 import "./DecisionControls.css";
-import { Leer } from "./grundlage";
+import { Leer, Rueckfrage } from "./grundlage";
 
 function sourceLabel(kind: string) {
   const labels: Record<string, string> = {
@@ -178,7 +178,10 @@ export function DecisionControls({ projectId, kopf = true }: { projectId: string
               {decision.wackler?.length ? <div className="decision-wackler"><span>Veränderte Annahmen</span>{decision.wackler.map((wackler) => <p key={wackler.annahme_id || wackler.annahme}><strong>{stateLabel(wackler.status)}{wackler.strittig ? " · strittig" : ""}</strong> {wackler.annahme}{wackler.ersetzt_durch ? ` → ${wackler.ersetzt_durch}` : ""}</p>)}</div> : null}
             </div>
             {(decision.status === "active" || decision.status === "disputed") ? <div className="decision-retract">
-              {confirmingId === decision.id ? <><span>Wirklich zurücknehmen?</span><button className="secondary-action decision-confirm g-kompakt" disabled={busy || loading} onClick={() => void retractDecision(decision.id)} type="button">Bestätigen</button><button className="text-action" disabled={busy || loading} onClick={() => setConfirmingId(null)} type="button">Abbrechen</button></> : <button className="text-action" disabled={busy || loading} onClick={() => setConfirmingId(decision.id)} type="button">Zurücknehmen</button>}
+              <button className="text-action" disabled={(busy || loading) && confirmingId !== decision.id} onClick={() => setConfirmingId(decision.id)} type="button">Zurücknehmen</button>
+              {/* Die Rückfrage als Dialog (Paket B, B3); ein Zurücknehmen lässt sich nicht zurücknehmen. */}
+              {confirmingId === decision.id ? <Rueckfrage frage="Entscheidung wirklich zurücknehmen?" satz={decision.satz} bestaetigen="Zurücknehmen" rot
+                arbeitet={busy || loading} fehler={error} onBestaetigen={() => void retractDecision(decision.id)} onAbbrechen={() => { setConfirmingId(null); setError(null); }} /> : null}
             </div> : null}
           </article>;
         })}

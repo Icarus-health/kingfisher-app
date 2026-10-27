@@ -30,7 +30,7 @@ from pydantic import BaseModel
 
 from .cloud_credentials import PREPARED_CLOUD_KEYS
 from .cloud_import_provider import credential_status
-from . import config, logbuch
+from . import config, logbuch, nach_draussen
 from . import device_profile
 from .agent_verdrahtung import satzpruefung_stand
 from .model_pull import Fehlergrund, Fehlschlag, PullBelegt, PullManager, bestaetigungssatz
@@ -172,8 +172,11 @@ def register(app, guard, data_dir, rebuild):
         return bool(os.environ.get(PREPARED_CLOUD_KEYS.get(anbieter, "")) or os.environ.get(name) or (anbieter == "openai" and os.environ.get("LLM_API_KEY")))
 
     def anbieter_liste() -> list[dict[str, Any]]:
+        # `wohin` und `region` stehen in der Einwilligung: wer die Daten bekommt und wo sie verarbeitet werden.
         return [{"id": k, "label": _ANBIETER_LABEL[k], "schluessel_da": _schluessel_da(k),
-                 "standardmodell": app.state.settings.cloud_models.get(k, v[1])} for k, v in CLOUD_ANBIETER.items() if k != OLLAMA_CLOUD]
+                 "standardmodell": app.state.settings.cloud_models.get(k, v[1]),
+                 "wohin": nach_draussen.wohin(k), "region": nach_draussen.region(k)}
+                for k, v in CLOUD_ANBIETER.items() if k != OLLAMA_CLOUD]
 
     def saetze_stand() -> str:
         return "aus" if getattr(app.state.settings, "antwort_saetze", "an") == "aus" else "an"
@@ -275,12 +278,25 @@ def register(app, guard, data_dir, rebuild):
                                          "die Reserve bleibt für andere Programme frei. Bitte ein kleineres Modell wählen.")
         neu = RollenWahl(modell=modell, cloud=bool(cloud), anbieter=anbieter, cloud_einwilligung=einwilligung,
                         local_only=not bool(cloud) and (body.local_only or aktuell.local_only or aktuell.anbieter in {'mistral', 'openrouter'}))
-        with app.state.conversation_lock:
+        # Ein Widerruf wartet nie auf eine laufende Antwort (Persona-Prüfung, D1): Die Antwort hält die Gesprächssperre,
+        # bis sie fertig ist, und so lange stand der Schalter auf „an“, während weiter Anfragen hinausgingen. Der Widerruf
+        # wird sofort geschrieben; die laufende Antwort liest die Einwilligung vor jedem einzelnen Versand neu
+        # (`gedaechtnis_cloud.freigabe_gueltig`) und sendet danach nichts mehr. Alles andere wartet wie bisher.
+        widerruf = aktuell.cloud and not neu.cloud
+        sperre = app.state.conversation_lock
+        gesperrt = sperre.acquire(blocking=not widerruf)
+        try:
+            # Ein neues Wörterbuch statt einer Änderung am alten: Eine laufende Antwort liest es womöglich gerade.
+            wahlen = dict(settings.model_roles)
             if neu.ist_leer:
-                settings.model_roles.pop(rolle, None)
+                wahlen.pop(rolle, None)
             else:
-                settings.model_roles[rolle] = neu.als_dict()
+                wahlen[rolle] = neu.als_dict()
+            settings.model_roles = wahlen
             config.save(data_dir(), settings)
+        finally:
+            if gesperrt:
+                sperre.release()
         rebuild()
         if neu != aktuell:
             logbuch.vermerke("modellwechsel", rolle=rolle, wofuer=spec.titel, lokal=not neu.cloud, modell=neu.modell)

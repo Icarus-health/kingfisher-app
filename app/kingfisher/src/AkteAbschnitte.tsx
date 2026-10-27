@@ -11,6 +11,7 @@ import { ProfileSource } from "./ProfileSource";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
 import { memoryReturnPath } from "./profileReturn";
+import { naechsterPunkt } from "./tippFlaeche";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { Leer, zeigeHinweis } from "./grundlage";
 import { initials } from "./WorkspaceMemoryModel";
@@ -58,7 +59,7 @@ function Zeile({ zeile, zusatz }: { zeile: AkteZeile; zusatz?: ReactNode }) {
   </article>;
 }
 
-const GRUND: Record<string, string> = { erledigt: "Später als erledigt gemeldet", absage: "Später abgesagt", aufgabe_erledigt: "Aufgabe erledigt", aufgabe_verworfen: "Aufgabe fallengelassen", nutzer_erledigt: "Von dir als erledigt abgelegt", nutzer_gilt_nicht: "Gilt laut dir nicht mehr" };
+const GRUND: Record<string, string> = { erledigt: "Später als erledigt gemeldet", absage: "Später abgesagt", antwort: "Im selben Mailverlauf beantwortet", aufgabe_erledigt: "Aufgabe erledigt", aufgabe_verworfen: "Aufgabe fallengelassen", nutzer_erledigt: "Von dir als erledigt abgelegt", nutzer_gilt_nicht: "Gilt laut dir nicht mehr" };
 /** Was nach einem Klick dasteht (Grundsatz 4: Jede Aktion antwortet). */
 const GEMERKT: Record<AkteEntscheidung, string> = { erledigt: "Als erledigt abgelegt.", gilt_nicht: "Abgelegt: gilt nicht mehr.", offen: "Gemerkt: gilt weiter." };
 const GEMERKT_TERMIN: Record<AkteEntscheidung, string> = { erledigt: "Gemerkt: abgesagt und erledigt.", gilt_nicht: "Gemerkt.", offen: "Gemerkt: findet statt." };
@@ -239,7 +240,14 @@ function Zeitstrahl({ strahl }: { strahl: NonNullable<Akte["zeitstrahl"]> }) {
     <div className="akte-strahl" ref={bahnRef} onKeyDown={tasten} role="group" aria-label="Zeitstrahl: mit den Pfeiltasten von Punkt zu Punkt">
       {SPUREN.filter(spur => punkte.some(x => x.p.art === spur.art)).map(spur => <div className="akte-spur" key={spur.art}>
         <span className="akte-spur-name">{spur.text}</span>
-        <div className="akte-spur-bahn">
+        {/* Am Finger ist die ganze Spur das Ziel (Paket H, H3): Ein Tipp wählt den nächsten Punkt bis 22 px daneben. */}
+        <div className="akte-spur-bahn" onClick={ereignis => {
+          if (ereignis.target !== ereignis.currentTarget) return;
+          const r = ereignis.currentTarget.getBoundingClientRect();
+          const liste = punkte.filter(x => x.p.art === spur.art);
+          const i = naechsterPunkt(liste.map(x => r.left + r.width * lage(x.zeit.getTime()) / 100), ereignis.clientX);
+          if (i !== null) setGewaehlt(gewaehlt === liste[i].p ? null : liste[i].p);
+        }}>
           {punkte.filter(x => x.p.art === spur.art).map(x => <button key={nummer.get(x.p)} type="button" data-punkt={nummer.get(x.p)}
             tabIndex={nummer.get(x.p) === aktiv ? 0 : -1} onFocus={() => setFokus(nummer.get(x.p) ?? 0)}
             className={`akte-punkt akte-punkt-${x.p.art}${x.p.abgesagt ? " akte-punkt-abgesagt" : ""}${x.p.offen ? " akte-punkt-offen" : ""}${x.p.abschnitt === "Zusage" || x.p.abschnitt === "Bitte" ? " akte-punkt-zusage" : ""}${gewaehlt === x.p ? " akte-punkt-gewaehlt" : ""}`}
@@ -306,7 +314,8 @@ function Lage({ lage }: { lage: AkteLage }) {
 }
 
 /** Die Akte einer Sache (Ebene 2): Stand, Offen, Fristen, Termine, Beteiligte, Verlauf. Jede Zeile führt zur Quelle. */
-export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false }: { sache: string; fallback?: ReactNode | null; mitKopf?: boolean; compact?: boolean }) {
+/** `ohneWarten`: „Du wartest auf“ steht schon in der Karte „Worauf ich warte“ darüber (Personenseite, Befund A7). */
+export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false, ohneWarten = false }: { sache: string; fallback?: ReactNode | null; mitKopf?: boolean; compact?: boolean; ohneWarten?: boolean }) {
   const [data, setData] = useState<Akte | null>(null);
   const [zustand, setZustand] = useState<"laedt" | "keine" | "fehler" | "ok">("laedt");
   const [alle, setAlle] = useState(false);
@@ -474,7 +483,10 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   const terminOben = termineObenGenannt(braucht?.eintraege);
   // Was oben unter „Braucht dich“ steht (gleiche Quelle, gleiche Stelle), steht unten nicht noch einmal; ein Satz sagt,
   // wo es steht. Nur die Anzeige: Zählung und Logik bleiben, wie die Akte sie liefert.
-  const { sichtbar: offenSichtbar, oben: offenOben } = offenOhneBrauchtDich(data.offen.eintraege, braucht?.eintraege);
+  const { sichtbar: offenAlle, oben: offenOben } = offenOhneBrauchtDich(data.offen.eintraege, braucht?.eintraege);
+  // Auf der Personenseite steht „Du wartest auf“ schon in der Karte darüber, aus derselben Regel (Befund A7).
+  const wartet = OFFEN_GRUPPEN.find(g => g.titel === "Du wartest auf")!;
+  const offenSichtbar = ohneWarten ? offenAlle.filter(e => !wartet.passt(e)) : offenAlle;
   const offenGruppen = OFFEN_GRUPPEN.map(g => ({ ...g, eintraege: offenSichtbar.filter(g.passt) }));
   const uebrige = offenSichtbar.filter(e => !OFFEN_GRUPPEN.some(g => g.passt(e)));
   const ueber = <>
@@ -533,7 +545,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       {data.offen.erledigt.gesamt ? <details><summary>Vermutlich erledigt oder abgesagt ({data.offen.erledigt.gesamt})</summary>
         {data.offen.erledigt.eintraege.map((e, index) => <div key={`${index}:${e.episode_id}`}><Zeile zeile={e} zusatz={GRUND[e.grund] ?? e.grund} />{e.durch ? <p className="mappe-mehr">Laut: „{e.durch.text}“ ({datum(e.durch)}) <Quelle zeile={e.durch} /></p> : null}
           {e.ziel && e.grund.startsWith("nutzer_") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(e.ziel!, e.grund === "nutzer_gilt_nicht" ? "gilt_nicht" : "erledigt")}>Rückgängig</button> : null}
-          {e.ziel && (e.grund === "erledigt" || e.grund === "absage") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => entscheiden(e.ziel!, "offen")}>Doch noch offen</button> : null}
+          {e.ziel && (e.grund === "erledigt" || e.grund === "absage" || e.grund === "antwort") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => entscheiden(e.ziel!, "offen")}>Doch noch offen</button> : null}
         </div>)}
       </details> : null}
     </Teil> : null}

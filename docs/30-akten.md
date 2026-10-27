@@ -159,6 +159,23 @@ gleiches aufgelöstes Datum zählen doppelt; trägt die spätere Meldung ein Erl
 Absagewort, genügt ein gemeinsamer Stamm; bei Fristen genügt ein gemeinsames Fristwort.
 Das ist bewusst grob und deshalb überall als Vermutung ausgewiesen.
 
+**Keine Widersprüche aus Floskeln (Persona-Prüfung, 27.10.2026, Akte 12).** Eine Frist ersetzt eine andere aus einem
+anderen Mailverlauf nur, wenn sie mehr teilen als allgemeine Wörter („Unterlagen“, „Informationen“, „den Termin
+bestätigen“, `akten._ALLGEMEINE_GEGENSTAENDE`); im selben Verlauf genügen sie weiter. Der Satz um eine Frist endet
+auch nach einem schließenden Anführungszeichen. So meldet der Lint keinen „Widerspruch“ mehr zwischen zwei Mails
+mit „Ich schicke Ihnen die Unterlagen bis Freitag“, wohl aber weiter den verschobenen „Belegungsplan“.
+
+**Antwort im Verlauf, Einladungen (Befund A3).** Deine Bitte gilt als vermutlich erledigt, wenn die Gegenseite im
+selben Mailverlauf (genaue Kopfzeilen) später antwortet; eine Zusage an dich, wenn der Zusagende im Verlauf etwas
+mitbringt. Automatische Antworten und bloße Verzögerungen zählen nicht (`antwort_im_verlauf.py`). Eine Einladung
+(„Über eine Zusage würde ich mich freuen“, Betreff „Einladung: …“) führt die Akte als Bitte, nicht als Zusage.
+
+**Umlaute (Befund A7).** Namen gelten in Umschrift als gleich („Müller“ = „Mueller“, „Weiß“ = „Weiss“,
+`identitaet.name_schluessel`); eine erwähnte Organisation „Müller Bau GmbH“ gehört zur Domäne `mueller-bau`, wenn es
+genau eine solche gibt (`Register.organisation`). Den Namen einer Organisation aus einer Domäne nimmt die Akte aus
+einer Signatur- oder Absenderzeile, die genau passt („Universität Gießen“); sonst bleibt die Domäne, ohne geratene
+Umlaute. Die Suche nach Sachen findet alle Schreibweisen (`bezuege.suchformen`, Oberfläche `suchform.ts`).
+
 **Zwischenspeicher.** Die Akte wird nur neu berechnet, wenn sich eine Eingabe ändert:
 Fingerabdruck über die verknüpften Quellen, ihre Bezugsgrundlagen, ihre Einordnung
 (Status, Fassung, Modell, Abschnitte mit Art und Stelle) und den Stand des
@@ -371,6 +388,12 @@ Modell):
   Durchlauf; der Rest bleibt Vorschlag. Jeder Vorschlag wird einmal geprüft (Migration 5:
   `aufgaben_auto_geprueft` mit dem Ergebnis als Kürzel). Das erste Einlesen eines Postfachs erzeugt deshalb keine
   einzige Aufgabe.
+* **Zeitnah aus dem ersten Einlesen** (Persona-Prüfung, Befund A5, 26.10.2026): Eine Mail aus der Bestandsaufnahme, die
+  höchstens drei Tage vor dem Einlesen ankam (`mail_timeline.INVENTAR_ZEITNAH`), gilt in der zeitlichen Einordnung als
+  zeitnah wie neue Post: Vorschlag „noch unbestätigt“ statt „Historisch · Aktualität prüfen“, auf Heute unter
+  „Braucht dich“. Selbst angelegt wird daraus weiterhin nichts (Grund `bestand`). Ältere Bestandspost, Mails ohne
+  Datum und Bitten mit späterer Mail im Verlauf bleiben zur Prüfung; Heute sagt dann „Nichts Neues wartet auf dich.“
+  und „Bei 8 Vorschlägen ist unklar, ob sie noch gelten. Prüfen →“.
 * **Zugeordnet.** Person: wer bittet, bei einer Zusage der erste fremde Empfänger unter „An“ (`Task.person`, Adresse
   und Name; die Adresse führt zur Akte). Projekt: das Projekt der Quelle, sonst die Absenderregel, sonst ein
   gemerkter lokaler Hinweis (`task_project_hints.py`), nur vorhandene offene Projekte. Frist: nur, wenn die Textstelle
@@ -393,7 +416,68 @@ Modell):
 * **Schalter** „Aufgaben aus Mails selbst anlegen“ unter „Was Kingfisher darf“, Vorgabe an
   ([`47-einstellungen.md`](47-einstellungen.md#aufgaben-aus-mails-selbst-anlegen-26102026)). Aus: nichts entsteht.
 
-Protokoll: [`runs/2026-10-26-automatik-aufgaben`](runs/2026-10-26-automatik-aufgaben/README.md).
+* **Ein Rückweg, der bleibt** (Persona-Prüfung, Paket Z2 und Z4, 27.10.2026). Der Hinweis ist nie der einzige Weg
+  zurück: Zurückgenommenes steht dauerhaft unter „Erledigt → Zurückgenommen“ mit „Wiederherstellen“
+  (`GET /api/v1/aufgaben-von-selbst/zurueckgenommen`, `TaskStore.anlage_zurueckgenommen`, jüngste zuerst, bis 50).
+  Ein übernommener Vorschlag trägt `angelegt.art` `uebernommen` (einzeln) oder `alle_uebernehmen` und in der Aufgabe
+  „Aus einem Vorschlag übernommen am … · Zurück zur Prüfung“ (bei „Alle übernehmen“ dazu „Alle dieser Übernahme
+  zurück“): `POST /api/v1/task-candidates/aufgabe/{id}/zurueck` entfernt die Aufgabe und stellt den Vorschlag wieder
+  offen (nicht verworfen), solange die Aufgabe offen ist; Erledigtes und von Hand Angelegtes bleiben (409 mit Satz).
+  Entstand beim Übernehmen ein neues Projekt („Neues Projekt“, Kennung aus dem Vorschlag) und hängt daran sonst nichts
+  (keine Aufgabe, Quelle, Notiz, kein Termin), geht es mit zurück; sonst bleibt es, und der Satz sagt es (Paket S).
+  Rückgängig im Hinweis legt es mit derselben Kennung wieder an. Die Aufgabensuche findet auch den Projektnamen und die
+  Person einer Aufgabe (`task_pages.query_page(projekte=)`).
+  Einzeln übernehmen bleibt in der Prüfliste, mit Hinweis „„…“ übernommen. · Rückgängig · Ansehen“; „+ Aufgabe“
+  bleibt in der Liste, mit „Öffnen“ und „Rückgängig“ (verwirft). Nichts öffnet mehr ungefragt im Vollbild.
+
+Protokoll: [`runs/2026-10-26-automatik-aufgaben`](runs/2026-10-26-automatik-aufgaben/README.md); Rückweg:
+[`runs/2026-10-26-befunde-zahlen`](runs/2026-10-26-befunde-zahlen/README.md).
+
+### Alles zu einer Person: Auskunft und Löschen (Paket P, 27.10.2026)
+
+Befund D7 der Persona-Prüfung ([Protokoll](runs/2026-10-26-befunde-person/README.md)): Kein Export und kein Löschen je
+Person; das Auskunftsrecht (Art. 15 DSGVO) und die Löschung (Art. 17) waren in Kingfisher nicht bedienbar. Jetzt steht
+unter dem Kopf jeder Personenakte ein leises „Mehr“ (`PersonMehr.tsx`) mit zwei Wegen; keine neue Seite. Was zu einer
+Person gehört, entscheidet eine Stelle (`person_daten.umfang`), damit Auskunft, Rückfrage und Löschen nie
+auseinanderlaufen: die Quellen, in denen sie beteiligt ist (mit Adresse über die Adresse, ohne Adresse über einen Namen,
+den keine fremde Adresse trägt), getrennt in „nur sie“ (außer dir niemand) und „geteilt“; Anlagen einer Mail, die nur
+sie betrifft; bestätigtes Wissen mit ihr als Gegenstand, Bezug oder Rahmen und Wissen, das nur auf ihren Quellen
+beruht; Vorschläge aus ihren Quellen oder über sie; Aufgaben von ihr oder für sie (Person, „wartet auf“, Quelle);
+Zusammenführungen, Schreibweisen, ausdrücklich verknüpfte Einträge; Kreis, Art und Entscheidungen ihrer Akte;
+Logbuch-Vermerke, Befunde und Zusammenfassungen, die sie nennen.
+
+**Alles exportieren** (`GET /api/v1/memory/people/{name}/auskunft`): ein ZIP mit `Auskunft.html` (zum Lesen und
+Drucken, ohne Skript und ohne Verweise nach draußen) und `Auskunft.json` (`kingfisher-auskunft-v1`, dieselben
+Angaben). Ein ZIP mit beiden statt zwei Knöpfen: Wer eine Auskunft erteilt, braucht beides, und ein Knopf ist eine
+Entscheidung weniger. Es entsteht im Speicher und geht nur als Download an den Browser dieses Rechners; Kingfisher
+behält keine Kopie und sendet nichts. Aus Quellen, die nur sie betreffen, steht der Text da (bis 20.000 Zeichen), aus
+geteilten nur die Zeilen, die sie nennen; fremde Adressen sind darin unkenntlich, weitere Beteiligte nur gezählt. Zur
+Cloud steht ehrlich da, was es gibt: Kingfisher hält je Anfrage fest, wann, wohin und wofür, nicht welchen Inhalt; ob
+eine davon ihre Quellen enthielt, lässt sich daraus nicht sagen.
+
+**Alles löschen** (`GET`/`POST /api/v1/memory/people/{name}/loeschen`): Erst zählt Kingfisher, dann fragt es über den
+Baustein `Rueckfrage` („Alles zu Dora Lind löschen?“, Fokus auf „Abbrechen“, die Aktion rot), mit „Gelöscht wird“
+(Anzahlen) und „Bleibt“ (mit Grund). Was „löschen“ heißt:
+
+* Wissen, Vorschläge, Aufgaben (samt ihrem Verlauf), Zusammenführungen, Schreibweisen, Bezüge, Kreis, Akte und
+  personenbezogene Vermerke werden gelöscht. Verläufe, die sonst nur anhängen (Aufgabenverlauf, Logbuch), öffnen dafür
+  in einer Transaktion ihren Schutz und schließen ihn wieder; die Schemaprüfung beim nächsten Öffnen bestätigt das.
+* Quellen, die nur sie betreffen, verschwinden aus Kingfisher: Quelle, Anlagen, Volltextindex, Einordnung, Bezüge,
+  Bedeutungssuche (die Suche prüft jede Fundstelle gegen die Quelle; die Vektoren räumt Kingfisher gleich mit weg),
+  Zwischenspeicher der Akten und des Verzeichnisses. Im Postfach und im Kalender bleiben sie; die Mailaufnahme merkt
+  sich die Mail als ausgelassen (`filtered:gesperrt`), nicht als Fehler.
+* Geteilte Quellen bleiben, ohne sie als Beteiligte; ihr Text bleibt unverändert (er gehört auch den anderen). Der
+  Index liest sie neu, damit ihre Adresse nicht mehr gefunden wird.
+* Bleibt: deine Gespräche mit Kingfisher (deine Fragen, gezählt), Projekte, das Protokoll dessen, was Kingfisher in
+  deinem Namen getan hat (es hält fest, dass gelöscht wurde, nicht wen), ältere Sicherungen.
+* Zuerst entsteht der **Sperrvermerk** (`person_sperre.py`, Migration 26 der Episoden): je Adresse und Schreibweise nur
+  eine Prüfsumme, dazu der Anzeigename. Er wirkt an einer Stelle für alle Wege hinein (`EpisodeStore.record`,
+  `add_contacts`): Gesperrte fallen aus den Beteiligten; betrifft eine Quelle außer dir nur sie, wird sie nicht
+  aufgenommen (Mail: ausgelassen, Termin: ausgeschlossen). Eine Adresse sperrt nur diese Adresse, ein Name nur
+  Nennungen ohne Adresse; ein Namensvetter mit eigener Adresse bleibt eine eigene Person. Erwähnungen im Text geteilter
+  Quellen werden keine Akte (`bezuege.Register.gesperrt`). Aufheben unter Einstellungen → Kingfisher und du.
+* Die Quellen werden zuletzt gelöscht: Bricht vorher etwas ab, ist die Person noch auffindbar und das Löschen lässt
+  sich wiederholen. Die Regel des Gedächtnisses gilt weiter: Löschen schreibt keinen Fakt, es nimmt nur weg.
 
 ## Schnittstelle
 

@@ -21,30 +21,54 @@ export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string;
     satz: "Hier muss nichts geändert werden." },
 ];
 
-/** Die acht Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
+/** Die Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt, und an wen. Wo ein Dienst
+ * im Internet abgefragt wird, sieht er dabei die IP-Adresse; das steht dabei (Persona-Prüfung, Kleinpunkt d). */
 export const SCHALTER = {
   wetter: { titel: "Morgens das Wetter holen",
-    verlaesst: "Es verlässt nur der Name deines Ortes den Rechner, an den Wetterdienst Open-Meteo. Termine, Namen und Adressen bleiben bei dir." },
+    verlaesst: "Es verlässt nur der Name deines Ortes den Rechner, an den Wetterdienst Open-Meteo; der sieht dabei deine IP-Adresse. Termine, Namen und Adressen bleiben bei dir." },
   welt: { titel: "Eine Meldung aus der Welt zeigen",
-    verlaesst: "Es verlässt nichts den Rechner, außer dass Kingfisher die Nachrichtenseiten abruft, die du auswählst. Was in deinen Akten steht, wird nicht gesendet." },
+    verlaesst: "Es verlässt nichts den Rechner, außer dass Kingfisher die Nachrichtenseiten abruft, die du auswählst; die sehen dabei deine IP-Adresse. Was in deinen Akten steht, wird nicht gesendet." },
   wegezeit: { titel: "Wegezeit berechnen",
-    verlaesst: "Es verlassen die Adresse des Termins und dein Startort den Rechner, an Apple Karten auf dem Mac oder an einen Routenplaner, den du selbst einrichtest." },
+    verlaesst: "Es verlassen die Adresse des Termins und dein Startort den Rechner, an Apple Karten auf dem Mac oder an einen Routenplaner, den du selbst einrichtest; der sieht dabei deine IP-Adresse." },
   autostart: { titel: "Beim Anmelden starten",
     verlaesst: "Es verlässt nichts den Rechner. Kingfisher öffnet sich im Hintergrund, sobald du dich am {Rechner} anmeldest." },
   mitteilungen: { titel: "Mitteilungen auf dem {Rechner}",
     verlaesst: "Es verlässt nichts den Rechner. Morgens eine Mitteilung mit dem, was heute zählt, dazu höchstens zwei dringende: ein Termin gleich, eine verstrichene Zusage." },
+  // Präzisiert (Persona-Prüfung, D4): nicht „Textstellen“, sondern Inhalte, ganz oder in Auszügen; der Anbieter steht mit
+  // Land und Region in der Zustimmung selbst (`zustimmungCloud`), nicht „den du gewählt hast“.
   cloud: { titel: "Cloud für Fragen und Antworten nutzen",
-    verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen samt Absender, Betreff und Datum den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
-    zustimmung: "Deine Fragen und die dazu gefundenen Textstellen samt Absender, Betreff und Datum gehen an den Cloudanbieter, den du gewählt hast, auch bei Fragen an dein Gedächtnis. Ich willige ein." },
+    verlaesst: "Es verlassen deine Fragen und Inhalte deiner Mails, Termine und Notizen, ganz oder in Auszügen, samt Absender, Betreff und Datum den Rechner, an den Cloudanbieter, dem du beim Einschalten zustimmst. Aus: alles bleibt auf diesem Rechner.",
+    wartet: "Noch aus: Die Cloud ist erst an, wenn du unten zustimmst.",
+    protokoll: "Was an die Cloud ging" },
   // Der Satz zur Einwilligung kommt vom Sidecar (`cloud_satz` der Rolle hintergrund, GET /roles) und wird hier nur um
   // das „Ich willige ein.“ ergänzt, damit er nicht zweimal gepflegt wird (cloudEinordnung.ts).
   cloud_einordnung: { titel: "Neue Mails in der Cloud einordnen",
     verlaesst: "Jede neue Mail verlässt den Rechner vollständig, an Anthropic (Claude). Aus: Einordnen läuft nur mit einem Modell auf diesem Rechner.",
     zustimmung: "Ich willige ein." },
+  // Webabruf im Gespräch (Persona-Prüfung, D2): an, aber jeder einzelne Abruf wartet auf deine Freigabe im Gespräch.
+  web: { titel: "Webseiten im Gespräch abrufen",
+    verlaesst: "Es verlässt die Adresse der Seite den Rechner, und erst, wenn du den Abruf im Gespräch freigibst; die Seite sieht dabei deine IP-Adresse. Aus: Kingfisher ruft keine Webseiten ab." },
+  // Offener Rest aus D (Paket S): „Weitere öffentliche Quellen“ rief nach Zeitplan ab und stand nur unter „Für Techniker“.
+  quellen: { titel: "Eingetragene öffentliche Seiten abrufen",
+    verlaesst: "Je Seite verlässt eine Abfrage den Rechner: Die Seiten, die du unter „Für Techniker“ eingetragen hast, ruft Kingfisher regelmäßig von selbst ab; jede sieht dabei deine IP-Adresse. Aus: nur noch auf deinen Klick." },
+  // Update-Prüfung (Persona-Prüfung, D3): an, weil Sicherheitsupdates sonst niemanden erreichen; ehrlich benannt
+  // (fassungsAngebot.ts übernimmt den Satz als `SATZ_PRUEFEN`). Vorher stand dort „Über dich geht dabei nichts hinaus.“
+  updates: { titel: "Nach neuen Fassungen sehen",
+    verlaesst: "Es verlässt nur eine Abfrage den Rechner: Einmal am Tag ruft Kingfisher bei GitHub eine kleine Datei ab, die die neueste Fassung nennt; GitHub sieht dabei deine IP-Adresse. Aus: Du erfährst nicht mehr von selbst von Sicherheitsupdates." },
   // Aufgaben von selbst (docs/66-automatik.md): als einziger an, bis man ihn ausschaltet; nichts geht nach draußen.
   aufgaben_selbst: { titel: "Aufgaben aus Mails selbst anlegen",
     verlaesst: "Es verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus neuen Mails werden Aufgaben, jede mit „Rückgängig“. Aus: Sie bleiben Vorschläge." },
 } as const;
+
+/**
+ * Die Zustimmung zur Cloud für Fragen und Antworten, mit dem Anbieter, der sie bekommt, und der Region, in der er
+ * verarbeitet (sidecar: nach_draussen.py, `wohin` und `region` je Anbieter). Ohne gewählten Anbieter gibt es keine
+ * Zustimmung: Dann steht da, dass erst gewählt werden muss.
+ */
+export function zustimmungCloud(anbieter: { wohin: string; region: string } | null | undefined): string {
+  if (!anbieter) return "Wähle zuerst, an welchen Anbieter die Fragen gehen sollen.";
+  return `Deine Fragen, der Gesprächsverlauf und Inhalte deiner Mails, Termine und Notizen, ganz oder in Auszügen, samt Absender, Betreff und Datum gehen an ${anbieter.wohin} und werden ${anbieter.region}. Das gilt für jede Frage, auch an dein Gedächtnis, bis du den Schalter wieder ausschaltest. Ich willige ein.`;
+}
 
 export const ICH = {
   name: { frage: "Wie soll Kingfisher dich nennen?", hilfe: "Der Name steht nur im Gruß des Briefings und bleibt auf diesem Rechner." },
@@ -86,7 +110,7 @@ export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }>
   { id: "befunde", titel: "Befunde der Prüfung über alle Akten", satz: "Widersprüche und Lücken, die die regelmäßige Prüfung gefunden hat." },
   { id: "hintergrund", titel: "Zeitplan und Hintergrund", satz: "Ob und wie oft Kingfisher deine Mails abruft, ältere Mails einliest und Quellen sortiert." },
   { id: "filter", titel: "Filterregeln für Post", satz: "Erlaubte und gesperrte Absender für die automatische Aufnahme." },
-  { id: "quellen", titel: "Weitere öffentliche Quellen", satz: "Öffentliche Seiten, die Kingfisher von Hand oder nach Zeitplan abruft." },
+  { id: "quellen", titel: "Weitere öffentliche Quellen", satz: "Öffentliche Seiten, die du selbst einträgst. Ob Kingfisher sie regelmäßig von selbst abruft, steht unter „Was Kingfisher darf“." },
   { id: "kartendienst", titel: "Eigener Kartendienst für die Wegezeit", satz: "Nötig nur ohne Apple Karten: Dienst und Schlüssel für die Wegezeit." },
   { id: "google", titel: "Google-Anmeldung vorbereiten", satz: "Einmalige Vorbereitung, damit „Mit Google anmelden“ für Post und Kalender funktioniert." },
   { id: "microsoft", titel: "Microsoft-Anmeldung vorbereiten", satz: "Die Kennung der App, damit „Mit Microsoft anmelden“ für Post, Kalender und Teams-Mitschriften funktioniert." },
@@ -129,6 +153,8 @@ export const FACHWOERTER: readonly string[] = [
   "Rolle", "Rollen", "Orchester", "Feed", "Feeds", "RSS", "Atom", "Ollama", "Routing", "Lint", "Suchindex", "FTS", "BM25",
   "Sidecar", "Docker", "Adapter", "Markdown", "JSON", "Prompt", "Kontext", "Inferenz", "Quantisierung", "Parameter", "GiB", "RAM",
   "Median", "Prüfmodell", "Schlüsselspeicher", "Keychain", "Webhook", "Cron", "Zeitplan", "Launch", "Agent", "HTTPS", "URL",
+  // Persona-Prüfung, Paket S, Befund 1: die Wörter, an denen Rentnerin, Ärztin und Student hängen blieben.
+  "Sprachmodell", "Quellenzeit", "Endpunkt", "API-Schlüssel", "Befehl", "Forbidden",
 ];
 
 const WOERTER = FACHWOERTER.map(wort => ({ wort, muster: new RegExp(`(?<![\\p{L}\\p{N}])${wort}(?![\\p{L}\\p{N}])`, "iu") }));
@@ -169,6 +195,10 @@ export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/KontoZeile.tsx", "kontenBereiche.ts",
   // Fassung und Update-Angebot (docs/53): die Zeile unter „Kingfisher und du“ und der Hinweis auf Heute.
   "Fassung.tsx",
+  // Paket S, Befund 1: KI & Modelle, Belege, das Eingabefeld, das Laden der KI und der Stand des Sortierens.
+  "CloudAccess.tsx", "ChatGPTAccess.tsx", "BefundeAnsicht.tsx", "CommandBar.tsx", "verarbeitung.ts", "MemoryStatus.tsx",
+  "Einrichtung/rechner.ts", "Einrichtung/lernt.ts", "Einrichtung/KingfisherLernt.tsx", "Einrichtung/FertigSchritt.tsx",
+  "Einrichtung/RechnerKarte.tsx", "technik.ts", "Einstellungen/CloudSchalter.tsx",
 ];
 
 /**
@@ -179,4 +209,5 @@ export const AUSNAHMEN: ReadonlyArray<{ datei: string; wort: string; grund: stri
   { datei: "Einrichtung/AutostartWahl.tsx", wort: "Agent", grund: "steht nur in einem Kommentar über dem Schalter" },
   { datei: "PostfachMitAdresse.tsx", wort: "Port", grund: "nur als letzte Möglichkeit, wenn Kingfisher den Mailserver der Domain nicht selbst findet, mit Vorgabe 993" },
   { datei: "postfachWeg.ts", wort: "IMAP", grund: "das Wort, unter dem der Anbieter den Servernamen in seiner Anleitung nennt; danach sucht der Mensch" },
+  { datei: "Einrichtung/rechner.ts", wort: "Ollama", grund: "der Name des Programms, das der Mensch laden und starten muss; ein anderes Wort fände er nicht" },
 ];

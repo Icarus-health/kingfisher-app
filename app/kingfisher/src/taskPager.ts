@@ -1,9 +1,10 @@
 import type {Task} from './api';
 
-export type TaskSelection = {view: 'mine' | 'waiting' | 'done'; projectId: string; q: string};
-type Page = {tasks: Task[]; total: number; next_cursor: string | null};
-export type TaskPageState = {tasks: Task[] | null; total: number; loading: boolean; error: string; notice: string; canPrevious: boolean; canNext: boolean; page: number; selectionKey: string};
-export const initialTaskPage = (): TaskPageState => ({tasks: null, total: 0, loading: false, error: '', notice: '', canPrevious: false, canNext: false, page: 1, selectionKey: ''});
+export type TaskSelection = {view: 'mine' | 'waiting' | 'done'; projectId: string; q: string; bereich?: string};
+/** `heute_dran`: „N Aufgaben brauchen dich heute“ für die ganze Auswahl, nur auf der ersten Seite von „Meine Aufgaben“. */
+type Page = {tasks: Task[]; total: number; next_cursor: string | null; heute_dran?: number};
+export type TaskPageState = {tasks: Task[] | null; total: number; loading: boolean; error: string; notice: string; canPrevious: boolean; canNext: boolean; page: number; selectionKey: string; heuteDran: number | null};
+export const initialTaskPage = (): TaskPageState => ({tasks: null, total: 0, loading: false, error: '', notice: '', canPrevious: false, canNext: false, page: 1, selectionKey: '', heuteDran: null});
 
 /** Navigation is snapshot-bound; old requests never replace a newer selection. */
 export class TaskPager {
@@ -12,6 +13,7 @@ export class TaskPager {
   private cursor: string | null = null;
   private history: Array<string | null> = [];
   private result: Page | null = null;
+  private heuteDran: number | null = null;
   private loading = false;
   private fetchPage: (selection: TaskSelection, cursor: string | null) => Promise<Page>;
   private emit: (state: TaskPageState) => void;
@@ -39,8 +41,11 @@ export class TaskPager {
     try {
       const result = await this.fetchPage(selection, cursor);
       if (version !== this.version) return;
+      // Die Zahl „braucht dich heute“ kommt nur mit der ersten Seite; beim Blättern bleibt die bekannte stehen.
+      const heuteDran = typeof result.heute_dran === 'number' ? result.heute_dran : cursor ? this.heuteDran : null;
+      this.heuteDran = heuteDran;
       this.cursor = cursor; this.history = history; this.result = result; this.loading = false;
-      this.emit({tasks: result.tasks, total: result.total, loading: false, error: '', notice, canPrevious: history.length > 0, canNext: Boolean(result.next_cursor), page: history.length + 1, selectionKey});
+      this.emit({tasks: result.tasks, total: result.total, loading: false, error: '', notice, canPrevious: history.length > 0, canNext: Boolean(result.next_cursor), page: history.length + 1, selectionKey, heuteDran});
     } catch (error) {
       if (version !== this.version) return;
       if (cursor && (error as {status?: number})?.status === 409) {

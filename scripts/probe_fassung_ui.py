@@ -4,7 +4,7 @@
 Startet den Sidecar mit einer leeren Instanz als Fassung 1.0.0 und eine Attrappe der Download-Seite auf diesem Rechner,
 die ein synthetisches `latest.json` für Fassung 1.2.0 ausliefert. Dann in Chromium (Playwright):
 
-* **Kingfisher und du:** „Fassung 1.0.0“, Schalter „Nach neuen Fassungen sehen“ an, mit dem Satz über GitHub;
+* **Kingfisher und du:** „Fassung 1.0.0“; der Schalter „Nach neuen Fassungen sehen“ steht unter „Was Kingfisher darf“, an, mit dem Satz über GitHub und die IP-Adresse;
   „Jetzt nachsehen“ antwortet „Neue Fassung 1.2.0 ist da.“, und die Attrappe sah genau eine GET-Anfrage ohne Kekse.
   Ausschalten antwortet mit einem Satz und bleibt gespeichert.
 * **Heute im Browser (ohne Brücke):** der ruhige Hinweis „Neue Fassung 1.2.0 ist da: …“ und statt des Knopfs
@@ -138,7 +138,7 @@ def main() -> int:
                 pruef[f'breite_{name}'] = breite
                 assert breite[0] <= breite[1], f'{name}: waagerechtes Scrollen {breite}'
 
-            # 1. Kingfisher und du: Fassung, Schalter, „Jetzt nachsehen“.
+            # 1. Kingfisher und du: Fassung und „Jetzt nachsehen“; der Schalter steht unter „Was Kingfisher darf“ (Paket D).
             seite = neue_seite()
             seite.goto(basis + '/settings#ich')
             feld = seite.locator('.fassung-einstellung')
@@ -146,9 +146,16 @@ def main() -> int:
             seite.get_by_role('button', name='Jetzt nachsehen').wait_for(timeout=20000)
             pruef['einstellung_vorher'] = feld.inner_text()
             assert 'Fassung 1.0.0' in pruef['einstellung_vorher']
-            assert 'Einmal am Tag fragt Kingfisher bei GitHub, ob es eine neue Fassung gibt. Über dich geht dabei nichts hinaus.' in pruef['einstellung_vorher']
+            assert 'Kingfisher sieht einmal am Tag nach neuen Fassungen.' in pruef['einstellung_vorher']
             assert 'Noch nie nachgesehen.' in pruef['einstellung_vorher']
-            assert seite.get_by_role('switch', name='Nach neuen Fassungen sehen').is_checked()
+            darf = neue_seite()
+            darf.goto(basis + '/settings#darf')
+            schalter = darf.get_by_role('switch', name='Nach neuen Fassungen sehen')
+            schalter.wait_for(timeout=20000)
+            assert schalter.is_checked()
+            pruef['darf_satz'] = darf.locator('section.darf-zeile', has=schalter).inner_text()
+            assert 'GitHub sieht dabei deine IP-Adresse' in pruef['darf_satz']
+            darf.close()
             assert download.anfragen == [], 'Lesen fragt nie nach außen'
             seite.get_by_role('button', name='Jetzt nachsehen').click()
             seite.wait_for_selector('.fassung-einstellung [role=status]:has-text("Neue Fassung 1.2.0 ist da.")', timeout=10000)
@@ -160,6 +167,8 @@ def main() -> int:
             kopf = download.anfragen[0]['kopf']
             assert 'cookie' not in kopf and kopf['user-agent'] == 'Kingfisher', kopf
             bild(seite, 'einstellung')
+            # Der Schalter steht unter „Was Kingfisher darf“ (Persona-Prüfung, Paket D).
+            seite.goto(basis + '/settings#darf')
             seite.get_by_role('switch', name='Nach neuen Fassungen sehen').click()
             seite.wait_for_selector('text=Kingfisher sieht nicht mehr von selbst nach.', timeout=10000)
             assert instanz.anfrage('GET', '/api/v1/fassung')['pruefen'] is False

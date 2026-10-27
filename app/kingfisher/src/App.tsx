@@ -3,7 +3,8 @@ import {CommandBar} from "./CommandBar";
 import {ConversationCapture} from "./ConversationCapture";
 import {ConversationNavigation} from "./ConversationNavigation";
 import {MessageText} from "./MessageText";
-import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
+import { TodayOverview, TodayPersonal } from "./TodayOverview";
+import { brauchtDichSatz, heuteZahlen } from "./zahlen";
 import { FassungHeute } from "./Fassung";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { AudioBriefing } from "./AudioBriefing";
@@ -32,8 +33,10 @@ import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
-import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
+import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, sageAn, segmentInsBild, zeigeHinweis, type Segment} from "./grundlage";
 import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
+import { angelegtHinweis } from "./aufgabenVonSelbst";
+import { ZurueckgenommenGruppe } from "./ZurueckgenommenGruppe";
 import { anlageZuruecknehmen } from "./AufgabenSelbstHeute";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
@@ -60,7 +63,8 @@ import { meldbar } from "./rueckmeldung";
 import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg";
 import { AntwortZeile } from "./AntwortZeiten";
 import { AusstehendeFrage, CloudVermerk, LokalLangsam, WarteZeile } from "./GespraechWarten";
-import { frageSchonDa, merkeFrage, nimmFrage } from "./wartenImGespraech.ts";
+import { frageSchonDa, istBeantwortet, merkeBeantwortet, merkeFrage, nimmFrage, vergissBeantwortet } from "./wartenImGespraech.ts";
+import { antwortAnsage } from "./antwortAnsage.ts";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
 import { PostfachStand } from "./PostfachStand";
@@ -71,6 +75,7 @@ import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK
 import {TaskRetryReview} from './TaskRetryReview';
 import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
 import {gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
+import { PROJEKTE_ORT, projekteImGedaechtnis } from "./projekteOrt";
 
 
 
@@ -204,7 +209,6 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
     <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page today-state"><div className="g-flaeche today-fehler error-state" role="alert"><Leer zeichen="house" satz="Dein Überblick ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div></main></div>
   );
 
-  const attentionCount = todayAttention(briefing).length;
   const stand = standText(briefing);
   return (
     <div className="shell">
@@ -217,7 +221,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           {/* Ein großer Titel, eine Zeile darunter (Nachtrag 23.10.: wenig Text, Verständnis auf einen Blick). */}
           <div className="hero-copy"><h1>{briefing.greeting}</h1>
             <p className="today-hero-summary">
-              <span>{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht dich." : `${attentionCount} Punkte brauchen dich.`}</span>
+              {/* Eine Zahl je Begriff (Paket Z1): derselbe Satz und dieselbe Zahl wie unter „Aufgaben“, ganz gezählt im
+                  Sidecar, auch was hinter den drei sichtbaren Punkten steht. */}
+              <span>{brauchtDichSatz(heuteZahlen(briefing))}</span>
               {/* Ein Zeitpunkt, keine zweite Uhr: Die Uhr steht nur in der Seitenleiste (Fremdprobe 2, Befund 11). */}
               {/* Während das volle Briefing kommt, atmet „Stand“ leise, statt Text anzuhängen: Der angehängte Text brach
                   bei 390 px die Zeile um und schob beim Verschwinden die ganze Seite hoch (V7, CLS 0,18). */}
@@ -287,6 +293,13 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     return () => { aktiv = false; };
   }, [id]);
   const voice = useConversationVoice(id, data, sending || error || !data);
+  // Kam die Frage von einer anderen Seite (Heute, Anfang der Gespräche), ging der Fokus mit ihr verloren: Er gehört ins
+  // Eingabefeld, sobald es bereit ist; war die Antwort schon da, wird sie angesagt (Paket B, B1).
+  const ankunft = useRef<"frage" | "antwort" | null>(istBeantwortet(id) ? "antwort" : null);
+  function antwortAnsagen(nachrichten: ConversationPayload["messages"]) {
+    const satz = antwortAnsage(nachrichten);
+    if (satz) sageAn(satz);
+  }
 
   function load(change?: "correction") {
     if (change === "correction") setCorrectionSaved(true);
@@ -307,6 +320,21 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     });
     return () => { active = false; };
   }, [id]);
+
+  useEffect(() => {
+    if (!data || !ankunft.current) return;
+    const art = ankunft.current;
+    ankunft.current = null;
+    vergissBeantwortet(id);
+    let versuche = 0, zeit: number | undefined;
+    const insFeld = () => {
+      const feld = document.querySelector<HTMLTextAreaElement>(".workspace-chat .thread-command textarea");
+      if (feld && !feld.disabled) { feld.focus({ preventScroll: true }); if (art === "antwort") antwortAnsagen(data.messages); }
+      else if (++versuche < 40) zeit = window.setTimeout(insFeld, 50);
+    };
+    insFeld();
+    return () => window.clearTimeout(zeit);
+  }, [data]);
 
   useEffect(() => {
     const element = messagesElement.current;
@@ -336,7 +364,10 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     setSendError(false);
     setRefreshNotice(null);
     try {
-      setData(await api.sendMessage(id, message, clarification));
+      const antwort = await api.sendMessage(id, message, clarification);
+      setData(antwort);
+      // Die fertige Antwort einmal ansagen, höflich (Paket B, B1); den Zwischenstand sagte nur die Wartezeile.
+      if (live.current) antwortAnsagen(antwort.messages);
       setCorrectionSaved(false);
       if (clarification?.newQuestion) setRefreshNotice("Mit dem aktuellen Stand der Quellen neu beantwortet.");
     } catch (problem) {
@@ -348,7 +379,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
         && (clarification?.choice !== undefined || clarification?.date !== undefined) && original;
       if (stale) {
         try {
-          setData(await api.sendMessage(id, original, { newQuestion: true }));
+          const neu = await api.sendMessage(id, original, { newQuestion: true });
+          setData(neu);
+          if (live.current) antwortAnsagen(neu.messages);
           setRefreshNotice("Die Quellen haben sich seit der Rückfrage geändert. Die Frage wurde mit dem aktuellen Stand neu beantwortet.");
           return;
         } catch (second) {
@@ -369,14 +402,16 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     if (!chatAvailable) return;
     const frage = nimmFrage(id);
     // Scheitert das Senden, bleibt die Frage stehen, mit „Erneut senden“: Sie wurde auf einer anderen Seite getippt.
-    if (frage) void send(frage).catch(() => setNichtGesendet(frage));
+    if (frage) { ankunft.current = "frage"; void send(frage).catch(() => setNichtGesendet(frage)); }
   }, [id, chatAvailable]);
 
   async function retry(messageId: string) {
     setSending(true);
     setSendError(false);
     try {
-      setData(await api.retryMessage(id, messageId));
+      const neu = await api.retryMessage(id, messageId);
+      setData(neu);
+      if (live.current) antwortAnsagen(neu.messages);
     } catch (problem) {
       setSendError(true);
       throw problem;
@@ -567,6 +602,8 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
       setGespraech(id);  // für den Zwischenstand (Paket T); die Frage steht schon da
       await api.sendMessage(id, message);
       created.current = null;
+      // Das Gespräch, das jetzt öffnet, sagt die Antwort an und stellt den Fokus ins Eingabefeld (Paket B, B1).
+      merkeBeantwortet(id);
       if (live.current) navigate(`/conversations/${id}`);
     } catch (problem) {
       if (live.current) setSendError(true);
@@ -607,7 +644,8 @@ const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
 function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Die Aufgabenseite zeigt Aufgaben, nicht Bedienung: Suche filtert beim Tippen, die Liste lädt selbst nach, leere
   // Gruppen und Nullzähler entfallen, „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist.
-  const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => new URLSearchParams(window.location.search).get("pruefen") === "1" ? "review" : "tasks");
+  // „?view=projects“ öffnet die Projekte: ihr einer Ort (Paket H, H2, `projekteOrt.ts`).
+  const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => { const q = new URLSearchParams(window.location.search); return q.get("pruefen") === "1" ? "review" : q.get("view") === "projects" ? "projects" : "tasks"; });
   const [board,setBoard] = useState(false);
   const [projektFormular, setProjektFormular] = useState(false);
   const [groupTime,setGroupTime] = useState(()=>new Date());
@@ -627,13 +665,21 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [search, setSearch] = useState('');
   const currentSearch = useRef(search);
   currentSearch.current = search;
+  // „Alle · Arbeit · Privat“ ab zwei Bereichen (Paket K, BereichFilter.tsx). Der Sidecar filtert (Paket Z1): Liste, Zahl
+  // am Segment und Projektüberblick sind dieselbe Auswahl, und über einer leeren Liste steht keine „1“.
+  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
+  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("aufgaben"));
+  useEffect(() => kontenFuerFilter(setBereichKonten), []);
+  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
+  const currentBereich = useRef(bereichFilter.wahl);
+  currentBereich.current = bereichFilter.wahl;
   const pager = useRef<TaskPager | null>(null);
-  if (!pager.current) pager.current = new TaskPager((selection, cursor) => api.tasks(selection.view, selection.projectId, {q: selection.q, cursor}), setTaskPage);
+  if (!pager.current) pager.current = new TaskPager((selection, cursor) => api.tasks(selection.view, selection.projectId, {q: selection.q, cursor, bereich: selection.bereich}), setTaskPage);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState(() => new URLSearchParams(window.location.search).get("project") ?? "");
-  const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search}) ? taskPage.tasks : null;
+  const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search, bereich: bereichFilter.wahl}) ? taskPage.tasks : null;
   // Während Suche oder Änderung neu laden, bleibt die bisherige Liste derselben Ansicht stehen statt zu flackern.
-  const listKey = JSON.stringify({view, projectId});
+  const listKey = JSON.stringify({view, projectId, bereich: bereichFilter.wahl});
   const shownTasks = useRef<{key: string; tasks: LocalTask[]} | null>(null);
   if (tasks) shownTasks.current = {key: listKey, tasks};
   const listTasks = tasks ?? (taskPage.loading && shownTasks.current?.key === listKey ? shownTasks.current.tasks : null);
@@ -652,16 +698,17 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
   const lastLoad = useRef(0);
-  // Zahlen an den Segmenten (nur über null): offene eigene und wartende Aufgaben, wie die Liste gefiltert.
+  // Zahlen an den Segmenten (nur über null): offene eigene und wartende Aufgaben, wie die Liste gefiltert (Projekt und
+  // Bereich, im Sidecar; Paket Z1).
   const [zahlen, setZahlen] = useState<{mine?: number; waiting?: number}>({});
   const [zahlenStand, setZahlenStand] = useState(0);
   useEffect(() => {
     let aktiv = true;
-    Promise.all([api.tasks("mine", projectId, {limit: 1}), api.tasks("waiting", projectId, {limit: 1})])
+    Promise.all([api.tasks("mine", projectId, {limit: 1, bereich: bereichFilter.wahl}), api.tasks("waiting", projectId, {limit: 1, bereich: bereichFilter.wahl})])
       .then(([mine, waiting]) => { if (aktiv) setZahlen({mine: mine.total, waiting: waiting.total}); })
       .catch(() => { if (aktiv) setZahlen({}); });
     return () => { aktiv = false; };
-  }, [projectId, zahlenStand]);
+  }, [projectId, zahlenStand, bereichFilter.wahl]);
 
   const currentView = useRef(view);
   currentView.current = view;
@@ -688,7 +735,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setZahlenStand(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
-    void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
+    void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current, bereich: currentBereich.current});
   }
 
   // Kein Knopf „Liste aktualisieren“: Kommt das Fenster wieder in den Blick, lädt die Liste still nach (wie Heute).
@@ -723,7 +770,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     window.history.replaceState(window.history.state, "", url);
   }, [view, projectId, selectedTask]);
 
-  useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search]);
+  useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search, bereichFilter.wahl]);
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -735,13 +782,14 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     try {
       const task = await attempt.save({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) }, api.addTask);
       if (!task) return;
-      openTask(task.id);
+      // Die neue Aufgabe steht in der Liste, nicht im Vollbild; der Hinweis bietet „Öffnen“ und „Rückgängig“ (Paket Z4).
       setProjectId(newTaskProject);
       setTitle("");
       setDue("");
       setCreating(false);
       if (view === "mine") load("mine");
       else setView("mine");
+      zeigeHinweis(angelegtHinweis(task, async () => { await api.dropTask(task.id); load(); }));
     } catch (cause) {
       setCreateError(cause instanceof TaskSavePreparationError ? `${cause.message} Es wurde keine Aufgabe gesendet.` : cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);
     } finally {
@@ -825,12 +873,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
   }
-  // „Alle · Arbeit · Privat“ ab zwei Bereichen (Paket K, BereichFilter.tsx).
-  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
-  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("aufgaben"));
-  useEffect(() => kontenFuerFilter(setBereichKonten), []);
-  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
-  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId) && bereichFilter.passt(task));
+  const visibleTasks = listTasks?.filter(task => !projectId || task.project_id === projectId);
   const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
@@ -847,10 +890,10 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     else { setPanel("tasks"); setView(id as TaskView); }
   }
   // Rollt die Segmentleiste (schmales Fenster), steht der gewählte Abschnitt auch beim Öffnen per Adresse im Blick.
-  useEffect(() => { document.querySelector?.<HTMLElement>('.aufgaben-segmente [aria-selected="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
-  // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
-  const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
-  const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
+  useEffect(() => { segmentInsBild(document.querySelector?.<HTMLElement>('.aufgaben-segmente') ?? null); }, [activeTab]);
+  // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind. Die Zahl
+  // zählt der Sidecar für die ganze Auswahl, mit derselben Regel und demselben Satz wie Heute (Paket Z1).
+  const kopfZeile = heuteKopfZeile(panel === "tasks" && view === "mine" && !search ? taskPage.heuteDran : null);
   const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as "mine" | "waiting" | "done"} />;
   const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
@@ -869,11 +912,12 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>
         {panel === "projects" && (projects.length ? <Gruppe className="workspace-project-list">{projects.map(project=><Zeile key={project.id} onClick={()=>setProjectId(project.id)} aktiv={projectId===project.id} titel={project.name} neben={project.description || undefined} wert={project.status === "done" ? "Erledigt" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : project.status === "idea" ? "Idee" : "Aktiv"} />)}</Gruppe> : projectError ? null : <Leer className="task-empty" zeichen="project" satz="Noch keine Projekte." />)}
         {projectError ? projectsFailedLine : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} onFormular={setProjektFormular} />}
-        {panel === "projects" && projectId && <div className="workspace-project-actions"><Segmente kompakt label="Darstellung" optionen={[{wert: "liste", titel: "Liste"}, {wert: "board", titel: "Board"}]} wert={board ? "board" : "liste"} onWahl={wert => setBoard(wert === "board")} /><a className="g-knopf-schlicht" href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
+        {panel === "projects" && projectId && <div className="workspace-project-actions"><Segmente kompakt label="Darstellung" optionen={[{wert: "liste", titel: "Liste"}, {wert: "board", titel: "Board"}]} wert={board ? "board" : "liste"} onWahl={wert => setBoard(wert === "board")} /><a className="g-knopf-schlicht" href={`/memory/projects/${encodeURIComponent(projectId)}?${new URLSearchParams({return_to: "/memory?tab=projects"})}`}>Akte öffnen</a></div>}
         {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
       </section>
       <div className="task-review" hidden={panel !== "review"}>
-        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
+        {/* Übernehmen bleibt in der Liste, mit Hinweis und Rückgängig wie „Alle übernehmen“; kein ungefragtes Vollbild (Z4). */}
+        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={() => { loadProjects(); load(); }} />
         {panel === "review" && reviewTotal === 0 ? <Leer className="task-empty" zeichen="check" satz="Nichts zu prüfen." /> : null}
       </div>
       {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}
@@ -883,19 +927,23 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {panel === "projects" ? null : projectError ? projectsFailedLine : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
         {listView && panel !== "projects" ? bereichFilter.segmente : null}
       </form>}
-      {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
+      {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} bereich={bereichFilter.wahl} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {panel !== 'review' && listView && <>
         {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" className="text-action" onClick={() => load()}>Erneut laden</button></p>}
         {taskPage.notice && <p role="status" className="task-hinweis">{taskPage.notice}</p>}
         {search && tasks && tasks.length > 0 ? <p role="status" className="task-count">{taskPage.total === 1 ? "1 Treffer" : `${taskPage.total} Treffer`}</p> : null}
       </>}
-      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} kopf={false} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
-        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button className="text-action" disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label className="task-create-title">Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am<input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>{projects.some(project => project.open) && <label className="task-project-create">Projekt<select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}<div className="task-create-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <><h2 className="visually-hidden">Entscheidungen</h2><DecisionControls key={projectId} projectId={projectId} kopf={false} /></> : <section className="task-table" aria-labelledby="aufgaben-liste-titel" hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
+        {/* Die Liste trägt ihren Namen als Überschrift (Paket B, B5); sichtbar steht er im gewählten Segment. */}
+        <h2 className="visually-hidden" id="aufgaben-liste-titel">{heading}</h2>
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button className="text-action" disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label className="task-create-title">Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am<input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>{projects.some(project => project.open) && <label className="task-project-create">Projekt<select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}<div className="task-create-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Speichern</button></div></form> : null}
         {!listTasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
         {visibleTasks && visibleTasks.length > 0 && (view === "mine"
-          ? visibleTaskGroups(visibleTasks,groupTime).map(group=><Gruppe className="workspace-task-group" key={group.label} titel={group.label}>{group.items.map(row)}</Gruppe>)
+          ? visibleTaskGroups(visibleTasks,groupTime).map(group=><Gruppe className="workspace-task-group" key={group.label} titel={group.label} stufe={3}>{group.items.map(row)}</Gruppe>)
           : <Gruppe className="workspace-task-group">{visibleTasks.map(row)}</Gruppe>)}
         {visibleTasks && visibleTasks.length === 0 && !creating ? <Leer className="task-empty" zeichen={search ? "search" : "check"} satz={emptyText} /> : null}
+        {/* Was Kingfisher angelegt und du zurückgenommen hast, bleibt hier wiederherstellbar (Paket Z2). */}
+        {view === "done" && !search ? <ZurueckgenommenGruppe revision={overviewRevision} onChanged={() => load()} /> : null}
         {(taskPage.canPrevious || taskPage.canNext) && <nav className="task-seiten" aria-label="Aufgabenseiten"><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><span className="task-page-number">Seite {taskPage.page}</span><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
     </main>
@@ -970,6 +1018,11 @@ export function App() {
   if (akteMatch) return <SachenAkte sache={decodeURIComponent(akteMatch[1])} recentConversation={recentConversation} />;
   const registryMatch = path.match(/^\/memory\/registry\/([^/]+)$/);
   if (registryMatch) return <RegistryProfile key={registryMatch[1]} identifier={decodeURIComponent(registryMatch[1])} recentConversation={recentConversation} />;
+  // Projekte stehen nur unter Aufgaben (Paket H, H2); das frühere „Gedächtnis → Projekte“ führt dorthin.
+  if (path === "/memory" && projekteImGedaechtnis(window.location.search)) {
+    window.history.replaceState({}, "", PROJEKTE_ORT);
+    return <Tasks recentConversation={recentConversation} />;
+  }
   if (path === "/memory") return <MemoryGraph recentConversation={recentConversation} />;
   if (path !== "/today") window.history.replaceState({}, "", "/today");
   return <Morning chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} recentConversation={recentConversation} rememberConversation={rememberConversation} />;

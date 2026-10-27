@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Schalter } from "./grundlage";
 import { api } from "./api";
+import { SCHALTER } from "./Einstellungen/gliederung";
 import {
   angebot, auftrag, brueckeFinden, fassungText, merken, nachgesehenText, rueckmeldung, SATZ_PRUEFEN, zuletztText,
   type FassungStand,
@@ -82,16 +83,29 @@ export function FassungHeute() {
   </section>;
 }
 
-/** Einstellungen → Kingfisher und du: welche Fassung läuft, die tägliche Prüfung und „Jetzt nachsehen“. */
+/** Einstellungen → Was Kingfisher darf: die tägliche Update-Prüfung als Schalter, mit dem ehrlichen Satz (D3). Vorgabe an. */
+export function FassungSchalter() {
+  const { stand, nachricht, fehler, arbeitet, ausfuehren } = useFassung();
+  return <section className="darf-zeile" aria-label={SCHALTER.updates.titel}>
+    {!stand ? (fehler ? null : <p>Wird geladen …</p>) : <Schalter className="welt-schalter" titel={SCHALTER.updates.titel} satz={SATZ_PRUEFEN}
+      an={stand.pruefen} deaktiviert={arbeitet}
+      onWechsel={an => void ausfuehren(() => api.fassungSchalten(an),
+        neu => neu.pruefen ? "Kingfisher sieht einmal am Tag nach neuen Fassungen." : "Kingfisher sieht nicht mehr von selbst nach. „Jetzt nachsehen“ unter „Kingfisher und du“ geht weiter.")} />}
+    {nachricht ? <p role="status" className="source-hint">{nachricht}</p> : null}
+    {fehler ? <p role="alert" className="settings-error">{fehler}</p> : null}
+  </section>;
+}
+
+/** Einstellungen → Kingfisher und du: welche Fassung läuft und „Jetzt nachsehen“; die tägliche Prüfung steht unter
+ * „Was Kingfisher darf“ (Persona-Prüfung, D3), weil sie etwas nach draußen schickt. */
 export function FassungEinstellung() {
   const { stand, nachricht, setNachricht, fehler, setFehler, arbeitet, ausfuehren } = useFassung();
   const melden = (satz: string, istFehler = false) => { if (istFehler) setFehler(satz); else { setFehler(""); setNachricht(satz); } };
   return <div className="ich-feld fassung-einstellung">
     <strong>{stand ? fassungText(stand.fassung) : "Fassung …"}</strong>
     {stand ? <>
-      <Schalter className="wegezeit-schalter" titel="Nach neuen Fassungen sehen" satz={SATZ_PRUEFEN} an={stand.pruefen} deaktiviert={arbeitet}
-        onWechsel={an => void ausfuehren(() => api.fassungSchalten(an),
-          neu => neu.pruefen ? "Kingfisher sieht einmal am Tag nach neuen Fassungen." : "Kingfisher sieht nicht mehr von selbst nach.")} />
+      <p className="source-hint">{stand.pruefen ? "Kingfisher sieht einmal am Tag nach neuen Fassungen." : "Kingfisher sieht nicht von selbst nach."}{" "}
+        Das stellst du unter <a href="#darf">Was Kingfisher darf</a> ein.</p>
       <div><button type="button" className="secondary-action" disabled={arbeitet}
         onClick={() => void ausfuehren(api.fassungPruefen, nachgesehenText)}>{arbeitet ? "Sieht nach …" : "Jetzt nachsehen"}</button></div>
       <p className="source-hint">{zuletztText(stand.geprueft_um)}</p>

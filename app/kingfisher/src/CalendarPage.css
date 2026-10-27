@@ -35,10 +35,12 @@
 #root .calendar-page .calendar-source-choice input { flex:0 0 auto; width:18px; height:18px; margin:0; }
 
 /* ── Monat ────────────────────────────────────────────────────────────────────────────────────────────────────── */
+/* Raster (Paket B, B5): Jede Woche ist eine Zeile (`role=row`), die die sieben Spalten des Monats teilt (subgrid). */
 #root .calendar-page .month-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:0; }
-#root .calendar-page .month-grid > .weekday { padding:var(--g-a2) var(--g-a2) var(--g-a1); text-align:right; font:500 12px/1.3 var(--g-schrift); color:var(--g-leise); border-bottom:1px solid var(--g-linie); }
-#root .calendar-page .month-grid:not(.mini-month) > span:not(.weekday), #root .calendar-page .month-grid:not(.mini-month) > .month-day { border:0; border-right:1px solid var(--g-linie); border-bottom:1px solid var(--g-linie); }
-#root .calendar-page .month-grid:not(.mini-month) > :nth-child(7n) { border-right:0; }
+#root .calendar-page .month-grid > .month-reihe { display:grid; grid-column:1 / -1; grid-template-columns:subgrid; }
+#root .calendar-page .month-grid .weekday { padding:var(--g-a2) var(--g-a2) var(--g-a1); text-align:right; font:500 12px/1.3 var(--g-schrift); color:var(--g-leise); border-bottom:1px solid var(--g-linie); }
+#root .calendar-page .month-grid:not(.mini-month) .month-reihe > :is(.month-leer, .month-day) { border:0; border-right:1px solid var(--g-linie); border-bottom:1px solid var(--g-linie); }
+#root .calendar-page .month-grid:not(.mini-month) .month-reihe > :last-child { border-right:0; }
 #root .calendar-page .month-grid:not(.mini-month) .month-day {
   position:relative; display:block; box-sizing:border-box; min-width:0; min-height:118px; margin:0; padding:36px var(--g-a1) var(--g-a2);
   border-radius:0; background:transparent; color:var(--g-tinte); text-align:left; overflow:hidden; outline:0;
@@ -53,19 +55,19 @@
 #root .calendar-page .calendar-month-events { position:relative; z-index:1; display:grid; gap:1px; pointer-events:none; }
 #root .calendar-page .calendar-month-events > button { pointer-events:auto; }
 /* Termin im Monat: Punkt, Uhrzeit und Titel fließen zusammen; der Titel bricht an Wörtern um, bis zu drei Zeilen. */
-#root .calendar-page .calendar-month-event { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; width:100%; min-width:0; margin:0; padding:3px 4px; border:0; border-radius:6px; background:transparent; color:var(--g-tinte); font:400 13px/1.3 var(--g-schrift); text-align:left; cursor:pointer; white-space:normal; overflow-wrap:break-word; hyphens:auto; }
+#root .calendar-page .calendar-month-event { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; box-sizing:border-box; width:100%; min-width:0; min-height:24px; margin:0; padding:3px 4px; border:0; border-radius:6px; background:transparent; color:var(--g-tinte); font:400 13px/1.3 var(--g-schrift); text-align:left; cursor:pointer; white-space:normal; overflow-wrap:break-word; -webkit-hyphens:auto; hyphens:auto; }
 #root .calendar-page .calendar-month-event:hover { background:rgba(var(--g-tinte-rgb),.05); }
 #root .calendar-page .calendar-vorne { white-space:nowrap; }
 #root .calendar-page .calendar-month-event .calendar-zeit { margin-right:4px; color:var(--g-leise); font-variant-numeric:tabular-nums; }
 #root .calendar-page .calendar-punkt { display:inline-block; flex:0 0 var(--g-kal-punkt); width:var(--g-kal-punkt); height:var(--g-kal-punkt); margin-right:5px; border-radius:50%; vertical-align:1px; }
-#root .calendar-page .calendar-month-more { margin:0; padding:2px 4px 2px 17px; border:0; background:transparent; color:var(--g-leise); font:500 12px/1.3 var(--g-schrift); text-align:left; cursor:pointer; }
+#root .calendar-page .calendar-month-more { box-sizing:border-box; min-height:24px; margin:0; padding:2px 4px 2px 17px; border:0; background:transparent; color:var(--g-leise); font:500 12px/1.3 var(--g-schrift); text-align:left; cursor:pointer; }
 
 /* ── Jahr ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 /* Jahr: jeder Tag ein Ziel von 44 px; mit schmalerer Spaltenfuge passen bei 1280 px drei Monate nebeneinander. */
 #root .calendar-page .year-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%, var(--g-kal-jahr-monat)),1fr)); gap:var(--g-a6) var(--g-a4); }
 #root .calendar-page .year-grid h3 { margin:0 0 var(--g-a2); font:var(--g-ueberschrift); color:var(--g-akzent); }
 #root .calendar-page .mini-month { gap:2px 0; }
-#root .calendar-page .mini-month > .weekday { padding:0 0 var(--g-a1); text-align:center; border:0; font-size:11px; }
+#root .calendar-page .mini-month .weekday { padding:0 0 var(--g-a1); text-align:center; border:0; font-size:11px; }
 #root .calendar-page .mini-month .month-day { position:relative; min-height:0; margin:0; padding:0; border:0; border-radius:0; background:transparent; text-align:center; overflow:visible; outline:0; }
 #root .calendar-page .mini-month .calendar-month-date { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; min-height:var(--g-kal-jahr-tag); padding:0; border:0; border-radius:var(--g-radius-bedien); background:transparent; cursor:pointer; }
 #root .calendar-page .mini-month .calendar-month-date:hover { background:rgba(var(--g-tinte-rgb),.05); }
@@ -90,7 +92,7 @@
 #root .calendar-page .calendar-time-day { height:calc(24 * var(--g-kal-stunde)); position:relative; border-left:1px solid var(--g-linie); background:repeating-linear-gradient(to bottom, var(--g-linie) 0, var(--g-linie) 1px, transparent 1px, transparent var(--g-kal-stunde)); }
 #root .calendar-page .calendar-time-event { position:absolute; box-sizing:border-box; min-height:18px; overflow:hidden; padding:3px 6px; background:var(--g-getoent); color:var(--g-tinte); border:0; border-left:3px solid; border-radius:6px; box-shadow:0 0 0 1px var(--g-flaeche); text-align:left; cursor:pointer; }
 #root .calendar-page .calendar-time-event:hover { background:var(--g-getoent-stark); }
-#root .calendar-page .calendar-time-event strong { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; overflow-wrap:break-word; hyphens:auto; font:600 13px/1.3 var(--g-schrift); }
+#root .calendar-page .calendar-time-event strong { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; overflow-wrap:break-word; -webkit-hyphens:auto; hyphens:auto; font:600 13px/1.3 var(--g-schrift); }
 #root .calendar-page .calendar-time-event small { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font:400 12px/1.3 var(--g-schrift); color:var(--g-leise); }
 #root .calendar-page .calendar-clock-change { display:block; font:400 11px/1.4 var(--g-schrift); text-align:center; color:var(--g-leise); }
 
@@ -106,7 +108,7 @@
 #root .calendar-page .calendar-entry-zeit { font:500 15px/1.3 var(--g-schrift); font-variant-numeric:tabular-nums; }
 #root .calendar-page .calendar-entry-zeit small { display:block; font:var(--g-fussnote); color:var(--g-leise); }
 #root .calendar-page .calendar-entry-text { min-width:0; display:grid; gap:2px; }
-#root .calendar-page .calendar-entry-text strong { font:600 16px/1.35 var(--g-schrift); overflow-wrap:anywhere; }
+#root .calendar-page .calendar-entry-text strong { font:600 16px/1.35 var(--g-schrift); overflow-wrap:break-word; -webkit-hyphens:auto; hyphens:auto; }
 #root .calendar-page .calendar-entry-text small { font:var(--g-neben); color:var(--g-leise); overflow-wrap:anywhere; }
 #root .calendar-page .calendar-entry .calendar-punkt { margin:0; vertical-align:0; }
 #root .calendar-page .calendar-agenda { margin:var(--g-a3) 0 0; padding:0; border:0; }
@@ -114,7 +116,7 @@
 #root .calendar-page .calendar-agenda > .calendar-list { margin-top:var(--g-a1); padding:var(--g-a2) 0; background:var(--g-flaeche); border-radius:var(--g-radius-flaeche); box-shadow:var(--g-schatten); }
 
 /* ── Termindetails im Paneel: ruhig, Titel, wann, wo, dann die Aktionen ──────────────────────────────────────── */
-#root .calendar-detail h3 { margin:0 0 var(--g-a2); font:var(--g-titel); letter-spacing:-.01em; overflow-wrap:anywhere; }
+#root .calendar-detail h3 { margin:0 0 var(--g-a2); font:var(--g-titel); letter-spacing:-.01em; overflow-wrap:break-word; -webkit-hyphens:auto; hyphens:auto; }
 #root .calendar-detail p { margin:0; overflow-wrap:anywhere; }
 #root .calendar-detail .calendar-detail-zeit { font:var(--g-text); color:var(--g-tinte); }
 #root .calendar-detail .calendar-detail-ort { margin-top:var(--g-a1); font:var(--g-neben); color:var(--g-leise); }
@@ -190,6 +192,8 @@
   #root .calendar-page .calendar-source-choice + .calendar-source-choice { border-top:0; }
 }
 @media(max-width:700px) {
+  /* Rand wie auf den übrigen Seiten am Handy (16 px statt 28): Die Woche braucht die Breite für sieben Tage zu 44 px. */
+  #root main.calendar-page { padding-left:var(--g-a4); padding-right:var(--g-a4); }
   #root .calendar-page .calendar-actions .g-segmente { width:100%; }
   #root .calendar-page .calendar-actions .g-segment { flex:1 0 auto; padding:0 12px; }
   #root .calendar-page .calendar-period { flex-wrap:nowrap; }
@@ -200,22 +204,38 @@
   /* Monat schmal: im Tag nur Punkte; die Termine des gewählten Tages stehen darunter. */
   #root .calendar-page .month-grid:not(.mini-month) .month-day { min-height:var(--g-kal-monatstag-schmal); padding:38px 2px 6px; }
   #root .calendar-page .month-grid:not(.mini-month) .calendar-month-date { justify-content:center; padding:6px 0; }
-  #root .calendar-page .month-grid:not(.mini-month) > .weekday { text-align:center; padding-inline:0; }
+  #root .calendar-page .month-grid:not(.mini-month) .weekday { text-align:center; padding-inline:0; }
   #root .calendar-page .calendar-month-events { display:flex; flex-wrap:wrap; justify-content:center; gap:3px; }
   #root .calendar-page .calendar-month-events > button { pointer-events:none; }
   #root .calendar-page .calendar-month-event { display:block; width:auto; padding:0; }
   #root .calendar-page .calendar-month-event :is(.calendar-zeit, .calendar-titel) { display:none; }
   #root .calendar-page .calendar-month-event .calendar-punkt { display:block; width:var(--g-kal-punkt-schmal); height:var(--g-kal-punkt-schmal); margin:0; }
   #root .calendar-page .calendar-month-more { display:none; }
-  #root .calendar-page .calendar-time-grid:not(.single-day) { grid-template-columns:var(--g-kal-zeitspalte-schmal) repeat(7,minmax(var(--g-kal-tag-schmal),1fr)); }
+  /* Woche schmal (Paket H, H1): alle sieben Tage im Bild, ohne seitliches Rollen (bis 1.0.29 je Tag mindestens 76 px,
+     Freitag bis Sonntag lagen rechts versteckt). In der engen Spalte bricht ein Titel nur an Wortgrenzen und trennt mit
+     Strich (hyphens:auto, lang=de); ein Wort wird nie ohne Strich zerschnitten. Den ganzen Titel zeigen die Details. */
+  #root .calendar-page .calendar-time-grid:not(.single-day) { grid-template-columns:var(--g-kal-zeitspalte-woche-schmal) repeat(7,minmax(0,1fr)); }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-hour { padding-right:3px; font-size:11px; }
   #root .calendar-page .calendar-time-grid.single-day { grid-template-columns:var(--g-kal-zeitspalte-schmal) minmax(0,1fr); }
   #root .calendar-page .calendar-grid-date { flex-direction:column; gap:2px; min-height:52px; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-grid-date span { font-size:11px; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-grid-date strong { min-width:26px; height:26px; font-size:15px; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-all-day { padding-inline:0; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-all-day-event { padding:2px 3px; border-left-width:2px; font-size:10px; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-time-event { padding:2px 3px; border-left-width:2px; border-radius:4px; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-time-event small { font-size:10px; }
+  #root .calendar-page .calendar-time-event strong { overflow-wrap:normal; word-break:normal; -webkit-hyphens:auto; hyphens:auto; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-time-event strong { -webkit-line-clamp:4; font-size:11px; line-height:1.25; font-weight:600; }
   #root .calendar-page .calendar-board-jahr { padding:var(--g-a4) var(--g-a3); }
   /* Jahr schmal: ein Monat je Zeile, damit jeder Tag ein Ziel von 44 px bleibt. */
   #root .calendar-page .year-grid { grid-template-columns:minmax(0,1fr); gap:var(--g-a5) var(--g-a4); }
   #root .calendar-page .year-grid h3 { font-size:15px; }
-  #root .calendar-page .calendar-entry { grid-template-columns:52px 8px minmax(0,1fr) auto; gap:var(--g-a2); }
-  #root .calendar-page .calendar-entry + .calendar-entry::before { left:calc(52px + 8px + 2 * var(--g-a2) + var(--g-a4)); }
+  /* Die Zeitspalte der Liste trägt „Ganztägig“ ganz (bis 1.0.29 „Ganztä|gig“ in 52 px). */
+  #root .calendar-page .calendar-entry { grid-template-columns:64px 8px minmax(0,1fr) auto; gap:var(--g-a2); }
+  #root .calendar-page .calendar-entry + .calendar-entry::before { left:calc(64px + 8px + 2 * var(--g-a2) + var(--g-a4)); }
+  #root .calendar-page .calendar-entry-ganztag { font-size:13px; }
+  /* In der engen Woche steht „Ganztägig“ nur für Vorleser; die Zeile darunter spricht für sich (Geburtstag, Urlaub). */
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-time-corner { font-size:0; }
   #root .calendar-page :is(.calendar-preparation, .calendar-action-form) { padding:var(--g-a4); }
   #root .calendar-action-form fieldset { grid-template-columns:minmax(0,1fr); }
   #root .calendar-page .calendar-preparation-heading { flex-direction:column-reverse; align-items:stretch; }

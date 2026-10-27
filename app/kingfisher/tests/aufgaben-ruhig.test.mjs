@@ -45,7 +45,7 @@ function driver(render) {
 
 const task = (id, title, due = null, extra = {}) => ({id, title, due, status: 'open', overdue: false, project_id: null, wartet_auf: null, notes: null, ...extra});
 
-async function withTasks(run, {tasks = [], total = tasks.length} = {}) {
+async function withTasks(run, {tasks = [], total = tasks.length, heuteDran} = {}) {
   const oldWindow = globalThis.window, oldDocument = globalThis.document;
   const timers = [], listeners = {}, calls = [];
   globalThis.window = {location: {search: '', href: 'http://synthetic/vorhaben', pathname: '/vorhaben'}, history: {state: null, replaceState() {}},
@@ -55,7 +55,7 @@ async function withTasks(run, {tasks = [], total = tasks.length} = {}) {
   const {Tasks} = await server.ssrLoadModule('/src/App.tsx');
   const {api} = await server.ssrLoadModule('/src/api.ts');
   const saved = {tasks: api.tasks, projects: api.projects};
-  api.tasks = async (view, projectId, options) => { calls.push({view, projectId, ...options}); return {tasks: options?.q ? tasks.filter(t => t.title.includes(options.q)) : tasks, total, next_cursor: null, limit: 50}; };
+  api.tasks = async (view, projectId, options) => { calls.push({view, projectId, ...options}); return {tasks: options?.q ? tasks.filter(t => t.title.includes(options.q)) : tasks, total, next_cursor: null, limit: 50, ...(view === 'mine' && heuteDran !== undefined ? {heute_dran: heuteDran} : {})}; };
   api.projects = async () => [];
   const d = driver(() => Tasks({recentConversation: null}));
   try {
@@ -118,7 +118,8 @@ test('ganz leer: ein Satz, keine Gruppe; „Zur Prüfung“ erscheint erst mit I
     assert.deepEqual(segmente(tree).filter(t => t.startsWith('Zur Prüfung')), ['Zur Prüfung 3']);
     nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(0); tree = d.render();
     // Segmente rollen waagrecht statt umzubrechen (Baustein); der gewählte Abschnitt rollt auch beim Öffnen in den Blick.
-    assert.match(readFileSync(root + '/src/App.tsx', 'utf8'), /\.aufgaben-segmente \[aria-selected="true"\]'\)\?\.scrollIntoView\?\.\(\{block: "nearest", inline: "nearest"\}\)/);
+    // Ohne scrollIntoView: Das setzte in Chrome den Ausgangspunkt für Tab aufs Segment (Paket B, B2).
+    assert.match(readFileSync(root + '/src/App.tsx', 'utf8'), /segmentInsBild\(document\.querySelector\?\.<HTMLElement>\('\.aufgaben-segmente'\) \?\? null\); \}, \[activeTab\]\);/);
     assert.equal(segmente(tree).filter(t => t.startsWith('Zur Prüfung')).length, 0);
   });
 });
@@ -209,7 +210,7 @@ test('ein gefüllter Knopf je Ansicht: offenes Formular und „Zur Prüfung“ l
     let tree = d.render();
     assert.deepEqual(gefuellt(tree), ['Aufgabe']);
     nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe')[0].props.onClick(); tree = d.render();
-    assert.deepEqual(gefuellt(tree), ['Lokal speichern'], 'with the form open its submit is the only filled button');
+    assert.deepEqual(gefuellt(tree), ['Speichern'], 'with the form open its submit is the only filled button');
     assert.equal(nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe')[0].props.className, 'g-knopf-getoent');
     nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(2); tree = d.render();
     nodes(tree, n => n.type?.name === 'Segmente')[0].props.onWahl('review'); tree = d.render();
@@ -229,6 +230,7 @@ test('Segmente zählen offene und wartende Aufgaben (nur über null); die Kopfze
     const optionen = nodes(tree, n => n.type?.name === 'Segmente')[0].props.optionen;
     assert.equal(optionen.find(o => o.wert === 'mine').zahl, 3);
     assert.equal(optionen.find(o => o.wert === 'done').zahl, undefined, 'done is not counted');
+    // Die Zahl zählt der Sidecar für die ganze Auswahl (`heute_dran`, Paket Z1), nicht die Seite.
     assert.equal(nodes(tree, n => n.type?.name === 'Seitenkopf')[0].props.zeile, '2 Aufgaben brauchen dich heute.');
-  }, {tasks: [task('a', 'Überfälliges', gestern.toISOString()), task('b', 'Heutiges', heute.toISOString()), task('c', 'Später', '2030-01-01T10:00:00')]});
+  }, {tasks: [task('a', 'Überfälliges', gestern.toISOString()), task('b', 'Heutiges', heute.toISOString()), task('c', 'Später', '2030-01-01T10:00:00')], heuteDran: 2});
 });

@@ -2,9 +2,12 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import { InterfaceIcon } from "../InterfaceIcon";
 import { icon } from "../ui";
 import { bereichName, vorschlagSatz, type Konten, type Konto } from "../kontenBereiche";
+import { Rueckfrage } from "../grundlage";
 
 /**
- * Eine Zeile unter Zugänge für ein Postfach oder einen Kalender (Paket K): Name (ein Klick benennt um), Adresse, der
+ * Eine Zeile unter Zugänge für ein Postfach oder einen Kalender (Paket K): Name mit einem sichtbaren „Umbenennen“
+ * daneben (Paket S, Befund 8: Dass ein Klick auf den Namen umbenennt, fand niemand, und wer die Zeile öffnen wollte,
+ * stand plötzlich im Eingabefeld), Adresse, der
  * Stand in einem Satz, der Bereich. Ein Vorschlag steht sichtbar als Vorschlag mit Grund da und wird mit einem Klick
  * übernommen; ohne Vorschlag fragt die Zeile einmal „Welcher Bereich?“. Alles ist umkehrbar; die Seite zeigt danach den
  * Hinweis mit „Rückgängig“.
@@ -18,7 +21,7 @@ export function KontoZeile({ konto, konten, iconName, neben, ersatzStand, busy, 
   /** Was rechts steht, solange der Sidecar keinen Stand kennt (etwa „Unvollständig eingerichtet“). */
   ersatzStand?: string;
   busy: boolean;
-  entfernen?: { aktiv: boolean; onRemove: () => void; onCancel: () => void };
+  entfernen?: { aktiv: boolean; onRemove: () => void; onCancel: () => void; fehler?: string };
   /** Gibt bei Ablehnung den Satz des Sidecars zurück, sonst null. */
   onUmbenennen: (name: string) => Promise<string | null>;
   onBereich: (bereich: string | null) => void;
@@ -52,12 +55,13 @@ export function KontoZeile({ konto, konten, iconName, neben, ersatzStand, busy, 
     ? <input ref={eingabe} className="konto-name-eingabe" aria-label={`Neuer Name für ${konto.name}`} value={entwurf} maxLength={120}
         disabled={busy} onChange={event => setEntwurf(event.target.value)} onKeyDown={taste} onBlur={() => void speichern()} />
     : konto.umbenennbar === false ? <strong className="g-zeile-titel">{konto.name}</strong>
-      : <button ref={nameKnopf} type="button" className="g-zeile-titel konto-name" title="Umbenennen" aria-label={`${konto.name} umbenennen`}
-          onClick={() => { setFehler(""); setEntwurf(konto.name); setBearbeiten(true); }}>{konto.name}</button>;
+      : <span className="konto-titel"><strong className="g-zeile-titel">{konto.name}</strong>
+          <button ref={nameKnopf} type="button" className="text-action konto-umbenennen" aria-label={`${konto.name} umbenennen`}
+            onClick={() => { setFehler(""); setEntwurf(konto.name); setBearbeiten(true); }}>Umbenennen</button></span>;
   const stand = konto.stand;
   const ohneBereich = !konto.bereich;
   const offeneWahl = Boolean(konten) && (waehlen || (ohneBereich && !konto.vorschlag));
-  return <div className="konto">
+  return <div className="konto" data-konto={konto.id}>
     <div className="source-row g-zeile konto-zeile">
       <span className="g-zeile-symbol" aria-hidden="true"><InterfaceIcon name={iconName} /></span>
       <span className="g-zeile-text">
@@ -66,12 +70,13 @@ export function KontoZeile({ konto, konten, iconName, neben, ersatzStand, busy, 
         {stand ? <small className={`konto-stand konto-stand-${stand.art}`}>{stand.satz}</small>
           : ersatzStand ? <small className="konto-stand">{ersatzStand}</small> : null}
       </span>
-      {konten && konto.bereich && !entfernen?.aktiv ? <button type="button" className="konto-bereich" aria-expanded={waehlen}
+      {konten && konto.bereich ? <button type="button" className="konto-bereich" aria-expanded={waehlen}
           aria-label={`Bereich: ${bereichName(konten, konto.bereich)}. Ändern`} onClick={() => setWaehlen(offen => !offen)}>
           {bereichName(konten, konto.bereich) || konto.bereich}</button> : null}
-      {entfernen ? (entfernen.aktiv
-        ? <span className="source-remove-confirm" role="group" aria-label={`${konto.name} entfernen`}>Quelle wirklich entfernen?<button disabled={busy} onClick={entfernen.onRemove} type="button">Entfernen</button><button disabled={busy} onClick={entfernen.onCancel} type="button">Abbrechen</button></span>
-        : <button aria-label={`${konto.name} entfernen`} className="source-remove" disabled={busy} onClick={entfernen.onRemove} type="button"><img src={icon("trash2", "Outline")} alt="" /></button>) : null}
+      {/* Entfernen fragt vorher, als Dialog (Paket B, B3): Der Knopf bleibt stehen, damit der Fokus zu ihm zurückkehrt. */}
+      {entfernen ? <button aria-label={`${konto.name} entfernen`} className="source-remove" disabled={busy && !entfernen.aktiv} onClick={entfernen.onRemove} type="button"><img src={icon("trash2", "Outline")} alt="" /></button> : null}
+      {entfernen?.aktiv ? <Rueckfrage frage={`„${konto.name}“ wirklich entfernen?`} satz="Das lässt sich nicht zurücknehmen." bestaetigen="Entfernen" rot
+        arbeitet={busy} fehler={entfernen.fehler} onBestaetigen={entfernen.onRemove} onAbbrechen={entfernen.onCancel} /> : null}
     </div>
     {fehler ? <p className="settings-error konto-fehler" role="alert">{fehler}</p> : null}
     {konten && ohneBereich && konto.vorschlag && !waehlen ? <div className="konto-frage">

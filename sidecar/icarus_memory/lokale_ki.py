@@ -8,6 +8,9 @@ Namen des Anbieters in der Einstellungsdatei (nach „Alles einrichten“ leer),
 Hier steht der eine Stand: das Modell, das tatsächlich antwortet (Anbieter des Agenten), die Adresse, unter der
 Kingfisher Ollama selbst findet (`lokaler_endpunkt`), und das Inventar von Ollama (`ollama_inventar`, 30 s gemerkt).
 Daraus ein Zustand und ein Satz. Die Oberfläche zeigt nur diesen Satz, nirgends einen eigenen.
+
+Kurzform und Satz kommen ohne Modellkennung aus (Persona-Prüfung, Paket S, Befund 1: „Bereit: qwen3.5:4b“ sagt nur
+Technikern etwas). Die Kennung steht in `modell` und wird hinter „Modell verwalten“ gezeigt.
 """
 from __future__ import annotations
 
@@ -37,18 +40,18 @@ def stand(app: Any) -> dict[str, Any]:
         return {**basis, 'zustand': 'keins', 'kurz': 'Noch kein Modell eingerichtet',
                 'satz': 'Noch kein Modell eingerichtet. Unter „Lokale KI“ richtet Kingfisher es mit einem Klick ein.'}
     if not lokal:
-        return {**basis, 'zustand': 'cloud', 'kurz': f'Eingerichtet: {modell} (Cloud)',
-                'satz': f'Eingerichtet: {modell}. Die Antworten kommen von einem Cloudanbieter, nicht von diesem Rechner.'}
+        return {**basis, 'zustand': 'cloud', 'kurz': 'Eingerichtet über die Cloud',
+                'satz': 'Eingerichtet. Die Antworten kommen von einem Cloudanbieter, nicht von diesem Rechner.'}
     if inventar is None:
-        return {**basis, 'zustand': 'nicht_erreichbar', 'kurz': f'{modell}: Ollama antwortet nicht',
-                'satz': f'Eingerichtet ist {modell}, aber Ollama antwortet gerade nicht. '
+        return {**basis, 'zustand': 'nicht_erreichbar', 'kurz': 'Antwortet gerade nicht',
+                'satz': 'Die KI ist eingerichtet, aber Ollama antwortet gerade nicht. '
                         'Starte Ollama; Kingfisher verbindet sich dann von selbst.'}
     if normalisiere(modell) not in {normalisiere(n) for n in installiert}:
-        return {**basis, 'zustand': 'fehlt', 'kurz': f'{modell}: fehlt in Ollama',
-                'satz': f'Eingerichtet ist {modell}, aber Ollama hat dieses Modell nicht. '
+        return {**basis, 'zustand': 'fehlt', 'kurz': 'Das Modell fehlt noch auf diesem Rechner',
+                'satz': 'Das eingerichtete Modell fehlt auf diesem Rechner. '
                         'Unter „Lokale KI“ lädt Kingfisher es mit einem Klick.'}
-    return {**basis, 'zustand': 'bereit', 'kurz': f'Bereit: {modell}',
-            'satz': f'Eingerichtet und bereit: {modell} läuft auf diesem Rechner.'}
+    return {**basis, 'zustand': 'bereit', 'kurz': 'Bereit auf diesem Rechner',
+            'satz': 'Eingerichtet und bereit: Die KI läuft auf diesem Rechner.'}
 
 
 __all__ = ['ZUSTAENDE', 'stand']

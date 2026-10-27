@@ -7,7 +7,7 @@ Netz, kein Ollama, kein bezahlter Aufruf. Geprüft wird in Chromium (Playwright)
 
 1. Eine Frage auf Heute öffnet sofort das Gespräch, die eigene Frage steht sofort da, darunter der echte Schritt
    aus dem Server („Wählt Quellen …“, dann „Formuliert …“), keine Zeitangabe.
-2. Unter der langsamen lokalen Antwort steht „Lokal dauert das. …“ mit „Cloud einschalten“; der Knopf führt zum
+2. Unter der langsamen lokalen Antwort steht „Lokal dauert das. …“ samt dem, was dann an wen hinausginge, mit „Cloud einschalten“; der Knopf führt zum
    Schalter (er steht danach sichtbar im Fenster). „Nicht mehr zeigen“ nimmt den Satz weg, auch nach dem Neuladen.
 3. Mit eingeschalteter Cloud (gültige Einwilligung) beantwortet die Cloud-Attrappe die Gedächtnisfrage: schnell,
    „Über Anthropic beantwortet.“, kein Satz zur Cloud. Ohne Einwilligung sieht die Cloud-Attrappe nichts.
@@ -173,7 +173,8 @@ def main() -> int:
                 seite.locator('p.lokal-langsam').wait_for(timeout=20000)
                 pruef[f'{name}_gesamt_s'] = round(time.monotonic() - start, 1)
                 pruef[f'{name}_langsam_satz'] = seite.locator('p.lokal-langsam').inner_text()
-                assert 'Lokal dauert das. Mit der Cloud geht es in wenigen Sekunden.' in pruef[f'{name}_langsam_satz']
+                assert 'Lokal dauert das. Mit der Cloud ginge es in wenigen Sekunden.' in pruef[f'{name}_langsam_satz']
+                assert 'Dann gingen deine Fragen und Inhalte deiner Mails an' in pruef[f'{name}_langsam_satz']
                 assert seite.locator('article.message.user', has_text=FRAGE).count() == 1, 'die Frage steht einmal da'
                 pruef[f'{name}_ueberlauf_antwort'] = seite.evaluate(UEBERLAUF_JS)
                 seite.locator('p.lokal-langsam').scroll_into_view_if_needed()

@@ -11,6 +11,8 @@ def legacy_hex(key):
 
 
 def drop_task_rechecks(connection):
+    # v25 and earlier lack the person blocks (Migration 26, Sperrvermerke).
+    connection.execute("DROP TABLE IF EXISTS personen_sperre")
     # v24 and earlier lack what Kingfisher created and assigned by itself (Migration 25, Projekte von selbst).
     from icarus_memory.projekt_automatik import TABLES as AUTOMATIK
     for table in AUTOMATIK:

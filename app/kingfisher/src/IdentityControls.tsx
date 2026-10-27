@@ -1,6 +1,7 @@
 import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useState } from "react";
 import { api, type RegistryProfile, type IdentitySource } from "./api";
+import { Rueckfrage } from "./grundlage";
 
 export function IdentityControls({data, onChanged}: {data: RegistryProfile; onChanged: () => void}) {
   const [editing, setEditing] = useState(false);
@@ -26,8 +27,12 @@ export function IdentityControls({data, onChanged}: {data: RegistryProfile; onCh
     <h3>Verknüpfte Quellenkennungen</h3>
     {data.sources.length === 0 && <p>Keine Quellenkennung ausdrücklich zugeordnet.</p>}
     {data.sources.map(source => <div className="identity-source" key={JSON.stringify(source)}><p>{source.source} · {source.account} · {source.native_id}</p><button className="secondary-action" disabled={busy} type="button" onClick={() => setRemoving(source)}>Zuordnung lösen</button></div>)}
-    {removing && <div role="group" aria-label="Quellenzuordnung lösen"><p>Zuordnung von {removing.native_id} zu {data.entity.label} lösen?</p><p>Gilt für diese Quellenkennung. Bestehende Aussagen bitte separat prüfen.</p><button className="primary-action" disabled={busy} type="button" onClick={() => void change(() => api.unlinkIdentitySource(data.entity.id, removing))}>Zuordnung jetzt lösen</button><button className="secondary-action" disabled={busy} type="button" onClick={() => setRemoving(null)}>Abbrechen</button></div>}
-    {error && <p role="alert">Die Änderung konnte nicht gespeichert werden. Bitte erneut versuchen.</p>}
+    {/* Die Rückfrage als Dialog (Paket B, B3). */}
+    {removing && <Rueckfrage frage={`Zuordnung von ${removing.native_id} zu ${data.entity.label} lösen?`} satz="Gilt für diese Quellenkennung. Bestehende Aussagen bitte separat prüfen."
+      bestaetigen="Zuordnung jetzt lösen" arbeitet={busy} fehler={error ? "Die Änderung konnte nicht gespeichert werden. Bitte erneut versuchen." : null}
+      onBestaetigen={() => void change(async () => { await api.unlinkIdentitySource(data.entity.id, removing); setRemoving(null); })}
+      onAbbrechen={() => { setRemoving(null); setError(false); }} />}
+    {error && !removing && <p role="alert">Die Änderung konnte nicht gespeichert werden. Bitte erneut versuchen.</p>}
     </details>
   </section>;
 }

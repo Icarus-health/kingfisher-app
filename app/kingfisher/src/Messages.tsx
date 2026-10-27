@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
+import { enthaeltBegriff } from "./suchform.ts";
 import {api, type InboxMessage} from './api';
 import {Sidebar} from './chrome';
 import {MailReader} from './MailReader';
@@ -84,7 +85,7 @@ export function Messages({recentConversation}: {recentConversation:string|null})
     } catch {setSyncNotice('Das Postfach antwortet gerade nicht. Deine gespeicherten Nachrichten bleiben lesbar.');}
     finally {setSyncing(false);}
   }
-  const freshVisible = freshMessages.filter(message=>(accountId===undefined||message.account_id===accountId)&&`${message.subject} ${message.sender} ${message.preview}`.toLocaleLowerCase('de').includes(query.toLocaleLowerCase('de')));
+  const freshVisible = freshMessages.filter(message=>(accountId===undefined||message.account_id===accountId)&&enthaeltBegriff(`${message.subject} ${message.sender} ${message.preview}`, query.trim()));
   // Die Postfachwahl steht nur da, wenn es etwas zu wählen gibt; das Postfach in der Zeile nur, wenn es mehrere gibt.
   const mehrerePostfaecher = (page?.accounts.length ?? 0) > 1 || accountId !== undefined;
   const postfachInZeile = (page?.accounts.length ?? 0) > 1 && accountId === undefined;

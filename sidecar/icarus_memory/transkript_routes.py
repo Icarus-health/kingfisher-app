@@ -106,12 +106,20 @@ def register_transkript_routes(app, guard, data_dir) -> None:
         except EpisodeError as exc:
             raise HTTPException(status_code=404, detail='Diese Mitschrift ist nicht bekannt.') from exc
 
+    # Der Stand vor der letzten Änderung je Mitschrift, für „Rückgängig“ im Hinweis (Paket S: Zuordnen und Lösen fragen
+    # nicht vorher, sie lassen sich zurücknehmen). Im Speicher: Der Hinweis gilt in dieser Sitzung.
+    rueckweg: dict[str, dict[str, Any] | None] = {}
+
+    def _merken(episode_id: str) -> None:
+        rueckweg[episode_id] = app.state.zuordnungen.zeile(episode_id)
+
     @app.post('/api/v1/transkripte/{episode_id}/zuordnung', dependencies=guard)
     def zuordnung_setzen(episode_id: str, body: ZuordnungIn) -> dict[str, Any]:
         """Der Nutzer wählt den Termin: aus dem Vorschlag oder von Hand. Gilt, bis er es ändert."""
         _bekannt(episode_id)
         with app.state.conversation_lock:
             try:
+                _merken(episode_id)
                 zuordner().bestaetigen(episode_id, body.termin)
             except EpisodeError as exc:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -124,11 +132,26 @@ def register_transkript_routes(app, guard, data_dir) -> None:
         _bekannt(episode_id)
         with app.state.conversation_lock:
             try:
+                _merken(episode_id)
                 zuordner().loesen(episode_id)
             except EpisodeError as exc:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
             eintraege, _ = zuordner().eintraege(limit=500)
             return next(e for e in eintraege if e['id'] == episode_id)
+
+    @app.post('/api/v1/transkripte/{episode_id}/zuordnung/rueckgaengig', dependencies=guard)
+    def zuordnung_rueckgaengig(episode_id: str) -> dict[str, Any]:
+        """Nimmt das letzte Zuordnen oder Lösen dieser Mitschrift zurück (der Hinweis mit „Rückgängig“)."""
+        _bekannt(episode_id)
+        with app.state.conversation_lock:
+            if episode_id not in rueckweg:
+                raise HTTPException(status_code=404, detail='Hier gibt es nichts mehr zurückzunehmen.')
+            try:
+                zuordner().wiederherstellen(episode_id, rueckweg.pop(episode_id))
+            except EpisodeError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+            eintraege, _ = zuordner().eintraege(limit=500)
+            return next((e for e in eintraege if e['id'] == episode_id), {'id': episode_id})
 
     @app.get('/api/v1/transkripte/termin', dependencies=guard)
     def zum_termin(key: str = Query(min_length=3, max_length=4096)) -> dict[str, Any]:

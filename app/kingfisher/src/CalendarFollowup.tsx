@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ApiError, api, type NachbereitungGespeichert, type Project, type TerminNachbereitung } from "./api";
 import { displayLabel } from "./displayIdentity";
 import { ProfileSource } from "./ProfileSource";
+import { zeigeHinweis } from "./grundlage";
 
 type Props = { uid: string; start: string; onClose: () => void; onChange?: () => void };
 type Datei = { name: string; text: string; format: "srt" | "vtt" };
@@ -104,13 +105,20 @@ export function CalendarFollowup({ uid, start, onClose, onChange }: Props) {
     }
   }
 
-  async function mitschriftAendern(aktion: () => Promise<unknown>, text: string) {
+  // Zuordnen und Lösen fragen nicht vorher (Paket S, Prüffrage 5): Beides lässt sich genau zurücknehmen, auch die
+  // Sperre des Termins nach dem Lösen. Der Hinweis trägt „Rückgängig“; der Satz steht nicht zusätzlich in der Karte.
+  async function mitschriftAendern(aktion: () => Promise<unknown>, text: string, episodeId: string) {
     if (!stand?.start || sending) return;
+    const start = stand.start;
     setSending(true); setSendFehler(""); setMeldung("");
     try {
       await aktion();
-      setStand(await api.calendarFollowup(uid, stand.start));
-      setMeldung(text);
+      setStand(await api.calendarFollowup(uid, start));
+      zeigeHinweis({ text, danach: "Wie vorher.", rueckgaengig: async () => {
+        await api.transkriptRueckgaengig(episodeId);
+        setStand(await api.calendarFollowup(uid, start));
+        onChange?.();
+      } });
       onChange?.();
     } catch {
       setSendFehler("Das hat nicht geklappt. Bitte erneut versuchen.");
@@ -156,7 +164,7 @@ export function CalendarFollowup({ uid, start, onClose, onChange }: Props) {
       <p>{mitschriften.length === 1 ? "Zu diesem Termin liegt eine Mitschrift vor." : `Zu diesem Termin liegen ${mitschriften.length} Mitschriften vor.`}</p>
       {mitschriften.map(eintrag => <div className="calendar-followup-row" key={eintrag.id}>
         <ProfileSource kind="episode" id={eintrag.id} label={eintrag.titel} quiet />
-        <button className="text-action" type="button" disabled={sending} onClick={() => void mitschriftAendern(() => api.transkriptLoesen(eintrag.id), "Die Zuordnung ist gelöst.")}>Gehört nicht hierher</button>
+        <button className="text-action" type="button" disabled={sending} onClick={() => void mitschriftAendern(() => api.transkriptLoesen(eintrag.id), "Die Zuordnung ist gelöst.", eintrag.id)}>Gehört nicht hierher</button>
       </div>)}
       {stand.stand === "offen" && !ergaenzen && <button className="secondary-action" type="button" onClick={() => { setErgaenzen(true); setMeldung(""); }}>Etwas ergänzen</button>}
     </div>}
@@ -164,7 +172,7 @@ export function CalendarFollowup({ uid, start, onClose, onChange }: Props) {
       <summary>Mitschrift zuordnen ({angebote.length})</summary>
       {angebote.map(eintrag => <div className="calendar-followup-row" key={eintrag.id}>
         <span>{eintrag.titel}<small> · aufgenommen {wann(eintrag.aufgenommen)}</small></span>
-        <button className="secondary-action" type="button" disabled={sending} onClick={() => void mitschriftAendern(() => api.transkriptZuordnen(eintrag.id, stand.termin!), "Die Mitschrift gehört jetzt zu diesem Termin.")}>Zu diesem Termin</button>
+        <button className="secondary-action" type="button" disabled={sending} onClick={() => void mitschriftAendern(() => api.transkriptZuordnen(eintrag.id, stand.termin!), "Die Mitschrift gehört jetzt zu diesem Termin.", eintrag.id)}>Zu diesem Termin</button>
       </div>)}
     </details>}
     {stand.begonnen && stand.stand === "festgehalten" && !ergaenzen && <div className="calendar-followup-state">

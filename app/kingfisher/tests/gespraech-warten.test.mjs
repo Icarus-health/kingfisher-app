@@ -29,7 +29,20 @@ test("Der Satz zur Cloud steht nur unter einer langsamen lokalen Antwort, wenn d
     {cloudAn: false, weggeklickt: false}), false, "eine Cloudantwort war nicht lokal");
   assert.equal(langsamHinweis(undefined, {cloudAn: false, weggeklickt: false}), false);
   assert.equal(langsamHinweis({}, {cloudAn: false, weggeklickt: false}), false, "ohne gemessene Zeit kein Satz");
-  assert.match(LANGSAM_SATZ, /^Lokal dauert das\. Mit der Cloud geht es in wenigen Sekunden\.$/);
+  assert.match(LANGSAM_SATZ, /^Lokal dauert das\. Mit der Cloud ginge es in wenigen Sekunden\.$/);
+  assert.equal(langsamHinweis({...langsam, cloud_antwort: {anbieter: "anthropic", modell: "m"}},
+    {cloudAn: false, weggeklickt: false}), false, "eine Gesprächsantwort aus der Cloud war nicht lokal");
+});
+
+test("Der Hinweis nennt neben dem Nutzen, was hinausginge und an wen (Persona-Prüfung, D6)", async () => {
+  const {langsamSatz, vorbereiteterAnbieter} = await import("../src/wartenImGespraech.ts");
+  assert.equal(langsamSatz("Anthropic (USA)"),
+    "Lokal dauert das. Mit der Cloud ginge es in wenigen Sekunden. Dann gingen deine Fragen und Inhalte deiner Mails an Anthropic (USA).");
+  assert.match(langsamSatz(null), /an einen Cloudanbieter, dem du beim Einschalten zustimmst\.$/);
+  const a = {schluessel_da: true, standardmodell: "m", wohin: "Anthropic (USA)"};
+  assert.equal(vorbereiteterAnbieter([a, {schluessel_da: false, standardmodell: "", wohin: "OpenAI (USA)"}]), "Anthropic (USA)");
+  assert.equal(vorbereiteterAnbieter([a, {...a, wohin: "OpenAI (USA)"}]), null, "zwei bereit: keiner ist gesetzt");
+  assert.equal(vorbereiteterAnbieter(undefined), null);
 });
 
 test("Einmal weggeklickt, bleibt der Satz weg; ohne Speicher fällt nichts um", () => {
@@ -63,6 +76,8 @@ test("Eine Cloudantwort sagt, über wen sie lief; eine lokale sagt nichts", asyn
   const {cloudVermerk} = await import("../src/wartenImGespraech.ts");
   assert.equal(cloudVermerk({gedaechtnis_cloud: {anbieter: "anthropic", modell: "m", gesendet: ["frage", "textstellen"]}}), "Über Anthropic beantwortet.");
   assert.equal(cloudVermerk({gedaechtnis_cloud: {anbieter: "unbekannt"}}), "Über die Cloud beantwortet.");
+  assert.equal(cloudVermerk({cloud_antwort: {anbieter: "anthropic", modell: "m"}}), "Über Anthropic beantwortet.",
+    "auch eine gewöhnliche Gesprächsantwort aus der Cloud ist leise erkennbar (Kleinpunkt a)");
   assert.equal(cloudVermerk({}), null);
   assert.equal(cloudVermerk(undefined), null);
 });

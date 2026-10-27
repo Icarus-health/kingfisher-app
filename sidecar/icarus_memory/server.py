@@ -910,22 +910,27 @@ def _build_agent(app: FastAPI) -> Agent:
     standard_provider = provider_from_env()
     app.state.standard_provider = standard_provider
     app.state.rollen = None
+    werkzeuge = build_registry(
+        app.state.store,
+        outward_sink=_mail_sink(app),
+        file_roots=file_roots_from_env(os.environ.get(ROOTS_ENV)),
+        mail=app.state.mail,
+        calendar=app.state.calendar,
+        task_store=app.state.tasks,
+        workspace=app.state.workspace,
+        episodes=app.state.episodes,
+        mcp_verbindungen=getattr(app.state, "mcp", None),
+    )
+    from .nach_draussen import web_an
+    if not web_an(app.state.settings):
+        # „Webseiten abrufen“ ist unter „Was Kingfisher darf“ aus: Das Modell bekommt das Werkzeug gar nicht erst.
+        werkzeuge.pop("web_abruf", None)
     agent = Agent(
         store=app.state.store,
         policy=Policy(),
         audit=app.state.audit,
         regeln=getattr(app.state, "regeln", None),
-        tools=build_registry(
-            app.state.store,
-            outward_sink=_mail_sink(app),
-            file_roots=file_roots_from_env(os.environ.get(ROOTS_ENV)),
-            mail=app.state.mail,
-            calendar=app.state.calendar,
-            task_store=app.state.tasks,
-            workspace=app.state.workspace,
-            episodes=app.state.episodes,
-            mcp_verbindungen=getattr(app.state, "mcp", None),
-        ),
+        tools=werkzeuge,
         provider=provider_fuer("antwort", standard_provider, lese_wahlen(app.state.settings.model_roles), inventar=inventar_von(app)),
         knowledge=app.state.claims,
         knowledge_conflicts=app.state.knowledge_service.answer_conflict_status,
@@ -1117,13 +1122,19 @@ def _wire_scheduler(app: FastAPI) -> None:
         from .world_monitor import WorldMonitor
         monitor = WorldMonitor(app.state.settings, app.state.episodes, app.state.claims,
             lambda settings: config.save(_data_dir(), settings), app.state.conversation_lock)
+        from .nach_draussen import quellen_an
         for source in monitor.list():
             if not source['enabled']:
                 continue
             if was_enabled and not app.state.settings.schedule.enabled:
                 break
+            # „Weitere öffentliche Quellen“ unter „Was Kingfisher darf“ (Paket S): aus, ruft der Zeitplan nichts ab;
+            # geprüft vor jeder Quelle, damit ein Ausschalten mitten im Lauf gleich wirkt.
+            if was_enabled and not quellen_an(app.state.settings):
+                break
             try:
-                monitor.refresh(source['id'], permitted=lambda: not was_enabled or app.state.settings.schedule.enabled)
+                monitor.refresh(source['id'], permitted=lambda: not was_enabled or (
+                    app.state.settings.schedule.enabled and quellen_an(app.state.settings)))
                 results.append(JobResult('world:' + source['id'], True, 'Öffentliche Quelle aktualisiert.'))
             except (ValueError, KeyError):
                 results.append(JobResult('world:' + source['id'], False, 'Öffentliche Quelle gerade nicht erreichbar.'))
@@ -1451,6 +1462,14 @@ def _close_persistent_state(app: FastAPI) -> None:
             close()
 
 
+def _eigene_fuer_sperre(app: FastAPI) -> None:
+    """Die Personensperre (`person_sperre.py`) muss „ich“ erkennen: Bleibt nach dem Herausnehmen gesperrter
+    Beteiligter nur der Nutzer, wird eine Quelle nicht aufgenommen."""
+    episodes = getattr(app.state, "episodes", None)
+    if episodes is not None and hasattr(episodes, "eigene_adressen"):
+        episodes.eigene_adressen = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
+
+
 def _reopen_persistent_state(app: FastAPI) -> None:
     """Verdrahtet nach einem vollständigen Restore jeden Store neu.
 
@@ -1480,6 +1499,7 @@ def _reopen_persistent_state(app: FastAPI) -> None:
         from .workspace_views import WorkspaceViews
         app.state.workspace_views = WorkspaceViews(data_dir / 'workspace-views.sqlite3')
     app.state.episodes = EpisodeStore(data_dir / "episodes.sqlite3")
+    _eigene_fuer_sperre(app)
     if getattr(app.state, "settings", None) is not None:
         from . import suchindex_routes
         suchindex_routes.anwenden(app)
@@ -1576,6 +1596,9 @@ def create_app(
     inspection = create_inspection_app(_data_dir())
     if pending(_data_dir()):
         return inspection
+    # Brach ein Wiederherstellen ab (Strom, Absturz), gilt der alte Stand: zurückhängen, bevor eine Ablage öffnet.
+    from .sicherung_zurueck import nach_abbruch_aufraeumen
+    nach_abbruch_aufraeumen(_data_dir())
     # Vor dem ersten Öffnen: steht ein Umbau an, erst eine Kopie von vorher.
     backup_before_update(_data_dir())
     app = FastAPI(title="Kingfisher", version="0.1.0")
@@ -1626,6 +1649,7 @@ def create_app(
     if episodes is None:
         episodes = EpisodeStore(_data_dir() / "episodes.sqlite3")
     app.state.episodes = episodes
+    _eigene_fuer_sperre(app)
 
     if proposals is None:
         proposals = ProposalStore(_data_dir() / "proposals.sqlite3")
@@ -2195,8 +2219,11 @@ def create_app(
             source_id = f"calendar-{uuid.uuid4().hex}"
             config.store_secret(getattr(app.state, "keychain", Keychain()),
                                 config.integration_secret_name("calendar", source_id), passwort)
-            neu.append(config.CalendarSourceSettings(id=source_id, label=f"{wer}: {kalender.name}"[:120], kind="caldav",
-                                                     url=kalender.url, user=adresse))
+            neu.append(config.CalendarSourceSettings(
+                id=source_id, label=kalender_anmeldung.kalender_name(
+                    anbieter.label if anbieter is not None else "", kalender.name, adresse,
+                    [e.label for e in [*settings.calendar_sources, *neu]])[:120],
+                kind="caldav", url=kalender.url, user=adresse))
         settings.calendar_sources.extend(neu)
         config.save(_data_dir(), settings)
         _build_agent(app)
@@ -3278,10 +3305,13 @@ def create_app(
         # nie den fremden Quelltext oder die behaupteten Werte.
         try:
             clarifications = app.state.knowledge_service.clarifications()
+            # Je Klärung ein eigener Titel (Paket S, Befund 6: zwei hießen beide „Gedächtnis klären“). Mitgegeben wird
+            # nur das Merkmal, und `morning.klaerung_titel` nimmt es nur aus einer festen Liste: kein Name, kein Wert,
+            # nichts aus der fremden Quelle.
             result["knowledge"] = {
                 "pending": len(app.state.knowledge_service.pending()),
                 "clarifications": [
-                    {"id": item["id"]} for item in clarifications
+                    {"id": item["id"], "merkmal": str(item.get("predicate") or "")} for item in clarifications
                 ],
                 "error": None,
             }
@@ -3389,7 +3419,24 @@ def create_app(
             start, finish = parse_calendar_window(from_, until) if from_ is not None and until is not None else (None, None)
         except (ValueError, ZoneInfoNotFoundError) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
-        return _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
+        uebersicht = _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
+        _teilnehmer_namen(uebersicht.get("items") or [])
+        return uebersicht
+
+    def _teilnehmer_namen(items: list[dict[str, Any]]) -> None:
+        """Je Termin die Teilnehmer mit Namen (`attendee_names`), soweit der Bestand die Adresse kennt (Befund A6).
+
+        Der Kalender liefert oft nur Adressen; die Terminkarte nennt dann „Thomas Müller“ statt
+        „thomas.mueller@…“. Ein Durchgang für alle Termine (`participants_for_addresses`); unbekannte Adressen
+        bleiben, wie sie sind. Ein Fehler kostet die Namen, nie die Termine."""
+        from .vorbereitung import teilnehmer as teilnehmer_aus
+        adressen = [a for item in items for a in item.get("attendees") or ()]
+        if not adressen:
+            return
+        index = _teilnehmer_index(adressen) or {}
+        for item in items:
+            if item.get("attendees"):
+                item["attendee_names"] = [t["name"] for t in teilnehmer_aus(item["attendees"], index=index)]
 
     def _teilnehmer_index(adressen: list[str]) -> dict[str, dict[str, Any]] | None:
         """Wie die Adressen im Bestand als Beteiligte vorkommen (`participants_for_addresses`); None bei einem Fehler."""
@@ -3677,6 +3724,18 @@ def create_app(
                 for copy_key in keys:
                     app.state.workspace.reopen_event_followup(copy_key)
         return _nachbereitung_stand(event)
+
+    @app.get("/api/v1/calendar/vorbereitung", dependencies=guard)
+    def calendar_vorbereitung(uid: str = Query(min_length=1, max_length=2048),
+                              start: str | None = Query(default=None, max_length=64)) -> dict[str, Any]:
+        """Die Vorbereitung des Termins aus den Akten seiner Teilnehmer, ohne Wahl (Persona-Prüfung, Befund A6)."""
+        from . import tag_routes
+        from .model import user_timezone
+        event = _termin(uid, start)
+        zone = user_timezone()
+        jetzt = datetime.now(zone) if zone else datetime.now().astimezone()
+        vorbereitung = tag_routes.vorbereitung_eines(app, event, jetzt)
+        return {"vorbereitung": vorbereitung.to_dict() if vorbereitung is not None else None}
 
     @app.get("/api/v1/calendar/preparation", dependencies=guard)
     def calendar_preparation(uid: str = Query(min_length=1, max_length=2048),
@@ -5116,14 +5175,35 @@ def create_app(
     @app.get("/api/v1/tasks", dependencies=guard)
     def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None,
                               q: str = Query(default='', max_length=200), limit: int = Query(default=200, ge=1, le=200),
-                              cursor: str | None = Query(default=None, max_length=2048)) -> dict[str, Any]:
-        """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
+                              cursor: str | None = Query(default=None, max_length=2048),
+                              bereich: str | None = Query(default=None, max_length=80),
+                              timezone_name: str | None = Query(default=None, alias='timezone', max_length=100)) -> dict[str, Any]:
+        """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht.
+
+        `bereich` („arbeit“, „privat“, ein eigener; „alle“ oder leer: kein Filter) filtert hier, vor Zählen und Blättern
+        (Paket Z1): `total` ist dann die Zahl am Segment und die Länge der Liste zugleich. Auf der ersten Seite von
+        „Meine Aufgaben“ steht `heute_dran`, „N Aufgaben brauchen dich heute“, nach derselben Regel wie auf Heute
+        (`zaehlung.py`), für die ganze Auswahl (Projekt, Bereich; ohne Suche), nicht nur die Seite."""
         from .task_pages import TaskPageChanged
+        from . import zaehlung
         if project_id:
             _validate_task_project(project_id, allow_closed=True)
+        gewaehlt = zaehlung.bereich_gewaehlt(bereich)
+        ids = zaehlung.ids_im_bereich(app, gewaehlt, project_id=project_id)
         try:
-            seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)
-            return {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
+            projekte = None
+            if q.strip():
+                try:
+                    projekte = {p.id: p.name for p in app.state.workspace.projects(include_closed=True)}
+                except Exception:  # noqa: BLE001 - ohne Projektliste sucht die Suche nur in den Aufgaben selbst
+                    projekte = None
+            seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor, ids=ids,
+                                         auswahl=gewaehlt, projekte=projekte)
+            antwort = {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
+            if view == 'mine' and cursor is None:
+                antwort['heute_dran'] = zaehlung.heute_dran_zahl(app, _aufgaben_jetzt(timezone_name),
+                                                                 project_id=project_id, ids=ids)
+            return antwort
         except TaskPageChanged as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
@@ -5372,10 +5452,12 @@ def create_app(
     @app.post("/api/v1/task-candidates/{proposal_id}/accept", dependencies=guard)
     def accept_task_candidate(proposal_id: str, body: TaskCandidateIn):
         try:
+            # Die Herkunft „übernommen“ trägt den Rückweg zur Prüfung, auch Tage später (Paket Z2, Z4).
             return task_candidate_service().accept(proposal_id, title=body.title,
                 project_id=body.project_id, new_project_name=body.new_project_name,
                 due=body.due, waiting_for=body.waiting_for, zuordnung_aus_vorschlag=body.zuordnung_aus_vorschlag,
-                eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None))).to_dict()
+                eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None)),
+                angelegt={'art': 'uebernommen', 'am': datetime.now(timezone.utc).isoformat()}).to_dict()
         except (ProposalError, EpisodeError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:
@@ -5692,9 +5774,24 @@ def create_app(
         return project.to_dict()
 
     @app.get("/api/v1/projects/{project_id}/task-overview", dependencies=guard)
-    def project_task_overview(project_id: str) -> dict[str, Any]:
+    def project_task_overview(project_id: str, bereich: str | None = Query(default=None, max_length=80)) -> dict[str, Any]:
+        """Offen, wartet, erledigt eines Projekts; mit `bereich` dieselbe Auswahl wie die Liste darunter (Paket Z1)."""
+        from . import zaehlung
         _validate_task_project(project_id, allow_closed=True)
-        return app.state.tasks.project_overview(project_id)
+        return app.state.tasks.project_overview(project_id, ids=zaehlung.ids_im_bereich(app, bereich, project_id=project_id))
+
+    def _aufgaben_jetzt(timezone_name: str | None) -> datetime:
+        """Jetzt in der Zeitzone, nach der „heute“ gilt: wie das Briefing (`morning_briefing`), Vorgabe die eingestellte."""
+        zone = None
+        if timezone_name:
+            try:
+                zone = ZoneInfo(timezone_name)
+            except (ZoneInfoNotFoundError, ValueError) as exc:
+                raise HTTPException(status_code=422, detail="Die Zeitzone ist nicht verfügbar.") from exc
+        if zone is None:
+            from .model import user_timezone
+            zone = user_timezone()
+        return datetime.now(zone) if zone else datetime.now().astimezone()
 
     @app.get("/api/v1/projects/{project_id}", dependencies=guard)
     @app.get("/projects/{project_id}", dependencies=guard)
@@ -6079,6 +6176,10 @@ def create_app(
     from .person_merge_api import install_routes as install_person_merge_routes
     install_person_merge_routes(app, guard)
 
+    # Alles zu einer Person: Auskunft, Löschen, Sperrvermerke (Persona-Prüfung, Paket P, D7).
+    from .person_routes import install_routes as install_person_routes
+    install_person_routes(app, guard)
+
     @app.get("/api/v1/memory/graph", dependencies=guard)
     def memory_graph() -> JSONResponse:
         # `to_dict` liefert schon reines JSON; die allgemeine Umwandlung von FastAPI kostete bei 10.000 Quellen eine
@@ -6293,7 +6394,33 @@ def create_app(
                 status_code=404,
                 detail=f"In deinen Aufzeichnungen kommt „{name}“ nicht vor.",
             )
+        profile["person"]["wartet_auf_punkte"] = _wartet_auf_bei(profile["person"])
         return profile
+
+    def _wartet_auf_bei(person: dict[str, Any]) -> list[dict[str, Any]]:
+        """„Worauf ich warte“ bei dieser Person: dieselbe Regel und dieselbe Reihenfolge wie „Worauf warte ich noch?“
+        (`offene_punkte.sammeln`), aus den Akten ihrer Adressen und den Aufgaben „wartet auf“ (Befund A7: oben stand
+        „Noch keine Rückmeldung vorgemerkt“, darunter in der Akte „Du wartest auf …“)."""
+        from .akten_routes import bausteine
+        from .offene_punkte import sammeln
+        try:
+            bezuege, akten = bausteine(app)
+            aufgaben = app.state.tasks.open_tasks(limit=None)
+            punkte: dict[str, dict[str, Any]] = {}
+            from .identitaet import name_anker
+            sachen = ([f"person:a:{str(a).lower()}" for a in (person.get("adressen") or [])[:3]]
+                      or [f"person:n:{name_anker(str(person.get('name') or ''))}"])
+            for sache in sachen:
+                gesammelt = sammeln(akten, bezuege, "wartet_auf", sache=sache, aufgaben=aufgaben)
+                for punkt in gesammelt["punkte"]:
+                    schluessel = (punkt.get("aufgabe") or {}).get("id") or punkt.get("ziel") or punkt.get("episode_id")
+                    punkte.setdefault(str(schluessel), punkt)
+            felder = ("text", "art", "richtung", "episode_id", "titel", "occurred_at", "aufgabe", "wartet_auf",
+                      "nachgefasst", "frist_tage", "einladung", "rang")
+            return [{feld: punkt.get(feld) for feld in felder} for punkt in punkte.values()]
+        except Exception:  # noqa: BLE001 - die Karte zeigt dann nur die Akte darunter
+            logger.exception("Worauf ich warte konnte nicht gelesen werden")
+            return []
 
     @app.get("/api/v1/memory/projects/{project_id}", dependencies=guard)
     def memory_project(project_id: str) -> dict[str, Any]:
@@ -6775,6 +6902,53 @@ def create_app(
             ),
         }
 
+    @app.get("/api/v1/sicherungen", dependencies=guard)
+    def sicherungen_liste() -> dict[str, Any]:
+        """Die Sicherungen zum Auswählen (Einstellungen → Sicherung) und welcher Stand seit dem letzten Mal gilt."""
+        from . import sicherung_zurueck
+        return {"sicherungen": sicherung_zurueck.liste(_data_dir()), "zuletzt": sicherung_zurueck.zuletzt(_data_dir())}
+
+    @app.post("/api/v1/sicherungen/wiederherstellen", dependencies=guard)
+    def sicherung_wiederherstellen(body: RestoreIn) -> dict[str, Any]:
+        """Stellt eine Sicherung aus der Liste wieder her (Persona-Prüfung, Paket P, D7; `sicherung_zurueck.py`).
+
+        Nur ein Name aus dem eigenen Sicherungsordner. Vorher sichert Kingfisher den jetzigen Stand (der Weg zurück),
+        dann tauscht es das Gedächtnis atomar aus; Einstellungen, Schlüssel und Freigaben bleiben auf dem heutigen
+        Stand. Die Middleware lässt währenddessen keine andere Anfrage zu (`restore_boundary.EXKLUSIV`).
+        """
+        from . import sicherung_zurueck
+        data_dir = _data_dir()
+        try:
+            sicherung_zurueck.finden(data_dir, body.name)
+        except sicherung_zurueck.SicherungFehler as fehler:
+            raise HTTPException(status_code=fehler.status, detail=str(fehler)) from fehler
+        scheduler = getattr(app.state, "scheduler", None)
+        lief = bool(scheduler is not None and getattr(scheduler, "_thread", None) is not None
+                    and scheduler._thread.is_alive())
+        if scheduler is not None:
+            scheduler.stop()
+        _close_persistent_state(app)
+        try:
+            stand = sicherung_zurueck.wiederherstellen(data_dir, body.name)
+        except sicherung_zurueck.SicherungFehler as fehler:
+            raise HTTPException(status_code=fehler.status, detail=str(fehler)) from fehler
+        finally:
+            # Neu öffnen in jedem Fall: nach Erfolg den eingespielten Stand, sonst den unveränderten alten.
+            _reopen_persistent_state(app)
+            for name in ("akten_lesungen", "verzeichnis_zwischen"):
+                speicher = getattr(app.state, name, None)
+                if speicher is not None:
+                    speicher.leeren()
+            scheduler = getattr(app.state, "scheduler", None)
+            if lief and scheduler is not None:
+                scheduler.start()
+        try:
+            app.state.audit.record("sicherung_wiederherstellen", "write_local", "auto", "executed",
+                                   {"name": stand["name"], "rueckgaengig": stand["rueckgaengig"]})
+        except Exception:  # noqa: BLE001
+            pass
+        return stand
+
     @app.post("/export/file", dependencies=guard)
     def export_file(body: ExportIn) -> dict[str, Any]:
         """Schreibt einen Export, optional verschlüsselt.
@@ -6839,6 +7013,8 @@ def create_app(
     register_rueckmeldung(app, guard, _data_dir)
     from .logbuch_routes import register as register_logbuch
     register_logbuch(app, guard, _data_dir)
+    from .nach_draussen import register as register_nach_draussen
+    register_nach_draussen(app, guard, _data_dir, lambda: _build_agent(app))
     from .fassung_routes import register as register_fassung
     register_fassung(app, guard, _data_dir)
     from .uebernehmen_routes import register as register_uebernehmen

@@ -55,11 +55,12 @@ dort nichts geändert werden muss. Ein Fachwort vorne ist ein Fehler; ein Test s
 
 **Seitenbreite.** Keine Seite ist breiter als das Fenster, und es gibt keine Mindestbreite, auch nicht für einzelne
 Seiten. Drei Stufen gelten überall (`Seitenbreite.css`): Unter 1100 px stapeln sich Spalten, unter 900 px wird die
-Seitenleiste ein Streifen oben, unter 700 px haben Formulare und Raster eine Spalte. Was nicht passt, bricht um; nichts
+Seitenleiste ein Streifen oben, unter 700 px haben Formulare und Raster eine Spalte, und die Navigation ist eine feste,
+beschriftete Leiste unten (seit Paket H, siehe „Handy“). Was nicht passt, bricht um; nichts
 zwingt zum seitlichen Scrollen, nichts wird am Rand abgeschnitten (einzige Ausnahme: Segmentleisten rollen in sich, siehe
 „Grundlage vom 23.10.2026“). Das gilt auch für den Streifen selbst: Alle Ziele
-stehen ohne Rollen im Bild, das Zeichen über seinem Namen in kleiner Schrift; unter 700 px trägt nur der aktive Bereich
-seinen Namen (Fremdprobe 3, Befund 14). Wer eine Seite baut, prüft sie bei 390, 768 und
+stehen ohne Rollen im Bild, das Zeichen über seinem Namen in kleiner Schrift (Fremdprobe 3, Befund 14). Unter 700 px
+trug bis 1.0.29 nur der aktive Bereich seinen Namen; seit Paket H steht dort die Leiste unten, jedes Ziel mit Namen. Wer eine Seite baut, prüft sie bei 390, 768 und
 1280 px (`scripts/probe_seiten_ui.py`).
 
 ## Freigegebene Gestaltung vom 15.10.2026
@@ -161,6 +162,12 @@ Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschr
 | `Unterkopf` (V4) | `titel`, `zeile?`, `aktion?` | `g-unterkopf`, `g-unterkopf-zeile`; Kopf einer Unteransicht (Gedächtnis: Verarbeitung, Aussagen prüfen) |
 | `Bestaetigung` (V4) | `titel`, `label`, `knoepfe?`, `children` (der Satz als `<strong>`) | `g-bestaetigung`, `-titel`, `-knoepfe`; Freigabe, Gedächtnisvorschlag, Vorschlag für die Akte |
 | `HinweisAnzeige` (V4) | einmal in `main.tsx`; die Seiten rufen `zeigeHinweis({ text, rueckgaengig?, danach?, verweis?, fehler? })` | `g-hinweis-ort`, `g-hinweis`, `-text`, `-aktionen`, `-punkt`, `-knopf` |
+| `Rueckfrage` (B3) | `frage`, `satz?`, `bestaetigen`, `abbrechen?` (Vorgabe „Abbrechen“), `onBestaetigen`, `onAbbrechen`, `arbeitet?`, `gesperrt?`, `rot?`, `start?` (`"feld"`, wenn erst etwas einzutragen ist), `fehler?`, `children?`; die Seite zeigt sie, solange gefragt wird | `g-rueckfrage`, `-frage`, `-satz`, `-fehler`, `-knoepfe`, `g-knopf-rot`; modaler `<dialog>` mit `role=alertdialog` über allem (Portal in `body`) |
+| `AnsageAnzeige` (B1) | einmal in `main.tsx`; die Seiten rufen `sageAn(satz)` | unsichtbarer Ort `role=status`, `aria-live=polite`; leert sich vor jedem Satz, damit auch ein gleicher angesagt wird |
+| `Seitenwechsel`, `Sprunglink` (B2) | einmal in `main.tsx`, vor der App | Fenstertitel je Seite (`seitenTitel`), Fokus auf die Hauptüberschrift nach einem Wechsel; `g-sprunglink` |
+
+Seit B5 (27.10.2026) hat `Gruppe` eine Stufe (`stufe?`: 2, 3 oder 4) für ihre Überschrift: 3, wenn die Gruppe in
+einem Abschnitt mit eigener h2 steht (die Gruppen der Aufgabenliste unter „Meine Aufgaben“).
 
 Seit V4 (25.10.2026) kann `Gruppe` mehr: `zahl?` und `aktion?` rechts im Kopf, `fussAktion?` rechts unter der Fläche
 neben der Fußnote (Klassen `g-gruppe-zahl`, `g-gruppe-aktion`, `g-gruppe-fuss`; so die Zugänge der Einstellungen),
@@ -214,13 +221,30 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 - **Ein Ort, ein Hinweis.** Unten mittig über allem, dunkel (`--g-tinte`), schmal in voller Breite mit 16 px Rand. Ein
   neuer Hinweis ersetzt den alten. Er gehört der App, nicht der Seite: Er bleibt, wenn die Zeile mit der Aktion
   verschwindet oder die Seite wechselt (etwa nach „Akte anlegen“).
-- **Zeit.** Nach 6 s geht er von selbst; Maus darauf oder sichtbarer Tastaturfokus halten ihn, danach laufen die 6 s
-  von vorn. Ein Fehler (auch ein misslungenes Zurücknehmen: „Nicht zurückgenommen. Die Änderung gilt weiter.“ mit
-  „Erneut versuchen“) steht 10 s und wird als Fehler angesagt.
-- **Bedienung.** Escape schließt ihn, ⌘Z bzw. Strg+Z nimmt zurück, aber nie in einem Eingabefeld. Wer mit der Tastatur
-  arbeitet und dessen Knopf mit der Zeile verschwunden ist, bekommt den Fokus auf „Rückgängig“; mit der Maus nie.
-- **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt;
-  „Rückgängig“ nennt seine Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
+- **Zeit (Paket Z2, 27.10.2026).** Er steht mindestens 10 s, bei langem Satz länger (4 s plus 80 ms je Zeichen); Maus,
+  Finger (gedrückt) oder sichtbarer Tastaturfokus halten ihn, danach beginnt die Zeit von vorn. Ein Fehler (auch ein
+  misslungenes Zurücknehmen: „Nicht zurückgenommen. Die Änderung gilt weiter.“ mit „Erneut versuchen“) steht mindestens
+  15 s und wird als Fehler angesagt. Bis 1.0.29 waren es 6 s, und Berühren am Handy hielt ihn nicht.
+- **Nie der einzige Weg zurück (Z2).** Was der Hinweis anbietet, steht auch an der Sache selbst: Zurückgenommenes unter
+  „Erledigt → Zurückgenommen“ mit „Wiederherstellen“, ein übernommener Vorschlag in der Aufgabe mit „Zurück zur
+  Prüfung“, Erledigtes unter „Erledigt“. Deshalb ist die Zeitgrenze des Hinweises keine Grenze für das Zurücknehmen
+  (WCAG 2.2.1).
+- **Bedienung und Fokus (Z3).** Escape schließt ihn, ⌘Z bzw. Strg+Z nimmt zurück, aber nie in einem Eingabefeld. Der
+  Fokus springt **nie** auf „Rückgängig“: Bis 1.0.29 tat er das, wenn der auslösende Knopf mit seiner Zeile verschwand,
+  und ein zweites Enter nahm dann alles sofort zurück. Jetzt bleibt er am Auslöser (Umbenennen: auf dem Namen), wartet,
+  solange der Auslöser gesperrt ist, und geht sonst auf die Liste oder den Abschnitt, in dem die Zeile stand
+  (`grundlage/fokusZiel.ts`; `tabindex=-1`, kein neuer Tab-Halt). Dort löst ein zweites Enter nichts aus, Tab führt zur
+  nächsten Zeile. Den Hinweis erreicht man mit Tab oder dem Kürzel, vorausgewählt ist er nicht.
+- **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt,
+  bei „Rückgängig“ mit „Zurücknehmen mit Steuerung Z.“ (am Mac „Befehl Z“), nur für Vorleser; „Rückgängig“ nennt seine
+  Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
+- **Am Handy (Paket H).** Mit der Navigationsleiste unten hat er einen festen Platz direkt darüber. Lag dort etwas
+  Bedienbares, rückt die Seite um diesen Platz nach oben: Was eben zu sehen war, bleibt zu sehen, er verdeckt nichts.
+  Die Regel unten (Z3) gilt nur noch ohne Leiste (Einrichtung).
+- **Am Handy ohne Leiste (Z3).** Bis 700 px steht er oben, wenn er unten Bedienbares verdecken würde und oben nicht. Solange er
+  steht, hat die Seite unten Platz in seiner Höhe (`html.g-hinweis-offen`, `--g-hinweis-platz`), und was man gerade
+  bedient hat, rückt aus ihm heraus. In einer dichten Liste kann er für seine Standzeit eine Zeile am Rand überdecken;
+  sie lässt sich darunter hervorrollen.
 - **Nie erfunden.** Ein Hinweis hat nur dann „Rückgängig“, wenn es dafür schon einen Weg im Sidecar gibt (die Gegenroute).
   Wo es keinen gibt, sagt er nur, was passiert ist, und eine Rückfrage davor bleibt.
 
@@ -238,13 +262,83 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 | Quelle: „Gehört nicht dazu“, „Doch zuordnen“, „Wer ist gemeint?“ | `PUT`/`DELETE /akten/quellen/{id}/zuordnung` |
 | Quelle einem Projekt zuordnen; weitere Mails desselben Absenders | `PUT /episodes/{id}/project` mit dem Projekt von vorher; `PUT /episodes/projects` |
 | Gruppenvorschlag für Organisationen ablehnen | `POST /organisation-group-suggestions/{id}/undo-dismissal` |
+| Vorschlag übernehmen (einzeln, Z4) | `POST /task-candidates/aufgabe/{id}/zurueck` (auch später: „Zurück zur Prüfung“ in der Aufgabe) |
+| „+ Aufgabe“ (Z4: bleibt in der Liste, „Öffnen“ im Hinweis) | `POST /tasks/{id}/drop` |
+| Von Kingfisher angelegt: zurücknehmen / wiederherstellen | `POST /aufgaben-von-selbst/{id}/rueckgaengig` ↔ `/wiederherstellen` (auch später unter „Erledigt → Zurückgenommen“) |
+| Welt-Meldung abbestellen (Quelle oder Sache; Paket S) | `POST /welt/abbestellen/rueckgaengig`: Feed, Weltquelle oder Sache wie vorher, die Meldung des Tages steht wieder da (später auch unter „Was Kingfisher darf“) |
+| Mitschrift „Zu diesem Termin“ / „Gehört nicht hierher“ (Paket S) | `POST /transkripte/{id}/zuordnung/rueckgaengig`: genau der Stand von vorher, auch die Sperre nach dem Lösen fällt weg |
 
-Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt: Entscheidung zurücknehmen („Wirklich
+Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt, und sie ist seit B3 ein Dialog (`Rueckfrage`): Entscheidung zurücknehmen („Wirklich
 zurücknehmen?“), eine Quelle nicht mehr verwenden (was daraus folgte, kommt nicht von selbst zurück), Sortierergebnis
-verwerfen, eine Quelle entfernen, Mitschrift zuordnen oder lösen (Lösen sperrt den Termin für den Vorschlag), Welt-Meldung
-abbestellen (die Meldung des Tages bleibt gestrichen). Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
+verwerfen, eine Quelle entfernen. Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
 der Post verwerfen, einen Aufgabenvorschlag ablehnen. Eigene „…rückgängig“-Knöpfe mit Versionen (Ordner, Bilder,
 Gruppierungen im Gedächtnis) bleiben, wo sie sind.
+
+**Abbestellen und Mitschrift zuordnen (Paket S, 27.10.2026).** Hier stand bis Paket B, beide fragten vorher; der Code
+fragte nicht, und es gab auch keinen Weg zurück. Entschieden nach Prüffrage 5 („Kann er es rückgängig machen? Wo ja,
+braucht es keine Rückfrage“): Beide bekamen einen vollständigen Weg zurück (die Meldung des Tages kommt wieder, die
+Sperre nach dem Lösen fällt weg), und deshalb keine Rückfrage, sondern den Hinweis mit „Rückgängig“. Eine Rückfrage vor
+einem Klick, der sich ganz zurücknehmen lässt, wäre eine Entscheidung zu viel.
+
+## Barrierefreiheit (Paket B, 27.10.2026)
+
+Maßstab ist WCAG 2.2 AA, geprüft mit Tastatur und dem Barrierefreiheitsbaum (Protokoll:
+[`runs/2026-10-26-befunde-barrierefrei`](runs/2026-10-26-befunde-barrierefrei/README.md)).
+
+- **Rückfragen sind Dialoge.** Eine Frage vor etwas, das sich nicht zurücknehmen lässt, steht nicht mehr als Satz in der
+  Zeile, sondern als ruhiges Blatt über der Seite (`Rueckfrage`): die Frage in einem Satz, höchstens ein Satz dazu, rechts
+  „Abbrechen“ (vorausgewählt) und die Aktion, rot getönt, wenn sie etwas entfernt. Tab bleibt im Dialog, Escape bricht ab,
+  danach steht der Fokus wieder am Auslöser, und ist der mit seiner Zeile verschwunden, auf der Liste (`fokusZiel`, Z3).
+  Solange die Aktion läuft, bleiben die Knöpfe stehen (`aria-disabled`), und ein Fehler steht im Dialog. Kein eigenes
+  `role=alertdialog` und keine Bestätigungsgruppe in einer Zeile (`tests/rueckfrage.test.mjs` sucht danach).
+- **Wo bin ich?** Jede Seite trägt ihren Namen im Fenstertitel („Aufgaben – Kingfisher“, ein Gespräch oder eine Akte mit
+  ihrem Namen davor). Geht beim Seitenwechsel der Fokus verloren, steht er auf der Hauptüberschrift (`tabindex=-1`, kein
+  Tab-Halt); was die neue Seite selbst fokussiert, bleibt. „Zum Inhalt springen“ ist der erste Tab-Halt und erscheint nur
+  mit Fokus. Kein `scrollIntoView` ohne Fokus: Chrome setzt damit den Ausgangspunkt für Tab (`segmentInsBild`).
+- **Die Antwort wird angesagt.** Ist eine Antwort im Gespräch fertig, sagt der Ort für Ansagen ihren Anfang einmal an
+  (ein bis zwei Sätze, ohne Markdown und Belegnummern, `antwortAnsage.ts`); den Zwischenstand sagt nur die Wartezeile in
+  Schritten. Der Fokus bleibt im Eingabefeld, auch nach dem Sendeknopf und wenn die Frage auf einer anderen Seite begann.
+- **Fokus sichtbar.** Felder zeigen ihn als Kante von 2 px in der Auswahlfarbe (`outline`, nicht als Schatten, den lokale
+  Regeln überschreiben); Felder, deren Rahmen fokussiert wird (Suche und Eingabe im Gespräch), am Rahmen. Keine Regel nimmt
+  den Fokus weg, ohne dass ein Rahmen ihn zeigt.
+- **Kontrast.** Platzhalter haben eine Rolle, `--g-platzhalter` `#5a6776` hell und `#9aa6b2` dunkel, mindestens 4,8:1
+  auf jedem Feldgrund (bis 1.0.29 `#8592a0`, 2,6–3,2:1). Auf dem Bergbild von Heute steht der Stand in Tinte und tritt über
+  die Strichstärke zurück, nicht über die Farbe. Die Zahl im Segment ist Tinte zu 72 %.
+- **Kalendermonat.** Ein Raster (`role=grid`, Wochen als Zeilen über `subgrid`, Wochentage als Spaltenköpfe) mit einem
+  Tab-Halt auf dem gewählten Tag. Pfeiltasten von Tag zu Tag, Pos1/Ende zur Woche, Bild auf/ab einen Monat; Enter öffnet
+  die Termine des Tages in der Liste darunter. Jeder Tag heißt „Dienstag, 27. Oktober, 2 Termine, heute“ und ist als ganze
+  Fläche das Ziel; die Termine im Tag sind Zeichen ohne eigenen Tab-Halt, mindestens 24 px hoch (`calendarGrid.ts`).
+- **Überschriften.** Ein h1 je Seite, keine Sprünge, keine doppelten h1/h2. Was unter dem Seitentitel als Liste steht,
+  trägt seinen Namen als h2 (sichtbar steht er im Segment); die Mail im Lesebereich beginnt mit ihrem Betreff als h2.
+
+## Handy (Paket H, 27.10.2026)
+
+Maßstab: ein Daumen, 390 px, oft dunkel (Persona „Leon Krüger“; Protokoll:
+[`runs/2026-10-26-befunde-handy`](runs/2026-10-26-befunde-handy/README.md)). Alles gilt bis 700 px Breite bzw. mit
+grobem Zeiger; breit bleibt die Oberfläche, wie sie war.
+
+- **Navigation unten.** Eine feste Leiste wie am iPhone, über `safe-area-inset-bottom` (`viewport-fit=cover`): Heute,
+  Gespräche, Aufgaben, Kalender, jedes mit Zeichen und Namen, und „Mehr“. „Mehr“ klappt darüber Nachrichten, Gedächtnis
+  („Menschen, Dokumente und Suche“) und Einstellungen auf, je mit einem Satz; Escape oder ein Tipp daneben klappt zu.
+  Steht die Seite unter „Mehr“, trägt „Mehr“ die Markierung. Warum diese vier: Unterwegs entscheidet man, was dran ist,
+  fragt, hakt ab und sieht nach, wann und wo; Post hat das Handy selbst (das Wichtige daraus steht auf Heute), das
+  Gedächtnis fragt man meist über Gespräche ab. Die Seite hat unten Platz in Höhe der Leiste (`--g-unten`); was unten
+  klebt (Hinweis, Auswahl unter „Zur Prüfung“, Detailpaneel), steht darüber (`HandyLeiste.tsx`, `handyZiele.ts`).
+- **Projekte an einem Ort.** Sie stehen unter Aufgaben → Projekte (anlegen, Status, Aufgaben, Board), jedes mit „Akte
+  öffnen“. „Gedächtnis → Projekte“ zeigte dieselben Projekte noch einmal; es ist kein Segment mehr, das Gedächtnis
+  verweist mit „Projekte unter Aufgaben“ dorthin, und alte Verweise (`/memory?tab=projects`) führen dorthin
+  (`projekteOrt.ts`).
+- **Kalender.** Vorgabe am Handy ist die Liste: die nächsten sieben Tage ab heute, je Termin Uhrzeit, ganzer Titel und
+  Ort. Breit bleibt es der Monat. Gemerkt wird nur, was der Nutzer im Umschalter wählt (`kalenderAnsicht.ts`); bis 1.0.29
+  schrieb die Seite jede Ansicht zurück, auch die Vorgabe. Die Woche zeigt schmal alle sieben Tage (je mindestens 44 px),
+  der Monat rollt beim Öffnen die Woche des gewählten Tages ins Bild (ohne `scrollIntoView`). Titel brechen an
+  Wortgrenzen und trennen mit Strich (`hyphens: auto`, `lang="de"`), nie `overflow-wrap: anywhere`.
+- **Tippziele 44 × 44.** Mit grobem Zeiger (`pointer: coarse`) hat jedes Bedienelement eine Trefffläche von mindestens
+  44 × 44 px. Das Bild bleibt ruhig: Leise Knöpfe, Verweise, Segmente und Belegnummern bekommen eine unsichtbare Fläche
+  (`::after`, mittig, `max(100%, 44px)`); getönte Knöpfe, Felder und Aufklapper werden 44 hoch. Im Zeitstrahl der Akte ist
+  am Finger die ganze Spur das Ziel, ein Tipp wählt den nächsten Punkt (wie der Tag im Monat).
+  `scripts/probe_tippziele_ui.py` misst die wirksame Fläche aller Bedienelemente auf 29 Seiten und Zuständen und meldet
+  jedes unter 44 px.
 
 ## Dunkelmodus vom 25.10.2026
 

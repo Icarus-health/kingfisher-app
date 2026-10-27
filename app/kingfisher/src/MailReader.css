@@ -9,7 +9,8 @@
 #root .mail-reader-source, #root .mail-reader-eyebrow { margin:0; font:var(--g-fussnote); color:var(--g-leise); letter-spacing:0; text-transform:none; }
 
 #root .mail-reader-meta { padding:var(--g-a3) 0 var(--g-a4); border-bottom:1px solid var(--g-linie); }
-#root .mail-reader-meta h1 { max-width:none; margin:0 0 var(--g-a3); font:var(--g-titel); letter-spacing:-.01em; color:var(--g-tinte); overflow-wrap:anywhere; }
+/* Der Betreff ist die Überschrift der Nachricht, unter dem einen h1 der Seite (Paket B, B5). */
+#root .mail-reader-meta h2 { max-width:none; margin:0 0 var(--g-a3); font:var(--g-titel); letter-spacing:-.01em; color:var(--g-tinte); overflow-wrap:anywhere; }
 #root .mail-sender-line { display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--g-a1) var(--g-a4); margin:0; font:var(--g-neben); color:var(--g-tinte); }
 #root .mail-absender { flex:1 1 220px; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:0 var(--g-a2); }
 #root .mail-absender strong { font:600 16px/1.4 var(--g-schrift); overflow-wrap:anywhere; }

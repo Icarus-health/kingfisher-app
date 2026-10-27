@@ -41,6 +41,10 @@ class SecurityError(Exception):
     """Eine Aktion wurde aus Sicherheitsgründen unterbunden."""
 
 
+class HostNichtAufloesbar(SecurityError):
+    """Der Name ließ sich nicht auflösen: meist kein Internet, selten ein Tippfehler. Kein Verbot, aber auch kein Abruf."""
+
+
 # -- Dateizugriff ----------------------------------------------------------
 
 #: Namen, die auch innerhalb erlaubter Ordner nie gelesen werden.
@@ -155,7 +159,7 @@ def check_url(raw: str) -> str:
     try:
         infos = socket.getaddrinfo(parsed.hostname, parsed.port or 0, proto=socket.IPPROTO_TCP)
     except socket.gaierror as exc:
-        raise SecurityError(f"Host nicht auflösbar: {parsed.hostname}") from exc
+        raise HostNichtAufloesbar(f"Host nicht auflösbar: {parsed.hostname}") from exc
 
     for info in infos:
         address = ipaddress.ip_address(info[4][0])

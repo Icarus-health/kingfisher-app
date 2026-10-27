@@ -177,6 +177,9 @@ def test_prompt_injection_kette(tmp_path: Path) -> None:
     )
 
     turn = agent.send("Fasse mir bitte die Seite zusammen.")
+    # 0. Der Webabruf selbst wartet auf die Freigabe mit einem Klick (Persona-Prüfung, D2).
+    assert [a.tool for a in turn.approvals] == ['web_abruf'] and turn.approvals[0].confirmation_phrase is None
+    turn = agent.resolve(turn.approvals[0].id, True)
 
     # 1. Der neue Herkunftsschutz stoppt schon den ungewollten Dateizugriff.
     eintraege = {e["tool"]: e for e in audit.entries()}

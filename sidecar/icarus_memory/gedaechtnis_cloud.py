@@ -3,7 +3,8 @@
 Entscheidung des Nutzers vom 26.10.2026 (`docs/66-automatik.md`, Paket T): Ist „Cloud für Fragen und
 Antworten“ eingeschaltet, beantwortet der gewählte Cloudanbieter auch Fragen an das Gedächtnis, also die
 Auswahl der Quellen (`working_memory_answers.prepare`) und die Sätze (`satzantwort.formulieren`). Der
-Einwilligungssatz der Rolle sagt, was dabei hinausgeht: die Frage und die dafür gefundenen Textstellen.
+Einwilligungssatz der Rolle sagt, was dabei hinausgeht: die Frage und Inhalte der dafür gefundenen Quellen, ganz oder in
+Auszügen (präzisiert in Paket D der Persona-Prüfung).
 
 Was hier gilt, ohne Ausnahme:
 
@@ -73,6 +74,8 @@ class GedaechtnisCloud:
             raise ProviderError('Die Cloud ist für diese Antwort nicht freigegeben.') from fehler
         nachrichten = _mit_form(messages, schema)
         self.aufrufe += 1
+        from . import nach_draussen
+        nach_draussen.vermerken(self._anbieter, 'gedaechtnis')
         antwort = self._anbieter.complete(nachrichten, [])
         if getattr(antwort, 'tool_calls', None):
             raise ProviderError('Der Cloudanbieter wollte ein Werkzeug benutzen.')
@@ -135,24 +138,29 @@ def markierung(rolle: str, anbieter: str, einwilligung: str) -> tuple[str, str, 
 
 
 def freigabe_gueltig(app: Any, anbieter: Any) -> bool:
-    """Gilt die Einwilligung der Rolle `antwort` jetzt, und ist `anbieter` genau der damit gebaute Cloudanbieter?
+    """Gilt die Einwilligung der Rolle dieses Anbieters jetzt, und ist `anbieter` genau der damit gebaute Cloudanbieter?
 
-    Liest die gespeicherte Wahl bei jedem Aufruf neu. Nein, wenn der Schalter aus ist, die Einwilligung fehlt oder
-    nicht lesbar ist, der Anbieter lokal ist, oder er zu einer anderen (älteren) Einwilligung gehört.
+    Die Rolle steht in der Marke (`markierung`): `antwort` für Gespräch und Gedächtnis, `frage` für das Verstehen der
+    Frage. Liest die gespeicherte Wahl bei jedem Aufruf neu. Nein, wenn der Schalter aus ist, die Einwilligung fehlt
+    oder nicht lesbar ist, der Anbieter lokal oder unmarkiert ist, oder er zu einer anderen (älteren) Einwilligung
+    gehört.
     """
     from .model_roles import einwilligung_gueltig, lese_wahlen
 
     if anbieter is None or getattr(anbieter, 'is_local', False):
         return False
-    wahl = lese_wahlen(getattr(getattr(app.state, 'settings', None), 'model_roles', None)).get('antwort')
-    if wahl is None or wahl.local_only or not einwilligung_gueltig('antwort', wahl):
+    marke = getattr(anbieter, 'cloud_einwilligung', None)
+    rolle = marke[0] if isinstance(marke, tuple) and len(marke) == 3 else 'antwort'
+    if rolle not in ('antwort', 'frage'):
+        return False
+    wahl = lese_wahlen(getattr(getattr(app.state, 'settings', None), 'model_roles', None)).get(rolle)
+    if wahl is None or wahl.local_only or not einwilligung_gueltig(rolle, wahl):
         return False
     try:
         datetime.fromisoformat(wahl.cloud_einwilligung)
     except (TypeError, ValueError):
         return False
-    return getattr(anbieter, 'cloud_einwilligung', None) == markierung('antwort', wahl.anbieter,
-                                                                       wahl.cloud_einwilligung)
+    return marke == markierung(rolle, wahl.anbieter, wahl.cloud_einwilligung)
 
 
 __all__ = ['GESENDET', 'GedaechtnisCloud', 'erlaubt', 'freigabe_gueltig', 'ist_cloud', 'json_aus', 'markierung']

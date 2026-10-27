@@ -25,7 +25,7 @@ test('global or power pause suppresses completion time while retaining real prog
     const html=render({pauseReason});
     assert.match(html,/3 von 10/);
     assert.ok(html.includes(pauseReason));
-    assert.doesNotMatch(html,/Noch etwa|Restzeit wird|sobald das Sprachmodell/);
+    assert.doesNotMatch(html,/Noch etwa|Restzeit wird|sobald das Sprachmodell|sobald die KI/);
   }
 });
 
@@ -38,7 +38,7 @@ test('stale completed coverage never claims current completion',()=>{
 test('stale partial coverage suppresses time and promised retries',()=>{
   const html=render({stale:true});
   assert.match(html,/letzten bekannten Stand|beim letzten Abruf/);
-  assert.doesNotMatch(html,/Noch etwa|werden erneut versucht|sobald das Sprachmodell/);
+  assert.doesNotMatch(html,/Noch etwa|werden erneut versucht|sobald das Sprachmodell|sobald die KI/);
 });
 
 test('available running coverage keeps the estimate; complete coverage keeps its scoped completion',()=>{

@@ -57,7 +57,7 @@ def test_waehrend_des_ladens_sagt_eine_antwort_ehrlich_wie_weit_es_ist(app_und_c
     assert stand['laeuft'] is True and 0 <= stand['prozent'] < 100
     assert stand['satz'] == LAEDT_SATZ.format(prozent=stand['prozent'])
     zug = app.state.agent.send('Was steht heute an?')
-    assert zug.reply.startswith(f"Kingfisher lädt noch sein Sprachmodell ({stand['prozent']} %).")
+    assert zug.reply.startswith(f"Kingfisher lädt noch seine KI ({stand['prozent']} %).")
     assert 'Briefing' in zug.reply and 'kein Modell' not in zug.reply and zug.context['modell_laedt'] is True
     # Ein zweiter Klick startet keinen zweiten Lauf.
     assert client.post('/api/v1/models/laden', json={'bestaetigt': True}).status_code == 409

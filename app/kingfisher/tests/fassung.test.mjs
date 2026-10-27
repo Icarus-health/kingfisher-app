@@ -107,8 +107,9 @@ test("Fassung und Zeitpunkt für Menschen", () => {
   assert.equal(zuletztText("unsinn"), "");
 });
 
-test("der Satz zur täglichen Prüfung sagt, wen Kingfisher fragt und dass über dich nichts hinausgeht", () => {
-  assert.equal(SATZ_PRUEFEN, "Einmal am Tag fragt Kingfisher bei GitHub, ob es eine neue Fassung gibt. Über dich geht dabei nichts hinaus.");
+test("der Satz zur täglichen Prüfung sagt, was abgerufen wird, dass GitHub die IP-Adresse sieht und was aus kostet (D3)", () => {
+  assert.equal(SATZ_PRUEFEN, "Es verlässt nur eine Abfrage den Rechner: Einmal am Tag ruft Kingfisher bei GitHub eine kleine Datei ab, die die neueste Fassung nennt; GitHub sieht dabei deine IP-Adresse. Aus: Du erfährst nicht mehr von selbst von Sicherheitsupdates.");
+  assert.doesNotMatch(SATZ_PRUEFEN, /Über dich geht dabei nichts hinaus/);
 });
 
 test("Heute zeigt den Hinweis, Kingfisher und du die Einstellung, Für Techniker den Befehl", () => {
@@ -123,5 +124,11 @@ test("Heute zeigt den Hinweis, Kingfisher und du die Einstellung, Für Techniker
   assert.doesNotMatch(fassung, /primary-action/);
   assert.match(fassung, /Jetzt aktualisieren/);
   assert.match(fassung, /Jetzt nachsehen/);
-  assert.match(fassung, /Nach neuen Fassungen sehen/);
+  // Die tägliche Prüfung steht als Schalter unter „Was Kingfisher darf“, nicht mehr unter „Kingfisher und du“ (D3).
+  const darf = readFileSync(new URL("../src/Einstellungen/Darf.tsx", import.meta.url), "utf8");
+  assert.match(darf, /<FassungSchalter \/>/);
+  assert.match(fassung, /export function FassungSchalter\(\)[\s\S]*SCHALTER\.updates\.titel[\s\S]*SATZ_PRUEFEN/);
+  assert.doesNotMatch(fassung.slice(fassung.indexOf("export function FassungEinstellung")), /<Schalter /);
+  const gliederung = readFileSync(new URL("../src/Einstellungen/gliederung.ts", import.meta.url), "utf8");
+  assert.match(gliederung, /updates: \{ titel: "Nach neuen Fassungen sehen",/);
 });

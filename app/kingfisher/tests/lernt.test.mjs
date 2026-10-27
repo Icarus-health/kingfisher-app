@@ -88,7 +88,7 @@ test("Mit dem Stand des Sidecars steht dessen Satz da, und ein leeres Postfach l
 test("Das Sprachmodell lädt im Hintergrund: eine Zeile mit Prozent, zuerst, bis es fertig ist (Fremdprobe 2, Befund 6)", () => {
   const zeilen = lerntZeilen(null, {offen: 2, gesamt: 4}, null, {laeuft: true, prozent: 60});
   assert.equal(zeilen[0].id, "modell");
-  assert.equal(zeilen[0].text, "Kingfisher lädt sein Sprachmodell: 60 %");
+  assert.equal(zeilen[0].text, "Kingfisher lädt seine KI: 60 %");
   assert.equal(prozent(zeilen[0]), 60);
   assert.deepEqual(lerntZeilen(null, null, null, {laeuft: false, prozent: 100}), []);
 });

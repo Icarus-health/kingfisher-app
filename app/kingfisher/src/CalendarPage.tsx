@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { api, type CalendarOverview } from "./api";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
@@ -12,14 +12,18 @@ import {calendarColor, calendarDayLayout, calendarDisplaySource, calendarEventKe
 import {DetailPanel} from './DetailPanel';
 import {Leer, Seitenkopf, Segmente} from './grundlage';
 import {ganztaegig, nachTagen, terminZeit} from './calendarAnzeige';
+import {monatsWochen, tabTag, tagBeschriftung, tagNachTaste, tagSchluessel} from './calendarGrid';
 import './CalendarPage.css';
 import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
+import {ausgeblendetLage} from './zahlen';
 import {kontenApi} from './kontenApi';
 import {ALLE, bereichName, gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
+import {KALENDER_ANSICHTEN, SCHMAL, anfangsAnsicht, gewaehlteAnsicht, merkeAnsicht, rollenFuerZeile, vorgabeAnsicht} from './kalenderAnsicht';
 type View = WorkspaceCalendarView;
-const ANSICHTEN: View[] = ["Tag", "Woche", "Monat", "Liste", "Jahr"];
+const ANSICHTEN: View[] = KALENDER_ANSICHTEN;
 // Schmal stehen im Monat nur Punkte; die Termine des gewählten Tages stehen gleich darunter (wie am iPhone).
-const schmal = () => typeof window !== "undefined" && Boolean(window.matchMedia?.("(max-width: 700px)").matches);
+const schmal = () => typeof window !== "undefined" && Boolean(window.matchMedia?.(SCHMAL).matches);
+const speicherOderNichts = () => { try { return typeof localStorage === "undefined" ? null : localStorage; } catch { return null; } };
 const dateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const plusDays = (d: Date, days: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
@@ -41,7 +45,13 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const today = new Date();
   const initialParams = new URLSearchParams(window.location.search);
   const initialPrepareAt = validDate(initialParams.get("prepare_at"));
-  const [view, setView] = useState<View>(() => { let saved:string|null=null;try {saved=localStorage.getItem("kingfisher-calendar-view");} catch { /* The calendar remains usable without browser storage. */ } const selected: View = ["Tag", "Woche", "Monat", "Liste", "Jahr"].includes(saved || "") ? saved as View : "Monat"; return preparationView(selected, initialPrepareAt, today); });
+  // Beim Öffnen die Wahl des Nutzers, sonst die Vorgabe: am Handy die Liste der nächsten sieben Tage, breit der Monat
+  // (Paket H, H1; `kalenderAnsicht.ts`). Gemerkt wird nur, was der Nutzer im Umschalter wählt (`waehleAnsicht`).
+  const [view, setView] = useState<View>(() => preparationView(anfangsAnsicht(speicherOderNichts(), schmal()), initialPrepareAt, today));
+  function waehleAnsicht(neu: View) {
+    merkeAnsicht(speicherOderNichts(), neu);
+    setView(neu);
+  }
   const [focus, setFocus] = useState(midnight(initialPrepareAt || today));
   const [googleSources, setGoogleSources] = useState<string[]>([]);
   const [configuredSources, setConfiguredSources] = useState<Array<{id:string;label:string}>>([]);
@@ -74,9 +84,13 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     return () => media.removeEventListener('change', resize);
   }, []);
   useEffect(() => {
-    const media = window.matchMedia?.('(max-width: 700px)');
+    const media = window.matchMedia?.(SCHMAL);
     if (!media) return;
-    const wechsel = () => {if (media.matches) setAgendaOpen(true);};
+    const wechsel = () => {
+      if (media.matches) setAgendaOpen(true);
+      // Ohne eigene Wahl folgt die Ansicht der Breite (Fenster schmaler gezogen, Handy gedreht).
+      if (!gewaehlteAnsicht(speicherOderNichts(), media.matches)) setView(vorgabeAnsicht(media.matches));
+    };
     media.addEventListener('change', wechsel);
     return () => media.removeEventListener('change', wechsel);
   }, []);
@@ -141,7 +155,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     api.calendarActionSources().then(result => {if (active) setGoogleSources(result.sources.map(s => s.id));}).catch(() => {});
     return () => {active = false;};
   }, [revision]);
-  useEffect(() => {try {localStorage.setItem("kingfisher-calendar-view", view);} catch { /* This view remains usable for the current session. */ }}, [view]);
   useEffect(() => {
     let active = true;
     setLoading(true); setError(false);
@@ -194,6 +207,17 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const selectedSources = new Set(sourceOptions.filter(source=>!hiddenSources.has(source.id)).map(source=>source.id));
   const kalenderSichtbar = calendarVisibleEvents(visibleData?.items || [], sourceOptions.length?selectedSources:null);
   const items = kalenderSichtbar.filter(bereichFilter.passt);
+  // Zeigt der Zeitraum nichts, obwohl ausgeblendete Kalender (im gewählten Bereich) Termine haben (Paket Z1).
+  const ausgeblendet = visibleData?.configured && !loading && items.length === 0
+    ? ausgeblendetLage({termine: visibleData.items, quellen: sourceOptions, ausgeblendet: new Set(sourceOptions.filter(q => hiddenSources.has(q.id)).map(q => q.id)),
+      passt: bereichFilter.passt, quelleVon: termin => calendarSourceVersions(termin).map(calendarDisplaySource)}) : null;
+  function einblenden(ids: string[]) {
+    ausgeblendetGeladen.current = true;
+    const next = new Set(hiddenSources);
+    for (const id of ids) next.delete(id);
+    setHiddenSources(next);
+    kontenApi.ausblenden([...next]).catch(() => { /* Gilt dann bis zum Neuladen. */ });
+  }
   const detailsEvent = items.find(item=>calendarEventKey(item)===detailsKey) || null;
   const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarDisplaySource(calendarSourceVersions(item).find(copy=>!hiddenSources.has(calendarDisplaySource(copy)))||item));
   function eventActions(item:CalendarOverview['items'][number]) {
@@ -213,19 +237,69 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const onDay = (day: Date) => eventsInRange(items, midnight(day), plusDays(day, 1));
   const weekStart = plusDays(focus, -(focus.getDay() + 6) % 7);
   const time = (value: string) => new Date(value).toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+  // Der Monat als Raster (Paket B, B5): ein Tab-Halt auf dem gewählten Tag, Pfeiltasten wandern, Pos1/Ende zur Woche,
+  // Bild auf/ab einen Monat; Enter öffnet die Termine des Tages in der Liste darunter. Der ganze Tag ist das Ziel, die
+  // Termine im Tag sind nur Zeichen und keine eigenen Tab-Halte (die Liste führt zu ihnen).
+  const rasterFokus = useRef(false);
+  useEffect(() => {
+    if (!rasterFokus.current) return;
+    rasterFokus.current = false;
+    document.querySelector<HTMLButtonElement>(`.calendar-page [data-tag="${tagSchluessel(focus)}"]`)?.focus();
+  }, [focus, view]);
+  function rasterTaste(event: KeyboardEvent<HTMLDivElement>, small: boolean) {
+    const ziel = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>("[data-tag]") : null;
+    if (!ziel) return;
+    if ((event.key === "Enter" || event.key === " ") && !small) {
+      // Enter: die Termine des Tages öffnen und den ersten fokussieren (ohne Termine wählt Enter nur den Tag).
+      event.preventDefault();
+      setAgendaOpen(true);
+      window.setTimeout(() => document.querySelector<HTMLButtonElement>(".calendar-page .calendar-agenda .calendar-entry")?.focus(), 0);
+      return;
+    }
+    const neu = tagNachTaste(event.key, focus);
+    if (!neu) return;
+    event.preventDefault();
+    rasterFokus.current = true;
+    setFocus(neu);
+  }
+  // Im Monat steht beim Öffnen die Woche des gewählten Tages (meist heute) im Bild, auch bei 1024 px mit Zoom 200 % und
+  // über der Navigationsleiste am Handy (Paket H, H1). Einmal je Zeitraum und Tag, nicht bei jedem Nachladen; ohne
+  // scrollIntoView, das in Chrome den Ausgangspunkt für Tab versetzt (Paket B, B2).
+  const wocheGerollt = useRef("");
+  function wocheImBild() {
+    if (typeof document === "undefined" || typeof window.scrollBy !== "function") return;
+    const tag = document.querySelector<HTMLElement>(`.calendar-page .month-grid:not(.mini-month) [data-tag="${tagSchluessel(focus)}"]`);
+    const zeile = tag?.closest<HTMLElement>(".month-reihe");
+    if (!zeile) return;
+    const r = zeile.getBoundingClientRect();
+    const leiste = document.querySelector<HTMLElement>(".shell > .sidebar .handy-leiste");
+    const unten = leiste && leiste.getBoundingClientRect().height > 0 ? leiste.getBoundingClientRect().top : window.innerHeight;
+    const delta = rollenFuerZeile({ oben: r.top, unten: r.bottom }, { oben: 0, unten });
+    if (delta) window.scrollBy({ top: delta, behavior: "auto" });
+  }
+  const hatDaten = Boolean(visibleData);
+  useEffect(() => {
+    if (view !== "Monat" || !hatDaten) return;
+    const schluessel = `${rangeKey}|${tagSchluessel(focus)}`;
+    if (wocheGerollt.current === schluessel) return;
+    wocheGerollt.current = schluessel;
+    wocheImBild();
+  }, [view, rangeKey, hatDaten, focus]); // eslint-disable-line react-hooks/exhaustive-deps
   function grid(month: number, small = false, gridYear = focus.getFullYear()) {
-    const first = new Date(gridYear, month, 1), offset = (first.getDay() + 6) % 7;
-    const count = new Date(gridYear, month + 1, 0).getDate();
-    return <div className={`month-grid ${small ? "mini-month" : ""}`}>
-      {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => <span className="weekday" key={d}>{d}</span>)}
-      {Array.from({length: offset}, (_, i) => <span key={`blank-${i}`} />)}
-      {Array.from({length: count}, (_, i) => {
-        const day = new Date(gridYear, month, i + 1), events = onDay(day);
-        return <div key={i} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${dateKey(day) === dateKey(focus) ? "is-selected" : ""} ${events.length ? "has-events" : ""}`}>
-          <button type="button" className="calendar-month-date" aria-label={`${day.toLocaleDateString("de-DE")}, ${events.length} Termine im geladenen Zeitraum`} aria-pressed={dateKey(day) === dateKey(focus)} onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong>{i + 1}</strong>{small && events.length>0 && <span className="event-dot" />}</button>
-          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" className="calendar-month-event" key={calendarEventKey(event)} title={event.summary} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span><span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
+    const haltTag = tagSchluessel(tabTag(gridYear, month, focus));
+    const name = new Date(gridYear, month, 1).toLocaleDateString("de-DE", {month: "long", year: "numeric"});
+    return <div className={`month-grid ${small ? "mini-month" : ""}`} role="grid" aria-label={name} aria-readonly="true" onKeyDown={event => rasterTaste(event, small)}>
+      <div className="month-reihe" role="row">{["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"].map(d => <span className="weekday" role="columnheader" aria-label={d} key={d}><span aria-hidden="true">{d.slice(0, 2)}</span></span>)}</div>
+      {monatsWochen(gridYear, month).map((woche, w) => <div className="month-reihe" role="row" key={w}>{woche.map((day, i) => {
+        if (!day) return <span className="month-leer" role="gridcell" key={`leer-${i}`} />;
+        const events = onDay(day), schluessel = tagSchluessel(day), gewaehlt = dateKey(day) === dateKey(focus);
+        return <div key={schluessel} role="gridcell" aria-selected={gewaehlt} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${gewaehlt ? "is-selected" : ""} ${events.length ? "has-events" : ""}`}>
+          <button type="button" className="calendar-month-date" data-tag={schluessel} tabIndex={schluessel === haltTag ? 0 : -1}
+            aria-label={tagBeschriftung(day, events.length, today)} aria-current={dateKey(day) === dateKey(today) ? "date" : undefined}
+            onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong aria-hidden="true">{day.getDate()}</strong>{small && events.length>0 && <span className="event-dot" aria-hidden="true" />}</button>
+          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" tabIndex={-1} className="calendar-month-event" key={calendarEventKey(event)} title={event.summary} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span><span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" tabIndex={-1} onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
         </div>;
-      })}
+      })}</div>)}
     </div>;
   }
   const shown = view === "Liste" ? eventsInRange(items, midnight(focus), plusDays(focus, 7)) : onDay(focus);
@@ -238,7 +312,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   function agenda() {return <div className="calendar-list">{nachTagen(shown).map(gruppe => <section className="calendar-tag" key={gruppe.tag ? dateKey(gruppe.tag) : 'ohne'}>
         <h3>{gruppe.tag ? gruppe.tag.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : "Ohne Datum"}</h3>
         <div className="calendar-tag-zeilen">{gruppe.termine.map(item => <button type="button" className="calendar-entry" key={calendarEventKey(item)} onClick={()=>setDetailsKey(calendarEventKey(item))}>
-          <span className="calendar-entry-zeit">{ganztaegig(item) || !item.start ? "Ganztägig" : <>{time(item.start)}{item.end ? <small>{time(item.end)}</small> : null}</>}</span>
+          <span className={`calendar-entry-zeit${ganztaegig(item) || !item.start ? " calendar-entry-ganztag" : ""}`}>{ganztaegig(item) || !item.start ? "Ganztägig" : <>{time(item.start)}{item.end ? <small>{time(item.end)}</small> : null}</>}</span>
           <i className="calendar-punkt" style={{background:eventColor(item)}} />
           <span className="calendar-entry-text"><strong>{item.summary}</strong>{item.location ? <small>{item.location}</small> : null}</span>
           <span className="g-zeile-pfeil" aria-hidden="true" />
@@ -274,8 +348,10 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {visibleData?.warnings?.map((message, index) => <p className="calendar-hinweis" role="status" key={index}>{message}</p>)}
       {preparationUid && visibleData && !loading && !error && !preparationEvent && <p className="calendar-hinweis" role="status">Der ausgewählte Termin ist in den geladenen Kalendern nicht zu finden. <button type="button" className="g-knopf-schlicht" onClick={() => selectPreparation(null)}>Auswahl schließen</button></p>}
       {ohneKalender ? <Leer className="calendar-leer" satz="Noch kein Kalender verbunden." aktion={kalenderLink("Kalender verbinden", formOffen ? "g-knopf-getoent" : "g-knopf")} /> : <>
-      <div className="calendar-actions"><Segmente label="Kalenderansicht" className="calendar-ansicht" optionen={ANSICHTEN.map(v => ({wert: v, titel: v}))} wert={view} onWahl={setView} />{bereichFilter.segmente}</div>
+      <div className="calendar-actions"><Segmente label="Kalenderansicht" className="calendar-ansicht" optionen={ANSICHTEN.map(v => ({wert: v, titel: v}))} wert={view} onWahl={waehleAnsicht} />{bereichFilter.segmente}</div>
       <div className="calendar-period"><h2>{periodTitle}</h2><span className="calendar-period-nav"><button type="button" className="g-knopf-getoent g-kompakt calendar-pfeil" aria-label="Vorheriger Zeitraum" onClick={() => shift(-1)}>‹</button><button type="button" className="g-knopf-getoent g-kompakt" onClick={() => setFocus(midnight(today))}>Heute</button><button type="button" className="g-knopf-getoent g-kompakt calendar-pfeil" aria-label="Nächster Zeitraum" onClick={() => shift(1)}>›</button></span></div>
+      {/* Leer, weil die Termine in ausgeblendeten Kalendern liegen: ehrlich sagen, mit einem Klick zurück (Paket Z1). */}
+      {ausgeblendet ? <p className="calendar-hinweis calendar-ausgeblendet" role="status">{ausgeblendet.satz} <button type="button" className="g-knopf-schlicht g-kompakt" onClick={() => einblenden(ausgeblendet.kalender.map(k => k.id))}>{ausgeblendet.knopf}</button></p> : null}
       <section className={`calendar-board calendar-board-${view.toLowerCase()}`} aria-label="Kalenderübersicht" aria-busy={loading}>
       {loading && !visibleData && !error && <p className="calendar-hinweis" role="status">Termine werden geladen …</p>}
       {view === "Monat" && grid(focus.getMonth())}
@@ -283,7 +359,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {(view === 'Woche' || view === 'Tag') && timeGrid()}
       {view === "Liste" && <section aria-label="Terminliste">{shown.length ? agenda() : visibleData && !loading ? <Leer satz="Keine Termine in diesen sieben Tagen." /> : null}</section>}
       </section>
-      {visibleData?.configured && !loading && items.length === 0 && visibleData.items.length > 0 && <p className="calendar-fussnote" role="status">{kalenderSichtbar.length > 0 && bereichFilter.wahl !== ALLE ? `In diesem Zeitraum gibt es keine Termine im Bereich ${bereichName(bereichKonten, bereichFilter.wahl)}.` : 'Die Termine dieses Zeitraums stehen in ausgeblendeten Kalendern.'}</p>}
+      {visibleData?.configured && !loading && items.length === 0 && visibleData.items.length > 0 && !ausgeblendet && bereichFilter.wahl !== ALLE && <p className="calendar-fussnote" role="status">{`In diesem Zeitraum gibt es keine Termine im Bereich ${bereichName(bereichKonten, bereichFilter.wahl)}.`}</p>}
       {view !== "Jahr" && view !== "Liste" && shown.length > 0 && <div className="calendar-agenda"><button type="button" className="text-action" aria-expanded={agendaOpen} onClick={()=>setAgendaOpen(open=>!open)}>{shown.length} {shown.length === 1 ? 'Termin' : 'Termine'} am {focus.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} als Liste</button>{agendaOpen && agenda()}</div>}
       </>}
       </div></div>
@@ -293,7 +369,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         {detailsEvent.location ? <p className="calendar-detail-ort">{detailsEvent.location}</p> : null}
         <dl className="calendar-detail-fakten">
           <div><dt>Kalender</dt><dd>{calendarSourceVersions(detailsEvent).map(copy=>copy.source_label||copy.source_id||'Kalender').join(' · ')}</dd></div>
-          {detailsEvent.attendees?.length ? <div><dt>Mit</dt><dd>{detailsEvent.attendees.join(', ')}</dd></div> : null}
+          {detailsEvent.attendees?.length ? <div><dt>Mit</dt><dd>{(detailsEvent.attendee_names?.length ? detailsEvent.attendee_names : detailsEvent.attendees).join(', ')}</dd></div> : null}
         </dl>
         {eventActions(detailsEvent)}
         {preparationEvent&&calendarEventKey(preparationEvent)===calendarEventKey(detailsEvent)&&<CalendarPreparation key={calendarEventKey(preparationEvent)} event={preparationEvent} revision={loadedRevision} onClose={()=>selectPreparation(null)} />}

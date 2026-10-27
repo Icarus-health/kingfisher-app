@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ClaimEvidence } from "./ClaimEvidence";
 import { ClaimCorrection } from "./ClaimCorrection";
 import { api, type RegistryProfile } from "./api";
+import { Rueckfrage } from "./grundlage";
 
 type Claim = Record<string, unknown>;
 function date(value: unknown) {
@@ -39,14 +40,14 @@ export function ClaimControls({claims, history, entities, onChanged}: {claims: C
     return <article key={id}><strong>{String(claim.statement ?? "")}</strong><small>{current ? "Aktuell bestätigter Stand" : status}</small><Details claim={claim} entities={entities} />
       {claim.status === "active" && correcting !== id && <button className="secondary-action" disabled={busy} onClick={() => {setSelected(null);setCorrecting(id);}} type="button">Aussage korrigieren</button>}
       {correcting === id && <ClaimCorrection key={id} claim={claim} onChanged={onChanged} onCancel={() => setCorrecting(null)} />}
-      {claim.status === "active" && correcting !== id && selected !== id && <button className="secondary-action" disabled={busy} onClick={() => {setCorrecting(null);setSelected(id);setReason("");setError(false);}} type="button">Aussage widerrufen</button>}
-      {selected === id && <form aria-label="Aussage widerrufen" onSubmit={event => {event.preventDefault();void retract();}}>
-        <p>Diese Aussage wird nicht weiter als gültiges Wissen verwendet. Ihr Verlauf bleibt erhalten; abhängige Aussagen werden neu bewertet.</p>
-        <label>Grund für den Widerruf<textarea required maxLength={2000} value={reason} disabled={busy} onChange={event => setReason(event.target.value)} /></label>
-        <button className="primary-action" type="submit" disabled={busy || !reason.trim()}>Widerruf bestätigen</button>
-        <button className="secondary-action" type="button" disabled={busy} onClick={() => setSelected(null)}>Abbrechen</button>
-        {error && <p role="alert">Der Widerruf konnte nicht gespeichert werden. Bitte erneut versuchen.</p>}
-      </form>}
+      {claim.status === "active" && correcting !== id && <button className="secondary-action" disabled={busy && selected !== id} onClick={() => {setCorrecting(null);setSelected(id);setReason("");setError(false);}} type="button">Aussage widerrufen</button>}
+      {/* Die Rückfrage als Dialog (Paket B, B3); erst ist der Grund einzutragen, der allein nichts auslöst. */}
+      {selected === id && <Rueckfrage frage="Aussage widerrufen?" satz="Diese Aussage wird nicht weiter als gültiges Wissen verwendet. Ihr Verlauf bleibt erhalten; abhängige Aussagen werden neu bewertet."
+        bestaetigen="Widerruf bestätigen" start="feld" gesperrt={!reason.trim()} arbeitet={busy}
+        fehler={error ? "Der Widerruf konnte nicht gespeichert werden. Bitte erneut versuchen." : null}
+        onBestaetigen={() => void retract()} onAbbrechen={() => { setSelected(null); setError(false); }}>
+        <label>Grund für den Widerruf<textarea data-rueckfrage-feld="" required maxLength={2000} value={reason} readOnly={busy} onChange={event => setReason(event.target.value)} /></label>
+      </Rueckfrage>}
     </article>;
   }
   return <div className="profile-claims claim-controls">

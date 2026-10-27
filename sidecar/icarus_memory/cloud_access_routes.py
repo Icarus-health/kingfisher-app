@@ -21,6 +21,25 @@ PROVIDERS = {
     'openrouter': ('OpenRouter', 'OPENROUTER_API_KEY', 'https://eu.openrouter.ai/api/v1'),
 }
 
+#: Die Modelle je Anbieter, die Kingfisher zur Wahl stellt, das erste ist vorbelegt (Persona-Prüfung, Paket S, Befund 5):
+#: Niemand muss einen Modellnamen kennen. Der Titel sagt in Alltagsworten, wofür es taugt; die Kennung steht nur hinter
+#: „Für Techniker“. Stand 27.10.2026; ein anderes Modell geht weiter von Hand (Muster in `CloudAccessIn`).
+MODELLE = {
+    'anthropic': (('claude-sonnet-5-5', 'Empfohlen: gründlich und schnell'),
+                  ('claude-sonnet-5', 'Die Fassung davor')),
+    'openai': (('gpt-4.1-mini', 'Empfohlen: schnell und günstig'),
+               ('gpt-4.1', 'Gründlicher, dafür teurer')),
+    'mistral': (('mistral-large-latest', 'Empfohlen: das große Modell'),
+                ('mistral-small-latest', 'Schneller und günstiger')),
+    'openrouter': (('mistralai/mistral-large', 'Empfohlen: das große Modell von Mistral'),
+                   ('mistralai/mistral-small', 'Schneller und günstiger')),
+}
+
+
+def modelle(identifier):
+    """Die Wahl für die Oberfläche: je Modell Kennung und Titel."""
+    return [{'id': kennung, 'titel': titel} for kennung, titel in MODELLE.get(identifier, ())]
+
 
 class CloudAccessIn(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -49,6 +68,7 @@ def register(app, guard, data_dir, rebuild):
                 'providers': [{'id': identifier, 'label': label, 'endpoint': endpoint,
                                'key_present': bool(os.environ.get(name)),
                                'model': app.state.settings.cloud_models.get(identifier, ''),
+                               'modelle': modelle(identifier),
                                'privacy': FACTS[identifier],
                                'import_available': (credential_status(keychain, app.state.settings)['available']
                                                     if identifier == 'anthropic' else False)}

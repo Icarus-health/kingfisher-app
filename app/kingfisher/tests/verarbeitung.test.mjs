@@ -39,7 +39,7 @@ test("vorne keine Kacheln mit „Prüflauf“; sie stehen nur hinter „Für Tec
 test("Vorgemerkt, während das Sprachmodell lädt: „An“, nicht „Pausiert“, und kein „wenn du es einschaltest“ (Fremdprobe 3, Befund 3)", () => {
   for (const state of ["model_missing", "local_model_unavailable"]) {
     const vorgemerkt = { state, requested: true, pending: 2 };
-    assert.match(sortierStand(vorgemerkt), /^An: .*sobald das Sprachmodell/);
+    assert.match(sortierStand(vorgemerkt), /^An: .*sobald die KI/);
     assert.doesNotMatch(sortierWirkung(vorgemerkt), /einschaltest/);
   }
 });

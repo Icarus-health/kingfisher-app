@@ -4,7 +4,8 @@ import { api, type GespraechFortschritt } from "./api";
 import { MessageText } from "./MessageText";
 import { navigate } from "./ui";
 import {
-  ABFRAGE_MS, cloudVermerk, LANGSAM_KNOPF, LANGSAM_SATZ, LANGSAM_WEG, langsamHinweis, warteSatz, weggeklickt, wegklicken,
+  ABFRAGE_MS, cloudVermerk, LANGSAM_KNOPF, LANGSAM_WEG, langsamHinweis, langsamSatz, vorbereiteterAnbieter, warteSatz,
+  weggeklickt, wegklicken,
 } from "./wartenImGespraech.ts";
 
 /**
@@ -42,11 +43,12 @@ export function zumCloudSchalter() {
   navigate("/settings#darf");
   let versuche = 0;
   const suchen = () => {
-    const schalter = document.getElementById("darf-cloud");
+    // Erst wenn der Schalter geladen ist: Vorher ist der Abschnitt kürzer, und er rutschte danach aus dem Fenster.
+    const schalter = document.querySelector<HTMLElement>("#darf-cloud input[role=switch]") ? document.getElementById("darf-cloud") : null;
     if (schalter) {
       schalter.scrollIntoView({ block: "center" });
       schalter.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
-    } else if (++versuche < 40) window.setTimeout(suchen, 50);
+    } else if (++versuche < 100) window.setTimeout(suchen, 50);
   };
   window.setTimeout(suchen, 0);
 }
@@ -54,9 +56,18 @@ export function zumCloudSchalter() {
 /** Unter einer langsamen lokalen Antwort, wenn die Cloud aus ist: ein Satz, ein Knopf zum Schalter, einmal wegklickbar. */
 export function LokalLangsam({ kontext, cloudAn }: { kontext: Parameters<typeof langsamHinweis>[0]; cloudAn: boolean | null }) {
   const [weg, setWeg] = useState(() => weggeklickt());
-  if (!langsamHinweis(kontext, { cloudAn, weggeklickt: weg })) return null;
+  const [wohin, setWohin] = useState<string | null>(null);
+  const zeigen = langsamHinweis(kontext, { cloudAn, weggeklickt: weg });
+  // Erst wenn der Hinweis steht: Wohin ginge es? (ein leichter Abruf, nur dann)
+  useEffect(() => {
+    if (!zeigen) return;
+    let aktiv = true;
+    api.modelRoles().then(daten => { if (aktiv) setWohin(vorbereiteterAnbieter(daten.anbieter)); }).catch(() => undefined);
+    return () => { aktiv = false; };
+  }, [zeigen]);
+  if (!zeigen) return null;
   return <p className="lokal-langsam">
-    <span>{LANGSAM_SATZ}</span>
+    <span>{langsamSatz(wohin)}</span>
     <span className="lokal-langsam-knoepfe">
       <button className="g-knopf-getoent g-kompakt" type="button" onClick={zumCloudSchalter}>{LANGSAM_KNOPF}</button>
       <button className="g-knopf-schlicht g-kompakt" type="button" onClick={() => { wegklicken(); setWeg(true); }}>{LANGSAM_WEG}</button>

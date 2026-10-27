@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
   AUSNAHMEN, BEREICHE, FACHWOERTER, ICH, SCHALTER, TECHNIK, VORDERE_DATEIEN, ZUGAENGE,
-  fachwoerter, kennungVon, vordereTexte, zielAus, zugangListe,
+  fachwoerter, kennungVon, vordereTexte, zielAus, zugangListe, zustimmungCloud,
 } from "../src/Einstellungen/gliederung.ts";
 
 const quelle = (datei) => readFileSync(new URL(`../src/${datei}`, import.meta.url), "utf8");
@@ -31,8 +31,12 @@ test("KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und a
   }
 });
 
-test("es gibt genau acht Schalter, und bei jedem steht, was den Rechner verlässt", () => {
-  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud", "cloud_einordnung", "aufgaben_selbst"]);
+test("es gibt genau elf Schalter, und bei jedem steht, was den Rechner verlässt", () => {
+  // Paket D der Persona-Prüfung: Webabruf und Update-Prüfung stehen jetzt auch hier, mit ihrem Satz.
+  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud", "cloud_einordnung", "web", "quellen", "updates", "aufgaben_selbst"]);
+  // Paket S, offener Rest aus D: die eingetragenen öffentlichen Seiten, ehrlich wie die Update-Prüfung.
+  assert.match(SCHALTER.quellen.verlaesst, /IP-Adresse/);
+  assert.match(SCHALTER.quellen.verlaesst, /Aus: /);
   for (const [id, schalter] of Object.entries(SCHALTER)) {
     assert.match(schalter.verlaesst, /verl(ä|a)ss/, `${id}: sagt nicht, was den Rechner verlässt`);
     assert.ok(schalter.titel.length > 8 && schalter.verlaesst.length < 260, id);
@@ -40,7 +44,7 @@ test("es gibt genau acht Schalter, und bei jedem steht, was den Rechner verläss
   assert.match(SCHALTER.autostart.verlaesst, /nichts/);
   assert.match(SCHALTER.mitteilungen.verlaesst, /nichts/);
   assert.match(SCHALTER.cloud.verlaesst, /Aus: alles bleibt auf diesem Rechner/);
-  assert.match(SCHALTER.cloud.zustimmung, /willige ein/);
+  assert.match(zustimmungCloud({ wohin: "Mistral (Frankreich)", region: "in der EU oder der EFTA verarbeitet" }), /Mistral \(Frankreich\).*willige ein/);
   // Neue Mails in der Cloud einordnen: nur Anthropic, der Satz zur Einwilligung kommt vom Sidecar (eine Quelle).
   assert.match(SCHALTER.cloud_einordnung.titel, /Neue Mails in der Cloud einordnen/);
   assert.match(SCHALTER.cloud_einordnung.verlaesst, /Anthropic/);

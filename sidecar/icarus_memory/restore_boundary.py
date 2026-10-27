@@ -16,6 +16,8 @@ import time
 import uuid
 
 MARKER = 'restore-state.json'
+#: Anfragen, die den Datenbestand austauschen: Sie warten, bis keine andere Anfrage mehr läuft, und lassen keine zu.
+EXKLUSIV = frozenset({'/backups/restore', '/api/v1/sicherungen/wiederherstellen'})
 CAPABILITY = 1
 _active = ContextVar('kingfisher_runtime_boundaries', default=frozenset())
 
@@ -114,7 +116,7 @@ class RecoveryBoundaryMiddleware:
             return await self.app(scope, receive, send)
         if pending(self.boundary.directory):
             return await self.inspection(scope, receive, send)
-        exclusive = scope['path'] == '/backups/restore' and scope['method'] == 'POST'
+        exclusive = scope['path'] in EXKLUSIV and scope['method'] == 'POST'
         # Do not occupy a worker thread while waiting for requests/jobs to drain.
         while not self.boundary.try_enter(exclusive=exclusive):
             if pending(self.boundary.directory):

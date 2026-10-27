@@ -38,12 +38,22 @@ def test_import_today_does_not_promote_old_unknown_or_future_mail(stores, date):
     assert result['review_pending'] == 1
 
 
-def test_initial_inventory_is_not_live_mail_even_when_its_date_is_recent(stores):
-    e = candidate(stores, NOW - timedelta(hours=1))
+def test_initial_inventory_is_not_live_mail_even_when_its_date_is_within_the_week(stores):
+    """Vier Tage vor dem Einlesen: im Wochenfenster, aber Bestand. Bis drei Tage gilt sie als zeitnah (Befund A5,
+    `test_bestand_zeitnah.py`)."""
+    e = candidate(stores, NOW - timedelta(days=4))
     with stores[0].transaction():
         stores[0]._conn.execute("INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES('work','INBOX','1',1,'history','captured',?)", (e.id,))
     result = for_briefing(*reversed(stores), now=NOW)
     assert result['items'] == [] and result['review_pending'] == 1
+
+
+def test_initial_inventory_from_the_last_hours_is_offered_like_new_mail(stores):
+    e = candidate(stores, NOW - timedelta(hours=1))
+    with stores[0].transaction():
+        stores[0]._conn.execute("INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES('work','INBOX','1',1,'history','captured',?)", (e.id,))
+    result = for_briefing(*reversed(stores), now=NOW)
+    assert [item['episode_id'] for item in result['items']] == [e.id] and result['review_pending'] == 0
 
 
 def test_recent_mail_is_offered_as_a_dated_suggestion(stores):

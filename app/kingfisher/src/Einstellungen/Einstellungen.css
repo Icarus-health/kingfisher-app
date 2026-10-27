@@ -339,6 +339,10 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell .konto-zeile .g-zeile-text { min-width: 0; display: grid; gap: 1px; }
 #root .settings-shell .konto-name { justify-self: start; max-width: 100%; min-height: 0; padding: 0; border: 0; background: none; color: var(--g-tinte); text-align: left; cursor: text; border-radius: 4px; }
 #root .settings-shell .konto-name:hover { text-decoration: underline; text-decoration-color: var(--g-linie); text-underline-offset: 3px; }
+/* Paket S, Befund 8: „Umbenennen“ sichtbar neben dem Namen, leise wie ein Verweis; der Name selbst ist kein Knopf mehr. */
+#root .settings-shell .konto-titel { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--g-a3); min-width: 0; }
+#root .settings-shell .konto-titel > .g-zeile-titel { min-width: 0; overflow-wrap: anywhere; }
+#root .settings-shell .konto-umbenennen { min-height: 0; padding: 0 2px; font-size: 13px; font-weight: 500; }
 #root .settings-shell .konto-name-eingabe { width: 100%; min-height: 36px; padding: 4px 8px; font: 500 16px/1.35 var(--g-schrift); }
 #root .settings-shell .konto-stand { white-space: normal; overflow-wrap: anywhere; font: var(--g-fussnote); color: var(--g-leise); }
 #root .settings-shell .konto-stand-fehler { color: var(--g-rot); white-space: normal; }
@@ -357,3 +361,25 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
   #root .settings-shell :is(.konto-frage, .konto-wahl, .konto-fehler) { padding-left: var(--g-a4); }
   #root .settings-shell .zugang-liste > .konto ~ .konto::before { left: var(--g-a4); }
 }
+
+/* Was an die Cloud ging (Persona-Prüfung, Paket D): eine leise, aufklappbare Liste ohne Inhalte. */
+#root .settings-shell .darf-zeile .cloud-protokoll { display: grid; gap: var(--g-a2); }
+#root .settings-shell .darf-zeile .cloud-protokoll > summary { min-height: var(--g-ziel); display: flex; align-items: center; font: var(--g-neben); color: var(--g-leise); cursor: pointer; }
+#root .settings-shell .darf-zeile .cloud-protokoll-liste { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font: var(--g-neben); color: var(--g-tinte); overflow-wrap: anywhere; }
+#root .settings-shell .darf-zeile .cloud-protokoll-zeit { color: var(--g-leise); font-variant-numeric: tabular-nums; }
+
+/* Gelöschte Personen (Paket P, D7): Name links, „Wieder aufnehmen“ rechts. */
+.ich-gesperrt > div { align-items: center; justify-content: space-between; }
+#root .settings-shell .ich-gesperrt strong { font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte); }
+
+/* Stand wiederherstellen (Paket P, D7): Sicherungen als Auswahl, nie als Pfad. */
+.sicherung-zurueck form { display: grid; gap: var(--g-a3); margin-top: var(--g-a3); }
+.sicherung-liste { display: grid; gap: var(--g-a1); margin: 0; padding: 0; border: 0; min-width: 0; }
+.sicherung-liste legend { margin: 0 0 var(--g-a1); padding: 0; }
+.sicherung-wahl { display: flex; align-items: center; gap: var(--g-a3); min-height: var(--g-ziel); padding: 0 var(--g-a2); border-radius: var(--g-radius-bedien); cursor: pointer; }
+.sicherung-wahl:hover { background: var(--g-getoent); }
+.sicherung-wahl input { width: 18px; height: 18px; margin: 0; flex: 0 0 auto; accent-color: var(--g-akzent); }
+.sicherung-wahl span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-a2); min-width: 0; }
+.sicherung-wahl strong { font: 500 15px/1.35 var(--g-schrift); color: var(--g-tinte); }
+.sicherung-wahl small { font: var(--g-fussnote); color: var(--g-leise); }
+.sicherung-knoepfe { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--g-a2); }

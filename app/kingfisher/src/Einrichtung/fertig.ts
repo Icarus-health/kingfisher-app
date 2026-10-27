@@ -65,6 +65,15 @@ export function liestSatz({mail, kalender}: {mail: boolean; kalender: boolean}):
  * Die Pause hält ältere Mails und das Sortieren an; neue Post holt Kingfisher weiter (docs/46-hintergrund.md). */
 export const PAUSIEREN_AUF_HEUTE = "Anhalten kannst du beides jederzeit auf Heute mit „Pausieren“; neue Post holt Kingfisher dann weiter.";
 
+/** Der Satz unter den Häkchen, passend zu ihrer Zahl (Persona-Prüfung, Paket S, Befund 6: „beides“ stand unter einem
+ * einzigen Häkchen). Zwei: `PAUSIEREN_AUF_HEUTE`; eines: „das“ bzw. „das Sortieren“; keins: nichts. */
+export function pausierenSatz({einlesen, sortieren}: {einlesen: boolean; sortieren: boolean}): string | null {
+  if (einlesen && sortieren) return PAUSIEREN_AUF_HEUTE;
+  if (einlesen) return "Anhalten kannst du das jederzeit auf Heute mit „Pausieren“; neue Post holt Kingfisher dann weiter.";
+  if (sortieren) return "Anhalten kannst du das Sortieren jederzeit auf Heute mit „Pausieren“.";
+  return null;
+}
+
 export type Zahl = {titel: string; wert: number | null};
 
 /**
@@ -73,14 +82,17 @@ export type Zahl = {titel: string; wert: number | null};
  * gelesen ist, ohne es zu sagen. Jetzt: Termine erst nach dem Abgleich (bis dahin `null`, also „…“), Mails nur, wenn das
  * Einlesen läuft, und die Beschriftung sagt, was gezählt ist.
  */
-export function schonDaZahlen({mail, kalender, intake, termine}: {
+export function schonDaZahlen({mail, kalender, intake, termine, mailImLernen = false}: {
   mail: boolean; kalender: boolean; intake: MailIntakeStatus | null;
   /** Termine im Gedächtnis nach dem ersten Abgleich auf dieser Seite; `null`, solange er läuft. */
   termine: number | null;
+  /** „Kingfisher lernt gerade“ zeigt die gelesenen Mails schon (Paket S, Befund 6: „0 Mails gelesen“ stand direkt nach
+   * „Mails gelesen 5“, zwei Zählungen derselben Sache). Dann steht die Zahl nur dort. */
+  mailImLernen?: boolean;
 }): Zahl[] {
   const zahlen: Zahl[] = [];
   const gestartet = (intake?.accounts ?? []).filter(konto => konto.connected && konto.started);
-  if (mail && gestartet.length) {
+  if (mail && gestartet.length && !mailImLernen) {
     zahlen.push({titel: "Mails gelesen", wert: gestartet.reduce((summe, konto) => summe + deriveIntakeProgress(konto).sources, 0)});
   }
   if (kalender) zahlen.push({titel: "Termine aufgenommen", wert: termine});

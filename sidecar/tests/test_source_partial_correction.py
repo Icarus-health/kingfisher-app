@@ -59,7 +59,7 @@ def test_changed_paragraph_keeps_complete_corrected_context(partial):
     assert _items(app, corrected) == [(f'{changed}\n\n{ANRUF}\n\n{GRUSS}', 'change')]
     answer = _ask(client, _conversation(client), 'Wann liefert Anna den Entwurf für Mainz?')
     assert '28. September' in answer['content'] and '25. September' not in answer['content']
-    assert 'Änderung · Deine Berichtigung' in answer['content']
+    assert next(z for z in answer['content'].splitlines() if z.startswith('Deine Berichtigung')).endswith('(darin: Änderung):')
 
 
 def test_changed_neighbour_does_not_certify_old_condition(partial):

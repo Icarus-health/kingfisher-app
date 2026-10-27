@@ -171,6 +171,7 @@ class Einordnung:
         self._agent = agent
         self._gebunden: tuple[Any, Any] | None = None  # (episode, snapshot) der laufenden Quelle
         self.scoped = ScopedProvider(provider, None, self._vor_dem_senden)
+        self.scoped.wofuer = "einordnung"
 
     # -- Freigabe je Aufruf ----------------------------------------------------------------------------------------
 

@@ -41,6 +41,15 @@ sollte es nicht.
 
 Siehe `sidecar/icarus_memory/briefing.py`.
 
+**Eine Zahl** (Persona-Prüfung, Paket Z1, 27.10.2026). Das Briefing zeigt höchstens drei Punkte, zählt aber alles, was
+dich heute braucht, bevor es kürzt (`Briefing.zaehlung`, auf Heute `braucht_dich`): die Aufgaben nach der einen Regel
+„braucht dich heute“ (offen, bei dir, fällig heute oder früher; `zaehlung.heute_dran`) und die übrigen Punkte. Heute
+und Aufgaben sagen damit denselben Satz mit derselben Zahl („18 Aufgaben brauchen dich heute.“, auf Heute „18 Aufgaben
+und ein weiterer Punkt brauchen dich heute.“); neben „Braucht dich“ steht „3 von 19“, wenn Heute nur das Wichtigste
+zeigt, darunter „Hier steht das Wichtigste, 3 von 19. Alle 18 Aufgaben ansehen“. Ein Punkt „Heute sind 3 Aufgaben
+fällig.“ zählt drei (`Punkt.anzahl`). Eine wartende Aufgabe steht in keinem Aufgabenpunkt; „überfällig“ heißt ein
+früherer Kalendertag, nicht eine verstrichene Uhrzeit.
+
 **Was jemand von dir will.** Die Zusagenerkennung liest aufgenommene Mails
 und legt erkannte Bitten als Aufgabenvorschläge ab. Das Briefing nennt den
 ältesten davon mit Absender und Datum („Aus einer Mail von Anna Keller vom

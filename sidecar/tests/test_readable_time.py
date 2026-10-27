@@ -1,4 +1,5 @@
 """Zeitangaben in Antworten sind lesbar und stehen in der Zeitzone des Nutzers."""
+import re
 from datetime import datetime, timedelta, timezone
 
 from icarus_memory.model import readable_time
@@ -40,9 +41,9 @@ def test_conversation_source_time_is_readable_in_answers(core, tmp_path, monkeyp
                     json={'message': 'Für den Gusstest bitte erst nach 11 Uhr anrufen.', 'answer_mode': 'chat'})
         run_working(app)
         answer = _ask(client, _conversation(client), 'Wann kann man mich wegen des Gusstests anrufen?')
-        line = next(line for line in answer['content'].splitlines() if line.startswith('Quellenzeit:'))
-        assert line.endswith(' Uhr') and 'T' not in line.removeprefix('Quellenzeit: ')
-        datetime.strptime(line.removeprefix('Quellenzeit: '), '%d.%m.%Y, %H:%M Uhr')
+        line = next(line for line in answer['content'].splitlines() if line.startswith('Gespräch vom '))
+        assert 'T' not in line
+        assert re.fullmatch(r'Gespräch vom \d{1,2}\. [A-Za-zä]+ \d{4}, \d{2}:\d{2} Uhr( \(darin: [^)]+\))?:', line), line
     finally:
         client.close()
         _close_app(app)

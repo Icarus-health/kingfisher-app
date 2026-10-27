@@ -11,6 +11,7 @@ import { TaskSource } from "./TaskSource";
 import { IdentityControls } from "./IdentityControls";
 import { displayLabel } from "./displayIdentity";
 import { PersonDigest } from "./PersonDigest";
+import { PersonMehr } from "./PersonMehr";
 import { Chronik, MappeDetails } from "./MappeDetails";
 import { AkteAnsicht } from "./AkteAbschnitte";
 import { GeburtstagKarte, KreisKarte } from "./KreisKarten";
@@ -22,6 +23,10 @@ import { Leer, Segmente } from "./grundlage";
 import "./WorkspaceMemoryDetails.css";
 import "./Gedaechtnis.css";
 import { memoryReturnPath } from "./profileReturn";
+import { projekteImGedaechtnis } from "./projekteOrt";
+
+/** Führt der Rückweg zu den Projekten (unter Aufgaben, Paket H, H2), heißt er so. */
+const zurueckName = (pfad: string) => projekteImGedaechtnis(pfad.slice(pfad.indexOf("?") + 1)) ? "← Projekte" : "← Gedächtnis";
 
 type ProfileKind = "person" | "project";
 type PersonTab = "overview" | "projects" | "conversations" | "documents" | "notes";
@@ -66,20 +71,33 @@ function PersonKarten({ person }: { person: PersonProfileData["person"] }) {
   return <section className="profile-card profile-wide mappe"><KreisKarte sache={sache} /><GeburtstagKarte sache={sache} /></section>;
 }
 
+function wartetWas(punkt: NonNullable<PersonProfileData["person"]["wartet_auf_punkte"]>[number]) {
+  if (punkt.richtung === "von_mir") return punkt.einladung ? "Deine Einladung" : "Deine Bitte";
+  return punkt.art === "Zusage" ? "Zusage an dich" : punkt.art;
+}
+
 function PersonProfile({ data, tab, setTab, avatarId }: { avatarId: string; data: PersonProfileData; tab: PersonTab; setTab: (tab: PersonTab) => void }) {
   const person = data.person;
   const documents = data.interactions.filter(item => item.kind === "document");
   const conversations = data.interactions.filter(item => item.kind !== "document");
-  const taskCards = person.offene_aufgaben.filter(task => !!task.wartet_auf && task.status === "open").map(task => <article key={task.id}><a href={`/vorhaben?view=${task.wartet_auf ? "waiting" : "mine"}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ""}`}><strong>{task.title}</strong></a><small>{task.due ? `Fällig ${profileDate(task.due)}` : "Ohne Termin"}{task.wartet_auf ? ` · wartet auf ${displayLabel(task.wartet_auf).name}` : ""}</small>{task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}</article>);
+  // Befund A7: Eine Quelle der Wahrheit. Die Karte zeigt, was „Worauf warte ich noch?“ für diese Person sagt
+  // (Aufgaben „wartet auf“ und die vermutlich offenen Bitten und Zusagen ihrer Akte); die Akte darunter wiederholt
+  // es nicht. Ältere Antworten ohne diese Angabe zeigen wie bisher nur die Aufgaben.
+  const punkte = person.wartet_auf_punkte;
+  const taskCards = punkte ? punkte.map((punkt, index) => punkt.aufgabe
+    ? <article key={`a:${punkt.aufgabe.id}`}><a href="/vorhaben?view=waiting" onClick={e => { e.preventDefault(); navigate("/vorhaben?view=waiting"); }}><strong>{punkt.aufgabe.title}</strong></a><small>Aufgabe · wartet auf {punkt.wartet_auf}</small></article>
+    : <article key={`p:${index}:${punkt.episode_id}`}><blockquote>{punkt.text}</blockquote><small>{wartetWas(punkt)}{punkt.occurred_at ? ` · ${profileDate(punkt.occurred_at)}` : ""}{punkt.nachgefasst ? ` · nachgefragt ${profileDate(punkt.nachgefasst)}` : ""} · vermutlich offen</small>{punkt.episode_id ? <ProfileSource kind="episode" id={punkt.episode_id} label="Quelle öffnen" quiet readOnly allowIgnore={false} /> : null}</article>)
+    : person.offene_aufgaben.filter(task => !!task.wartet_auf && task.status === "open").map(task => <article key={task.id}><a href={`/vorhaben?view=${task.wartet_auf ? "waiting" : "mine"}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ""}`}><strong>{task.title}</strong></a><small>{task.due ? `Fällig ${profileDate(task.due)}` : "Ohne Termin"}{task.wartet_auf ? ` · wartet auf ${displayLabel(task.wartet_auf).name}` : ""}</small>{task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}</article>);
   const tabs: Array<[PersonTab, string]> = [["overview", "Übersicht"], ["projects", "Projekte"], ["conversations", "Gespräche"], ["documents", "Dokumente"], ["notes", "Notizen"]];
   return <>
     <div className="person-profile-header"><MemoryAvatarEditor id={avatarId} label={person.anzeige ?? displayLabel(person.name).name} />
     <header className="profile-heading"><h1>{person.anzeige ?? displayLabel(person.name).name}</h1>{(person.adressen?.length ?? 0) > 0 ? <p>{person.adressen!.join(", ")}</p> : displayLabel(person.name).detail && <p>{displayLabel(person.name).detail}</p>}{(person.namen?.length ?? 0) > 1 && <p>Auch bekannt als: {person.namen!.slice(1).join(", ")}</p>}{(person.offen_mit?.length ?? 0) > 0 && <p>Nicht eindeutig zuzuordnen: passt zu {person.offen_mit!.join(" oder ")}.</p>}<span>{person.nur_von_aussen ? "Nur aus fremden Quellen bekannt" : kontakteText(person)}</span></header></div>
+    <PersonMehr angabe={person.verweis ?? person.name} name={person.anzeige ?? displayLabel(person.name).name} />
     <Segmente className="profile-segmente" label="Personenprofilbereiche" wert={tab} optionen={tabs.map(([wert, titel]) => ({wert, titel}))} onWahl={setTab} />
     {tab === "overview" ? <div className="profile-grid">
       <section className="profile-card profile-wide person-at-a-glance"><div><h2>Zusammenfassung</h2><p><span className="profile-fact-label">Letzter Kontakt</span> {profileDate(person.letzter_kontakt) !== "—" ? profileDate(person.letzter_kontakt) : "Nicht belegt"}</p></div><div><h2>Wie verbunden?</h2>{data.contexts.length ? <div className="person-project-links">{data.contexts.slice(0,3).map(context=><MemoryEntityLink kind="project" key={String(context.project.id)} href={`/memory/projects/${encodeURIComponent(String(context.project.id))}`}>{field(context.project,"name")}</MemoryEntityLink>)}{data.contexts.length>3 && <button type="button" onClick={()=>setTab('projects')}>Alle {data.contexts.length} Projekte</button>}</div> : <p>Noch kein belegter Projektbezug.</p>}<details className="quiet-details"><summary>{person.kontakte ?? data.interactions.length} {(person.kontakte ?? data.interactions.length) === 1 ? "Quellenkontakt" : "Quellenkontakte"} · Herkunft</summary><p>{person.nur_von_aussen ? "Bisher aus Erwähnungen in fremden Quellen bekannt." : "Bezug aus den vorhandenen Quellen."}</p><p>{person.herkuenfte.length ? person.herkuenfte.map(sourceLabel).join(", ") : "Keine Quelle angegeben."}</p></details></div></section>
-      <section className={`profile-card profile-wide person-waiting${taskCards.length ? "" : " is-empty"}`}><h2>Worauf ich warte</h2>{taskCards.length ? <><div className="profile-list profile-waiting-list">{taskCards.slice(0, 5)}</div>{taskCards.length > 5 ? <details><summary>Weitere offene Aufgaben ({taskCards.length - 5})</summary><div className="profile-list profile-waiting-list">{taskCards.slice(5)}</div></details> : null}</> : <p className="profile-empty">Noch keine Rückmeldung von dieser Person vorgemerkt. Weitere Aufgaben können in gemeinsamen Quellen stehen.</p>}</section>
-      {(person.adressen ?? []).length ? (person.adressen ?? []).slice(0, 3).map((adresse, index) => <AkteAnsicht compact key={adresse} sache={`person:a:${adresse.toLowerCase()}`} fallback={index === 0 ? <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></> : null} />) : <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></>}
+      <section className={`profile-card profile-wide person-waiting${taskCards.length ? "" : " is-empty"}`}><h2>Worauf ich warte</h2>{taskCards.length ? <><div className="profile-list profile-waiting-list">{taskCards.slice(0, 5)}</div>{taskCards.length > 5 ? <details><summary>Weitere offene Aufgaben ({taskCards.length - 5})</summary><div className="profile-list profile-waiting-list">{taskCards.slice(5)}</div></details> : null}</> : <p className="profile-empty">{punkte ? "Du wartest auf nichts von dieser Person, soweit Aufgaben und Akte es zeigen." : "Noch keine Rückmeldung von dieser Person vorgemerkt. Weitere Aufgaben können in gemeinsamen Quellen stehen."}</p>}</section>
+      {(person.adressen ?? []).length ? (person.adressen ?? []).slice(0, 3).map((adresse, index) => <AkteAnsicht compact ohneWarten={Boolean(punkte)} key={adresse} sache={`person:a:${adresse.toLowerCase()}`} fallback={index === 0 ? <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></> : null} />) : <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></>}
       <PersonDigest personId={data.id} compact />
       {person.themen.length>0 && <details className="profile-card profile-wide quiet-details"><summary>Themen & Verbindungen ({person.themen.length})</summary><div className="person-topic-list">{person.themen.map(topic=><span key={topic}>{topic}</span>)}</div></details>}
       <details className="profile-card profile-wide quiet-details"><summary>Bestätigter Wissensstand ({data.claims.length})</summary><ClaimList claims={data.claims} history={data.claim_history} /></details>
@@ -139,7 +157,7 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, kind))} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, kind))} type="button">{zurueckName(memoryReturnPath(window.location.search, kind))}</button>
       {error ? <section className="profile-state" aria-label={title}><Leer zeichen="people" satz="Dieses Profil ist gerade nicht erreichbar oder nicht belegt." aktion={<button className="g-knopf-getoent" onClick={() => window.location.reload()} type="button">Wiederholen</button>} /></section> : null}
       {!error && !data && !contactSources ? <section className="profile-state profile-loading" aria-label={`${title} wird geladen`}><i /><i /><i /></section> : null}
       {contactSources ? <section className="profile-card profile-wide profile-absender">
@@ -168,7 +186,7 @@ export function RegistryProfile({ identifier, recentConversation }: { identifier
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))} type="button">{zurueckName(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))}</button>
       {error ? <section className="profile-state" aria-label="Profil"><Leer zeichen="people" satz="Dieses Profil ist gerade nicht erreichbar oder nicht belegt." aktion={<button className="g-knopf-getoent" onClick={() => window.location.reload()} type="button">Wiederholen</button>} /></section> : null}
       {!error && !data ? <section className="profile-state profile-loading" aria-label="Profil wird geladen"><i /><i /><i /></section> : null}
       {data ? <>

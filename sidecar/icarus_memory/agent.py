@@ -53,6 +53,34 @@ class EgressBlocked(Exception):
     """
 
 
+class CloudWiderrufen(ProviderError):
+    """Die Einwilligung für die Cloud gilt nicht (mehr): Vor diesem Versand geprüft, und nichts ist hinausgegangen."""
+
+
+#: Steht im Gespräch, wenn die Cloud mitten in einer Antwort ausgeschaltet wurde (Persona-Prüfung, D1).
+CLOUD_AUS_SATZ = ("Die Cloud ist ausgeschaltet. Ab hier ist nichts mehr an den Anbieter gegangen. Frag noch einmal, "
+                  "dann bleibt die Antwort auf diesem Rechner.")
+
+
+class _VorVersand:
+    """Ein Anbieter, der vor jedem einzelnen Aufruf `vorher()` ruft (Einwilligung prüfen, Versand vermerken)."""
+
+    def __init__(self, anbieter, vorher) -> None:
+        self._anbieter = anbieter
+        self._vorher = vorher
+
+    def __getattr__(self, name):
+        return getattr(self._anbieter, name)
+
+    def complete(self, messages, tools):
+        self._vorher()
+        return self._anbieter.complete(messages, tools)
+
+    def complete_json(self, messages, **kwargs):
+        self._vorher()
+        return self._anbieter.complete_json(messages, **kwargs)
+
+
 _RANK: dict[Sensitivity, int] = {
     Sensitivity.NORMAL: 0,
     Sensitivity.SENSITIVE: 1,
@@ -577,6 +605,10 @@ class Agent:
             anbieter = holen() if callable(holen) else None
         except Exception:  # noqa: BLE001 - ohne Anbieter bleibt der Rückfall
             anbieter = None
+        if anbieter is not None and not getattr(anbieter, 'is_local', False):
+            # Auch die Frage allein geht nur unter der Einwilligung hinaus, die jetzt gilt (D1); sonst der Rückfall.
+            cloud = anbieter
+            anbieter = _VorVersand(cloud, lambda: self._cloud_vor_versand(cloud, 'frage'))
         start = time.perf_counter()
         if anbieter is not None:
             zeitmessung.melde('frage')  # Zwischenstand im Gespräch (`gespraech_fortschritt.py`)
@@ -604,6 +636,28 @@ class Agent:
         except Exception:  # noqa: BLE001 - ohne Tor läuft die zweite Prüfung nicht, und die Antwort sagt es
             tor = None
         return tor if isinstance(tor, satzpruefung_modell.Tor) else satzpruefung_modell.OHNE
+
+    def _cloud_vor_versand(self, anbieter, wofuer):
+        """Unmittelbar vor jedem einzelnen Versand an einen Anbieter, der nicht lokal ist (Persona-Prüfung, D1).
+
+        Ein Anbieter, der aus einer Einwilligung gebaut wurde (Marke `cloud_einwilligung`, `model_roles._markiert`),
+        sendet nur, solange genau diese Einwilligung jetzt gilt (`_antwort_cloud`, `gedaechtnis_cloud.freigabe_gueltig`,
+        bei jedem Aufruf frisch aus den Einstellungen gelesen); sonst `CloudWiderrufen`, und nichts geht hinaus. Ohne
+        Verdrahtung gilt keine Einwilligung. Jeder Versand an einen nicht lokalen Anbieter steht danach ohne Inhalt im
+        Logbuch (`nach_draussen.vermerken`), auch der eines Standardanbieters aus der Umgebung.
+        """
+        if anbieter is None or getattr(anbieter, 'is_local', False):
+            return
+        if getattr(anbieter, 'cloud_einwilligung', None) is not None:
+            gilt = getattr(self, '_antwort_cloud', None)
+            try:
+                frei = callable(gilt) and gilt(anbieter) is True
+            except Exception:  # noqa: BLE001 - im Zweifel geht nichts hinaus
+                frei = False
+            if not frei:
+                raise CloudWiderrufen(CLOUD_AUS_SATZ)
+        from . import nach_draussen
+        nach_draussen.vermerken(anbieter, wofuer)
 
     def _gedaechtnis_anbieter(self):
         """Der Anbieter für eine Gedächtnisantwort: der lokale, oder der Cloudanbieter der Rolle `antwort` unter gültiger
@@ -635,6 +689,18 @@ class Agent:
             self.assert_egress_allowed(messages)
 
         return gedaechtnis_cloud.GedaechtnisCloud(anbieter, pruefen)
+
+    def _lesestand_satz(self) -> str:
+        """„Kingfisher liest deine Post gerade noch ein (120 von 300 Mails).“, solange noch gelesen wird; sonst leer.
+
+        Die Verdrahtung (`agent_verdrahtung.lesestand_satz`) liest denselben Stand wie Heute und „Kingfisher lernt
+        gerade“. Ohne sie oder bei einem Fehler: leer, und die Antwort bleibt, wie sie war.
+        """
+        try:
+            satz = getattr(self, "_lesestand", lambda: "")()
+        except Exception:  # noqa: BLE001 - ein fehlender Stand kostet keine Antwort
+            return ""
+        return satz.strip() if isinstance(satz, str) else ""
 
     def _gedaechtnis_erlaubt(self):
         """Gibt es einen Anbieter, der Quellentext für eine Gedächtnisantwort sehen darf (`_gedaechtnis_anbieter`)?"""
@@ -1219,6 +1285,13 @@ class Agent:
         angaben = self._quellen_angaben(rows)
         turn.reply = envelope.render_readable(kind, ids, reason=contract.get("reason"), angaben=angaben)
         turn.context["quellen"] = envelope.quellen(kind, ids, angaben=angaben)
+        if kind == "unknown":
+            # Befund A2: Kurz nach der Einrichtung liest Kingfisher noch. Dann ist „nicht beantwortbar“ nur der
+            # Stand von eben; die Antwort sagt das in einem Satz und bietet an, mit dem neuen Stand neu zu fragen.
+            lesestand = self._lesestand_satz()
+            if lesestand:
+                turn.reply = f"{lesestand} Bisher habe ich dazu nichts gefunden. Frag gleich noch einmal."
+                turn.context.update(einlesen=True, original_question=question, refresh_available=True)
         contract["status"] = kind
         contract["selected_assertion_ids"] = [rows[alias]["assertion_id"] for alias in selected]
         if (turn.context.get("knowledge_retrieval") or {}).get("truncated"):
@@ -1511,12 +1584,24 @@ class Agent:
             ]
             self.assert_egress_allowed(messages)
             try:
+                # Vor jeder Runde, auch nach einem Werkzeug: Gilt die Einwilligung noch? (Persona-Prüfung, D1)
+                self._cloud_vor_versand(self._provider, 'gespraech')
                 reply = self._provider.complete(messages, schemas)
+            except CloudWiderrufen:
+                turn.reply = CLOUD_AUS_SATZ
+                turn.context['cloud_widerrufen'] = True
+                return turn
             except ProviderError as exc:
                 if self._knowledge_inputs_changed(revision):
                     return self._invalidated_turn(turn, message)
                 turn.reply = f"Das Modell war nicht erreichbar: {exc}"
                 return turn
+
+            if not getattr(self._provider, 'is_local', False):
+                # Leise erkennbar: Diese Antwort kam über die Cloud (Kleinpunkt a), wie bei Gedächtnisantworten.
+                from . import nach_draussen
+                turn.context['cloud_antwort'] = {'anbieter': nach_draussen.anbieter_id(self._provider),
+                                                 'modell': str(getattr(self._provider, 'model', '') or '')}
 
             # Time-only expiry does not increment revision. Recheck ALL prior
             # input roots, before accepting text or executing any returned tool.

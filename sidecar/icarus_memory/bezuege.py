@@ -134,6 +134,18 @@ def norm(text: str) -> str:
     return ''.join(zeichen for zeichen in str(text or '').casefold() if zeichen.isalnum())
 
 
+def suchformen(suche: str) -> list[str]:
+    """Die Schreibweisen eines Suchbegriffs für Kennungen (Befund A7): wie getippt, in Umschrift („Müller“ →
+    „mueller“), zurück in Umlaute („Mueller“ → „müller“) und ohne Umlautpunkte („muller“), jeweils wie `norm`."""
+    from .word_forms import umschrift_gleich, umschriften
+    formen = [norm(suche), norm(umschrift_gleich(suche))]
+    formen += [norm(f) for f in umschriften(umschrift_gleich(suche))]
+    import unicodedata
+    formen.append(norm(''.join(z for z in unicodedata.normalize('NFD', str(suche or '').casefold())
+                               if not unicodedata.combining(z))))
+    return [f for f in dict.fromkeys(formen) if f][:12]
+
+
 def sache_id(art: str, kennung: str) -> str:
     return f'{art}:{kennung}'
 
@@ -147,6 +159,16 @@ def zerlegen(sache: str) -> tuple[str, str] | None:
 def org_kennung(name: str) -> str:
     """Kennung einer Organisation aus ihrem Namen: ohne Rechtsform („Winter Catering GmbH“)."""
     return norm(_RECHTSFORM.sub(' ', str(name or '')))
+
+
+def org_vergleich(name: str) -> str:
+    """Eine Organisation zum Vergleichen (Befund A7): ohne Rechtsform, Umlaute in Umschrift, nur Buchstaben und Ziffern.
+
+    „Müller Bau GmbH“, „Mueller Bau“ und die Domäne `mueller-bau` ergeben dasselbe. Nur ein Vergleichswert; die
+    Kennungen der Akten bleiben, wie sie sind.
+    """
+    from .word_forms import umschrift_gleich
+    return norm(umschrift_gleich(_RECHTSFORM.sub(' ', str(name or '').replace('-', ' '))))
 
 
 def org_aus_adresse(adresse: str, eigene_domaenen: Iterable[str] = ()) -> str:
@@ -243,10 +265,34 @@ class Register:
     #: Adressen, die die Aufnahme als eigene gekennzeichnet hat („ich“). Nur zum Erkennen des Nutzers (Kreis); geht
     #: nicht in die Kennung ein und ändert keine Bezüge.
     ich_adressen: frozenset[str] = frozenset()
+    #: Prüfsummen gelöschter Personen (`person_sperre.py`): Ihre Erwähnung im Text einer geteilten Quelle wird keine
+    #: Akte. Geht in die Kennung ein, wenn es welche gibt: Löschen oder Aufheben rechnet die Bezüge neu.
+    gesperrt: frozenset[str] = frozenset()
+
+    def name_gesperrt(self, name: str) -> bool:
+        if not self.gesperrt or not str(name or '').strip():
+            return False
+        from .person_sperre import namens_schluessel
+        return namens_schluessel(name) in self.gesperrt
+
+    def organisation(self, name: str) -> str:
+        """Die Kennung einer erwähnten Organisation. Gibt es genau eine Organisation aus einer Adresse mit demselben
+        Namen in Umschrift („Müller Bau“ und `mueller-bau.de`), ist es diese (Befund A7); sonst die Kennung des Namens."""
+        kennung = org_kennung(name)
+        if not kennung:
+            return ''
+        if not hasattr(self, '_orgs'):
+            gefunden: dict[str, set[str]] = {}
+            for adresse in self.verzeichnis.adressen():
+                org = org_aus_adresse(adresse, self.eigene_domaenen)
+                if org:
+                    gefunden.setdefault(org_vergleich(domaenenname(adresse)), set()).add(org)
+            self._orgs = {k: next(iter(v)) for k, v in gefunden.items() if len(v) == 1}
+        return self._orgs.get(org_vergleich(name), kennung)
 
     @classmethod
     def bauen(cls, episoden: Iterable[Episode], *, eigene: Iterable[str] = (),
-              projekte: dict[str, str] | None = None) -> 'Register':
+              projekte: dict[str, str] | None = None, gesperrt: Iterable[str] = ()) -> 'Register':
         eigene = [a for a in eigene if a]
         verzeichnis = Verzeichnis()
         ich_namen: set[str] = set()
@@ -262,6 +308,7 @@ class Register:
                     verzeichnis.aufnehmen(nennung)
         domaenen = frozenset(domaene(a).casefold() for a in eigene if domaene(a))
         register = cls(verzeichnis, frozenset(ich_namen), domaenen, dict(projekte or {}))
+        register.gesperrt = frozenset(gesperrt)
         register.token = register._digest()
         register.ich_adressen = frozenset(ich_adressen)
         return register
@@ -271,6 +318,9 @@ class Register:
                                for a in self.verzeichnis.adressen()},
                   'ich': sorted(self.ich_namen), 'domaenen': sorted(self.eigene_domaenen),
                   'projekte': sorted(self.projekte.items())}
+        if self.gesperrt:
+            # Nur wenn es Sperren gibt: Ohne bleibt die Kennung, wie sie war, und nichts wird neu gerechnet.
+            inhalt['gesperrt'] = sorted(self.gesperrt)
         return hashlib.sha256(json.dumps(inhalt, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:24]
 
     def person(self, name: str) -> tuple[str, tuple[str, ...]]:
@@ -287,6 +337,23 @@ class Register:
     def projekt(self, name: str) -> str:
         kennung = projekt_kennung(name)
         return sache_id('projekt', self.projekte.get(kennung) or 'n:' + kennung)
+
+
+def _name_in_signatur(text: str, domaenenname_: str) -> str:
+    """Eine Zeile der Quelle, die genau den Namen der Domäne trägt (in Umschrift, ohne Satzzeichen); sonst leer.
+
+    Gelesen werden die letzten 25 Zeilen (Signatur, Absenderzeile). Nur eine kurze Zeile
+    (höchstens 80 Zeichen) gilt, und sie muss vollständig passen, kein Wortteil. Die Rechtsform zählt nicht
+    (`hessenwasser-ag` und „Hessenwasser AG“, `mueller-bau` und „Müller Bau GmbH“).
+    """
+    ziel = org_vergleich(domaenenname_)
+    if not ziel:
+        return ''
+    for zeile in reversed(str(text or '').splitlines()[-25:]):
+        zeile = ' '.join(zeile.split())
+        if zeile and len(zeile) <= 80 and org_vergleich(zeile) == ziel:
+            return zeile
+    return ''
 
 
 def projekte_aus(workspace: Any) -> dict[str, str]:
@@ -400,7 +467,8 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
             if organisation:
                 gefunden.append(Bezug(sache_id('organisation', organisation), 'organisation', 'anker',
                                       rolle=nennung.rolle))
-        elif nennung.name and name_schluessel(nennung.name) not in register.ich_namen:
+        elif nennung.name and name_schluessel(nennung.name) not in register.ich_namen \
+                and not register.name_gesperrt(nennung.name):
             sache, kandidaten = register.person(nennung.name)
             gefunden.append(Bezug(sache, 'person', 'anker', rolle=nennung.rolle, kandidaten=kandidaten,
                                   abhaengig=True))
@@ -416,6 +484,9 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
             # Der Absender ist über seine Adresse schon verknüpft; der Nutzer selbst ist keine Sache.
             if eintrag.get('role') == 'sender':
                 continue
+            if register.name_gesperrt(name):
+                # Eine gelöschte Person (Sperrvermerk): Ihre Erwähnung im Text bleibt, wird aber keine Akte.
+                continue
             kurzname = _quellen_kurzname(episode, name, start, ende, beteiligte)
             if kurzname is not None:
                 sache, kandidaten, ich = kurzname
@@ -427,9 +498,10 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
                 sache, kandidaten = register.person(name)
             gefunden.append(Bezug(sache, art, 'modell', start, ende, 'erwaehnt', kandidaten, abhaengig=True))
         elif art == 'organisation':
-            kennung = org_kennung(name)
+            kennung = register.organisation(name)
             if kennung:
-                gefunden.append(Bezug(sache_id(art, kennung), art, 'modell', start, ende, 'erwaehnt'))
+                # Hängt vom Verzeichnis ab (Befund A7): Kommt eine Adresse `mueller-bau` hinzu, gehört „Müller Bau“ zu ihr.
+                gefunden.append(Bezug(sache_id(art, kennung), art, 'modell', start, ende, 'erwaehnt', abhaengig=True))
         elif art == 'projekt':
             if projekt_kennung(name):
                 gefunden.append(Bezug(register.projekt(name), art, 'modell', start, ende, 'erwaehnt',
@@ -536,14 +608,17 @@ class Bezuege:
         """Das Verzeichnis; nur neu gebaut, wenn sich Bestand, eigene Adressen oder Projekte geändert haben."""
         projekte = projekte_aus(self.workspace)
         eigene = tuple(sorted(a for a in self._eigene() if a))
+        from .person_sperre import fuer as sperre_fuer
+        gesperrt = sperre_fuer(self.episodes).schluessel()
         with self._register_lock:
             for _ in range(3):
-                stand = (self.episodes.geltender_stand(), eigene, tuple(sorted(projekte.items())))
+                stand = (self.episodes.geltender_stand(), eigene, tuple(sorted(projekte.items())), gesperrt)
                 if self._register is not None and self._register_stand == stand:
                     return self._register
                 # Gebaut wird seitenweise und ohne den Speicher zu sperren; hat sich der Bestand währenddessen
                 # geändert, gilt der Bau nicht als aktuell und wird wiederholt.
-                register = Register.bauen(self.episodes.each_geltende(), eigene=eigene, projekte=projekte)
+                register = Register.bauen(self.episodes.each_geltende(), eigene=eigene, projekte=projekte,
+                                          gesperrt=gesperrt)
                 if self.episodes.geltender_stand() == stand[0]:
                     self._register, self._register_stand = register, stand
                     return register
@@ -679,8 +754,10 @@ class Bezuege:
             bedingung += " AND l.sache LIKE ? ESCAPE '\\'"
             parameter.append(art + ':%')
         if suche.strip():
-            bedingung += " AND l.sache LIKE ? ESCAPE '\\'"
-            parameter.append('%' + norm(suche).replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%')
+            # Befund A7: „Müller“ findet „Mueller“ und umgekehrt, ebenso ä/ae, ö/oe, ß/ss (`suchformen`).
+            formen = suchformen(suche)
+            bedingung += " AND (" + " OR ".join("l.sache LIKE ? ESCAPE '\\'" for _ in formen) + ")"
+            parameter.extend('%' + f.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for f in formen)
         with self.episodes._lock:
             basis = (f"FROM ({self._links()}) l JOIN episodes e ON e.id = l.episode_id WHERE 1=1{bedingung} "
                      "GROUP BY l.sache")
@@ -877,10 +954,28 @@ class Bezuege:
                 if eintrag['id'] == kennung:
                     return eintrag['label']
             return kennung
-        for quelle in (quellen if quellen is not None else self.quellen_von(sache))[:5]:
-            text = self._schreibweise(sache, quelle['episode_id'])
-            if text:
-                return text
+        # Gemerkt je Stand der Datei (Befund A4): Dieselbe Organisation wird je Frage oft benannt.
+        from .zwischenspeicher import marke
+        stand = marke(self._conn, self.episodes._lock)
+        gemerkt = getattr(self, '_namen_gemerkt', None)
+        if gemerkt is None or gemerkt[0] != stand:
+            gemerkt = self._namen_gemerkt = (stand, {})
+        if quellen is None and sache in gemerkt[1]:
+            return gemerkt[1][sache]
+        name = self._name_aus_quellen(sache, kennung, quellen if quellen is not None else self.quellen_von(sache))
+        if quellen is None:
+            gemerkt[1][sache] = name
+        return name
+
+    def _name_aus_quellen(self, sache: str, kennung: str, alle: list[dict[str, Any]]) -> str:
+        # Befund A7: Eine Schreibweise aus dem Text (Erwähnung, Signatur, Absendername) geht der Domäne vor, auch aus
+        # einer der 20 jüngsten Quellen („Müller Bau GmbH“ statt „Mueller Bau“); die Domäne erst danach.
+        mails = [q for q in alle if q.get('art') == 'message']
+        for nur_text, juengste in ((True, alle[:5] + mails[:20]), (False, alle[:5])):
+            for quelle in juengste:
+                text = self._schreibweise(sache, quelle['episode_id'], nur_text=nur_text)
+                if text:
+                    return text
         return kennung[2:] if kennung.startswith('n:') else kennung
 
     def beschriftungen(self, sachen: list[str]) -> dict[str, str]:
@@ -901,7 +996,7 @@ class Bezuege:
                 ergebnis[sache] = self.beschriftung(sache)
         return ergebnis
 
-    def _schreibweise(self, sache: str, episode_id: str) -> str:
+    def _schreibweise(self, sache: str, episode_id: str, *, nur_text: bool = False) -> str:
         """Der Name der Sache, wie ihn diese Quelle schreibt (Textstelle oder Anzeigename)."""
         try:
             episode = self.episodes.get(episode_id)
@@ -920,6 +1015,14 @@ class Bezuege:
                     and name_anker(nennung.name) == kennung[2:]:
                 return nennung.name
             if art == 'organisation' and nennung.adresse and org_aus_adresse(nennung.adresse) == kennung:
+                # Befund A7: Wie die Organisation sich selbst schreibt (Signatur, Absendername), wenn eine Zeile der Quelle
+                # genau den Namen der Domäne in Umschrift trägt („Universität Gießen“ für `universitaet-giessen`).
+                # Sonst die Domäne; Umlaute werden nie geraten.
+                signatur = (' '.join(str(nennung.name or '').split())
+                            if org_vergleich(nennung.name or '') == org_vergleich(domaenenname(nennung.adresse))
+                            else _name_in_signatur(episode.body, domaenenname(nennung.adresse)))
+                if signatur or nur_text:
+                    return signatur
                 return domaenenname(nennung.adresse).replace('-', ' ').title()
         return ''
 

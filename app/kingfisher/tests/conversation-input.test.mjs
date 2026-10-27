@@ -13,6 +13,7 @@ after(()=>server.close());
 const {api}=await server.ssrLoadModule('/src/api.ts');
 const tick=async()=>{for(let n=0;n<3;n++)await new Promise(setImmediate);};
 function nodes(node,type,out=[]){if(!node||typeof node!=='object')return out;if(node.type===type)out.push(node);for(const child of [node.props?.children].flat(10))nodes(child,type,out);return out;}
+function allNodes(node,out=[]){if(!node||typeof node!=='object')return out;out.push(node);for(const child of [node.props?.children].flat(10))allNodes(child,out);return out;}
 const byName=(tree,name)=>nodes(tree,'button').find(node=>[node.props.children].flat(5).join('')===name);
 async function driver(name,props){
   const Component=(await server.ssrLoadModule(`/src/${name}.tsx`))[name];
@@ -85,8 +86,11 @@ test('closing a ready file preview needs an explicit discard; keeping it preserv
   const d=await driver('DocumentImport',{initiallyExpanded:true,showLibrary:false,onClose(){closed++;}});
   try{d.render();d.runEffects();await tick();nodes(d.render(),'input').find(n=>n.props.type==='file').props.onChange({target:{files:[new File(['behalten'], 'notizen.txt')],value:'file'}});await tick();
     byName(d.render(),'Schließen').props.onClick();assert.equal(closed,0);
-    byName(d.render(),'Weiter bearbeiten').props.onClick();assert.ok(byName(d.render(),'Datei als Quelle aufnehmen'));
-    byName(d.render(),'Schließen').props.onClick();byName(d.render(),'Vorschau verwerfen und schließen').props.onClick();assert.equal(closed,1);
+    // Die Rückfrage ist ein Dialog (Paket B, B3): „Weiter bearbeiten“ ist die sichere Wahl, „Vorschau verwerfen und schließen“ die Aktion.
+    const frage=()=>allNodes(d.render()).find(n=>n.props?.frage==='Vorschau verwerfen?');
+    assert.equal(frage().props.abbrechen,'Weiter bearbeiten');assert.equal(frage().props.bestaetigen,'Vorschau verwerfen und schließen');
+    frage().props.onAbbrechen();assert.equal(frage(),undefined);assert.ok(byName(d.render(),'Datei als Quelle aufnehmen'));
+    byName(d.render(),'Schließen').props.onClick();frage().props.onBestaetigen();assert.equal(closed,1);
   }finally{d.close();api.projects=old;}
 });
 

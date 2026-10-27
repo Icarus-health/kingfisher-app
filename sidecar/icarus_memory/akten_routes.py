@@ -88,12 +88,58 @@ def aufgaben_zu(app, bezuege: Bezuege, sache: str, ids: list[str]) -> list[Any]:
         gefunden.update({t.id: t for t in tasks.by_project(kennung, include_closed=True)})
     elif art == 'person':
         name = bezuege.beschriftung(sache)
-        gefunden.update({t.id: t for t in tasks.open_tasks(limit=None) if personen.wartet_auf(t, name)})
+        gefunden.update({t.id: t for t in _aufgaben_gelesen(app, tasks, 'offen') if personen.wartet_auf(t, name)})
     quellen = {f'episode:{i}' for i in ids}
     if quellen:
-        gefunden.update({t.id: t for t in tasks.all_tasks(limit=500)
+        gefunden.update({t.id: t for t in _aufgaben_gelesen(app, tasks, 'alle')
                          if (t.provenance.source_ref or '') in quellen})
     return list(gefunden.values())
+
+
+def _aufgaben_gelesen(app, tasks: Any, welche: str) -> list[Any]:
+    """Offene (`offen`) oder die jüngsten 500 Aufgaben (`alle`), einmal je Stand der Aufgabendatei gelesen.
+
+    Befund A4 der Persona-Prüfung: „Worauf warte ich noch?“ und die Fristen lesen viele Akten, und jede las dieselben
+    Aufgaben neu. Jede Änderung an den Aufgaben macht den gemerkten Stand ungültig (`zwischenspeicher.marke_von`).
+    """
+    from .zwischenspeicher import marke_von
+    stand = marke_von(tasks)
+    if stand is None:
+        return tasks.open_tasks(limit=None) if welche == 'offen' else tasks.all_tasks(limit=500)
+    gemerkt = getattr(app.state, 'akten_aufgaben_gelesen', None)
+    if gemerkt is None or gemerkt[0] != (id(tasks), stand):
+        gemerkt = ((id(tasks), stand), {})
+        app.state.akten_aufgaben_gelesen = gemerkt
+    if welche not in gemerkt[1]:
+        gemerkt[1][welche] = tasks.open_tasks(limit=None) if welche == 'offen' else tasks.all_tasks(limit=500)
+    return gemerkt[1][welche]
+
+
+def nach_stand_gemerkt(app, art: str, zusatz: Any, berechnen: Any) -> Any:
+    """Ein Ergebnis über viele Akten, gemerkt, solange sich keine seiner Grundlagen geändert hat (Befund A4).
+
+    Grundlagen: Quellen, Bezüge, Akten und Entscheidungen (Episodendatei), Aufgaben, bestätigtes Wissen und Projekte;
+    `zusatz` trägt, was die Frage sonst bestimmt (Tag, Art, eigene Adressen). Jeder Schreibvorgang an einer dieser
+    Dateien macht den Eintrag ungültig; gemerkt wird unter dem Stand nach der Berechnung (die Akten schreiben dabei
+    ihren eigenen Zwischenspeicher). So beantwortet ein Gespräch dieselbe Frage beim Senden und beim Öffnen einmal.
+    """
+    from .zwischenspeicher import Zwischenspeicher, marke_von
+    staende = [marke_von(getattr(app.state, name, None)) for name in ('episodes', 'tasks', 'claims', 'workspace')]
+    if staende[0] is None:
+        return berechnen()
+
+    def stand() -> tuple:
+        return tuple(marke_von(getattr(app.state, name, None)) for name in ('episodes', 'tasks', 'claims', 'workspace'))
+
+    speicher = getattr(app.state, 'akten_lesungen', None)
+    if speicher is None:
+        speicher = app.state.akten_lesungen = Zwischenspeicher(64)
+    wert = speicher.nachsehen((art, zusatz, stand()))
+    if wert is not None:
+        return wert
+    wert = berechnen()
+    speicher.merken((art, zusatz, stand()), wert)
+    return wert
 
 
 #: Schützt nur das Prüfen und Starten des Hintergrundfadens (kurz gehalten, nie über Rechenarbeit).
@@ -229,6 +275,24 @@ def verbinden(app) -> None:
     episodes.akten_aktualisieren = aktualisieren
 
 
+#: So viele zuletzt aktive Akten je Art rechnet der Hintergrund vor (wie „Worauf warte ich noch?“ und die Fristen).
+AKTIVE_JE_ART = 60
+
+
+def aktive_akten_rechnen(app) -> int:
+    """Rechnet beim Start die zuletzt aktiven Akten vor, die „Worauf warte ich noch?“, „Was brauche ich morgen?“ und
+    das Briefing lesen (Befund A4 der Persona-Prüfung): Nach einem Update (neue Fassung der Akten) wartete die erste
+    solche Frage sonst, bis alle neu berechnet waren. Später ändern sich nur wenige Akten je neuer Mail; die rechnet
+    die Frage selbst. Liest nur die Quellen und schreibt nur den Zwischenspeicher der Akten (nur Verweise)."""
+    bezuege, akten = bausteine(app)
+    gerechnet = 0
+    for art in ('person', 'organisation', 'projekt'):
+        for eintrag in bezuege.sachen(art=art, limit=AKTIVE_JE_ART)['sachen']:
+            if akten.roh(eintrag['sache']) is not None and not akten.letzte_berechnung.get('aus_zwischenspeicher'):
+                gerechnet += 1
+    return gerechnet
+
+
 def vorwaermen(app) -> threading.Thread:
     """Baut das Verzeichnis der Bezüge im Hintergrund, gleich nach dem Start (V7, Tempo).
 
@@ -240,6 +304,7 @@ def vorwaermen(app) -> threading.Thread:
     def bauen() -> None:
         try:
             bausteine(app)[0].register()
+            aktive_akten_rechnen(app)
         except Exception:  # noqa: BLE001 - etwa ein Speicher, der beim Beenden schon geschlossen ist
             logger.debug('Verzeichnis der Bezüge nicht vorgewärmt', exc_info=True)
     faden = threading.Thread(target=bauen, name='akten-verzeichnis', daemon=True)
@@ -250,7 +315,10 @@ def vorwaermen(app) -> threading.Thread:
 def register(app, guard) -> None:
     verbinden(app)
     # Nur wenn der Server wirklich startet (uvicorn, oder `with TestClient(app)`), nicht bei jedem `create_app`.
-    app.router.on_startup.append(lambda: vorwaermen(app) and None)
+    # Der Faden bleibt greifbar: Wer Abfragen an der gemeinsamen Verbindung zählt, wartet erst auf das Vorwärmen.
+    def beim_start() -> None:
+        app.state.akten_vorwaermen = vorwaermen(app)
+    app.router.on_startup.append(beim_start)
 
     @app.get('/api/v1/akten/sachen', dependencies=guard)
     def akten_sachen(art: str | None = Query(None), suche: str = Query('', max_length=200),

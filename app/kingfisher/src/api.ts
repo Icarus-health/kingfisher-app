@@ -21,6 +21,8 @@ export type Attention = {
   reason?: string;
   action?: string | null;
   review_required?: boolean;
+  /** Für wie viele Dinge die Zeile steht: „Heute sind 3 Aufgaben fällig.“ steht für drei (Paket Z1). */
+  anzahl?: number;
   /** Bei Aufgaben unter „Braucht dich“: die Aufgabe selbst (wie `/api/v1/tasks`) und ihr Projektname (V1). */
   task?: Task | null;
   project_name?: string | null;
@@ -41,6 +43,8 @@ export type MorningBriefing = {
   needs_you: Attention[];
   happening_now: Attention[];
   working_memory_more?: boolean;
+  /** Wohin „Mehr“ unter „Neu eingegangen“ führt (Paket S, Befund 7); fehlt es, gilt `working_memory_more`. */
+  neu_mehr?: "nachrichten" | "gedaechtnis" | null;
   later_today: CalendarItem[];
   /** Der nächste Termin nach heute (bis eine Woche), für „Heute keine Termine. Nächster: …“ (Paket U, H8). */
   naechster_termin?: { title: string; start: string; ganztags: boolean } | null;
@@ -53,6 +57,9 @@ export type MorningBriefing = {
     attribution_url?: string;
   };
   partial_failures: Array<{ section: string; message: string }>;
+  /** Was dich heute braucht, ganz gezählt (Paket Z1, `zaehlung.py`): Aufgaben nach derselben Regel wie unter
+   * „Aufgaben“ und die übrigen Punkte, auch die hinter den drei sichtbaren. */
+  braucht_dich?: { aufgaben: number; weitere: number };
 };
 
 /** Ein Beleg der Satzantwort. `kennzeichen` trägt die Arten `andere_person` und `ausserhalb_zeitraum` (kennzeichnung.py). */
@@ -107,7 +114,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; cloud_antwort?: {anbieter: string; modell: string}; cloud_widerrufen?: boolean; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -520,13 +527,16 @@ export type Task = {
 
 export type AufgabePerson = {adresse: string; name: string};
 export type AufgabeAngelegt = {
-  art: "automatisch" | "alle_uebernehmen";
+  /** `uebernommen`: ein einzeln übernommener Vorschlag (Paket Z2, Z4); geht wie `alle_uebernehmen` zurück zur Prüfung. */
+  art: "automatisch" | "alle_uebernehmen" | "uebernommen";
   am: string;
   /** Nur bei `automatisch`: „Von Kingfisher angelegt, weil …“, der Grundsatz, Mail und Richtung. */
   satz?: string; grundsatz?: string; richtung?: "bitte" | "zusage" | null; episode_id?: string; mail_titel?: string;
   wer?: string; datum?: string | null; gruppe?: string;
 };
 export type AufgabenVonSelbstHeute = {anzahl: number; satz: string; aufgaben: Array<{id: string; title: string; status: string; satz: string}>};
+/** Was Kingfisher angelegt und du zurückgenommen hast; dauerhaft wiederherstellbar (Paket Z2). */
+export type ZurueckgenommeneAufgabe = {id: string; title: string; zurueck_am: string; satz: string};
 export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler: Array<{id: string; grund: string}>};
 
 export type ProjectTaskOverview = {
@@ -714,6 +724,12 @@ export type PersonDigestResult = {
   source_count: number; total_source_count: number; truncated: boolean; model: string;
 };
 
+export type WartetAufPunkt = {
+  text: string; art: string; richtung?: string | null; episode_id: string | null; titel?: string | null;
+  occurred_at?: string | null; aufgabe?: { id: string; title: string } | null; wartet_auf?: string | null;
+  nachgefasst?: string | null; frist_tage?: number | null; einladung?: boolean | null;
+};
+
 export type PersonProfile = {
   id: string;
   authority: "projection";
@@ -727,6 +743,8 @@ export type PersonProfile = {
     kontakt_text: string;
     themen: string[];
     offene_aufgaben: Task[];
+    /** Worauf du bei dieser Person wartest: dieselbe Regel wie „Worauf warte ich noch?“ (Befund A7). */
+    wartet_auf_punkte?: WartetAufPunkt[];
     aussagen: Array<Record<string, unknown>>;
     herkuenfte: string[];
     nur_von_aussen: boolean;
@@ -973,7 +991,7 @@ export type WeltFeed = { id: string; url: string; label: string; enabled: boolea
 export type WeltStand = { aktiv: boolean; feeds: WeltFeed[]; weltquellen: Array<{ id: string; label: string; gewaehlt: boolean }>;
   abbestellt: Array<{ sache: string; name: string }>; vorschlaege: WeltVorgabe[]; vorschlaege_stand: { stand: string; abgerufen: string | null }; modell: boolean };
 export type TagGeburtstag = { sache: string; name: string; vorname: string; datum: string; wann: "heute" | "morgen" | "bald"; aussage_id: string; episode_id: string | null };
-export type TagBriefing = { jetzt: string; tageslage: TagLage | null; termine: TagTermin[]; fristen: TagFrist[]; geburtstage?: TagGeburtstag[]; fehler: Record<string, string>; wegezeit: WegezeitStand };
+export type TagBriefing = { jetzt: string; tageslage: TagLage | null; termine: TagTermin[]; fristen: TagFrist[]; geburtstage?: TagGeburtstag[]; fehler: Record<string, string>; wegezeit: WegezeitStand; zwischenstand?: string | null };
 export type AkteSachen = {
   gesamt: number; berechnung: { offen: number; berechnet: number };
   sachen: Array<{ sache: string; art: AkteSachenArt; art_text: string; name: string; quellen: number; letzte: string | null }>;
@@ -1022,6 +1040,22 @@ export type LokaleKi = {
 };
 
 export class DocumentPreviewError extends Error {}
+/** Die Zeitzone des Geräts („Europe/Berlin“), leer, wenn der Browser keine nennt. */
+export function geraeteZone(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { return ""; }
+}
+
+/** Zahlen zu einer Person: was gelöscht würde und was bleibt (`person_daten.Umfang.zahlen`). */
+export type PersonZahlen = {
+  quellen_nur_ihre: number; quellen_geteilt: number; aussagen: number; vorschlaege: number; offene_vorschlaege: number;
+  aufgaben: number; zusammenfuehrungen: number; schreibweisen: number; adressen: number; vermerke: number;
+  zusammenfassungen: number; gespraeche: number; projekte: number;
+};
+export type PersonLoeschVorschau = { name: string; zahlen: PersonZahlen; projekte: string[] };
+export type PersonSperre = { kennung: string; anzeige: string; angelegt: number };
+export type SicherungEintrag = { name: string; erstellt: string; art: "regelmaessig" | "vor_update" | "vor_wiederherstellung"; bytes: number };
+export type SicherungStand = { name: string; stand: string; art: SicherungEintrag["art"]; am: string; rueckgaengig: string };
+
 export class ApiError extends Error {
   // `detail` ist der Grund, den der Server nennt, wenn er einen nennt.
   // `grund` ist die Kennung dazu, wo der Server eine nennt (etwa `adresse_fehlt` beim Kalender).
@@ -1064,7 +1098,7 @@ export type CalendarOverview = {
   warnings?: string[];
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
-    location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[];
+    location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[]; attendee_names?: string[];
     source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string;
@@ -1179,10 +1213,17 @@ export type ModelRoleState = {
   blockiert?: string | null;
   cloud_einordnung?: CloudEinordnungStand;
 };
-export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
+/** Ein Cloudanbieter mit Land (`wohin`) und Region der Verarbeitung (sidecar: nach_draussen.py); beides steht in der Zustimmung. */
+export type CloudAnbieter = {id: string; label: string; schluessel_da: boolean; standardmodell: string; wohin: string; region: string};
+/** Eine einzelne Anfrage an einen Cloudanbieter, ohne Inhalt (sidecar: nach_draussen.py, `GET /api/v1/cloud/protokoll`). */
+export type CloudProtokollEintrag = {zeit: string; anbieter: string; modell: string; wofuer: string; satz: string};
+export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: CloudAnbieter[];
   ollama_cloud?: {modelle: string[]; hinweis: string}};
 export type CloudProviderPrivacy = {checked_at:string;region:string;training:string;retention:string;billing:string;sources:Array<{label:string;url:string}>};
-export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;privacy?:CloudProviderPrivacy};
+/** Ein Modell zur Wahl (Paket S, Befund 5): Kennung und ein Titel in Alltagsworten; das erste ist vorbelegt. */
+export type CloudModellWahl = {id: string; titel: string};
+export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;
+  modelle?: CloudModellWahl[]; import_available?:boolean;privacy?:CloudProviderPrivacy};
 export type CloudMemoryProvider = "chatgpt" | "anthropic";
 export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
 export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boolean; secure_storage:boolean;
@@ -1269,6 +1310,12 @@ export const api = {
   modelRoles: () => request<ModelRoles>("/api/v1/models/roles"),
   antwortzeiten: () => request<AntwortZeitenProtokoll>("/api/v1/antwortzeiten"),
   gespraechFortschritt: (id: string) => request<GespraechFortschritt>(`/api/v1/conversations/${id}/fortschritt`),
+  cloudProtokoll: () => request<{eintraege: CloudProtokollEintrag[]}>("/api/v1/cloud/protokoll"),
+  webAbruf: () => request<{an: boolean}>("/api/v1/darf/web"),
+  webAbrufSetzen: (an: boolean) => request<{an: boolean}>("/api/v1/darf/web", {method: "PUT", body: JSON.stringify({an})}),
+  /** Eingetragene öffentliche Seiten nach Zeitplan abrufen (Paket S): an oder aus, und wie viele eingetragen sind. */
+  quellenAbruf: () => request<{an: boolean; anzahl: number}>("/api/v1/darf/quellen"),
+  quellenAbrufSetzen: (an: boolean) => request<{an: boolean; anzahl: number}>("/api/v1/darf/quellen", {method: "PUT", body: JSON.stringify({an})}),
   gespraechVorwaermen: () => request<{ ergebnis: string; cloud: boolean }>("/api/v1/gespraech/vorwaermen", { method: "POST" }),
   saetzeSetzen: (saetze: "an" | "aus") =>
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),
@@ -1336,6 +1383,26 @@ export const api = {
     const name = /filename="([^"]+)"/.exec(response.headers.get("content-disposition") ?? "")?.[1] ?? "Kingfisher-Sicherung.recovery";
     return { datei: await response.blob(), name };
   },
+  // Alles zu einer Person (Persona-Prüfung, Paket P, D7): Auskunft als Datei, Löschen mit Rückfrage, Sperrvermerke.
+  personAuskunft: async (name: string): Promise<{ datei: Blob; name: string }> => {
+    const response = await fetch(`/api/v1/memory/people/${encodeURIComponent(name)}/auskunft`);
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      throw new ApiError(response.status, typeof payload?.detail === "string" ? payload.detail.slice(0, 500) : undefined);
+    }
+    const kopf = response.headers.get("x-kingfisher-datei");
+    let datei = "Auskunft.zip";
+    try { if (kopf) datei = decodeURIComponent(kopf); } catch { /* Name bleibt „Auskunft.zip“ */ }
+    return { datei: await response.blob(), name: datei };
+  },
+  personLoeschenVorschau: (name: string) => request<PersonLoeschVorschau>(`/api/v1/memory/people/${encodeURIComponent(name)}/loeschen`),
+  personLoeschen: (name: string) => request<{name: string; sperre: string; zahlen: PersonZahlen}>(`/api/v1/memory/people/${encodeURIComponent(name)}/loeschen`, {method: "POST"}),
+  personenSperren: () => request<{sperren: PersonSperre[]}>("/api/v1/personen/sperre"),
+  personSperreAufheben: (kennung: string) => request<{aufgehoben: PersonSperre}>(`/api/v1/personen/sperre/${encodeURIComponent(kennung)}`, {method: "DELETE"}),
+  personSperreZurueck: (kennung: string) => request<{sperre: PersonSperre}>(`/api/v1/personen/sperre/${encodeURIComponent(kennung)}/zurueck`, {method: "POST"}),
+  // Sicherung wiederherstellen (Paket P, D7): aus der Liste wählen, nie einen Pfad.
+  sicherungen: () => request<{sicherungen: SicherungEintrag[]; zuletzt: SicherungStand | null}>("/api/v1/sicherungen"),
+  sicherungWiederherstellen: (name: string) => request<SicherungStand>("/api/v1/sicherungen/wiederherstellen", {method: "POST", body: JSON.stringify({name})}),
   goals: () => request<{items: Array<{id: string; satz: string; marken: string[]; beurteilbar: boolean; letzte_regung: string | null; woran: string | null; tage_still: number | null; schlaeft: boolean}>; completed: Array<{id: string; goal_id: string; statement: string; outcome: "achieved" | "stopped"; note: string; recorded_at: string}>}>("/api/v1/goals"),
   goalHistory: (id: string) => request<Array<{id: string; statement: string; kind: string; status: string; recorded_at: string; status_changed_at?: string; provenance: {source_type: string}}>>(`/api/v1/assertions/${encodeURIComponent(id)}/history`),
   saveGoal: (statement: string, tags: string[], previous?: string) => request("/api/v1/assertions", {method: "POST", body: JSON.stringify({statement, tags, kind: "goal", provenance: {source_type: "user_stated", source_ref: "ui:goals", verbatim: statement}, supersedes: previous ? [previous] : []})}),
@@ -1380,6 +1447,7 @@ export const api = {
   calendarPreparation: (uid: string, projectId = "", personId = "", start?: string | null) => request<CalendarPreparation>(
     `/api/v1/calendar/preparation?uid=${encodeURIComponent(uid)}${projectId ? `&project_id=${encodeURIComponent(projectId)}` : ""}${personId ? `&person_id=${encodeURIComponent(personId)}` : ""}${start ? `&start=${encodeURIComponent(start)}` : ''}`,
   ),
+  calendarVorbereitung: (uid: string, start?: string | null) => request<{ vorbereitung: TagTermin | null }>(`/api/v1/calendar/vorbereitung?${new URLSearchParams({uid, ...(start ? {start} : {})})}`),
   calendarAssignment: (uid: string, start?: string | null) => request<TerminZuordnung>(`/api/v1/calendar/zuordnung?${new URLSearchParams({uid, ...(start ? {start} : {})})}`),
   setCalendarAssignment: (uid: string, projectId: string | null, start?: string | null) => request<TerminZuordnung>("/api/v1/calendar/zuordnung", { method: "PUT", body: JSON.stringify({ uid, project_id: projectId, ...(start ? {start} : {}) }) }),
   calendarFollowup: (uid: string, start: string) => request<TerminNachbereitung>(`/api/v1/calendar/nachbereitung?uid=${encodeURIComponent(uid)}&start=${encodeURIComponent(start)}`),
@@ -1394,6 +1462,8 @@ export const api = {
   transkriptOrdnerTrennen: () => request<TranskriptOrdner & { entzogen: number }>("/api/v1/transkripte/ordner", { method: "DELETE" }),
   transkriptAktiv: (enabled: boolean) => request<TranskriptOrdner>("/api/v1/transcript-sync", { method: "PUT", body: JSON.stringify({ enabled }) }),
   transkriptZuordnen: (id: string, termin: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "POST", body: JSON.stringify({ termin }) }),
+  /** „Rückgängig“ nach „Zu diesem Termin“ oder „Gehört nicht hierher“ (Paket S): genau der Stand von vorher. */
+  transkriptRueckgaengig: (episodeId: string) => request<unknown>(`/api/v1/transkripte/${encodeURIComponent(episodeId)}/zuordnung/rueckgaengig`, {method: "POST"}),
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
   macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
@@ -1417,7 +1487,10 @@ export const api = {
   testModel: () => request<{ ok: boolean }>("/api/v1/setup/test/modell", { method: "POST" }),
   /** `post: false`: ohne Posteingang, damit Heute den Gruß sofort zeigt (Befund 22); danach folgt der volle Abruf. */
   // Ohne Zeitzone des Browsers: Es gilt die eingestellte (Kingfisher und du), nicht die des Rechners (Fremdprobe 2, Befund 9).
-  morning: (post = true) => request<MorningBriefing>(`/api/v1/morning-briefing${post ? "" : "?post=false"}`),
+  // Mit der Zeitzone des Geräts, wie die Uhr in der Seitenleiste (`LiveClock`): Gruß und „heute“ folgen der Tageszeit,
+  // die der Mensch sieht (Paket S, Befund 6: „Guten Tag“ um 19:47).
+  morning: (post = true) => request<MorningBriefing>(`/api/v1/morning-briefing?${new URLSearchParams({
+    ...(geraeteZone() ? {timezone: geraeteZone()} : {}), ...(post ? {} : {post: "false"})})}`),
   status: () => request<{ chat: boolean }>("/api/v1/status"),
   createConversation: (title = "Neues Gespräch") =>
     request<ConversationPayload>("/api/v1/conversations", {
@@ -1489,9 +1562,11 @@ export const api = {
     request<KalenderAnmeldung>("/api/v1/integrations/calendar/anmelden", { method: "POST", body: JSON.stringify(data) }),
   removeIntegration: (kind: "mail" | "calendar", id: string) =>
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
-  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
+  // `bereich` filtert im Sidecar, vor Zählen und Blättern; `heute_dran` kommt mit der ersten Seite von „Meine Aufgaben“
+  // (Paket Z1, zaehlung.py). „Heute“ gilt in der eingestellten Zeitzone, wie auf Heute (ohne die des Browsers).
+  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number; bereich?: string} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number; heute_dran?: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {}), ...(options.bereich && options.bereich !== "alle" ? {bereich: options.bereich} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
-  projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
+  projectOverview: (id: string, bereich = "") => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview${bereich && bereich !== "alle" ? `?${new URLSearchParams({bereich})}` : ""}`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),
@@ -1529,6 +1604,9 @@ export const api = {
   aufgabenVonSelbstZuruecknehmen: (task_ids: string[]) => request<{aufgaben: Task[]; satz: string}>("/api/v1/aufgaben-von-selbst/rueckgaengig", {method: "POST", body: JSON.stringify({task_ids})}),
   aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
   alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
+  aufgabenZurueckgenommen: () => request<{aufgaben: ZurueckgenommeneAufgabe[]}>("/api/v1/aufgaben-von-selbst/zurueckgenommen"),
+  /** `projekt`: das beim Übernehmen neu angelegte Projekt und ob es mit zurückging (Paket S); sonst null. */
+  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string; projekt?: {name: string; entfernt: boolean} | null}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
   gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
@@ -1625,7 +1703,7 @@ export const api = {
   bezugSetzen: (episodeId: string, sache: string, aktion: "zu" | "nicht") => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung`, { method: "PUT", body: JSON.stringify({ sache, aktion }) }),
   bezugEntfernen: (episodeId: string, sache: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung?sache=${encodeURIComponent(sache)}`, { method: "DELETE" }),
   // `nachladen`: stilles Erneuern bei offenem Tab; es zählt nicht als Blick für das Logbuch.
-  tagBriefing: (nachladen = false) => request<TagBriefing>(`/api/v1/tag/briefing${nachladen ? "?nachladen=true" : ""}`),
+  tagBriefing: (nachladen = false, schnell = false) => request<TagBriefing>(`/api/v1/tag/briefing${schnell ? "?schnell=true" : nachladen ? "?nachladen=true" : ""}`),
   logbuch: (seit?: string) => request<LogbuchAnsicht>(`/api/v1/logbuch${seit ? `?seit=${encodeURIComponent(seit)}` : ""}`),
   /** Laufende Fassung und Update-Angebot (sidecar: fassung_routes.py). Lesen fragt nie nach außen. */
   fassung: () => request<FassungStand>("/api/v1/fassung"),
@@ -1660,6 +1738,8 @@ export const api = {
   weltFeedWeg: (id: string) => request<WeltStand>(`/api/v1/welt/feeds/${encodeURIComponent(id)}`, { method: "DELETE" }),
   weltFeedSchalter: (id: string, an: boolean) => request<WeltStand>(`/api/v1/welt/feeds/${encodeURIComponent(id)}/schalter`, { method: "POST", body: JSON.stringify({ an }) }),
   weltAbbestellen: (ziel: { quelle_id: string } | { sache: string }) => request<WeltStand>("/api/v1/welt/abbestellen", { method: "POST", body: JSON.stringify(ziel) }),
+  /** „Rückgängig“ nach dem Abbestellen (Paket S): der Stand von vorher, samt der Meldung des Tages. */
+  weltAbbestellenRueckgaengig: (ziel: { quelle_id: string } | { sache: string }) => request<WeltStand>("/api/v1/welt/abbestellen/rueckgaengig", { method: "POST", body: JSON.stringify(ziel) }),
   weltZulassen: (sache: string) => request<WeltStand>("/api/v1/welt/zulassen", { method: "POST", body: JSON.stringify({ sache }) }),
   personDetails: (name: string, alle = false) => request<MappeEinzelheiten>(`/api/v1/memory/people/${encodeURIComponent(name)}/einzelheiten${alle ? "?alle=1" : ""}`),
   uebernehmenVorschau: (conversationId: string, messageId: string) =>

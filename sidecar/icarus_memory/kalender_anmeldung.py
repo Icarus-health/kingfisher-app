@@ -260,4 +260,15 @@ def startpunkt(adresse: str, url: str | None, *, mailserver: str = '', dns=None,
     return anbieter, gefunden
 
 
-__all__ = ['ADRESSE_FEHLT', 'HOECHSTENS', 'Kalender', 'eigener_kalender', 'NETZ_ZEITGRENZE', 'ZEITGRENZE', 'finde_kalender', 'startpunkt']
+def kalender_name(anbieter: str, name: str, adresse: str, vorhanden: list[str]) -> str:
+    """Der Name eines gefundenen Kalenders unter Zugänge, im Kalender und in Antworten (Persona-Prüfung, Paket S,
+    Befund 2). Vorher hieß er nach dem Server („127.0.0.1: Privat“, „dav.praxis-fehr.de: Arbeit“); das sagt nur
+    Technikern etwas. Jetzt: bekannter Anbieter und Name („GMX: Privat“), sonst der Name allein; ist er schon
+    vergeben, mit der Adresse dahinter. Umbenennen geht unter Zugänge mit einem Klick."""
+    name = " ".join(str(name or "").split()) or "Kalender"
+    wunsch = f"{anbieter}: {name}" if anbieter else name
+    belegt = {str(v).strip().casefold() for v in vorhanden}
+    return wunsch if wunsch.casefold() not in belegt else f"{wunsch} · {adresse.strip()}"
+
+
+__all__ = ['ADRESSE_FEHLT', 'HOECHSTENS', 'Kalender', 'kalender_name', 'eigener_kalender', 'NETZ_ZEITGRENZE', 'ZEITGRENZE', 'finde_kalender', 'startpunkt']

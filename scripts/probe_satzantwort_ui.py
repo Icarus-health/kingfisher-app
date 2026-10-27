@@ -192,7 +192,7 @@ def main() -> int:
             seite.wait_for_selector('article.message.assistant', timeout=15000)
             text = seite.locator('article.message.assistant').last.inner_text()
             pruef['zitate'] = text[:300]
-            assert 'Quelle berichtet' in text and seite.locator('.satzantwort').count() == 0, text
+            assert 'So steht es in deinen Quellen' in text and seite.locator('.satzantwort').count() == 0, text
             bild('zitate')
             # 4. Kennzeichnung: andere Person gleichen Namens, außerhalb des Zeitraums (ruhig, im Weg nach unten)
             for schluessel, erwartet in (('vetter', ('Andere Person gleichen Namens (Alex Winter, alex.winter@ifeh-hessen.example)',)),

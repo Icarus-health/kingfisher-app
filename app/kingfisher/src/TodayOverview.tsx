@@ -6,7 +6,8 @@ import { DetailPanel } from "./DetailPanel";
 import { TaskDetail } from "./TaskDetail";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { taskHref } from "./taskWorkflow";
-import { eingangZeile, naechsterTerminText, zaehlerText } from "./heute";
+import { eingangZeile, naechsterTerminText } from "./heute";
+import { brauchtDichZaehler, heuteZahlen } from "./zahlen";
 import { type Attention, type MorningBriefing } from "./api";
 import { BriefingSuggestion } from "./BriefingSuggestion";
 import { AufgabenVonSelbstZeile } from "./AufgabenSelbstHeute";
@@ -22,6 +23,14 @@ import { navigate } from "./ui";
 
 // A calendar reminder already shown with its preparation belongs with the
 // day's appointments. Keep unmatched reminders visible in the attention list.
+/** „Mehr“ unter „Neu eingegangen“ (Paket S, Befund 7): weitere neue Mails stehen unter Nachrichten (neueste zuerst),
+ * weitere Quellen im Gedächtnis. Vorher führte es immer ins Gedächtnis, in die allgemeine Suche. */
+export function mehrZiel(briefing: {neu_mehr?: "nachrichten" | "gedaechtnis" | null; working_memory_more?: boolean}): string | null {
+  if (briefing.neu_mehr === "nachrichten") return "/nachrichten";
+  if (briefing.neu_mehr === "gedaechtnis" || (briefing.neu_mehr === undefined && briefing.working_memory_more)) return "/memory";
+  return null;
+}
+
 export function todayAttention(briefing: MorningBriefing) {
   return briefing.needs_you.filter(item => !(item.source === "termin" && item.source_ref
     && briefing.later_today.filter(event => event.source_ref === item.source_ref).length === 1
@@ -78,6 +87,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   // mit „Rückgängig“ (V4, TodayTaskRow).
   const [offeneAufgabe, setOffeneAufgabe] = useState<Attention | null>(null);
   const attention = todayAttention(briefing);
+  const zahlen = heuteZahlen(briefing);
+  const zaehler = brauchtDichZaehler(heuteZahlen(briefing));
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
   const naechster = naechsterTerminText(briefing.naechster_termin, briefing.timezone);
@@ -91,7 +102,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   // Zahl leise neben der Überschrift, leere Bereiche in einem Satz (Paket U, H2 und H8).
   return <div className="today-overview">
     <section className="today-panel today-attention" aria-labelledby="today-attention-title">
-      <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2>{zaehlerText(attention.length) ? <span className="today-count">{zaehlerText(attention.length)}</span> : null}</header>
+      {/* Die Zahl ist die ganze (Paket Z1): „3 von 22“, wenn hier nur das Wichtigste steht. */}
+      <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2>{zaehler ? <span className="today-count">{zaehler}</span> : null}</header>
       <div className="today-flaeche">
       {reviewStatus && <p className="today-notice" role="status">{reviewStatus.message} <a href="/vorhaben?view=mine">Aufgaben prüfen →</a></p>}
       {attention.length ? <ul className="today-attention-list">{attention.map(item => {
@@ -114,7 +126,10 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
             {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={() => onChange()} /> : action ? <a className="today-action" href={action.href}>{action.label}</a> : null}
           </div>
         </li>;
-      })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen." : "Nichts wartet auf dich."}</p>}
+      })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen."
+        : (briefing.historical_task_reviews ?? 0) > 0 ? "Nichts Neues wartet auf dich." : "Nichts wartet auf dich."}</p>}
+      {/* Zeigt Heute nur das Wichtigste, sagt es das, und der Rest ist einen Klick entfernt (Paket Z1). */}
+      {zahlen.gezeigt < zahlen.gesamt ? <p className="today-notice today-mehr">Hier steht das Wichtigste, {zahlen.gezeigt} von {zahlen.gesamt}.{zahlen.aufgaben ? <> <a href="/vorhaben?view=mine">{zahlen.aufgaben === 1 ? "Die Aufgabe ansehen" : `Alle ${zahlen.aufgaben} Aufgaben ansehen`}</a></> : null}</p> : null}
       <NeueProjekte onChange={() => onChange()} />
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
       <AufgabenVonSelbstZeile onChanged={() => onChange()} />
@@ -149,7 +164,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
     </section>
 
     {briefing.happening_now.length > 0 && <section className="today-panel today-news" aria-labelledby="today-news-title">
-      <header className="today-panel-heading"><h2 id="today-news-title">Neu eingegangen</h2>{briefing.working_memory_more ? <a className="today-text-link" href="/memory">Mehr</a> : null}</header>
+      <header className="today-panel-heading"><h2 id="today-news-title">Neu eingegangen</h2>{mehrZiel(briefing) ? <a className="today-text-link" href={mehrZiel(briefing)!}>Mehr</a> : null}</header>
       <div className="today-flaeche">
       <ul className="today-news-list">{briefing.happening_now.map(item => {
         const {zeile, titel} = eingangZeile(item, briefing.timezone, briefing.generated_at);

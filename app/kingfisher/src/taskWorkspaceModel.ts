@@ -1,3 +1,4 @@
+import {brauchtDichSatz} from './zahlen.ts';
 type Dated = {due?: string | null};
 type BoardTask = {status?: string; wartet_auf?: string | null};
 
@@ -41,13 +42,12 @@ export function dueLabel(value: string | null, now = new Date()) {
   return new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() ? {year: "numeric"} : {}) }).format(date);
 }
 
-/** Die Zeile unter „Aufgaben“: wie viele Aufgaben heute dran oder überfällig sind.
+/** Die Zeile unter „Aufgaben“: wie viele Aufgaben heute dran oder überfällig sind, mit demselben Satz wie auf Heute.
  *
- * Gezählt werden die geladenen Zeilen; die Liste kommt nach Fälligkeit sortiert und seitenweise. Ist die erste Seite bis
- * zur letzten Zeile fällig und gibt es weitere Seiten, wäre die Zahl die Seitengröße (bei 300 Aufgaben stand „50“).
- * Dann steht „Mehr als …“. Auf späteren Seiten lässt sich nichts zählen, die Zeile entfällt. */
-export function heuteKopfZeile(dran: number, geladen: number, {seite, weitere}: {seite: number; weitere: boolean}): string | undefined {
-  if (seite > 1 || dran < 1) return undefined;
-  if (weitere && dran >= geladen) return `Mehr als ${dran} Aufgaben brauchen dich heute.`;
-  return dran === 1 ? "Eine Aufgabe braucht dich heute." : `${dran} Aufgaben brauchen dich heute.`;
+ * Die Zahl zählt der Sidecar für die ganze Auswahl (`heute_dran` von `/api/v1/tasks`, Projekt und Bereich, ohne Suche),
+ * nach derselben Regel wie das Briefing (Paket Z1, `zaehlung.py`). Früher zählte die Seite ihre geladenen Zeilen, bei
+ * 300 Aufgaben stand dann „Mehr als 50“, und Heute sagte etwas anderes. Ohne Zahl (Suche, andere Ansicht) keine Zeile. */
+export function heuteKopfZeile(heuteDran: number | null | undefined): string | undefined {
+  if (!heuteDran || heuteDran < 1) return undefined;
+  return brauchtDichSatz({aufgaben: heuteDran, weitere: 0});
 }

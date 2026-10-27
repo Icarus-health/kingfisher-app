@@ -91,6 +91,9 @@ def test_compact_folder_status_uses_bounded_bulk_lookups_for_many_saved_referenc
     app=browser.app
     ident=browser.post('/api/v1/sources/documents',json={'filename':'One.txt','body':'Synthetic source.','project_id':None}).json()['id']
     app.state.settings.folder_sync={'enabled':False,'root_id':'test-root','files':{f'file-{n}.txt':ident for n in range(10000)}}
+    # Das Vorwärmen der Akten beim Start liest über dieselbe Verbindung; gezählt wird nur die Anfrage selbst.
+    app.state.akten_vorwaermen.join(timeout=30)
+    assert not app.state.akten_vorwaermen.is_alive()
     queries=[]
     app.state.episodes._conn.set_trace_callback(queries.append)
     try:

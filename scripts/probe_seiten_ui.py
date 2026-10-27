@@ -71,9 +71,16 @@ UEBERSTAND_JS = """() => {
   return { seite: document.documentElement.scrollWidth - w, aus: aus.slice(0, 10), breite: w };
 }"""
 
-# Liegt die Seitenleiste über einem Bedienelement der Seite? (Bei schmalem Fenster ist sie ein Streifen oben.)
+# Liegt die Seitenleiste über einem Bedienelement der Seite? (Bis 900 px ist sie ein Streifen oben.) Am Handy (bis 700 px)
+# ist sie eine feste Leiste unten (Paket H, H2): Was beim Rollen darunter liegt, rollt wieder hervor; gemessen wird deshalb
+# am Ende der Seite (und einer Seite, die in sich rollt), ob dort noch etwas unter ihr bleibt (die Seite hat unten Platz in
+# ihrer Höhe).
 VERDECKT_JS = """() => {
   const leiste = document.querySelector('.sidebar'); if (!leiste) return [];
+  const fest = getComputedStyle(leiste).position === 'fixed' && leiste.getBoundingClientRect().top > innerHeight / 2;
+  const vorher = scrollY, haupt = document.querySelector('main'), hauptVorher = haupt ? haupt.scrollTop : 0;
+  // Rollt die Seite in sich (Gedächtnis), dann auch sie bis ans Ende.
+  if (fest) { scrollTo(0, document.documentElement.scrollHeight); if (haupt) haupt.scrollTop = haupt.scrollHeight; }
   const l = leiste.getBoundingClientRect(), weg = [];
   for (const el of document.querySelectorAll('main button, main a, main input, main select, main h1')) {
     if (el.closest('[aria-hidden="true"]')) continue;
@@ -83,6 +90,7 @@ VERDECKT_JS = """() => {
     const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
     if (r.left < l.right - 1 && r.right > l.left + 1 && r.top < l.bottom - 1 && r.bottom > l.top + 1) weg.push((el.textContent || el.tagName).trim().slice(0, 40));
   }
+  if (fest) { scrollTo(0, vorher); if (haupt) haupt.scrollTop = hauptVorher; }
   return weg.slice(0, 6);
 }"""
 
@@ -467,8 +475,11 @@ def main() -> int:
                 stand = seite.request.get(basis + f'/api/v1/conversations/{gespraech}').json()
                 episode = next(l['episode_id'] for m in stand['messages'] for l in ((m.get('metadata') or {}).get('context') or {}).get('source_links', []))
                 ansicht.get_by_role('button', name='Nicht mehr verwenden').click()
-                pruef['15_rueckfrage'] = ansicht.get_by_role('group', name='Nicht mehr verwenden').inner_text()
-                ansicht.get_by_role('button', name='Ja, nicht mehr verwenden').click()
+                # Die Rückfrage ist ein Dialog über der Seite (Paket B, B3), der Fokus beginnt auf „Abbrechen“.
+                rueckfrage = seite.get_by_role('alertdialog', name='Diese Frage nicht mehr verwenden?')
+                pruef['15_rueckfrage'] = rueckfrage.inner_text()
+                pruef['15_rueckfrage_fokus'] = seite.evaluate("() => document.activeElement.textContent") == 'Abbrechen'
+                rueckfrage.get_by_role('button', name='Ja, nicht mehr verwenden').click()
                 seite.get_by_text('Grundlage geändert oder ausgeschlossen').first.wait_for(timeout=10000)
                 pruef['15_nicht_mehr_verwendet'] = seite.request.get(basis + f'/api/v1/episodes/{episode}').json().get('state') == 'ignored'
                 # Zurück wie vorher (für die übrigen Prüfungen); in der Oberfläche heißt das „Wieder verwenden“.

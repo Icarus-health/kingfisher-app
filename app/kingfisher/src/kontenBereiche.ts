@@ -82,8 +82,10 @@ export function merkeWahl(seite: string, wahl: string, speicher: Pick<Storage, "
 
 /** Der Hinweis nach dem Umbenennen und nach einer Bereichswahl, je mit Rückgängig (docs/16-gestaltung.md). */
 export const umbenanntText = (name: string) => `Umbenannt in „${name}“.`;
+// „Privat gehört jetzt zu Privat.“ stand da, wenn ein Kalender so heißt wie sein Bereich (Paket S, Befund 6): Der Name
+// steht in Anführungszeichen, der Bereich heißt „Bereich“.
 export function bereichText(konten: Pick<Konten, "bereiche">, name: string, bereich: string | null): string {
-  return bereich ? `${name} gehört jetzt zu ${bereichName(konten, bereich) || bereich}.` : `${name} hat keinen Bereich mehr.`;
+  return bereich ? `„${name}“ gehört jetzt zum Bereich ${bereichName(konten, bereich) || bereich}.` : `„${name}“ hat keinen Bereich mehr.`;
 }
 export const alleUebernommenText = (anzahl: number) =>
   anzahl === 1 ? "Ein Vorschlag übernommen." : `${anzahl} Vorschläge übernommen.`;

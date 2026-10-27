@@ -200,6 +200,15 @@ def register(app, guard, data_dir) -> None:
             raise HTTPException(404, 'Nichts zu abbestellen gefunden.')
         return stand()
 
+    @app.post('/api/v1/welt/abbestellen/rueckgaengig', dependencies=guard)
+    def abbestellen_rueckgaengig(body: AbbestellenIn) -> dict[str, Any]:
+        """„Rückgängig“ im Hinweis nach dem Abbestellen (Paket S): der Stand von vorher, samt der Meldung des Tages."""
+        if bool(body.quelle_id) == bool(body.sache):
+            raise HTTPException(422, 'Bitte genau eine Quelle oder eine Sache angeben.')
+        if not dienst(app).abbestellen_rueckgaengig(quelle_id=body.quelle_id, sache=body.sache):
+            raise HTTPException(404, 'Hier gibt es nichts mehr zurückzunehmen.')
+        return stand()
+
     @app.post('/api/v1/welt/zulassen', dependencies=guard)
     def zulassen(body: ZulassenIn) -> dict[str, Any]:
         if not dienst(app).sache_zulassen(body.sache):

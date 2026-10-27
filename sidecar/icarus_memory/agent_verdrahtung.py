@@ -126,13 +126,22 @@ def _search_calendar(app: FastAPI):
 def _offene_punkte(app: FastAPI, art: str, *, nachfuehren: bool = True):
     """„Worauf warte ich?“ / „Was habe ich zugesagt?“ aus den Akten (`offene_punkte.py`); None, wenn sie nicht
     lesbar sind. `nachfuehren=False` beim bloßen Öffnen eines Gesprächs: nur lesen, nichts nachrechnen."""
-    from .akten_routes import bausteine, nachfuehren as bezuege_nachfuehren
+    from .akten_routes import bausteine, nach_stand_gemerkt, nachfuehren as bezuege_nachfuehren
+    from .model import user_timezone
     from .offene_punkte import sammeln
     try:
         berechnung = bezuege_nachfuehren(app) if nachfuehren else {}
         bezuege, akten = bausteine(app)
         noch_offen = berechnung.get('offen', 0) if isinstance(berechnung, dict) else 0
-        return sammeln(akten, bezuege, art, noch_offen=noch_offen)
+        tasks = getattr(app.state, 'tasks', None)
+        heute = datetime.now(user_timezone() or timezone.utc).date().isoformat()
+
+        def berechnen():
+            aufgaben = tasks.open_tasks(limit=None) if tasks is not None and art == 'wartet_auf' else ()
+            return sammeln(akten, bezuege, art, noch_offen=noch_offen, aufgaben=aufgaben)
+        # Senden und Öffnen eines Gesprächs lesen dieselbe Antwort; sie wird einmal je Stand berechnet (Befund A4).
+        return nach_stand_gemerkt(app, 'offene_punkte', (art, heute, noch_offen,
+                                                         tuple(bezuege.eigene_adressen())), berechnen)
     except Exception:  # noqa: BLE001 - ohne lesbare Akten gibt es diese Antwort nicht; der übliche Weg folgt
         logger.exception('Offene Punkte konnten nicht gelesen werden')
         return None
@@ -185,13 +194,41 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     agent._pruefung = lambda: pruef_tor(app)
     # Solange das Sprachmodell im Hintergrund lädt, sagt eine Antwort ohne Modell das ehrlich (Fremdprobe 2, Befund 6).
     agent._modell_laedt = lambda: modell_laedt_satz(app)
+    # Solange Post eingelesen oder eingeordnet wird, sagt eine leere Antwort das ehrlich (Persona-Prüfung, Befund A2).
+    agent._lesestand = lambda: lesestand_satz(app)
 
 
 def modell_laedt_satz(app: FastAPI) -> str:
-    """„Kingfisher lädt noch sein Sprachmodell (60 %).“, solange das Laden läuft; sonst leer."""
+    """„Kingfisher lädt noch seine KI (60 %).“, solange das Laden läuft; sonst leer."""
     manager = getattr(app.state, "pull_manager", None)
     stand = manager.reihe_stand() if manager is not None else None
     return stand["satz"] if stand and stand.get("laeuft") else ""
+
+
+def lesestand_satz(app: FastAPI) -> str:
+    """Ein Satz, solange Kingfisher Post einliest oder einordnet; sonst leer (Befund A2 der Persona-Prüfung).
+
+    Liest denselben Stand wie Heute und „Kingfisher lernt gerade“: das Einlesen je Postfach (`mail_stand.stand`) und
+    die Einordnung (`WorkingMemoryStore.progress`), diese nur, wenn sie eingeschaltet ist und nicht pausiert. Sonst
+    verspräche der Satz etwas, das nicht passiert.
+    """
+    from . import mail_stand
+    from .working_memory_store import WorkingMemoryStore
+    for konto in mail_stand.stand(app):
+        if konto.get("zustand") == "liest":
+            gelesen, gesamt = konto.get("gelesen"), konto.get("gesamt")
+            zahlen = (f" ({mail_stand.zahl(gelesen)} von {mail_stand.zahl(gesamt)} Mails)"
+                      if isinstance(gelesen, int) and isinstance(gesamt, int) and gesamt else "")
+            return f"Kingfisher liest deine Post gerade noch ein{zahlen}."
+    plan = getattr(getattr(app.state, "settings", None), "schedule", None)
+    steuerung = getattr(app.state, "hintergrund", None)
+    if not (plan is not None and plan.enabled and plan.with_model) or getattr(steuerung, "pausiert", False):
+        return ""
+    stand = WorkingMemoryStore(app.state.episodes).progress()
+    if stand["remaining"] > 0:
+        return (f"Kingfisher ordnet deine Post und Termine gerade noch ein (noch {mail_stand.zahl(stand['remaining'])} "
+                f"von {mail_stand.zahl(stand['total'])} {'Quelle' if stand['total'] == 1 else 'Quellen'}).")
+    return ""
 
 
 def pruef_tor(app: FastAPI) -> satzpruefung_modell.Tor:

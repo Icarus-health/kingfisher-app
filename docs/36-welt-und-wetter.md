@@ -55,7 +55,7 @@ Restrisiko: Der erste Treffer der Suche zählt, das Briefing nennt den Ort, dami
 
 * **Feeds** (RSS, RDF, Atom): vier bekannte zum Anklicken (tagesschau, Deutschlandfunk, heise online, ZEIT ONLINE; `welt_vorgaben.py`, Stand 30.09.2026, Adressen nicht abgerufen, ein Klick fügt hinzu, der zweite entfernt; siehe [`47-einstellungen.md`](47-einstellungen.md)) oder eine eigene https-Adresse. Beim
   Hinzufügen wird der Feed einmal zur Probe gelesen; ein unbrauchbarer wird nicht eingetragen, der Grund steht in einem Satz.
-* **Bereits eingerichtete öffentliche Quellen** (`world_sources`, Einstellungen → Für Techniker → Weitere öffentliche Quellen): ankreuzbar. Ihr schon
+* **Bereits eingerichtete öffentliche Quellen** (`world_sources`, Einstellungen → Für Techniker → Weitere öffentliche Quellen): ankreuzbar. Ob der Zeitplan sie von selbst abruft, steht seit Paket S unter „Was Kingfisher darf“ („Eingetragene öffentliche Seiten abrufen“, Vorgabe an, `GET/PUT /api/v1/darf/quellen`); aus, ruft Kingfisher sie nur noch auf „Jetzt abrufen“ ab. Ihr schon
   geholter Text wird satzweise gelesen; es gibt dafür keinen neuen Abruf.
 
 Ohne eingeschaltete Meldung und ohne gewählte Quelle wird **nichts abgerufen**. Abgerufen wird nie beim Öffnen der
@@ -85,7 +85,9 @@ Werkzeugaufruf zählt nicht: Dann entscheidet der Namensabgleich allein.
 * **Jede Meldung sagt warum**, mit Link auf die Akte.
 * **Abbestellen mit einem Klick**, im Briefing selbst („Quelle abbestellen“, „Nicht mehr zu …“), sofort wirksam. Eine
   abbestellte Quelle bleibt in der Liste ausgeschaltet und wird nicht mehr abgerufen; eine abbestellte Sache steht
-  unter „Abbestellt“ mit „Wieder zulassen“. Nichts davon ist endgültig.
+  unter „Abbestellt“ mit „Wieder zulassen“. Nichts davon ist endgültig. Seit Paket S (27.10.2026) steht danach der
+  Hinweis mit „Rückgängig“ (`POST /api/v1/welt/abbestellen/rueckgaengig`): Feed, Weltquelle oder Sache wie vorher, und
+  die Meldung des Tages steht wieder da. Deshalb fragt Abbestellen nicht vorher (`16-gestaltung.md`).
 * **Fremder Inhalt ist Daten.** Feedtexte werden nie ausgeführt und nie als Anweisung gegeben. Sie werden **nicht in
   das Gedächtnis geschrieben**, weder als Episode noch als Fakt (`world_monitor.py` tut das für die von Hand
   aktualisierten Weltquellen weiter, als Rohquelle der Art Web; die Feeds hier nicht). Gespeichert wird höchstens die

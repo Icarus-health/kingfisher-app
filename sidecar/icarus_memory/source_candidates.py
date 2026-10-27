@@ -14,8 +14,9 @@ jeder Quelle kommen höchstens ``MAX_PRO_QUELLE`` Abschnitte; sonst belegten die
 Abschnitte einer einzigen Mail den ganzen Platz (gemessen: im Mittel nur 8 von
 12 Plätzen gingen an verschiedene Quellen). Die Anzeige zeigt ohnehin den ganzen
 Text der Quelle, und jede Zeile des Auswahlkontexts trägt ihn mit. Eine Quelle, die der Index
-findet, aber das Arbeitsgedächtnis nicht kennt (noch nicht eingeordnet, zu groß),
-kann kein Beleg werden: Sie wird gezählt und im Ergebnis ausgewiesen.
+findet, aber das Arbeitsgedächtnis nicht kennt, wird als Ganzes Beleg, wenn sie kurz und noch nicht
+eingeordnet ist (`WorkingMemoryStore.roh_verweis`, Befund A2: frische Post kurz nach der Einrichtung). Zu große oder
+zurückgestellte Quellen können kein Beleg werden: Sie werden gezählt und im Ergebnis ausgewiesen.
 
 Dieses Modul entscheidet nur die Reihenfolge und den Zuschnitt. Ob eine Quelle
 verwendbar ist, prüfen weiterhin ``source_index.suchen`` (Zustand beim Lesen)
@@ -110,7 +111,7 @@ def zusammenfuehren(store, frage: str, *, limit: int, episode_ids=None, oben=())
     oben_reihenfolge = list(oben_je_quelle)
     zaehlung = {"wortsuche_quellen": len(wort_reihenfolge), "oben_quellen": len(oben_reihenfolge), "wortsuche_begrenzt": bool(wort.get("truncated")),
                 "index": "ok", "index_treffer": 0, "index_begrenzt": False, "index_woerter": [],
-                "ohne_einordnung": 0, "index_nicht_erfasst": 0}
+                "ohne_einordnung": 0, "roh": 0, "index_nicht_erfasst": 0}
     index_reihenfolge: list = []
     suchwoerter: tuple = ()
     try:
@@ -146,6 +147,11 @@ def zusammenfuehren(store, frage: str, *, limit: int, episode_ids=None, oben=())
             zaehlung["nur_von_oben"] = zaehlung.get("nur_von_oben", 0) + 1
         if not abschnitte:
             ref = store.best_reference(episode_id, suchwoerter)
+            if ref is None:
+                # Noch nicht eingeordnet (Befund A2): eine kurze Quelle als Ganzes, sonst bleibt sie gezählt.
+                ref = store.roh_verweis(episode_id)
+                if ref is not None:
+                    zaehlung["roh"] += 1
             if ref is None:
                 if store.source_state(episode_id) not in {'dismissed', 'excluded'}:
                     zaehlung["ohne_einordnung"] += 1

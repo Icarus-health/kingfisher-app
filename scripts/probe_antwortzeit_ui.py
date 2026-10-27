@@ -147,6 +147,9 @@ def main() -> int:
             # 1. Schnelle Antwort: Zeile mit Teilen, kein Ursachensatz
             seite.goto(f'{basis}/conversations/{gespraeche["schnell"]}')
             seite.wait_for_selector('.satzantwort', timeout=15000)
+            # Paket S, Befund 2: Die Zeile liegt hinter „Details“, zugeklappt.
+            assert seite.locator('details.antwortzeit-details[open]').count() == 0, 'Vorgabe: zu'
+            seite.locator('details.antwortzeit-details > summary').last.click()
             zeile = seite.locator('p.antwortzeit').last.inner_text()
             pruef['zeile_schnell'] = zeile
             assert re.match(r'^\d,\d s · .*Sätze \d,\d', zeile), zeile
@@ -155,7 +158,8 @@ def main() -> int:
 
             # 2. Langsame Antwort: Ursache in einem Satz
             seite.goto(f'{basis}/conversations/{gespraeche["langsam"]}')
-            seite.wait_for_selector('p.antwortzeit', timeout=15000)
+            seite.wait_for_selector('details.antwortzeit-details', timeout=15000)
+            seite.locator('details.antwortzeit-details > summary').last.click()
             text = seite.locator('p.antwortzeit').last.inner_text()
             pruef['zeile_langsam'] = text
             assert 'Der zweite Modellaufruf für die Sätze brauchte' in text, text
@@ -194,7 +198,7 @@ def main() -> int:
             zeile = seite.locator('p.antwortzeit').last.inner_text()
             pruef['zeile_ohne_saetze'] = zeile
             assert 'Sätze' not in zeile and seite.locator('.satzantwort').count() == 0, zeile
-            assert 'Quelle berichtet' in seite.locator('article.message.assistant').last.inner_text()
+            assert 'So steht es in deinen Quellen' in seite.locator('article.message.assistant').last.inner_text()
             bild('zeile-ohne-saetze', full_page=True)
 
             # 6. Der Schalter bleibt nach dem Neuladen aus; wieder einschalten

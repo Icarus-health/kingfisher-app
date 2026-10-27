@@ -71,9 +71,9 @@ ankommen; die alten Kennungen (`#world`, `#model`, `#memory`, …) führen an de
 | Reiter | Was dort ist | Bausteine (unverändert, nur anders einsortiert) |
 |---|---|---|
 | **Zugänge** | Postfächer, Kalender, Ordner und Dateien: verbinden, trennen, Stand. Oben der Einrichtungsassistent und „Kingfisher lernt gerade“. | `GoogleSignIn`, Quellenliste und -formulare (`Quellenformulare.tsx`), `MacCalendarSettings`, `TranscriptSettings`, `FolderSyncSettings`, `DocumentImport`, `EinrichtungKopf` |
-| **Was Kingfisher darf** | Sieben Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
-| **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `WorkingProfileSettings` |
-| **Sicherung** | Verschlüsselt sichern. | `RecoverySettings` |
+| **Was Kingfisher darf** | Zehn Schalter (Stand Paket D, 26.10.2026; drei davon von Haus aus an, siehe unten „Wege nach draußen“). Ursprünglich sieben, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
+| **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), „Gelöschte Personen“ (nur, wenn es welche gibt, siehe unten), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `PersonSperren`, `WorkingProfileSettings` |
+| **Sicherung** | Verschlüsselt sichern; einen Stand aus der Liste wiederherstellen (seit 27.10.2026, siehe unten). | `RecoverySettings`, `SicherungZurueck` |
 | **Für Techniker** | „Hier muss nichts geändert werden.“ Fünfzehn eingeklappte Abschnitte, die erst beim Aufklappen laden. | siehe unten |
 
 Hinter „Für Techniker“: Modelle je Aufgabe und Speicherbedarf (mit lokaler Modellwahl und Gerät), Modellauswahl (Routing),
@@ -364,12 +364,20 @@ Entscheidung des Nutzers ([66-automatik.md](66-automatik.md)): **Bereich je Post
   ihrer Adresse (`konten_routes.namen_eindeutig_machen`; nur der Anzeigename).
 * **Doppelt**: Ein Postfach mit derselben Anmeldung beim selben Server wird beim Passwortweg nicht ein zweites Mal
   angelegt; stattdessen ein Satz („Dieses Postfach ist schon verbunden: … Kingfisher liest es bereits.“), noch vor der
-  Anmeldung. Google und Microsoft erkannten das schon.
+  Anmeldung. Google und Microsoft erkannten das schon. Seit Paket S (27.10.2026) steht der Satz schon nach der Adresse,
+  ruhig (kein roter Rahmen) und mit „Zum Postfach“, das zur Zeile führt; ein Passwort wird gar nicht erst verlangt
+  (`postfachWeg.schonVerbunden`). Jedes Passwortfeld vorne hat „Anzeigen“ (`grundlage/PasswortFeld.tsx`).
 * **Bereich**: Ohne Bestätigung steht unter der Zeile der **Vorschlag mit Grund** („Vorschlag: Privat. gmail.com ist ein
-  privater Anbieter.“) mit „Übernehmen“ und „Anderer Bereich“. Regeln (`bereiche.py`): private Anbieter-Adresse →
-  Privat, eigene Domäne → Arbeit; Kalender aus eindeutigen Wörtern im Namen („Arbeit“, „Team“, „Familie“), sonst aus dem
+  privater Anbieter, und nichts darin klingt nach Arbeit.“) mit „Übernehmen“ und „Anderer Bereich“. Regeln
+  (`bereiche.py`): eigene Domäne → Arbeit; ein privater Anbieter (Gmail, GMX …) allein entscheidet seit Paket S nichts
+  mehr, denn viele führen Kundenkonten bei Gmail. Erst was darin steht, gibt den Ausschlag (`inhalt_des_postfachs`,
+  `mail_einschaetzen`): Geschäftspartner (ein Mensch bei einer Firma mit Projekt, eigener Antwort, förmlicher Anrede
+  oder Firma in der Signatur; Rechnungen, Verträge und Newsletter an Privatkunden zählen nicht) in klarer Mehrheit →
+  Arbeit, nichts Berufliches → Privat, gemischt oder noch nichts gelesen → kein Vorschlag; Kalender aus eindeutigen Wörtern im Namen („Arbeit“, „Team“, „Familie“), sonst aus dem
   Postfach mit derselben Adresse, sonst aus der Adresse; sonst **kein Vorschlag**, die Zeile fragt „Welcher Bereich?“.
-  Ab zwei offenen Vorschlägen steht im Kopf der Gruppe „Alle Vorschläge übernehmen“. Bestätigt steht der Bereich als
+  Ab zwei offenen Vorschlägen steht im Kopf der Gruppe „Alle Vorschläge übernehmen“. Neben dem Namen steht sichtbar
+  „Umbenennen“ (Paket S; vorher war der Name selbst der unsichtbare Knopf). Ein über die Mailadresse gefundener Kalender
+  heißt nach seinem Namen („Privat“, bei einem bekannten Anbieter „GMX: Privat“), nicht nach dem Server. Bestätigt steht der Bereich als
   leise Pille rechts; ein Klick ändert ihn, „Ohne“ löst ihn, „Eigener Bereich …“ legt einen mit Namen an (etwa
   „Verein“). Alles ohne Rückfrage, danach der Hinweis mit „Rückgängig“ (`PUT /api/v1/konten/bereich` mit dem Vorwert,
   `PUT /api/v1/konten/name` mit dem alten Namen).
@@ -383,6 +391,12 @@ Entscheidung des Nutzers ([66-automatik.md](66-automatik.md)): **Bereich je Post
 * **Filter**: Kalender und Aufgaben haben ein Segment „Alle · Arbeit · Privat · …“, sobald mindestens zwei Bereiche einem
   Konto zugeordnet sind; die Wahl merkt sich jede Seite (Browser). Auf der Kalenderseite bleiben **ausgeblendete
   Kalender ausgeblendet** (gespeichert, `PUT /api/v1/kalender/ausgeblendet`).
+* **Eine Zahl** (Persona-Prüfung, Paket Z1, 27.10.2026): Der Aufgabenfilter filtert im Sidecar, vor Zählen und
+  Blättern (`GET /api/v1/tasks?bereich=…`, `…/projects/{id}/task-overview?bereich=…`, `zaehlung.ids_im_bereich`). Zahl
+  am Segment, Projektüberblick und Liste sind dieselbe Auswahl; über einer leeren Liste steht keine „1“ mehr. Unter
+  „Zugänge“ zählt „N Kalender verbunden“ die Zeilen darunter, auch die Mac-Kalender (`zahlen.kalenderZeilen`). Liegen
+  die Termine eines Zeitraums (im gewählten Bereich) nur in ausgeblendeten Kalendern, sagt der Kalender das statt „keine
+  Termine“ und blendet sie mit einem Klick ein („Einblenden“, `zahlen.ausgeblendetLage`).
 * Prüfung: `sidecar/tests/test_konten_bereiche.py`, `app/kingfisher/tests/konten-bereiche.test.mjs`, Browserprobe
   `scripts/probe_konten_ui.py` ([Protokoll](runs/2026-10-26-automatik-konten/README.md)).
 
@@ -464,7 +478,8 @@ Gedächtnisantwort lief nur lokal und sagte sonst „benötigt ein lokales Model
 ([66-automatik.md](66-automatik.md)): Mit gültiger Einwilligung der Rolle `antwort` wählt der Cloudanbieter auch die
 Quellen aus und formuliert die Sätze.
 
-- **Was hinausgeht:** die Frage und die dafür gefundenen Textstellen samt Absender, Betreff und Datum. Der Satz der
+- **Was hinausgeht:** die Frage und die dafür gefundenen Quellen samt Absender, Betreff und Datum (präzisiert in Paket D:
+  „Inhalte deiner Mails, Termine und Notizen, ganz oder in Auszügen“, mit Anbieter, Land und Region). Der Satz der
   Einwilligung sagt das jetzt wörtlich (erweitert, nicht gekürzt; Oberfläche `gliederung.ts`, Sidecar `ROLLEN["antwort"]`).
   Bestätigte Einträge der Wissensschicht gehen nie hinaus; sie stehen lokal gelesen unter der Antwort.
 - **Wann nie:** Schalter aus, Einwilligung fehlt oder unlesbar, kein Schlüssel (dann gilt der lokale Standard), ein
@@ -473,9 +488,33 @@ Quellen aus und formuliert die Sätze.
 - **Was lokal bleibt:** Prüfung (zweites Tor), Einbettung und Hintergrund, wie bisher.
 - **Sichtbar:** Unter einer solchen Antwort steht „Über Anthropic beantwortet.“; im Verlauf vermerkt
   `context.gedaechtnis_cloud` Anbieter, Modell und `gesendet: ["frage", "textstellen"]`.
-- **Ohne Cloud:** Ist eine lokale Antwort langsamer als 8 s, steht darunter „Lokal dauert das. Mit der Cloud geht es
-  in wenigen Sekunden.“ mit „Cloud einschalten“ (führt zu diesem Schalter, die Einwilligung bleibt hier) und „Nicht mehr
+- **Ohne Cloud:** Ist eine lokale Antwort langsamer als 8 s, steht darunter „Lokal dauert das. Mit der Cloud ginge es
+  in wenigen Sekunden. Dann gingen deine Fragen und Inhalte deiner Mails an Anthropic (USA).“ (Empfänger seit Paket D) mit „Cloud einschalten“ (führt zu diesem Schalter, die Einwilligung bleibt hier) und „Nicht mehr
   zeigen“ (im Browser gemerkt).
+
+## Wege nach draußen: Widerruf, Webabruf, Update-Prüfung (Paket D, 26.10.2026)
+
+Aus der Persona-Prüfung (Datenschutzanwalt, Ärztin; [Protokoll](runs/2026-10-26-befunde-datenschutz/README.md)):
+
+- **Widerruf sofort.** Ausschalten wartet nie auf eine laufende Antwort (`model_roles_routes.put_role`: nur ein Widerruf
+  nimmt die Gesprächssperre nicht). Jeder einzelne Versand prüft die Einwilligung frisch: Gespräch vor jeder Runde, auch
+  nach einem Werkzeug, Fragen verstehen, Gedächtnisantwort (`Agent._cloud_vor_versand`, `gedaechtnis_cloud.py`),
+  Einordnung neuer Mails (`hintergrund_cloud.py`). Steht im Gespräch: „Die Cloud ist ausgeschaltet. Ab hier ist nichts mehr
+  an den Anbieter gegangen.“ Der Schalter steht beim Klick auf „aus“.
+- **Schalter erst nach Zustimmung an.** Solange die Zustimmung offen ist: „Noch aus: Die Cloud ist erst an, wenn du unten
+  zustimmst.“ Die Zustimmung nennt den Anbieter mit Land und Region (`nach_draussen.ANBIETER`, `gliederung.zustimmungCloud`).
+- **Webseiten im Gespräch abrufen** (`SCHALTER.web`, Vorgabe an): Jeder Abruf wartet auf eine Freigabe mit einem Klick, die
+  Adresse, Empfänger der IP-Adresse und die mit der Adresse gesendeten Angaben nennt (`policy.Policy._IMMER_FREIGABE`,
+  `tools.web_abruf_satz`); nach fremdem Inhalt bleibt die genaue Freigabe (Adresse abtippen). Aus: Das Modell bekommt das
+  Werkzeug nicht (`PUT /api/v1/darf/web`).
+- **Nach neuen Fassungen sehen** (`SCHALTER.updates`, Vorgabe an, vorher unter „Kingfisher und du“): ein Satz, was abgerufen
+  wird, dass GitHub die IP-Adresse sieht, und was „aus“ kostet. Unter „Kingfisher und du“ bleiben Fassung und „Jetzt
+  nachsehen“.
+- **Was an die Cloud ging:** aufklappbar unter dem Cloud-Schalter, je Anfrage Zeit, Anbieter und wofür, ohne Inhalt
+  (Logbuch-Art `cloud_anfrage`, `GET /api/v1/cloud/protokoll`). Gesprächsantworten aus der Cloud tragen wie
+  Gedächtnisantworten „Über Anthropic beantwortet.“ (`context.cloud_antwort`).
+- **IP-Adresse:** Wetter, Welt, Wegezeit, Webabruf und Update-Prüfung sagen, dass der Dienst sie sieht. Ohne Netz sagt
+  eine Weltquelle „… ist gerade nicht erreichbar“ statt „nicht erlaubt“.
 
 ## Aufgaben aus Mails selbst anlegen (26.10.2026)
 
@@ -486,6 +525,43 @@ verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus ne
 „Rückgängig“. Aus: Sie bleiben Vorschläge.“ Dahinter `GET/PUT /api/v1/aufgaben-von-selbst/einstellung` (`an`), gehalten
 in `tasks.sqlite3` (`aufgaben_auto_einstellung`, keine Zeile heißt an). Was eindeutig ist, steht in
 [`30-akten.md`](30-akten.md#aufgaben-von-selbst-26102026).
+
+## Sicherung wiederherstellen und gelöschte Personen (Paket P, 27.10.2026)
+
+Befund D7 der Persona-Prüfung ([Protokoll](runs/2026-10-26-befunde-person/README.md)): Unter „Sicherung“ stand
+„Verschlüsselt sichern und bei Bedarf wiederherstellen“, wiederherstellen ließ sich aber nichts. Kingfisher legt alle
+vier Stunden einen Schnappschuss im Datenordner an (`sicherungen/`, `backup.snapshot_all`), zurück kam man nur über
+`make zurueck-vor-update`, und danach stand die App im Prüfmodus.
+
+**Stand wiederherstellen** (`SicherungZurueck.tsx`, Sidecar `sicherung_zurueck.py`, Routen `GET /api/v1/sicherungen`,
+`POST /api/v1/sicherungen/wiederherstellen`):
+
+* Die Sicherungen dieses Rechners als Auswahl mit Zeitpunkt und Anlass („regelmäßig“, „vor einem Update“, „vor dem
+  Wiederherstellen“), vorne die fünf jüngsten, die jüngste regelmäßige vorgewählt; nie ein Pfad (Prüffrage 3).
+* Rückfrage in einem Satz: „Stand vom 26. Oktober, 14:05 wiederherstellen?“, darunter „Was seitdem dazukam, geht
+  verloren. Kingfisher sichert vorher den jetzigen Stand, du kannst es also rückgängig machen.“ Fokus auf „Abbrechen“.
+* Vorher sichert Kingfisher den jetzigen Stand (`vor-wiederherstellung-…`, eigene Rotation mit fünf). Danach lädt die
+  Seite neu, der Hinweis sagt „Wiederhergestellt: Jetzt gilt der Stand vom …“ und bietet „Rückgängig“ an (auch
+  Befehl Z); oben im Abschnitt steht, welcher Stand seit wann gilt.
+* Atomar: Prüfung (Manifest, Prüfsummen, `integrity_check`, Schema), Kopie in einen Arbeitsordner, Merkzettel
+  `wiederherstellung-laeuft.json`, erst dann Umhängen. Bricht etwas ab, hängt Kingfisher alles zurück; bricht der ganze
+  Vorgang ab (Strom), tut es der nächste Start, bevor eine Ablage öffnet. Während des Austauschs nimmt der Sidecar keine
+  andere Anfrage an (`restore_boundary.EXKLUSIV`), der Zeitplan ruht.
+* Nur das Gedächtnis kommt aus der Sicherung (Quellen, Wissen, Vorschläge, Aufgaben, Projekte, Gespräche, Kalenderstand,
+  Rückmeldungen, Befunde). Einstellungen samt Einwilligungen, Schlüsselablage, Dauerfreigaben, das Protokoll der
+  Aktionen, das Logbuch, ausstehende Kalenderaktionen und Cloud-Aufträge bleiben auf dem heutigen Stand. Eine alte
+  Sicherung bringt so keine widerrufene Freigabe zurück; deshalb braucht dieser Weg keinen Prüfmodus. Ein laufender
+  Cloud-Auftrag wird dabei beendet (Freigabe widerrufen), wie bisher bei jedem Austausch.
+* Sicherheit: nur Namen, wie Kingfisher sie vergibt, nur unmittelbar im eigenen Sicherungsordner, kein Verweis
+  (Symlink) auf die Sicherung oder eine Datei darin; geschrieben wird nur unter festen Namen im Datenordner.
+* Der Rückweg nach einem Update (`/backups/restore`, `make zurueck-vor-update`) bleibt, wie er war, mit Prüfmodus: Dort
+  kann auch die Fassung des Programms eine andere sein.
+
+**Gelöschte Personen** (`PersonSperren.tsx`, Routen `GET /api/v1/personen/sperre`, `DELETE …/{kennung}`,
+`POST …/{kennung}/zurueck`): Wer in seiner Personenakte „Alles löschen“ gewählt hat, steht unter „Kingfisher und du“ mit
+„Wieder aufnehmen“. Danach kommt die Person beim nächsten Einlesen wieder herein; der Hinweis bietet „Rückgängig“ an.
+Gespeichert sind nur der Anzeigename und Prüfsummen ihrer Adressen und Schreibweisen, siehe
+[30-akten.md](30-akten.md#alles-zu-einer-person-auskunft-und-löschen-paket-p-27102026).
 
 ## Wie man prüft
 

@@ -18,6 +18,7 @@ import { DocumentImport } from "./DocumentImport";
 import { MemoryFolders } from "./MemoryFolders";
 import { MemorySearch } from "./MemorySearch";
 import { Leer, Seitenkopf, Segmente } from "./grundlage";
+import { PROJEKTE_ORT } from "./projekteOrt";
 import "./MemoryWorkspace.css";
 import "./Gedaechtnis.css";
 
@@ -27,7 +28,6 @@ const FILTERS: Array<{ id: FilterId; label: string; icon: "people" | "project" |
   { id: "search", label: "Suchen", icon: "brain" },
   { id: "areas", label: "Bereiche", icon: "brain" },
   { id: "people", label: "Menschen", icon: "people" },
-  { id: "projects", label: "Projekte", icon: "project" },
   { id: "documents", label: "Dokumente", icon: "document" },
 ];
 const MORE_FILTERS: typeof FILTERS = [
@@ -278,7 +278,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
         </aside>
         {unteransicht ? <h2 className="g-titel memory-unteransicht">{unteransicht}</h2> : null}
         {documentImportOpen && <DocumentImport initiallyExpanded showLibrary={false} title="Dokument hinzufügen" onClose={()=>{setDocumentImportOpen(false);window.dispatchEvent(new Event("workspace-view-changed"));}} />}
-        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error && graphNoetig ? (
+        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <><h2 className="visually-hidden">Bereiche</h2><MemoryAreas /></> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error && graphNoetig ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <Leer zeichen="brain" satz="Das Gedächtnis ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" onClick={load} type="button">Wiederholen</button>} />
           </section>
@@ -296,6 +296,8 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
           {MORE_FILTERS.map(item => <button type="button" disabled={reviewSubmitting} key={item.id} aria-pressed={section === "browse" && filter === item.id} onClick={() => {updateBrowse({tab:item.id,q:"",page:1,people:"people"});zumAnfang();}}>{item.label}</button>)}
           <button type="button" disabled={reviewSubmitting} aria-pressed={section === "support"} onClick={() => {navigate("/memory?view=support");zumAnfang();}}>Aussagen prüfen</button>
           <button type="button" disabled={reviewSubmitting} aria-pressed={section === "status"} onClick={() => {navigate("/memory?view=status");zumAnfang();}}>Verarbeitung & Verlauf</button>
+          {/* Projekte haben einen Ort: unter Aufgaben, wo man sie anlegt und ihre Aufgaben sieht (Paket H, H2). */}
+          <a href={PROJEKTE_ORT}>Projekte unter Aufgaben</a>
           <a href="/settings#ki">KI-Zugänge & Modelle</a>
         </nav>
       </main>

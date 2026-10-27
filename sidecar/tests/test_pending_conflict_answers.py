@@ -17,6 +17,11 @@ def candidate(app, episodes, *, subject='project:aurora', text='Aurora hat Frist
     proposal, _ = app.state.knowledge_service.propose(subject_ref=subject,
         predicate='observed_email', value=text, statement=text, rationale='Zu prüfen',
         evidence=[Evidence(source.id, text, source.digest)], at=AT)
+    # Die Quelle ist hier nur Beleg des Vorschlags und nicht im Arbeitsgedächtnis (ausgenommen). Seit Befund A2
+    # wäre eine noch nicht eingeordnete kurze Quelle sonst als Rohquelle Beleg der Gedächtnisantwort; dieser Test
+    # prüft den Weg über bestätigtes Wissen. Eine eingeordnete Quelle endet dort ebenfalls geschlossen.
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    assert WorkingMemoryStore(episodes).dismiss(source.id)
     return proposal, source
 
 

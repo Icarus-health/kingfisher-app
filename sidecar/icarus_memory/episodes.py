@@ -31,6 +31,8 @@ Arbeit zu erzeugen. Wer wissen will, warum eine Aussage im Bestand steht, findet
 
 from __future__ import annotations
 
+import copy
+import functools
 import hashlib
 import json
 from . import source_index, support_schema
@@ -44,7 +46,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
 from .migrations import (
     IndexContract,
@@ -74,9 +76,15 @@ def mail_address(value: Any) -> str:
     Robuster als `parseaddr` allein: „Keller, Anna <anna@x.de>“ ohne
     Anführungszeichen (so liefern Outlook und der Mac-Kalender) ergibt dort
     nichts. Hier zählt der letzte <…>-Block, sonst `parseaddr`, `mailto:` fällt weg.
+    Gemerkt je Text (eine reine Funktion; Befund A4: tausende gleiche Angaben je Frage).
     """
+    return _mail_address(str(value or ''))
+
+
+@functools.lru_cache(maxsize=8192)
+def _mail_address(text: str) -> str:
     from email.utils import parseaddr
-    text = str(value or '').strip()
+    text = text.strip()
     treffer = _SPITZ.search(text)
     adresse = treffer.group(1) if treffer else parseaddr(text)[1]
     adresse = adresse.strip()
@@ -265,6 +273,18 @@ def sql_mail_parent_valid(alias: str = "episodes") -> str:
 
 def sql_nicht_ignoriert(alias: str = "episodes") -> str:
     return f"{alias}.state NOT IN ({_sql_liste(IGNORIERTE_ZUSTAENDE)}) AND {sql_mail_parent_valid(alias)}"
+
+
+def _kuenftig(zeit: str, jetzt: datetime) -> bool:
+    """Liegt die Zeit einer Quelle nach `jetzt`? Ein Termin im Dezember ist kein „zuletzt“ (Paket S, offener Rest aus
+    A-II: unter „Mit wem“ stand „zuletzt 13.12.2026“). Unlesbare Zeiten zählen wie bisher."""
+    try:
+        moment = datetime.fromisoformat(str(zeit))
+    except ValueError:
+        return False
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=timezone.utc)
+    return moment > jetzt
 
 
 def sql_aktuelle_fassung(alias: str = "episodes") -> str:
@@ -630,7 +650,7 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False, vorschlaege=False, automatik=False) -> None:
+                entscheidungen=False, vorschlaege=False, automatik=False, sperre=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
@@ -644,6 +664,10 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         from . import projekt_automatik
         extra_tables.update(projekt_automatik.TABLES)
         extra_keys.update(projekt_automatik.PRIMARY_KEYS)
+    if sperre:
+        from . import person_sperre
+        extra_tables.update(person_sperre.TABLES)
+        extra_keys.update(person_sperre.PRIMARY_KEYS)
     if mail_headers:
         from . import mail_header_index
         extra_tables.update(mail_header_index.TABLES)
@@ -849,11 +873,11 @@ def _migrate_v20(connection):
 
 
 def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False,
-               automatik=False):
+               automatik=False, sperre=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
                 task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
-                vorschlaege=vorschlaege, automatik=automatik)
+                vorschlaege=vorschlaege, automatik=automatik, sperre=sperre)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -915,6 +939,18 @@ def _verify_v25(connection):
                 automatik=True)
 
 
+def _migrate_v26(connection):
+    # Sperrvermerke (Persona-Prüfung, Paket P, D7): Wen der Nutzer gelöscht hat, legt das nächste Einlesen nicht
+    # wieder an. Nur Prüfsummen und ein Anzeigename, nie die Daten selbst (`person_sperre.py`).
+    from .person_sperre import migrate
+    migrate(connection)
+
+
+def _verify_v26(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True,
+                automatik=True, sperre=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -941,6 +977,7 @@ _MIGRATIONS = (
     Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
     Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
     Migration(25, "projekt_automatik", _migrate_v25, _verify_v25),
+    Migration(26, "personen_sperre", _migrate_v26, _verify_v26),
 )
 
 
@@ -959,6 +996,11 @@ class EpisodeStore:
         self._lock = threading.RLock()
         from .zwischenspeicher import Zwischenspeicher
         self._teilnehmer_zwischen = Zwischenspeicher(16)
+        self._teilnehmer_alle: dict[bool, tuple] = {}
+        self._teilnehmer_sperre = threading.Lock()
+        #: Die eigenen Adressen (Einstellungen), für die Personensperre: Bleibt nach dem Herausnehmen gesperrter
+        #: Beteiligter nur „ich“, wird die Quelle nicht aufgenommen. Der Server setzt das; ohne gilt jeder als fremd.
+        self.eigene_adressen: Callable[[], Iterable[str]] | None = None
         try:
             with self._lock:
                 run_migrations(
@@ -1121,6 +1163,12 @@ class EpisodeStore:
         Episode käme erneut in die Verdichtung, und der Nutzer bekäme Vorschläge
         vorgelegt, die er längst entschieden hat.
         """
+        # Gelöschte Personen (Sperrvermerk, `person_sperre.py`): Sie fallen aus den Beteiligten; betrifft die Quelle
+        # außer dem Nutzer nur sie, wird sie nicht aufgenommen (`GesperrteQuelle`).
+        if participants or contacts:
+            gefiltert, kontakte, entfernt = self._ohne_gesperrte(participants, contacts)
+            if entfernt:
+                participants, contacts = gefiltert, kontakte
         metadata_digest = source_metadata_digest({
             "kind": kind.value, "title": title,
             "occurred_at": occurred_at.isoformat() if occurred_at else None,
@@ -1235,6 +1283,11 @@ class EpisodeStore:
         späteres, gleichlautendes Einlesen keine zweite Fassung anlegt, und die
         Stützgeneration steigt, damit die Auswertung die Quelle neu ansieht.
         """
+        from .person_sperre import GesperrteQuelle
+        try:
+            participants, contacts, _ = self._ohne_gesperrte(participants, contacts)
+        except GesperrteQuelle:  # nur gesperrte Nachträge: nichts zu ergänzen
+            return self.get(episode_id)
         with self.transaction():
             episode = self.get(episode_id)
             if episode.state is EpisodeState.IGNORED:
@@ -1257,6 +1310,16 @@ class EpisodeStore:
                 (json.dumps(document, ensure_ascii=False),
                  source_metadata_digest(document) if row[0] else "", episode_id))
             return episode
+
+    def _ohne_gesperrte(self, participants, contacts) -> tuple[list[str], list[dict[str, Any]], bool]:
+        from .person_sperre import fuer
+        eigene = ()
+        if self.eigene_adressen is not None:
+            try:
+                eigene = list(self.eigene_adressen() or ())
+            except Exception:  # noqa: BLE001 - ohne eigene Adressen gilt jeder als fremd
+                eigene = ()
+        return fuer(self).filtern(participants, contacts, eigene)
 
     def remove_contacts(self, episode_id: str, contacts: list[dict[str, Any]],
                         participants: list[str]) -> Episode:
@@ -1851,18 +1914,36 @@ class EpisodeStore:
             return {}
         # Zwischengespeichert am Stand der Datei (V7, Tempo): Briefing, Terminvorbereitung und Akten fragen dieselben
         # Adressen immer wieder, und jeder Durchgang liest alle Quellen. Jeder Schreibvorgang macht den Eintrag ungültig.
+        # Befund A4 der Persona-Prüfung: Fragen, die viele Akten lesen, fragten je Akte andere Adressen und lasen
+        # dafür jedes Mal den ganzen Bestand. Jetzt entsteht je Stand der Datei einmal das Verzeichnis aller Adressen;
+        # jede weitere Abfrage liest daraus (Kopie nur der gefragten Einträge). Dasselbe Ergebnis: Auch die Einzelabfrage
+        # prüfte die Adresse genau, die Textsuche war nur Vorfilter.
         from .zwischenspeicher import marke
-        return self._teilnehmer_zwischen.holen(
-            (marke(self._conn, self._lock), tuple(gesucht), anzeigenamen),
-            lambda: self._participants_for_addresses(gesucht, anzeigenamen=anzeigenamen))
+        # Die Stunde gehört zum Stand: „zuletzt“ zählt nur Vergangenes (`_kuenftig`), und ein Termin wird auch ohne
+        # Schreibvorgang Vergangenheit.
+        stand = (marke(self._conn, self._lock), anzeigenamen, datetime.now(timezone.utc).strftime('%Y-%m-%dT%H'))
+        with self._teilnehmer_sperre:
+            alle = self._teilnehmer_alle.get(anzeigenamen)
+            if alle is None or alle[0] != stand:
+                alle = (stand, self._participants_for_addresses(None, anzeigenamen=anzeigenamen))
+                self._teilnehmer_alle[anzeigenamen] = alle
+                self._teilnehmer_zwischen.berechnet += 1
+            else:
+                self._teilnehmer_zwischen.treffer += 1
+        leer = {'namen': {}, 'zuletzt': None, 'quellen': {}}
+        return {a: copy.deepcopy(alle[1].get(a, leer)) for a in gesucht}
 
     def aenderungsmarke(self) -> tuple[int, int, int]:
         """Stand der Datei für Zwischenspeicher: ändert sich mit jedem Schreibvorgang (`zwischenspeicher.marke`)."""
         from .zwischenspeicher import marke
         return marke(self._conn, self._lock)
 
-    def _participants_for_addresses(self, gesucht: list[str], *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+    def _participants_for_addresses(self, gesucht: list[str] | None, *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+        """`gesucht` None: alle Adressen des Bestands in einem Durchgang (ohne Vorfilter)."""
+        if gesucht is None:
+            return self._alle_teilnehmer(anzeigenamen=anzeigenamen)
         ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
+        jetzt = datetime.now(timezone.utc)
         muster = ['%' + a.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for a in gesucht]
         # In Paketen: Eine OR-Kette über tausende Adressen sprengt SQLite („Expression tree is too large“).
         # Eine Quelle, die mehrere Pakete trifft, zählt trotzdem nur einmal.
@@ -1899,7 +1980,38 @@ class EpisodeStore:
                     eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt
-                if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
+                if zeit and not _kuenftig(zeit, jetzt) and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
+                    eintrag['zuletzt'] = zeit
+        return ergebnis
+
+    def _alle_teilnehmer(self, *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+        """Wie `_participants_for_addresses`, aber für jede Adresse des Bestands (ein Lesedurchgang)."""
+        from .kontakte import anzeigename
+        ergebnis: dict[str, dict[str, Any]] = {}
+        jetzt = datetime.now(timezone.utc)
+        with self._lock:
+            zeilen = self._conn.execute(
+                "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id, "
+                f"json_extract(document, '$.provenance.source_type') FROM episodes WHERE {sql_aktuell()}").fetchall()
+        for episode_id, teilnehmer, zeit, projekt, art in zeilen:
+            try:
+                werte = json.loads(teilnehmer or '[]')
+            except ValueError:
+                continue
+            for wert in werte:
+                adresse = mail_address(str(wert))
+                if not adresse:
+                    continue
+                eintrag = ergebnis.setdefault(adresse, {'namen': {}, 'zuletzt': None, 'quellen': {}})
+                name = str(wert).strip()
+                lesbar = anzeigename(name, kopfzeile=art == "email")
+                if anzeigenamen:
+                    name = lesbar or adresse
+                else:
+                    eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
+                eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
+                eintrag['quellen'][episode_id] = projekt
+                if zeit and not _kuenftig(zeit, jetzt) and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
                     eintrag['zuletzt'] = zeit
         return ergebnis
 
