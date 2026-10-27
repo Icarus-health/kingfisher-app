@@ -35,6 +35,8 @@ import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
 import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
+import { angelegtHinweis } from "./aufgabenVonSelbst";
+import { ZurueckgenommenGruppe } from "./ZurueckgenommenGruppe";
 import { anlageZuruecknehmen } from "./AufgabenSelbstHeute";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
@@ -746,13 +748,14 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     try {
       const task = await attempt.save({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) }, api.addTask);
       if (!task) return;
-      openTask(task.id);
+      // Die neue Aufgabe steht in der Liste, nicht im Vollbild; der Hinweis bietet „Öffnen“ und „Rückgängig“ (Paket Z4).
       setProjectId(newTaskProject);
       setTitle("");
       setDue("");
       setCreating(false);
       if (view === "mine") load("mine");
       else setView("mine");
+      zeigeHinweis(angelegtHinweis(task, async () => { await api.dropTask(task.id); load(); }));
     } catch (cause) {
       setCreateError(cause instanceof TaskSavePreparationError ? `${cause.message} Es wurde keine Aufgabe gesendet.` : cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);
     } finally {
@@ -879,7 +882,8 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
       </section>
       <div className="task-review" hidden={panel !== "review"}>
-        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
+        {/* Übernehmen bleibt in der Liste, mit Hinweis und Rückgängig wie „Alle übernehmen“; kein ungefragtes Vollbild (Z4). */}
+        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={() => { loadProjects(); load(); }} />
         {panel === "review" && reviewTotal === 0 ? <Leer className="task-empty" zeichen="check" satz="Nichts zu prüfen." /> : null}
       </div>
       {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}
@@ -902,6 +906,8 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
           ? visibleTaskGroups(visibleTasks,groupTime).map(group=><Gruppe className="workspace-task-group" key={group.label} titel={group.label}>{group.items.map(row)}</Gruppe>)
           : <Gruppe className="workspace-task-group">{visibleTasks.map(row)}</Gruppe>)}
         {visibleTasks && visibleTasks.length === 0 && !creating ? <Leer className="task-empty" zeichen={search ? "search" : "check"} satz={emptyText} /> : null}
+        {/* Was Kingfisher angelegt und du zurückgenommen hast, bleibt hier wiederherstellbar (Paket Z2). */}
+        {view === "done" && !search ? <ZurueckgenommenGruppe revision={overviewRevision} onChanged={() => load()} /> : null}
         {(taskPage.canPrevious || taskPage.canNext) && <nav className="task-seiten" aria-label="Aufgabenseiten"><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><span className="task-page-number">Seite {taskPage.page}</span><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
     </main>

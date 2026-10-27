@@ -1,7 +1,9 @@
 // Der Hinweis mit „Rückgängig“ (docs/16-gestaltung.md, „Hinweis“): eine Zeile unten in der Mitte, etwa „„Angebot
-// prüfen“ erledigt · Rückgängig“. Ein Hinweis zur Zeit; der neue ersetzt den alten. Nach sechs Sekunden geht er von
-// selbst, solange niemand mit der Maus darauf steht oder ihn mit der Tastatur erreicht hat. Hier steht nur das Modell
-// (ohne DOM, damit es sich ohne Browser prüfen lässt); die Anzeige ist `Hinweis.tsx`.
+// prüfen“ erledigt · Rückgängig“. Ein Hinweis zur Zeit; der neue ersetzt den alten. Er steht lange genug, um ihn zu
+// lesen (mindestens zehn Sekunden, länger bei langem Satz), und geht nicht, solange Maus, Finger oder Tastaturfokus
+// darauf liegen (Paket Z2, WCAG 2.2.1). Er ist nie der einzige Weg zurück: Was er anbietet, gibt es auch an der Sache
+// selbst (unter „Erledigt“, in der Aufgabe, in der Prüfliste). Hier steht nur das Modell (ohne DOM, damit es sich ohne
+// Browser prüfen lässt); die Anzeige ist `Hinweis.tsx`.
 //
 // Rückgängig ist nie erfunden: Wer einen Hinweis mit `rueckgaengig` zeigt, gibt den Weg mit, den es dafür schon gibt
 // (eine Route im Sidecar). Wo es keinen gibt, zeigt der Hinweis nur, was passiert ist, und eine Rückfrage davor bleibt.
@@ -23,10 +25,22 @@ export type HinweisDaten = {
 export type HinweisPhase = "offen" | "laeuft" | "zurueck" | "fehlgeschlagen";
 export type HinweisZustand = { nummer: number; daten: HinweisDaten; phase: HinweisPhase; nachher?: string } | null;
 
-/** Wie lange ein Hinweis steht, wenn niemand ihn berührt. */
-export const HINWEIS_DAUER = 6000;
+/** Wie lange ein Hinweis mindestens steht, wenn niemand ihn berührt (bis 1.0.29: sechs Sekunden, zu kurz; Paket Z2). */
+export const HINWEIS_DAUER = 10000;
 /** Ein Fehler (auch ein misslungenes Zurücknehmen) steht länger. */
-export const HINWEIS_DAUER_FEHLER = 10000;
+export const HINWEIS_DAUER_FEHLER = 15000;
+
+/** Lesezeit: zehn Sekunden, bei langem Satz mehr (gut 12 Zeichen je Sekunde, gemächlich gelesen, dazu der Griff zum
+ * Knopf); ein Fehler mindestens fünfzehn. */
+export function hinweisDauer(text: string, fehler = false): number {
+  const lesen = 4000 + Array.from(text).length * 80;
+  return Math.max(fehler ? HINWEIS_DAUER_FEHLER : HINWEIS_DAUER, lesen);
+}
+
+/** Was Vorleser zum Hinweis mit „Rückgängig“ zusätzlich hören: wie man zurücknimmt, ohne dorthin zu springen. */
+export function kuerzelSatz(mac: boolean): string {
+  return mac ? "Zurücknehmen mit Befehl Z." : "Zurücknehmen mit Steuerung Z.";
+}
 export const ZURUECK_TEXT = "Rückgängig gemacht.";
 export const ZURUECK_FEHLER = "Nicht zurückgenommen. Die Änderung gilt weiter.";
 
@@ -69,7 +83,7 @@ export class HinweisOrt {
     this.melden();
   }
 
-  /** Maus oder Fokus auf dem Hinweis halten ihn (`grund`: „maus“, „fokus“); erst wenn nichts mehr hält, läuft die Zeit
+  /** Maus, Finger oder Fokus auf dem Hinweis halten ihn (`grund`: „maus“, „beruehren“, „fokus“); erst wenn nichts mehr hält, läuft die Zeit
    * wieder, und zwar von vorn, damit niemand beim Wegziehen der Maus den Knopf verliert. */
   halten(grund: string, an: boolean) {
     if (!this.zustand) return;
@@ -103,8 +117,8 @@ export class HinweisOrt {
     this.anhalten();
     const z = this.zustand;
     if (!z || this.gehalten.size > 0 || z.phase === "laeuft") return;
-    const lang = z.daten.fehler || z.phase === "fehlgeschlagen";
-    this.zeitgeber = this.uhr.setTimeout(() => this.schliessen(z.nummer), lang ? HINWEIS_DAUER_FEHLER : HINWEIS_DAUER);
+    const fehler = Boolean(z.daten.fehler) || z.phase === "fehlgeschlagen";
+    this.zeitgeber = this.uhr.setTimeout(() => this.schliessen(z.nummer), hinweisDauer(hinweisInhalt(z).text, fehler));
   }
 }
 

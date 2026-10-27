@@ -5,7 +5,7 @@ import { ProfileSource } from "./ProfileSource";
 import { generationForTaskPage, isVisibleTaskPage, type TaskTemporalFilter } from "./taskSuggestionsView";
 import {DetailPanel} from './DetailPanel';
 import {zeigeHinweis} from './grundlage';
-import {alleHinweis, alleKnopf, gruppeZurueckText} from './aufgabenVonSelbst';
+import {alleHinweis, alleKnopf, gruppeZurueckText, uebernommenHinweis} from './aufgabenVonSelbst';
 
 const PAGE_SIZE = 25;
 type TemporalFilter = TaskTemporalFilter;
@@ -142,9 +142,14 @@ export function TaskSuggestions({projects, onAccepted, onPreview, onTotal}: {pro
       generations.current[temporal] = undefined;
       setLoading(true);
       setOffset(0);
-      setNotice(task ? "Aufgabe gespeichert." : "Vorschlag verworfen.");
+      // Übernommen: Die Liste bleibt stehen (kein Vollbild), der Hinweis sagt es, und Rückgängig schickt den Vorschlag
+      // zurück zur Prüfung; derselbe Weg steht danach in der Aufgabe selbst (Paket Z4, Z2).
+      setNotice(task ? "" : "Vorschlag verworfen.");
       setRevision(value => value + 1);
-      if (task) onAccepted(task);
+      if (task) {
+        onAccepted(task);
+        zeigeHinweis(uebernommenHinweis(task, async () => { const antwort = await api.zurPruefung(task.id); generations.current[temporal] = undefined; setRevision(value => value + 1); onAccepted(task); return antwort.satz; }));
+      }
     }} />)}</div>}
     {blaettern && <div className="task-vorschlaege-seiten">
       {visiblePage ? <span>{`${visiblePage.total ? offset + 1 : 0}–${Math.min(offset + visiblePage.items.length, visiblePage.total)} von ${visiblePage.total}`}</span> : null}

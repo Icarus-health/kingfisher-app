@@ -160,6 +160,9 @@
 #root .task-detail { display: grid; gap: var(--g-a4); min-width: 0; }
 #root .task-detail > :is(p, .task-detail-verworfen) { margin: 0; }
 #root .task-detail .task-detail-satz { font: var(--g-neben); color: var(--g-leise); }
+/* Woher eine übernommene Aufgabe kam, mit dem Weg zurück zur Prüfung (Paket Z2, Z4): leise, eine Zeile. */
+#root .task-detail .task-detail-herkunft { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .task-detail .task-detail-herkunft .text-action { min-height: var(--g-ziel); }
 #root .task-detail .task-detail-fehler { color: var(--g-rot); }
 #root .task-detail .task-goal-link { padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-getoent); font: var(--g-neben); color: var(--g-tinte); }
 #root .task-detail .task-detail-verworfen { display: grid; justify-items: start; gap: var(--g-a3); font: var(--g-text); }

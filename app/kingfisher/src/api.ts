@@ -525,13 +525,16 @@ export type Task = {
 
 export type AufgabePerson = {adresse: string; name: string};
 export type AufgabeAngelegt = {
-  art: "automatisch" | "alle_uebernehmen";
+  /** `uebernommen`: ein einzeln übernommener Vorschlag (Paket Z2, Z4); geht wie `alle_uebernehmen` zurück zur Prüfung. */
+  art: "automatisch" | "alle_uebernehmen" | "uebernommen";
   am: string;
   /** Nur bei `automatisch`: „Von Kingfisher angelegt, weil …“, der Grundsatz, Mail und Richtung. */
   satz?: string; grundsatz?: string; richtung?: "bitte" | "zusage" | null; episode_id?: string; mail_titel?: string;
   wer?: string; datum?: string | null; gruppe?: string;
 };
 export type AufgabenVonSelbstHeute = {anzahl: number; satz: string; aufgaben: Array<{id: string; title: string; status: string; satz: string}>};
+/** Was Kingfisher angelegt und du zurückgenommen hast; dauerhaft wiederherstellbar (Paket Z2). */
+export type ZurueckgenommeneAufgabe = {id: string; title: string; zurueck_am: string; satz: string};
 export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler: Array<{id: string; grund: string}>};
 
 export type ProjectTaskOverview = {
@@ -1552,6 +1555,8 @@ export const api = {
   aufgabenVonSelbstZuruecknehmen: (task_ids: string[]) => request<{aufgaben: Task[]; satz: string}>("/api/v1/aufgaben-von-selbst/rueckgaengig", {method: "POST", body: JSON.stringify({task_ids})}),
   aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
   alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
+  aufgabenZurueckgenommen: () => request<{aufgaben: ZurueckgenommeneAufgabe[]}>("/api/v1/aufgaben-von-selbst/zurueckgenommen"),
+  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
   gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
