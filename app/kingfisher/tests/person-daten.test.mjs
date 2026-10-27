@@ -34,7 +34,7 @@ test("Was es nicht gibt, steht nicht in der Rückfrage", () => {
   assert.ok(!f.bleibt.some(z => /Gespräch|Projekt|anderen Beteiligten/.test(z)));
 });
 
-test("Kein „…\" in den Sätzen: nur „…“", () => {
+test("Anführungszeichen in den neuen Dateien: unten „ und oben “", () => {
   for (const datei of ["../src/personDaten.ts", "../src/PersonMehr.tsx", "../src/SicherungZurueck.tsx", "../src/PersonSperren.tsx"]) {
     const text = readFileSync(new URL(datei, import.meta.url), "utf8");
     assert.doesNotMatch(text, /„[^“"\n]*"/, datei);

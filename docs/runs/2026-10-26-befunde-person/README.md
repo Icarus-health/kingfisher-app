@@ -71,7 +71,7 @@ Schemafassung 25 → 26 und Rückbau-Hilfen ohne `personen_sperre` in 14 bestehe
 
 | Prüfung | Ergebnis |
 |---|---|
-| Backend, volle Suite (`-n 4`) | VOLL_ERGEBNIS |
+| Backend, volle Suite (`-n 4`) | 8377 bestanden, 3 übersprungen, 1 Fund: der Titel eines neuen Oberflächentests enthielt das verbotene Anführungsmuster (`test_pruefe_anfuehrungszeichen`); umbenannt, die Prüfung allein danach grün (34) |
 | Oberflächentests (`node --test tests/*.test.mjs`) | 1047 bestanden, 0 fehlgeschlagen |
 | `tsc --noEmit`, `vite build` | ohne Fehler |
 | `probe_seiten_ui.py` hell / dunkel | je 72 Breiten, 0 nicht in Ordnung, Konsole leer |
