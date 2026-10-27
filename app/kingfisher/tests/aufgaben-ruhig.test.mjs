@@ -118,7 +118,8 @@ test('ganz leer: ein Satz, keine Gruppe; „Zur Prüfung“ erscheint erst mit I
     assert.deepEqual(segmente(tree).filter(t => t.startsWith('Zur Prüfung')), ['Zur Prüfung 3']);
     nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(0); tree = d.render();
     // Segmente rollen waagrecht statt umzubrechen (Baustein); der gewählte Abschnitt rollt auch beim Öffnen in den Blick.
-    assert.match(readFileSync(root + '/src/App.tsx', 'utf8'), /\.aufgaben-segmente \[aria-selected="true"\]'\)\?\.scrollIntoView\?\.\(\{block: "nearest", inline: "nearest"\}\)/);
+    // Ohne scrollIntoView: Das setzte in Chrome den Ausgangspunkt für Tab aufs Segment (Paket B, B2).
+    assert.match(readFileSync(root + '/src/App.tsx', 'utf8'), /segmentInsBild\(document\.querySelector\?\.<HTMLElement>\('\.aufgaben-segmente'\) \?\? null\); \}, \[activeTab\]\);/);
     assert.equal(segmente(tree).filter(t => t.startsWith('Zur Prüfung')).length, 0);
   });
 });

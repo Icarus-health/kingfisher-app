@@ -33,7 +33,7 @@ import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
-import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
+import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, sageAn, segmentInsBild, zeigeHinweis, type Segment} from "./grundlage";
 import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
 import { angelegtHinweis } from "./aufgabenVonSelbst";
 import { ZurueckgenommenGruppe } from "./ZurueckgenommenGruppe";
@@ -63,7 +63,8 @@ import { meldbar } from "./rueckmeldung";
 import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg";
 import { AntwortZeile } from "./AntwortZeiten";
 import { AusstehendeFrage, CloudVermerk, LokalLangsam, WarteZeile } from "./GespraechWarten";
-import { frageSchonDa, merkeFrage, nimmFrage } from "./wartenImGespraech.ts";
+import { frageSchonDa, istBeantwortet, merkeBeantwortet, merkeFrage, nimmFrage, vergissBeantwortet } from "./wartenImGespraech.ts";
+import { antwortAnsage } from "./antwortAnsage.ts";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
 import { PostfachStand } from "./PostfachStand";
@@ -291,6 +292,13 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     return () => { aktiv = false; };
   }, [id]);
   const voice = useConversationVoice(id, data, sending || error || !data);
+  // Kam die Frage von einer anderen Seite (Heute, Anfang der Gespräche), ging der Fokus mit ihr verloren: Er gehört ins
+  // Eingabefeld, sobald es bereit ist; war die Antwort schon da, wird sie angesagt (Paket B, B1).
+  const ankunft = useRef<"frage" | "antwort" | null>(istBeantwortet(id) ? "antwort" : null);
+  function antwortAnsagen(nachrichten: ConversationPayload["messages"]) {
+    const satz = antwortAnsage(nachrichten);
+    if (satz) sageAn(satz);
+  }
 
   function load(change?: "correction") {
     if (change === "correction") setCorrectionSaved(true);
@@ -311,6 +319,21 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     });
     return () => { active = false; };
   }, [id]);
+
+  useEffect(() => {
+    if (!data || !ankunft.current) return;
+    const art = ankunft.current;
+    ankunft.current = null;
+    vergissBeantwortet(id);
+    let versuche = 0, zeit: number | undefined;
+    const insFeld = () => {
+      const feld = document.querySelector<HTMLTextAreaElement>(".workspace-chat .thread-command textarea");
+      if (feld && !feld.disabled) { feld.focus({ preventScroll: true }); if (art === "antwort") antwortAnsagen(data.messages); }
+      else if (++versuche < 40) zeit = window.setTimeout(insFeld, 50);
+    };
+    insFeld();
+    return () => window.clearTimeout(zeit);
+  }, [data]);
 
   useEffect(() => {
     const element = messagesElement.current;
@@ -340,7 +363,10 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     setSendError(false);
     setRefreshNotice(null);
     try {
-      setData(await api.sendMessage(id, message, clarification));
+      const antwort = await api.sendMessage(id, message, clarification);
+      setData(antwort);
+      // Die fertige Antwort einmal ansagen, höflich (Paket B, B1); den Zwischenstand sagte nur die Wartezeile.
+      if (live.current) antwortAnsagen(antwort.messages);
       setCorrectionSaved(false);
       if (clarification?.newQuestion) setRefreshNotice("Mit dem aktuellen Stand der Quellen neu beantwortet.");
     } catch (problem) {
@@ -352,7 +378,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
         && (clarification?.choice !== undefined || clarification?.date !== undefined) && original;
       if (stale) {
         try {
-          setData(await api.sendMessage(id, original, { newQuestion: true }));
+          const neu = await api.sendMessage(id, original, { newQuestion: true });
+          setData(neu);
+          if (live.current) antwortAnsagen(neu.messages);
           setRefreshNotice("Die Quellen haben sich seit der Rückfrage geändert. Die Frage wurde mit dem aktuellen Stand neu beantwortet.");
           return;
         } catch (second) {
@@ -373,14 +401,16 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     if (!chatAvailable) return;
     const frage = nimmFrage(id);
     // Scheitert das Senden, bleibt die Frage stehen, mit „Erneut senden“: Sie wurde auf einer anderen Seite getippt.
-    if (frage) void send(frage).catch(() => setNichtGesendet(frage));
+    if (frage) { ankunft.current = "frage"; void send(frage).catch(() => setNichtGesendet(frage)); }
   }, [id, chatAvailable]);
 
   async function retry(messageId: string) {
     setSending(true);
     setSendError(false);
     try {
-      setData(await api.retryMessage(id, messageId));
+      const neu = await api.retryMessage(id, messageId);
+      setData(neu);
+      if (live.current) antwortAnsagen(neu.messages);
     } catch (problem) {
       setSendError(true);
       throw problem;
@@ -571,6 +601,8 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
       setGespraech(id);  // für den Zwischenstand (Paket T); die Frage steht schon da
       await api.sendMessage(id, message);
       created.current = null;
+      // Das Gespräch, das jetzt öffnet, sagt die Antwort an und stellt den Fokus ins Eingabefeld (Paket B, B1).
+      merkeBeantwortet(id);
       if (live.current) navigate(`/conversations/${id}`);
     } catch (problem) {
       if (live.current) setSendError(true);
@@ -856,7 +888,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     else { setPanel("tasks"); setView(id as TaskView); }
   }
   // Rollt die Segmentleiste (schmales Fenster), steht der gewählte Abschnitt auch beim Öffnen per Adresse im Blick.
-  useEffect(() => { document.querySelector?.<HTMLElement>('.aufgaben-segmente [aria-selected="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
+  useEffect(() => { segmentInsBild(document.querySelector?.<HTMLElement>('.aufgaben-segmente') ?? null); }, [activeTab]);
   // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind. Die Zahl
   // zählt der Sidecar für die ganze Auswahl, mit derselben Regel und demselben Satz wie Heute (Paket Z1).
   const kopfZeile = heuteKopfZeile(panel === "tasks" && view === "mine" && !search ? taskPage.heuteDran : null);

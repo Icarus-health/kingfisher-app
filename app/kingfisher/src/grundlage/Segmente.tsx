@@ -16,6 +16,17 @@ export function raenderMarkieren(el: HTMLElement) {
   el.dataset.randRechts = String(rest > 1);
 }
 
+/** Das gewählte Segment in der rollenden Leiste sichtbar machen, ohne die Seite zu rollen und ohne `scrollIntoView`:
+ * Chrome setzt damit den Ausgangspunkt für Tab auf das Segment, und der erste Tab übersprang beim Laden „Zum Inhalt
+ * springen“ und die Navigation (Paket B, B2). */
+export function segmentInsBild(leiste: HTMLElement | null) {
+  const segment = leiste?.querySelector<HTMLElement>('[aria-selected="true"]');
+  if (!leiste || !segment) return;
+  const links = segment.getBoundingClientRect().left - leiste.getBoundingClientRect().left + leiste.scrollLeft;
+  if (links < leiste.scrollLeft) leiste.scrollLeft = links;
+  else if (links + segment.offsetWidth > leiste.scrollLeft + leiste.clientWidth) leiste.scrollLeft = links + segment.offsetWidth - leiste.clientWidth;
+}
+
 /** Die Ränder neu markieren, wenn sich die Breite ändert (React 19: der Rückgabewert räumt auf). */
 function beobachten(el: HTMLDivElement | null) {
   if (!el) return;

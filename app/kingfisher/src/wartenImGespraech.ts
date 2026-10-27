@@ -77,6 +77,13 @@ export function nimmFrage(gespraech: string): string | null {
   return frage;
 }
 
+/** Die Frage wurde auf der Startseite der Gespräche schon beantwortet (Paket B, B1): Das Gespräch, das danach öffnet,
+ * sagt die Antwort an und stellt den Fokus ins Eingabefeld. */
+const BEANTWORTET = new Set<string>();
+export function merkeBeantwortet(gespraech: string) { BEANTWORTET.add(gespraech); }
+export function istBeantwortet(gespraech: string): boolean { return BEANTWORTET.has(gespraech); }
+export function vergissBeantwortet(gespraech: string) { BEANTWORTET.delete(gespraech); }
+
 /** Zeigt der Server die Frage schon als letzte Nachricht? Dann steht sie nicht ein zweites Mal da. */
 export function frageSchonDa(nachrichten: ReadonlyArray<Pick<Message, "role" | "content">>, frage: string) {
   const letzte = nachrichten[nachrichten.length - 1];

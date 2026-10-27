@@ -325,6 +325,16 @@
 .g-bestaetigung-knoepfe button { min-height: var(--g-ziel); font-size: 15px; }
 @media (max-width: 700px) { .g-bestaetigung { padding: var(--g-a3) var(--g-a4); } }
 
+/* Zum Inhalt springen (Paket B, B2): der erste Tab-Halt, sichtbar nur mit Fokus, oben links über der Navigation. */
+.g-sprunglink {
+  position: fixed; top: var(--g-a3); left: var(--g-a3); z-index: 1000; display: inline-flex; align-items: center; min-height: var(--g-ziel);
+  padding: 0 var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-flaeche); color: var(--g-verweis);
+  font: 600 15px/1.2 var(--g-schrift); text-decoration: none; box-shadow: 0 0 0 1px rgba(var(--g-schatten-rgb),.08), 0 6px 20px rgba(var(--g-schatten-rgb),.18);
+  transform: translateY(calc(-100% - var(--g-a5)));
+}
+.g-sprunglink:focus { transform: none; outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { .g-sprunglink { transition: transform var(--g-bewegung) ease; } }
+
 /* Rückfrage (Paket B, B3): eine Frage vor etwas, das sich nicht zurücknehmen lässt, als Dialog über allem. Ruhig wie ein
    Blatt am Mac: Fläche, Haarschatten, die Frage als Überschrift, ein Satz, rechts „Abbrechen“ und die Aktion. */
 .g-rueckfrage {

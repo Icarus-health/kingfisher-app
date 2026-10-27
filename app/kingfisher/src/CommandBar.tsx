@@ -55,6 +55,9 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
     if (!clean || busy || disabled || recording || inFlight.current) return;
     if(conversationId && !beginConversationSend(conversationId)) return;
     inFlight.current = true;
+    // Mit dem Sendeknopf abgeschickt: Der Knopf ist gleich gesperrt und verlöre den Fokus; er gehört ins Eingabefeld, wo
+    // die nächste Frage beginnt (Paket B, B1).
+    if (conversation && input.current && document.activeElement !== input.current) input.current.focus({ preventScroll: true });
     voice?.cancel();
     const submittedRevision = conversationId ? conversationDraft(conversationId).revision : revision.current;
     try {
