@@ -159,6 +159,23 @@ gleiches aufgelöstes Datum zählen doppelt; trägt die spätere Meldung ein Erl
 Absagewort, genügt ein gemeinsamer Stamm; bei Fristen genügt ein gemeinsames Fristwort.
 Das ist bewusst grob und deshalb überall als Vermutung ausgewiesen.
 
+**Keine Widersprüche aus Floskeln (Persona-Prüfung, 27.10.2026, Akte 12).** Eine Frist ersetzt eine andere aus einem
+anderen Mailverlauf nur, wenn sie mehr teilen als allgemeine Wörter („Unterlagen“, „Informationen“, „den Termin
+bestätigen“, `akten._ALLGEMEINE_GEGENSTAENDE`); im selben Verlauf genügen sie weiter. Der Satz um eine Frist endet
+auch nach einem schließenden Anführungszeichen. So meldet der Lint keinen „Widerspruch“ mehr zwischen zwei Mails
+mit „Ich schicke Ihnen die Unterlagen bis Freitag“, wohl aber weiter den verschobenen „Belegungsplan“.
+
+**Antwort im Verlauf, Einladungen (Befund A3).** Deine Bitte gilt als vermutlich erledigt, wenn die Gegenseite im
+selben Mailverlauf (genaue Kopfzeilen) später antwortet; eine Zusage an dich, wenn der Zusagende im Verlauf etwas
+mitbringt. Automatische Antworten und bloße Verzögerungen zählen nicht (`antwort_im_verlauf.py`). Eine Einladung
+(„Über eine Zusage würde ich mich freuen“, Betreff „Einladung: …“) führt die Akte als Bitte, nicht als Zusage.
+
+**Umlaute (Befund A7).** Namen gelten in Umschrift als gleich („Müller“ = „Mueller“, „Weiß“ = „Weiss“,
+`identitaet.name_schluessel`); eine erwähnte Organisation „Müller Bau GmbH“ gehört zur Domäne `mueller-bau`, wenn es
+genau eine solche gibt (`Register.organisation`). Den Namen einer Organisation aus einer Domäne nimmt die Akte aus
+einer Signatur- oder Absenderzeile, die genau passt („Universität Gießen“); sonst bleibt die Domäne, ohne geratene
+Umlaute. Die Suche nach Sachen findet alle Schreibweisen (`bezuege.suchformen`, Oberfläche `suchform.ts`).
+
 **Zwischenspeicher.** Die Akte wird nur neu berechnet, wenn sich eine Eingabe ändert:
 Fingerabdruck über die verknüpften Quellen, ihre Bezugsgrundlagen, ihre Einordnung
 (Status, Fassung, Modell, Abschnitte mit Art und Stelle) und den Stand des

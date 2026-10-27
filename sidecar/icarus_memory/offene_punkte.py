@@ -226,12 +226,22 @@ def _je_verlauf(episodes: Any, punkte: list[dict[str, Any]], eigene: Iterable[st
         # Nachgefasst: Im selben Verlauf hast du nach dieser Zusage noch einmal geschrieben, oder deine Bitte folgt
         # einer früheren Mail derselben Sache (eine Antwort oder deine erste Frage). Gelesen wird der Verlauf selbst,
         # nicht nur, was als Bitte eingeordnet ist: Eine Erinnerung („ob der Vertrag inzwischen vorliegt“) zählt.
-        verlauf = faeden.get(haupt['episode_id']) or []
+        verlauf = [m for m in faeden.get(haupt['episode_id']) or [] if not m.automatisch]
         beginn = _zeit(haupt)
         if haupt.get('richtung') == 'an_mich':
-            nachfragen = [m for m in verlauf if m.zeit > beginn and m.absender in selbst and not m.automatisch]
+            # Deine Mails nach der Zusage, ohne dass die Gegenseite dazwischen Neues schrieb: Wer auf eine neue Mail
+            # der Gegenseite antwortet (etwa auf eine Absage), fragt nicht nach. Eine bloße Verzögerung („vertagt“)
+            # der Gegenseite unterbricht nicht: Danach nachzufragen ist eine Nachfrage.
+            nachfragen = []
+            for m in (m for m in verlauf if m.zeit > beginn):
+                if m.absender not in selbst:
+                    if m.verzoegert:
+                        continue
+                    break
+                nachfragen.append(m)
         else:
-            frueher = [m for m in verlauf if m.zeit < beginn and not m.automatisch]
+            # Deine Bitte ist eine Nachfrage, wenn du in diesem Verlauf schon früher geschrieben hast.
+            frueher = [m for m in verlauf if m.zeit < beginn and m.absender in selbst]
             nachfragen = [m for m in verlauf if m.episode_id == haupt['episode_id']] if frueher else []
         if nachfragen:
             letzte = max(nachfragen, key=lambda m: m.zeit)

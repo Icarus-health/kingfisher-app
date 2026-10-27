@@ -52,6 +52,16 @@ Teilnehmer (über die Adresse, `person:a:<adresse>`, Etappe C3) aus der **Akte**
 und werden nie über den Namen geraten. Was die Akte unter „vorher“ führt (ein neuerer Stand hat es abgelöst),
 erscheint weder als Stand noch unter „Zuletzt“. Der Pfad liest nur und schreibt nichts in den Bestand.
 
+**Auch im Kalender, für jeden Termin (Persona-Prüfung, Befund A6, 27.10.2026).** „Vorbereiten“ an einem Termin
+zeigt dieselbe Vorbereitung aus den Akten der Teilnehmer (`GET /api/v1/calendar/vorbereitung`,
+`tag_routes.vorbereitung_eines`), ohne dass jemand ein Projekt oder eine Person wählt; die Wahl bleibt als „Mehr
+Kontext“ zum Aufklappen. Die Terminkarte nennt die Teilnehmer mit Namen, soweit der Bestand die Adresse kennt
+(`attendee_names` in `GET /api/v1/calendar`), sonst die Adresse.
+
+**Tageslage sofort (Befund A4).** Die Oberfläche holt zuerst `GET /api/v1/tag/briefing?schnell=true`: Termine,
+Fristen, Post, Geburtstage und Verlauf, ohne Akten der Teilnehmer, Wege, Wetter und Welt, mit dem Satz „Vorbereitung
+der Termine, Wege und Wetter folgen gleich.“ Danach die volle Fassung. Die schnelle zählt nie als Blick ins Logbuch.
+
 ## Fristen
 
 `fristlage.py` liest aus den Akten der zuletzt aktiven Personen, Organisationen und Projekte: kommende Fristen der

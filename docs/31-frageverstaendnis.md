@@ -201,6 +201,18 @@ Drei Lücken, die ein Stabschef nicht hätte, ohne Modell geschlossen:
   sind es mehr als die 60 zuletzt aktiven je Art, sagt die Antwort das. „Welche Fristen …“ geht
   nun ebenfalls in den Belegweg, ebenso eine einzelne Zielfrage wie „An welche Adresse soll ich
   die Rechnung schicken?“ (Versandverb am Ende, sonst bleibt ein Handlungswort ein Auftrag).
+* **Seit der Persona-Prüfung (Paket A-II, 27.10.2026)** gilt für „Worauf warte ich noch?“ zusätzlich: Eine Antwort
+  im selben Mailverlauf beantwortet deine Bitte, und eine Zusage an dich ist eingelöst, wenn der Zusagende im
+  Verlauf etwas mitbringt („hiermit“, „anbei“); automatische Mails und bloße Verzögerungen zählen nicht
+  (`antwort_im_verlauf.py`, Grund „Im selben Mailverlauf beantwortet“, mit „Doch noch offen“ zurückzuholen). Eine
+  Einladung ist keine Zusage ihres Absenders, sondern eine Bitte an den Empfänger. **Wichtiges steht vorn:** deine
+  Aufgaben „wartet auf“, dann Punkte, bei denen du im selben Verlauf schon nachgefragt hast, dann verstrichene
+  (höchstens 45 Tage) und bald fällige Fristen, dann der Rest; ein Mailverlauf mit derselben Gegenseite ist eine
+  Zeile. Die Antwort sagt „Die wichtigsten 12 von N“. Die Karte „Worauf ich warte“ einer Person liest dieselbe
+  Regel (`offene_punkte.sammeln(sache=…)`). Schneller: Die vielen Akten werden schlank gelesen (`Akten.akte(
+  nur_offen=True)`, ohne Namen aller Beteiligten), die Beteiligten des Bestands einmal je Stand der Datei, und
+  Senden und Öffnen eines Gesprächs teilen dieselbe Antwort, solange sich nichts geändert hat
+  (`akten_routes.nach_stand_gemerkt`). Messung: [Protokoll A-II](runs/2026-10-26-befunde-antworten-2/README.md).
 
 ## Zukunft: „Was brauche ich morgen?“ (20.10.2026)
 
