@@ -194,3 +194,7 @@
 #root main.profile-page .profile-card.person-waiting.is-empty { padding: 0 var(--g-a4); border: 0; background: transparent; box-shadow: none; }
 #root main.profile-page .profile-card.person-waiting.is-empty h2 { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
 #root main.profile-page .profile-card.person-waiting .profile-empty { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+
+/* „Worauf ich warte“ mit Punkten aus der Akte (Persona-Prüfung, Befund A7): das Zitat wie in der Akte, ohne Einzug. */
+#root main.profile-page .person-waiting .profile-waiting-list blockquote { margin: 0; padding: 0 0 0 var(--g-a3); border-left: 2px solid var(--g-linie); font: var(--g-text); color: var(--g-tinte); }
+#root main.profile-page .person-waiting .profile-waiting-list article small { color: var(--g-leise); font: var(--g-neben); }
