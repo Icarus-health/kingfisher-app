@@ -315,7 +315,10 @@ def vorwaermen(app) -> threading.Thread:
 def register(app, guard) -> None:
     verbinden(app)
     # Nur wenn der Server wirklich startet (uvicorn, oder `with TestClient(app)`), nicht bei jedem `create_app`.
-    app.router.on_startup.append(lambda: vorwaermen(app) and None)
+    # Der Faden bleibt greifbar: Wer Abfragen an der gemeinsamen Verbindung zählt, wartet erst auf das Vorwärmen.
+    def beim_start() -> None:
+        app.state.akten_vorwaermen = vorwaermen(app)
+    app.router.on_startup.append(beim_start)
 
     @app.get('/api/v1/akten/sachen', dependencies=guard)
     def akten_sachen(art: str | None = Query(None), suche: str = Query('', max_length=200),
