@@ -1564,7 +1564,8 @@ export const api = {
   aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
   alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
   aufgabenZurueckgenommen: () => request<{aufgaben: ZurueckgenommeneAufgabe[]}>("/api/v1/aufgaben-von-selbst/zurueckgenommen"),
-  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
+  /** `projekt`: das beim Übernehmen neu angelegte Projekt und ob es mit zurückging (Paket S); sonst null. */
+  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string; projekt?: {name: string; entfernt: boolean} | null}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
   gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),

@@ -148,7 +148,8 @@ test("übernommene Vorschläge tragen in der Aufgabe selbst „Zurück zur Prüf
   assert.match(detail, />Zurück zur Prüfung<\/button>/);
   assert.match(detail, /api\.gruppeZuruecknehmen\(gruppe\)/);
   assert.match(detail, />Alle dieser Übernahme zurück<\/button>/);
-  assert.match(quelle("api.ts"), /zurPruefung: \(taskId: string\) => request<\{satz: string; proposal_id: string\}>\(`\/api\/v1\/task-candidates\/aufgabe\/\$\{encodeURIComponent\(taskId\)\}\/zurueck`, \{method: "POST"\}\)/);
+  // Paket S: dazu `projekt`, das beim Übernehmen neu angelegte Projekt.
+  assert.match(quelle("api.ts"), /zurPruefung: \(taskId: string\) => request<\{satz: string; proposal_id: string; projekt\?: \{name: string; entfernt: boolean\} \| null\}>\(`\/api\/v1\/task-candidates\/aufgabe\/\$\{encodeURIComponent\(taskId\)\}\/zurueck`, \{method: "POST"\}\)/);
 });
 
 // -- Z4: Übernehmen und „+ Aufgabe“ bleiben in der Liste, mit Hinweis und Rückgängig --------------------------------

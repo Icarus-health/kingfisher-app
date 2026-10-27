@@ -327,6 +327,13 @@ def _provenance_from(d: dict[str, Any]) -> Provenance:
     )
 
 
+def projekt_kennung_aus_vorschlag(suggestion_id: str) -> str:
+    """Die Kennung des Projekts, das beim Übernehmen eines Vorschlags mit „Neues Projekt“ entstand (eine je Vorschlag).
+    Daran erkennt „Zurück zur Prüfung“, dass das Projekt nur für diese Übernahme angelegt wurde (Paket S)."""
+    import hashlib
+    return 'p-task-' + hashlib.sha256(suggestion_id.encode()).hexdigest()[:24]
+
+
 class WorkspaceStore:
     """Projekte und Notizen in einer lokalen Datei, neben dem Selbstmodell."""
 
@@ -353,8 +360,7 @@ class WorkspaceStore:
 
     def project_from_task_suggestion(self, suggestion_id: str, name: str, provenance: Provenance) -> Project:
         """An explicitly confirmed new project survives interrupted task acceptance."""
-        import hashlib
-        identifier = 'p-task-' + hashlib.sha256(suggestion_id.encode()).hexdigest()[:24]
+        identifier = projekt_kennung_aus_vorschlag(suggestion_id)
         with self._lock:
             try:
                 existing = self.project(identifier)

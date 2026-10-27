@@ -419,3 +419,50 @@ def test_zuletzt_unter_mit_wem_zaehlt_keine_kuenftigen_termine(tmp_path) -> None
     episodes.record(EpisodeKind.EVENT, "Nur künftig", "Nur künftig", Provenance(source_type=SourceType.CALENDAR,
                     source_ref="probe:kuenftig"), participants=[bert], occurred_at=jetzt + timedelta(days=5))
     assert teilnehmer([bert], index=episodes.participants_for_addresses(["bert@kanzlei.example"]))[0]["zuletzt"] is None
+
+
+# -- Offener Rest aus Z: „Zurück zur Prüfung“ nimmt ein nur dafür angelegtes Projekt mit -----------------------------
+
+
+from tests.test_aufgaben_von_selbst import JONAS, LENA, bitte, client  # noqa: E402,F401 - Fixture und Hilfen
+
+
+def test_zurueck_zur_pruefung_nimmt_das_dafuer_angelegte_leere_projekt_mit(client) -> None:  # noqa: F811
+    app = client.app
+    _, p = bitte(app.state.episodes, app.state.proposals, an=[JONAS], cc=[LENA], ref='konto:k1')
+    aufgabe = client.post(f'/api/v1/task-candidates/{p.id}/accept', json={
+        'title': 'Druckdaten schicken', 'project_id': None, 'new_project_name': 'Messe Herbst'}).json()
+    projekt_id = aufgabe['project_id']
+    assert app.state.workspace.project(projekt_id).name == 'Messe Herbst'
+    zurueck = client.post(f'/api/v1/task-candidates/aufgabe/{aufgabe["id"]}/zurueck').json()
+    assert zurueck['satz'] == 'Der Vorschlag steht wieder zur Prüfung. Das dafür angelegte Projekt „Messe Herbst“ ist wieder weg.'
+    assert zurueck['projekt'] == {'name': 'Messe Herbst', 'entfernt': True}
+    assert projekt_id not in {pr.id for pr in app.state.workspace.projects(include_closed=True)}
+    # Rückgängig im Hinweis: noch einmal übernehmen mit demselben neuen Projekt legt es wieder an.
+    wieder = client.post(f'/api/v1/task-candidates/{p.id}/accept', json={
+        'title': 'Druckdaten schicken', 'project_id': None, 'new_project_name': 'Messe Herbst'}).json()
+    assert wieder['project_id'] == projekt_id
+
+
+def test_zurueck_zur_pruefung_laesst_ein_projekt_mit_anderem_inhalt_stehen_und_sagt_es(client) -> None:  # noqa: F811
+    app = client.app
+    _, p = bitte(app.state.episodes, app.state.proposals, an=[JONAS], cc=[LENA], ref='konto:k1')
+    aufgabe = client.post(f'/api/v1/task-candidates/{p.id}/accept', json={
+        'title': 'Druckdaten schicken', 'project_id': None, 'new_project_name': 'Messe Herbst'}).json()
+    projekt_id = aufgabe['project_id']
+    app.state.tasks.add('Stand buchen', Provenance(SourceType.USER_STATED), project_id=projekt_id)
+    zurueck = client.post(f'/api/v1/task-candidates/aufgabe/{aufgabe["id"]}/zurueck').json()
+    assert zurueck['projekt'] == {'name': 'Messe Herbst', 'entfernt': False}
+    assert zurueck['satz'].endswith('Das Projekt „Messe Herbst“ bleibt, weil inzwischen anderes dazugehört.')
+    assert app.state.workspace.project(projekt_id).name == 'Messe Herbst'
+
+
+def test_ein_vorhandenes_projekt_bleibt_immer(client) -> None:  # noqa: F811
+    app = client.app
+    vorhanden = app.state.workspace.add_project('Messe Herbst', Provenance(SourceType.USER_STATED))
+    _, p = bitte(app.state.episodes, app.state.proposals, an=[JONAS], cc=[LENA], ref='konto:k1')
+    aufgabe = client.post(f'/api/v1/task-candidates/{p.id}/accept', json={
+        'title': 'Druckdaten schicken', 'project_id': vorhanden.id}).json()
+    zurueck = client.post(f'/api/v1/task-candidates/aufgabe/{aufgabe["id"]}/zurueck').json()
+    assert zurueck['satz'] == 'Der Vorschlag steht wieder zur Prüfung.' and zurueck['projekt'] is None
+    assert app.state.workspace.project(vorhanden.id).name == 'Messe Herbst'

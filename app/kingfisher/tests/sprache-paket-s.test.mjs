@@ -154,3 +154,11 @@ test("die eingetragenen öffentlichen Seiten stehen mit Schalter und ehrlichem S
   const { TECHNIK } = await import("../src/Einstellungen/gliederung.ts");
   assert.match(TECHNIK.find(t => t.id === "quellen").satz, /steht unter „Was Kingfisher darf“/);
 });
+
+// -- Offener Rest aus Z: „Zurück zur Prüfung“ und das dafür angelegte Projekt -----------------------------------
+
+test("Rückgängig nach „Zurück zur Prüfung“ legt ein mitgenommenes Projekt wieder an", () => {
+  const detail = quelle("TaskDetail.tsx");
+  assert.match(detail, /const neuesProjekt = antwort\.projekt\?\.entfernt \? antwort\.projekt\.name : null;/);
+  assert.match(detail, /project_id: neuesProjekt \? null : aufgabe\.project_id \?\? null,\s*new_project_name: neuesProjekt/);
+});
