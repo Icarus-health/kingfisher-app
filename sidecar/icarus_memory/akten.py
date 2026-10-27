@@ -804,7 +804,8 @@ class Akten:
                 'fristen': [f for f in roh['fristen'] if e['ziel'](f['ref']) not in e['abgelegt']]}
 
     def akte(self, sache: str, *, jetzt: datetime | None = None, alle: bool = False,
-             ansicht: bool = False, nur_offen: bool = False, namen_der_beteiligten: bool = True) -> dict[str, Any] | None:
+             ansicht: bool = False, nur_offen: bool = False, namen_der_beteiligten: bool = True,
+             verlauf_auszug: bool = False) -> dict[str, Any] | None:
         """Die Akte einer Sache für die Anzeige, oder None, wenn keine Quelle zu ihr gehört.
 
         `ansicht`: zusätzlich „Braucht dich“ und den Zeitstrahl (nur die eigene Seite der Akte braucht sie;
@@ -818,6 +819,9 @@ class Akten:
 
         `namen_der_beteiligten=False`: Beteiligte ohne Namen (`name` leer); für Leser, die nur Kennung und Anzahl
         brauchen (Terminvorbereitung, die je Teilnehmer eine ganze Akte liest).
+
+        `verlauf_auszug=True`: vom Verlauf (auch mit `alle`) nur die jüngsten 20 und die ältesten 10 Einträge, in ihrer
+        Reihenfolge; `gesamt` bleibt die ganze Zahl (Terminvorbereitung: letzter und erster Kontakt).
         """
         quellen = self.bezuege.quellen_von(sache) if zerlegen(sache) else []
         roh = self.roh(sache, quellen)
@@ -874,7 +878,11 @@ class Akten:
                 from .kreis import bestaetigter_kreis
                 daten['kreis'] = bestaetigter_kreis(self.episodes, sache)
             return daten
-        daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
+        if verlauf_auszug and len(roh['verlauf']) > 30:
+            auszug = self._verlauf_zeigen(roh['verlauf'][:20] + roh['verlauf'][-10:], leser, 30)
+            daten['verlauf'] = {**auszug, 'gesamt': len(roh['verlauf'])}
+        else:
+            daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
         daten['stand_der_dinge'] = self._stand_zeigen(roh['stand'], leser, kurz)
         daten['beteiligte'] = self._beteiligte_zeigen(roh['beteiligte'], lang, namen=namen_der_beteiligten)
         daten['termine'] = self._termine_zeigen(roh['termine'], jetzt, kurz, leser, termin_gesagt)

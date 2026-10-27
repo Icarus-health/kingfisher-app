@@ -296,7 +296,7 @@ def _person(name: str, adresse: str | None, akten: Any, arten: _Arten, eigene: l
             jetzt: datetime) -> Person:
     sache = sache_id('person', 'a:' + adresse) if adresse else None
     # Ohne die Namen aller Beteiligten (Befund A4): gebraucht wird nur der Name der ersten Organisation, unten.
-    akte = akten.akte(sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False) if sache else None
+    akte = akten.akte(sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False, verlauf_auszug=True) if sache else None
     if akte is None:
         return Person(name=name, adresse=adresse, sache=sache, bekannt=False)
     # Verlauf: jüngste zuerst; der Termin selbst und Künftiges gehören nicht zu „zuletzt“.
@@ -348,7 +348,7 @@ def _vergangen(datum: str | None, jetzt: datetime) -> bool:
 
 
 def _hintergrund(sache: str, herkunft: str, akten: Any, arten: _Arten, jetzt: datetime) -> Hintergrund | None:
-    akte = akten.akte(sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False)
+    akte = akten.akte(sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False, verlauf_auszug=True)
     if akte is None:
         return None
     stand = akte['stand_der_dinge']
@@ -371,7 +371,7 @@ def _gemeinsame(personen: list[Person], akten: Any, jetzt: datetime) -> list[str
     ausmass: dict[str, int] = {}
     bekannte = [p for p in personen if p.bekannt and p.sache]
     for p in bekannte:
-        akte = akten.akte(p.sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False)
+        akte = akten.akte(p.sache, jetzt=jetzt, alle=True, namen_der_beteiligten=False, verlauf_auszug=True)
         for b in (akte['beteiligte']['eintraege'] if akte else ()):
             if b['art'] in ('organisation', 'projekt'):
                 zaehler[b['sache']] = zaehler.get(b['sache'], 0) + 1

@@ -32,6 +32,7 @@ Arbeit zu erzeugen. Wer wissen will, warum eine Aussage im Bestand steht, findet
 from __future__ import annotations
 
 import copy
+import functools
 import hashlib
 import json
 from . import source_index, support_schema
@@ -75,9 +76,15 @@ def mail_address(value: Any) -> str:
     Robuster als `parseaddr` allein: „Keller, Anna <anna@x.de>“ ohne
     Anführungszeichen (so liefern Outlook und der Mac-Kalender) ergibt dort
     nichts. Hier zählt der letzte <…>-Block, sonst `parseaddr`, `mailto:` fällt weg.
+    Gemerkt je Text (eine reine Funktion; Befund A4: tausende gleiche Angaben je Frage).
     """
+    return _mail_address(str(value or ''))
+
+
+@functools.lru_cache(maxsize=8192)
+def _mail_address(text: str) -> str:
     from email.utils import parseaddr
-    text = str(value or '').strip()
+    text = text.strip()
     treffer = _SPITZ.search(text)
     adresse = treffer.group(1) if treffer else parseaddr(text)[1]
     adresse = adresse.strip()

@@ -934,7 +934,20 @@ class Bezuege:
                 if eintrag['id'] == kennung:
                     return eintrag['label']
             return kennung
-        alle = quellen if quellen is not None else self.quellen_von(sache)
+        # Gemerkt je Stand der Datei (Befund A4): Dieselbe Organisation wird je Frage oft benannt.
+        from .zwischenspeicher import marke
+        stand = marke(self._conn, self.episodes._lock)
+        gemerkt = getattr(self, '_namen_gemerkt', None)
+        if gemerkt is None or gemerkt[0] != stand:
+            gemerkt = self._namen_gemerkt = (stand, {})
+        if quellen is None and sache in gemerkt[1]:
+            return gemerkt[1][sache]
+        name = self._name_aus_quellen(sache, kennung, quellen if quellen is not None else self.quellen_von(sache))
+        if quellen is None:
+            gemerkt[1][sache] = name
+        return name
+
+    def _name_aus_quellen(self, sache: str, kennung: str, alle: list[dict[str, Any]]) -> str:
         # Befund A7: Eine Schreibweise aus dem Text (Erwähnung, Signatur, Absendername) geht der Domäne vor, auch aus
         # einer der 20 jüngsten Quellen („Müller Bau GmbH“ statt „Mueller Bau“); die Domäne erst danach.
         mails = [q for q in alle if q.get('art') == 'message']
