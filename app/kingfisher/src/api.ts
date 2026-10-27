@@ -1040,6 +1040,11 @@ export type LokaleKi = {
 };
 
 export class DocumentPreviewError extends Error {}
+/** Die Zeitzone des Geräts („Europe/Berlin“), leer, wenn der Browser keine nennt. */
+export function geraeteZone(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { return ""; }
+}
+
 export class ApiError extends Error {
   // `detail` ist der Grund, den der Server nennt, wenn er einen nennt.
   // `grund` ist die Kennung dazu, wo der Server eine nennt (etwa `adresse_fehlt` beim Kalender).
@@ -1451,7 +1456,10 @@ export const api = {
   testModel: () => request<{ ok: boolean }>("/api/v1/setup/test/modell", { method: "POST" }),
   /** `post: false`: ohne Posteingang, damit Heute den Gruß sofort zeigt (Befund 22); danach folgt der volle Abruf. */
   // Ohne Zeitzone des Browsers: Es gilt die eingestellte (Kingfisher und du), nicht die des Rechners (Fremdprobe 2, Befund 9).
-  morning: (post = true) => request<MorningBriefing>(`/api/v1/morning-briefing${post ? "" : "?post=false"}`),
+  // Mit der Zeitzone des Geräts, wie die Uhr in der Seitenleiste (`LiveClock`): Gruß und „heute“ folgen der Tageszeit,
+  // die der Mensch sieht (Paket S, Befund 6: „Guten Tag“ um 19:47).
+  morning: (post = true) => request<MorningBriefing>(`/api/v1/morning-briefing?${new URLSearchParams({
+    ...(geraeteZone() ? {timezone: geraeteZone()} : {}), ...(post ? {} : {post: "false"})})}`),
   status: () => request<{ chat: boolean }>("/api/v1/status"),
   createConversation: (title = "Neues Gespräch") =>
     request<ConversationPayload>("/api/v1/conversations", {

@@ -187,3 +187,9 @@ test("die Regel für 16 px Seitenrand unter 900 px trifft main selbst", () => {
   assert.match(block, /\.shell main:is\(\.tasks-page, \.settings-page, \.profile-page, \.inbox-page, \.conversation-history\) \{ padding-inline: 16px; \}/);
   assert.doesNotMatch(css, /main :is\(\.tasks-page/, "kein Leerzeichen zwischen main und :is: sonst trifft die Regel nie");
 });
+
+test("Heute fragt mit der Zeitzone des Geräts, wie die Uhr in der Seitenleiste", () => {
+  const api = quelle("api.ts");
+  assert.match(api, /morning: \(post = true\) => request<MorningBriefing>\(`\/api\/v1\/morning-briefing\?\$\{new URLSearchParams\(\{\s*\.\.\.\(geraeteZone\(\) \? \{timezone: geraeteZone\(\)\} : \{\}\)/);
+  assert.match(quelle("LiveClock.tsx"), /Intl\.DateTimeFormat\(\)\.resolvedOptions\(\)\.timeZone/);
+});
