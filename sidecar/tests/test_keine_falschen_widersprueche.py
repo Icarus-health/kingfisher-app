@@ -108,6 +108,8 @@ def test_die_floskel_meldet_im_lint_keinen_widerspruch(welt, akten):
 
 def test_bestaetigen_sie_den_termin_in_zwei_mails_sind_zwei_termine(welt, akten):
     episodes, _, _ = welt
-    mail(episodes, 'Rückfrage', [('Bitte bestätigen Sie den Termin bis Donnerstag.', 'request')], tage=40)
-    mail(episodes, 'Kurze Bitte', [('Bitte bestätigen Sie den Termin bis Donnerstag, danke.', 'request')], tage=4)
+    mail(episodes, 'Rückfrage', [('Bitte bestätigen Sie den Termin bis Donnerstag.', 'request')], tage=10)
+    mail(episodes, 'Kurze Bitte', [('Bitte bestätigen Sie den Termin bis Donnerstag, danke.', 'request')], tage=3)
+    fristen = neu_rechnen(akten).akte(SACHE, jetzt=JETZT, alle=True)['fristen']
+    assert fristen['gesamt']['kommend'] + fristen['gesamt']['verstrichen'] == 2
     assert neu_rechnen(akten).akte(SACHE, jetzt=JETZT, alle=True)['fristen']['ersetzt'] == []
