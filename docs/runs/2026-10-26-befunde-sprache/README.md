@@ -152,7 +152,7 @@ den Nachrichten, wenn es mehr neue Mails gibt, sonst ins Gedächtnis. ![nachher]
 - Volle Suite Sidecar: 8346 bestanden, 3 übersprungen, 0 fehlgeschlagen (14:52 min, `-n 4`).
 - Oberfläche: `node --test` 1039 bestanden (vorher 1025), `tsc --noEmit` sauber, `vite build` sauber.
 - `probe_seiten_ui.py` hell und dunkel: je 72 Breiten, 0 nicht in Ordnung, Konsole leer. `probe_tippziele_ui.py` hell
-  und dunkel: 29 Seiten, 1067 Ziele, 0 unter 44 px. `probe_konten_ui.py` und `probe_antwortzeit_ui.py` angepasst und grün.
+  und dunkel: 29 Seiten, 1067 Ziele, 0 unter 44 px. `probe_konten_ui.py` angepasst und grün. `probe_antwortzeit_ui.py` ist angepasst (klappt „Details“ auf), bricht aber schon auf dem Ausgangsstand `a3c8f02` vorher ab (wartet vergeblich auf `.satzantwort`); nicht Teil dieses Pakets, die Zeile hinter „Details“ ist mit der eigenen Nachstellung im Browser belegt (Bilder unter 2).
 
 ## Sabotageproben
 
