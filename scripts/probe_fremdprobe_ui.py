@@ -301,7 +301,7 @@ def main() -> int:
             modelle.get_by_role('button', name='Modell verwalten').click()
             modelle.get_by_text('installierte Modelle gefunden').wait_for(timeout=20000)
             text = modelle.inner_text() + pruef['9_karte']
-            pruef['9_eine_aussage'] = f'Bereit: {MODELL}' in text and not any(widerspruch in text for widerspruch in (
+            pruef['9_eine_aussage'] = 'Bereit auf diesem Rechner' in text and not any(widerspruch in text for widerspruch in (
                 'Anderer Anbieter', 'bestätigt keine Verbindung', 'Keine Modellliste erreichbar',
                 'Ollama meldet noch kein installiertes Modell'))
             bild('12-lokale-ki')

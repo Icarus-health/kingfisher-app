@@ -94,22 +94,22 @@ export function ChatGPTAccess() {
 
   const active=state?.accounts.find(a=>a.id===state.active_account);
   return <section className="source-section chatgpt-access" aria-labelledby="chatgpt-title">
-    <header><h2 id="chatgpt-title">Cloud für dein Gedächtnis</h2><p>Optional · Mails nach Freigabe über dein ChatGPT-Abo oder die Claude API einordnen.</p></header>
+    <header><h2 id="chatgpt-title">Cloud für dein Gedächtnis</h2><p>Optional · Mails nach Freigabe über dein ChatGPT-Abo oder deinen Claude-Zugang einordnen.</p></header>
     {state?.connected ? <div className="chatgpt-connected">
       <strong>{state.plan_usage ? "ChatGPT-Abo verbunden" : "Konto verbunden · Abo-Nutzung nicht freigegeben"}</strong>
       <span>{active?.label??"ChatGPT-Konto"}</span>
       <details className="quiet-details"><summary>Konto & Nutzung</summary>
-      <p>Die Nutzung zählt gegen dein ChatGPT-Kontingent. Bei einem Limit pausiert Kingfisher; es verwendet keine zusätzlich bezahlte API als Ersatz.</p>
+      <p>Die Nutzung zählt gegen dein ChatGPT-Kontingent. Bei einem Limit pausiert Kingfisher; es verwendet keinen zusätzlich bezahlten Zugang als Ersatz.</p>
       <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noopener noreferrer">Nutzung in ChatGPT verwalten</a>
       <button type="button" className="secondary-action" disabled={busy} onClick={()=>void disconnect()}>ChatGPT trennen und Verarbeitung widerrufen</button>
       </details>
     </div>:null}
     <details>
       <summary>{state?.connected ? "Konto wechseln oder erneut anmelden" : "Mit deinem ChatGPT-Konto verbinden"}</summary>
-      <p className="source-hint">Du brauchst keinen zusätzlichen API-Schlüssel. Die Anmeldung gibt keinen Zugriff auf deine bisherigen ChatGPT-Gespräche.</p>
+      <p className="source-hint">Du brauchst keinen zusätzlichen Zugangsschlüssel. Die Anmeldung gibt keinen Zugriff auf deine bisherigen ChatGPT-Gespräche.</p>
       {state?.accounts.length ? <label>ChatGPT-Konto<select value={account} disabled={busy} onChange={e=>setAccount(e.target.value)}><option value="">Anderes Konto oder neuer Arbeitsbereich</option>{state.accounts.map(a=><option key={a.id} value={a.id}>{a.label} · {a.id.slice(0,6)}</option>)}</select></label>:null}
       <label className="chatgpt-consent"><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/><span>Ich möchte OpenAI nutzen. Ausgewählte Inhalte können an OpenAI und außerhalb der EU, auch in den USA, verarbeitet werden. Welche Mails übertragen werden, gebe ich anschließend gesondert frei.</span></label>
-      <button type="button" className="primary-action" disabled={busy||!consent||!state?.secure_storage} onClick={()=>void begin()}>Continue with ChatGPT</button>
+      <button type="button" className="primary-action" disabled={busy||!consent||!state?.secure_storage} onClick={()=>void begin()}>Mit ChatGPT anmelden</button>
     </details>
     {state&&!state.secure_storage ? <p role="alert">Der geschützte Zugangsspeicher fehlt. Bitte die Kingfisher-Einrichtung prüfen.</p>:null}
     {flow ? <p role="status">Anmeldung läuft im Browser. Kingfisher aktualisiert sich automatisch. <a href={flow.url} target="_blank" rel="noopener noreferrer">Anmeldung im Browser öffnen</a></p>:null}

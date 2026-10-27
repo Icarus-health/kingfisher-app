@@ -199,7 +199,7 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
 
 
 def modell_laedt_satz(app: FastAPI) -> str:
-    """„Kingfisher lädt noch sein Sprachmodell (60 %).“, solange das Laden läuft; sonst leer."""
+    """„Kingfisher lädt noch seine KI (60 %).“, solange das Laden läuft; sonst leer."""
     manager = getattr(app.state, "pull_manager", None)
     stand = manager.reihe_stand() if manager is not None else None
     return stand["satz"] if stand and stand.get("laeuft") else ""

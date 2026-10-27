@@ -5,7 +5,9 @@ import { bereichName, vorschlagSatz, type Konten, type Konto } from "../kontenBe
 import { Rueckfrage } from "../grundlage";
 
 /**
- * Eine Zeile unter Zugänge für ein Postfach oder einen Kalender (Paket K): Name (ein Klick benennt um), Adresse, der
+ * Eine Zeile unter Zugänge für ein Postfach oder einen Kalender (Paket K): Name mit einem sichtbaren „Umbenennen“
+ * daneben (Paket S, Befund 8: Dass ein Klick auf den Namen umbenennt, fand niemand, und wer die Zeile öffnen wollte,
+ * stand plötzlich im Eingabefeld), Adresse, der
  * Stand in einem Satz, der Bereich. Ein Vorschlag steht sichtbar als Vorschlag mit Grund da und wird mit einem Klick
  * übernommen; ohne Vorschlag fragt die Zeile einmal „Welcher Bereich?“. Alles ist umkehrbar; die Seite zeigt danach den
  * Hinweis mit „Rückgängig“.
@@ -53,12 +55,13 @@ export function KontoZeile({ konto, konten, iconName, neben, ersatzStand, busy, 
     ? <input ref={eingabe} className="konto-name-eingabe" aria-label={`Neuer Name für ${konto.name}`} value={entwurf} maxLength={120}
         disabled={busy} onChange={event => setEntwurf(event.target.value)} onKeyDown={taste} onBlur={() => void speichern()} />
     : konto.umbenennbar === false ? <strong className="g-zeile-titel">{konto.name}</strong>
-      : <button ref={nameKnopf} type="button" className="g-zeile-titel konto-name" title="Umbenennen" aria-label={`${konto.name} umbenennen`}
-          onClick={() => { setFehler(""); setEntwurf(konto.name); setBearbeiten(true); }}>{konto.name}</button>;
+      : <span className="konto-titel"><strong className="g-zeile-titel">{konto.name}</strong>
+          <button ref={nameKnopf} type="button" className="text-action konto-umbenennen" aria-label={`${konto.name} umbenennen`}
+            onClick={() => { setFehler(""); setEntwurf(konto.name); setBearbeiten(true); }}>Umbenennen</button></span>;
   const stand = konto.stand;
   const ohneBereich = !konto.bereich;
   const offeneWahl = Boolean(konten) && (waehlen || (ohneBereich && !konto.vorschlag));
-  return <div className="konto">
+  return <div className="konto" data-konto={konto.id}>
     <div className="source-row g-zeile konto-zeile">
       <span className="g-zeile-symbol" aria-hidden="true"><InterfaceIcon name={iconName} /></span>
       <span className="g-zeile-text">

@@ -11,9 +11,9 @@ export function dokumenteSatz(anzahl: number, mindestens = false): string {
  * werden kann, steht eine Warnung da, und dann welches (`kosten_modell` aus `GET /api/v1/schedule`).
  */
 export function kostenSatz(mitModell: boolean, kostenModell: string | null | undefined): string {
-  if (!mitModell) return "Dabei wird kein Sprachmodell gerufen.";
+  if (!mitModell) return "Dabei wird keine KI gerufen.";
   if (kostenModell) return `Dabei kann ${kostenModell} gerufen werden; dieses Modell läuft nicht auf diesem Rechner und kann Kosten verursachen.`;
-  return "Dabei arbeitet nur ein Sprachmodell auf diesem Rechner; das kostet nichts.";
+  return "Dabei arbeitet nur die KI auf diesem Rechner; das kostet nichts.";
 }
 
 /**

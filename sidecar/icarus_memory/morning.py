@@ -205,6 +205,51 @@ def _braucht_dich(briefing: dict[str, Any], attention: dict[str, dict[str, Any]]
     return {"aufgaben": int(gezaehlt.get("aufgaben") or 0), "weitere": int(gezaehlt.get("weitere") or 0) + klaerungen}
 
 
+#: Merkmale einer Aussage in Alltagsworten, für den Titel einer Klärung. Nur diese Liste: Ein unbekanntes Merkmal kann
+#: aus einer fremden Quelle stammen (das Modell schlägt es vor) und steht deshalb nicht auf Heute.
+_MERKMALE = {
+    "works_on": "Mitarbeit", "status": "Stand", "has_status": "Stand", "budget": "Budget", "role": "Rolle",
+    "rolle": "Rolle", "project_role": "Rolle im Projekt", "observed_email": "Mailadresse", "email": "Mailadresse",
+    "reports": "Berichtet an", "reports_to": "Berichtet an", "note": "Notiz", "birthday": "Geburtstag",
+    "geburtstag": "Geburtstag", "geburtsdatum": "Geburtstag", "address": "Anschrift", "adresse": "Anschrift",
+    "phone": "Telefon", "telefon": "Telefon", "deadline": "Frist", "frist": "Frist", "employer": "Arbeitgeber",
+    "arbeitgeber": "Arbeitgeber", "wohnort": "Wohnort", "location": "Ort", "anschrift": "Anschrift",
+    "rechnungsanschrift": "Rechnungsanschrift", "lieferanschrift": "Lieferanschrift", "postanschrift": "Anschrift",
+    "telefonnummer": "Telefon", "mailadresse": "Mailadresse", "e-mail": "Mailadresse", "position": "Position",
+    "abteilung": "Abteilung", "firma": "Firma", "zustaendigkeit": "Zuständigkeit", "zuständigkeit": "Zuständigkeit",
+    "ansprechpartner": "Ansprechpartner", "termin": "Termin", "preis": "Preis", "betrag": "Betrag",
+}
+
+
+def _wm_mehr(dashboard: dict[str, Any], happening: list[dict[str, Any]], now: datetime) -> bool:
+    """Gibt es mehr neue Quellen aus dem Gedächtnis, als „Neu eingegangen“ zeigt? (Dieselbe Regel wie
+    `working_memory_more`.)"""
+    from .episodes import ist_eigene_quelle
+    wm = dashboard.get('working_memory', {}) or {}
+    return bool(wm.get('truncated') or sum(
+        not ist_eigene_quelle(r.get('source_type'), r.get('source_ref'))
+        and ist_neu(r.get('occurred_at'), r.get('recorded_at'), jetzt=now) for r in wm.get('items') or [])
+        > sum(item['source'] == 'working_memory' for item in happening[:3]))
+
+
+def klaerung_titel(merkmal: str) -> str:
+    """Der Titel einer offenen Klärung auf Heute: worum es geht („Angabe klären: Anschrift“), ohne Namen und ohne die
+    widersprüchlichen Werte, denn die stammen aus fremden Quellen und Heute wird auch vorgelesen. Ohne bekanntes Merkmal
+    bleibt es beim allgemeinen Titel; gleiche Titel zählt `compose` durch („… (2)“)."""
+    wort = _MERKMALE.get(" ".join(str(merkmal or "").split()).casefold())
+    return f"Angabe klären: {wort}" if wort else "Gedächtnis klären"
+
+
+def gruss(stunde: int) -> str:
+    """Der Gruß zur Tageszeit des Nutzers (`now` ist schon in seiner Zeitzone): morgens bis 12 Uhr, tagsüber bis 18 Uhr,
+    danach und in der Nacht „Guten Abend“. Vorher stand um 19:47 „Guten Tag“ da (Persona-Prüfung, Paket S, Befund 6)."""
+    if 4 <= stunde < 12:
+        return "Guten Morgen"
+    if 12 <= stunde < 18:
+        return "Guten Tag"
+    return "Guten Abend"
+
+
 def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             wetter=None, nutzername: str = "", verlauf: list[str] | None = None) -> dict[str, Any]:
     if os.environ.get("KINGFISHER_FIXTURE", "").lower() == "morning":
@@ -299,15 +344,20 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
     # Morning-Screen verwendet dafür dieselbe bestehende Aufmerksamkeitszeile,
     # ohne einen neuen Review-Screen vorwegzunehmen. Details bleiben bis zur
     # späteren, genehmigten Kläransicht im lokalen API-Bestand.
+    titel_gesehen: dict[str, int] = {}
     for clarification in (dashboard.get("knowledge", {}).get("clarifications") or []):
         reference = str(clarification.get("id") or "")
         if not reference:
             continue
         item_id = _stable_id("clarification", "knowledge", reference, "Gedächtnis klären")
+        titel = klaerung_titel(str(clarification.get("merkmal") or ""))
+        titel_gesehen[titel] = titel_gesehen.get(titel, 0) + 1
+        if titel_gesehen[titel] > 1:
+            titel = f"{titel} ({titel_gesehen[titel]})"
         attention[item_id] = {
             "id": item_id,
             "kind": "need",
-            "title": "Gedächtnis klären",
+            "title": titel,
             "detail": "Widersprüchliche Angaben warten auf deine Einordnung",
             "priority": "Hoch",
             "source": "knowledge",
@@ -318,6 +368,8 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         }
 
     happening: list[dict[str, Any]] = []
+    #: Neue Mails über die drei sichtbaren hinaus: Dann führt „Mehr“ zu den Nachrichten (Paket S, Befund 7).
+    mails_mehr = False
     # „Neu eingegangen“ nur mit dem, was wirklich neu ist (`neu_eingegangen.py`): Eine ungelesene Mail vom Juni ist
     # Altbestand, auch wenn sie noch ungelesen im Posteingang liegt. Der Posteingang ist ein Blick von jetzt, keine
     # Bestandsaufnahme: Fehlt einer Mail das Datum, gilt sie als jetzt erfasst.
@@ -326,6 +378,9 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             continue
         if not ist_neu(mail.get("date"), mail.get("recorded_at") or now, jetzt=now):
             continue
+        if len(happening) == 3:
+            mails_mehr = True
+            break
         title = str(mail.get("subject") or "Neue E-Mail")
         happening.append({
             "id": _stable_id("activity", "mail", mail.get("uid"), title),
@@ -335,8 +390,6 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             "occurred_at": mail.get("date"), "recorded_at": mail.get("recorded_at"),
             "reason": "Ungelesene Nachricht", "action": None,
         })
-        if len(happening) == 3:
-            break
     # A new report is an activity, not an accepted task or an inferred deadline.
     from .working_memory_answers import KINDS
     from .episodes import ist_eigene_quelle
@@ -461,7 +514,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
     # Der bestätigte Name aus dem Assistenten oder den Einstellungen gilt vor der Umgebung: Wer den angebotenen Namen
     # ändert, wird mit dem geänderten gegrüßt (V3, 25.10.2026; vorher schlug die Umgebung die Datei).
     user = nutzername.strip() or os.environ.get("KINGFISHER_USER_NAME", "").strip()
-    greeting = "Guten Morgen" if now.hour < 12 else "Guten Tag"
+    greeting = gruss(now.hour)
     return {
         "generated_at": now.isoformat(),
         "timezone": str(now.tzinfo),
@@ -480,6 +533,9 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
                 and ist_neu(r.get('occurred_at'), r.get('recorded_at'), jetzt=now)
                 for r in dashboard.get('working_memory', {}).get('items') or []) >
             sum(item['source'] == 'working_memory' for item in happening[:3])),
+        # Wohin „Mehr“ unter „Neu eingegangen“ führt (Paket S, Befund 7: es führte immer in das Gedächtnis, auch wenn
+        # das Weitere Mails waren): weitere neue Mails zu den Nachrichten, sonst weitere Quellen ins Gedächtnis.
+        "neu_mehr": "nachrichten" if mails_mehr else ("gedaechtnis" if _wm_mehr(dashboard, happening, now) else None),
         "later_today": later,
         "naechster_termin": naechster_termin,
         "timeline": [

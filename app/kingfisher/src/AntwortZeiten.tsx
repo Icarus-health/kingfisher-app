@@ -9,13 +9,19 @@ import "./AntwortZeiten.css";
  * Die Zeile unter einer Antwort: „3,2 s · Suche 0,3 · Sätze 2,1“. Nebeninformation, keine Farbe, nichts Blinkendes.
  * Ohne gemessene Zeiten (ältere Antworten, Antworten ohne Modell) steht nichts da. Wurde die Antwort langsam,
  * steht ein Satz mit der Ursache darunter.
+ *
+ * Die Zahlen sagen nur Technikern etwas (Persona-Prüfung, Paket S, Befund 2): Sie liegen hinter einem zugeklappten
+ * „Details“. Dass es lokal dauert, sagt der Hinweis darüber in Worten (`LokalLangsam`).
  */
 export function AntwortZeile({ zeiten }: { zeiten: unknown }) {
   const gemessen = gueltigeZeiten(zeiten);
   if (!gemessen) return null;
   const ursache = ursacheSatz(gemessen);
-  return <p className="antwortzeit" aria-label="Antwortzeit">{zeitZeile(gemessen)}
-    {ursache ? <span className="antwortzeit-ursache">{ursache}</span> : null}</p>;
+  return <details className="antwortzeit-details">
+    <summary>Details</summary>
+    <p className="antwortzeit" aria-label="Antwortzeit">{zeitZeile(gemessen)}
+      {ursache ? <span className="antwortzeit-ursache">{ursache}</span> : null}</p>
+  </details>;
 }
 
 /**

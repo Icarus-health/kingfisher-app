@@ -42,7 +42,7 @@ Dazu vier Beobachtungen aus dem Alltag:
 | Tempo | Mit eingeschalteter „Cloud für Fragen und Antworten“ beantwortet die Cloud auch Gedächtnisfragen; der bestehende Einwilligungssatz deckt das ab (Frage und gefundene Textstellen gehen an den Anbieter). Ohne Schalter bleibt alles lokal, wird aber schneller und zeigt seinen Zwischenstand. |
 | Aufgaben | Eindeutige Bitten an dich und eigene Zusagen werden **automatisch angelegt**, mit „Von Kingfisher angelegt · Rückgängig“. Projekt und Person werden dabei zugeordnet. Unsichere bleiben Vorschläge, mit „Alle übernehmen“. |
 | Projekte | Ein Projekt, das sich in den Mails klar bildet, legt Kingfisher **selbst an** und ordnet die Mails zu, mit Rückgängig. Unklare bleiben Frage. |
-| Bereiche | **Je Postfach und Kalender.** Kingfisher schlägt „Privat“ oder „Arbeit“ vor, der Nutzer bestätigt einmal. Mails, Termine, Aufgaben und Projekte erben den Bereich; Filter in Kalender und Aufgaben. Eigene weitere Bereiche sind möglich. |
+| Bereiche | **Je Postfach und Kalender.** Kingfisher schlägt „Privat“ oder „Arbeit“ vor, der Nutzer bestätigt einmal. Bei Gmail, GMX und Co. entscheidet seit Paket S, was im Postfach steht, nicht die Domäne; gemischt oder ungelesen fragt die Zeile. Mails, Termine, Aufgaben und Projekte erben den Bereich; Filter in Kalender und Aufgaben. Eigene weitere Bereiche sind möglich. |
 
 Diese Tabelle ersetzt in [`17-stabschef.md`](17-stabschef.md) den Satz „Angelegt wird
 nur mit diesem Klick“ für eindeutige Aufgaben und den Projektvorschlag für klare Fälle.

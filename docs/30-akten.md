@@ -423,6 +423,10 @@ Modell):
   „Aus einem Vorschlag übernommen am … · Zurück zur Prüfung“ (bei „Alle übernehmen“ dazu „Alle dieser Übernahme
   zurück“): `POST /api/v1/task-candidates/aufgabe/{id}/zurueck` entfernt die Aufgabe und stellt den Vorschlag wieder
   offen (nicht verworfen), solange die Aufgabe offen ist; Erledigtes und von Hand Angelegtes bleiben (409 mit Satz).
+  Entstand beim Übernehmen ein neues Projekt („Neues Projekt“, Kennung aus dem Vorschlag) und hängt daran sonst nichts
+  (keine Aufgabe, Quelle, Notiz, kein Termin), geht es mit zurück; sonst bleibt es, und der Satz sagt es (Paket S).
+  Rückgängig im Hinweis legt es mit derselben Kennung wieder an. Die Aufgabensuche findet auch den Projektnamen und die
+  Person einer Aufgabe (`task_pages.query_page(projekte=)`).
   Einzeln übernehmen bleibt in der Prüfliste, mit Hinweis „„…“ übernommen. · Rückgängig · Ansehen“; „+ Aufgabe“
   bleibt in der Liste, mit „Öffnen“ und „Rückgängig“ (verwirft). Nichts öffnet mehr ungefragt im Vollbild.
 

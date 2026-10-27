@@ -7,6 +7,7 @@ Antwort muss später ein explizit gewähltes Absenderkonto mitbringen.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
@@ -15,6 +16,8 @@ import httpx
 
 from .calendar import CalendarError, Event, parse_events
 from .mail import MailError, Message
+
+logger = logging.getLogger(__name__)
 
 
 class MailReader(Protocol):
@@ -67,6 +70,25 @@ def zu_gross(grenze: int) -> str:
             "so viel liest Kingfisher über eine Adresse nicht.")
 
 
+def abo_fehler_satz(exc: Exception) -> str:
+    """Was los ist und was der Nutzer tun kann, in einem Satz (Persona-Prüfung, Paket S, Befund 1). Vorher stand
+    „iCalendar-Abo nicht erreichbar: 403 Forbidden“ da. Der Fachbegriff bleibt für Techniker im Protokoll."""
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    if status in (401, 403):
+        return ("Der Kalender lässt sich nicht abrufen: Die Adresse ist nicht mehr freigegeben. "
+                "Teile ihn im Kalenderprogramm neu und füge die neue Adresse ein.")
+    if status in (404, 410):
+        return ("Der Kalender lässt sich nicht abrufen: Unter dieser Adresse gibt es ihn nicht mehr. "
+                "Kopiere die Adresse im Kalenderprogramm neu und füge sie ein.")
+    if isinstance(status, int) and status >= 500:
+        return ("Der Kalender lässt sich gerade nicht abrufen: Der Anbieter meldet eine Störung. "
+                "Kingfisher versucht es von selbst wieder.")
+    if isinstance(exc, (httpx.TimeoutException, httpx.ConnectError)):
+        return ("Der Kalender lässt sich gerade nicht abrufen: Der Anbieter ist nicht erreichbar. "
+                "Kingfisher versucht es von selbst wieder.")
+    return "Der Kalender lässt sich gerade nicht abrufen. Kingfisher versucht es von selbst wieder."
+
+
 class ICalendarSubscription:
     """Ein bewusst nur lesendes, HTTPS-basiertes iCalendar-Abo."""
 
@@ -96,7 +118,8 @@ class ICalendarSubscription:
                         teile.append(stueck)
                     kodierung = response.encoding or "utf-8"
         except httpx.HTTPError as exc:
-            raise CalendarError(f"iCalendar-Abo nicht erreichbar: {exc}") from exc
+            logger.info("Kalender-Abo nicht abrufbar: %s", exc)
+            raise CalendarError(abo_fehler_satz(exc)) from exc
         # Als Bytes weitergeben: `parse_events` dekodiert je Termin, nicht die ganze Datei auf einmal.
         return parse_events(b"".join(teile), von, von + timedelta(days=days), kodierung=kodierung)
 

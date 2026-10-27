@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {api, ApiError, type MailIntakeStatus, type MemoryAutomation} from "../api";
-import {PAUSIEREN_AUF_HEUTE, automatikAngebote, fertigLeerText, liestSatz, ordnetEin, schonDaZahlen, stummTitel} from "./fertig";
+import {automatikAngebote, pausierenSatz, fertigLeerText, liestSatz, ordnetEin, schonDaZahlen, stummTitel} from "./fertig";
 import {KingfisherLernt} from "./KingfisherLernt";
 import {SchrittFuss, type SchrittProps} from "./SchrittFuss";
 import {usePostfaecher} from "./usePostfaecher";
@@ -10,7 +10,7 @@ const zahl = (wert: number) => wert.toLocaleString("de-DE");
 
 // Was schon da ist, in Zahlen, die stimmen (Fremdprobe 3, Befund 6): Die Termine werden erst nach dem Abgleich gezählt,
 // danach alle paar Sekunden nachgesehen, solange die Seite offen ist.
-function SchonDa({stand, intake}: {stand: SchrittProps["stand"]; intake: MailIntakeStatus | null}) {
+function SchonDa({stand, intake, mailImLernen}: {stand: SchrittProps["stand"]; intake: MailIntakeStatus | null; mailImLernen: boolean}) {
   const [termine, setTermine] = useState<number | null>(null);
   useEffect(() => {
     let lebt = true;
@@ -24,7 +24,7 @@ function SchonDa({stand, intake}: {stand: SchrittProps["stand"]; intake: MailInt
     if (stand.vorhanden.kalender) void api.syncCalendarMemory().catch(() => undefined).then(() => { if (lebt) void lesen(); });
     return () => { lebt = false; clearTimeout(timer); };
   }, [stand.vorhanden.kalender]);
-  const zahlen = schonDaZahlen({mail: stand.vorhanden.mail, kalender: stand.vorhanden.kalender, intake, termine});
+  const zahlen = schonDaZahlen({mail: stand.vorhanden.mail, kalender: stand.vorhanden.kalender, intake, termine, mailImLernen});
   if (!zahlen.length) return null;
   return <dl className="erststart-zahlen" aria-label="Schon da">
     {zahlen.map(eintrag => <div key={eintrag.titel}><dt>{eintrag.titel}</dt><dd>{eintrag.wert === null ? "…" : zahl(eintrag.wert)}</dd></div>)}
@@ -37,6 +37,7 @@ function SchonDa({stand, intake}: {stand: SchrittProps["stand"]; intake: MailInt
  * (Fremdprobe, Befund 5). Einmal angeboten, vorausgewählt: Mails einlesen und Quellen lokal sortieren (Befund 17).
  */
 export function FertigSchritt({stand, weiter, zurueck, gehe}: SchrittProps) {
+  const [mailImLernen, setMailImLernen] = useState(false);
   const {stumm, prueft, pruefen} = usePostfaecher(stand.vorhanden.mail);
   const [intake, setIntake] = useState<MailIntakeStatus | null>(null);
   const [automatik, setAutomatik] = useState<MemoryAutomation | null>(null);
@@ -94,15 +95,16 @@ export function FertigSchritt({stand, weiter, zurueck, gehe}: SchrittProps) {
         <button type="button" className="text-action" disabled={prueft} onClick={() => void pruefen()}>{prueft ? "Wird geprüft …" : "Erneut prüfen"}</button>
       </div>
     </section> : null}
-    <SchonDa stand={stand} intake={intake} />
-    <KingfisherLernt leerText={leerText} />
+    {/* Die Zahl der gelesenen Mails steht einmal (Paket S, Befund 6): solange „Kingfisher lernt gerade“ sie zeigt, dort. */}
+    <SchonDa stand={stand} intake={intake} mailImLernen={mailImLernen} />
+    <KingfisherLernt leerText={leerText} beiAenderung={(_, zeilen) => setMailImLernen(zeilen.some(zeile => zeile.id === "mail"))} />
     {angebote.einlesen.length || angebote.sortieren ? <fieldset className="erststart-automatik">
       <legend>Soll Kingfisher von selbst weiterarbeiten?</legend>
       {angebote.einlesen.length ? <label><input type="checkbox" checked={einlesenAn} onChange={event => setEinlesenAn(event.target.checked)} />
         {" "}Mails von {namen(angebote.einlesen)} jetzt und danach regelmäßig einlesen</label> : null}
       {angebote.sortieren ? <label><input type="checkbox" checked={sortierenAn} onChange={event => setSortierenAn(event.target.checked)} />
-        {" "}Quellen auf diesem Rechner sortieren{angebote.sortierenSpaeter ? ", sobald das Sprachmodell bereit ist" : ""}; daraus entstehen nur Vorschläge, zur Tatsache wird etwas erst mit deinem Ja</label> : null}
-      <p className="source-hint">{PAUSIEREN_AUF_HEUTE}</p>
+        {" "}Quellen auf diesem Rechner sortieren{angebote.sortierenSpaeter ? ", sobald die KI bereit ist" : ""}; daraus entstehen nur Vorschläge, zur Tatsache wird etwas erst mit deinem Ja</label> : null}
+      <p className="source-hint">{pausierenSatz({einlesen: angebote.einlesen.length > 0, sortieren: angebote.sortieren})}</p>
     </fieldset> : null}
     <div className="erststart-hintergrund">
       <h2>Was im Hintergrund passiert</h2>

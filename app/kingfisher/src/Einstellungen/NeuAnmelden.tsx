@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { PasswortFeld } from "../grundlage";
 import { api, ApiError, type IntegrationOverview, type MailAccount } from "../api";
 
 /**
@@ -53,8 +54,8 @@ export function NeuAnmelden({ konto, beiErfolg }: { konto: MailAccount; beiErfol
   if (!offen) return <button ref={knopf} type="button" className="secondary-action" onClick={() => setOffen(true)}>Neu anmelden</button>;
   return <form className="neu-anmelden" aria-label={`${konto.label} neu anmelden`} onSubmit={event => void anmelden(event)} onKeyDown={taste}>
     <label>Neues Passwort für {konto.user}
-      <input ref={feld} type="password" autoComplete="current-password" value={passwort} aria-invalid={fehler ? true : undefined}
-        aria-describedby={fehler ? `neu-anmelden-fehler-${konto.id}` : undefined} onChange={event => setPasswort(event.target.value)} />
+      <PasswortFeld feldRef={feld} autoComplete="current-password" wert={passwort} invalid={Boolean(fehler)}
+        describedBy={fehler ? `neu-anmelden-fehler-${konto.id}` : undefined} onWert={setPasswort} />
     </label>
     <div className="source-form-actions">
       <button type="button" className="secondary-action" disabled={arbeitet} onClick={abbrechen}>Abbrechen</button>

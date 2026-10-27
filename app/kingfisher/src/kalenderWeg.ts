@@ -60,3 +60,15 @@ export function verbundenSatz(gefunden: readonly string[], neu: number): string 
   if (neu === 0) return `Schon verbunden: ${namen}.`;
   return gefunden.length === 1 ? `Verbunden: dein Kalender „${namen}“.` : `Verbunden: ${gefunden.length} Kalender (${namen}).`;
 }
+
+/**
+ * Welche Adresse im Kalenderschritt schon dasteht (Persona-Prüfung, Paket S, Befund 8). Zuerst ein Postfach, dessen
+ * Kalender beim selben Anbieter mit demselben Passwort geht (bekannt oder beim Mailserver der eigenen Domain): dann ist
+ * nichts mehr zu tippen. Ein Gmail-Postfach braucht dagegen die geheime iCal-Adresse; es kommt erst danach. Dann irgendein
+ * Postfach mit Passwort, dann das erste, sonst leer (die Karte nimmt dann die zuletzt getippte Adresse).
+ */
+export function vorbelegteAdresse(postfaecher: readonly Pick<MailAccount, "user" | "secret_present">[], anbieter: readonly MailProvider[]): string {
+  const mitPasswort = postfaecher.filter(konto => konto.secret_present && adresseVollstaendig(konto.user));
+  const gleicherAnbieter = mitPasswort.find(konto => ["bekannt", "selbst_suchen"].includes(kalenderWeg(konto.user, anbieter).art));
+  return (gleicherAnbieter ?? mitPasswort[0] ?? postfaecher[0])?.user ?? "";
+}

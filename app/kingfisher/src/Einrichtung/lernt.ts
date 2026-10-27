@@ -30,7 +30,7 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
   const pausiert = hintergrund?.pausiert ?? intake?.background_paused ?? false;
 
   // Das Sprachmodell lädt im Hintergrund (Fremdprobe 2, Befund 6): zuerst, mit Prozent, bis es fertig ist.
-  if (laden?.laeuft) zeilen.push({id: "modell", fertig: laden.prozent, gesamt: 100, text: `Kingfisher lädt sein Sprachmodell: ${laden.prozent} %`});
+  if (laden?.laeuft) zeilen.push({id: "modell", fertig: laden.prozent, gesamt: 100, text: `Kingfisher lädt seine KI: ${laden.prozent} %`});
 
   // Die Gesamtzeile: alle Quellen, nicht nur Mails, mit der Schätzung aus der gemessenen Rate.
   const einordnen = hintergrund !== null && IM_GANG.has(hintergrund.zustand) && hintergrund.fortschritt.offen > 0;

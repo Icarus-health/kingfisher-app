@@ -297,6 +297,10 @@ class Settings:
     Auch bei `an` braucht jeder einzelne Abruf die Freigabe im Gespräch (`policy.Policy._IMMER_FREIGABE`); bei `aus`
     bekommt das Modell das Werkzeug nicht angeboten (`nach_draussen.py`).
     """
+    quellen_abruf: str = "an"
+    """Ruft Kingfisher die selbst eingetragenen öffentlichen Quellen („Weitere öffentliche Quellen“) nach Zeitplan ab?
+    `an` (Vorgabe: wer eine Quelle einträgt, will sie lesen) oder `aus`; „Jetzt abrufen“ geht immer. Der Schalter steht
+    unter „Was Kingfisher darf“ (Paket S, offener Rest aus D; `nach_draussen.py`)."""
     world_sources: list[dict[str, Any]] = field(default_factory=list)
 
     wegezeit: dict[str, Any] = field(default_factory=dict)
@@ -452,6 +456,7 @@ class Settings:
             antwort_saetze="aus" if data.get("antwort_saetze") == "aus" else "an",
             satzpruefung_modell="aus" if data.get("satzpruefung_modell") == "aus" else "an",
             web_abruf="aus" if data.get("web_abruf") == "aus" else "an",
+            quellen_abruf="aus" if data.get("quellen_abruf") == "aus" else "an",
             world_sources=[dict(x) for x in data.get("world_sources", []) if isinstance(x, dict)],
             wegezeit=dict(data.get("wegezeit") or {}) if isinstance(data.get("wegezeit"), dict) else {},
             wetter=dict(data.get("wetter") or {}) if isinstance(data.get("wetter"), dict) else {},

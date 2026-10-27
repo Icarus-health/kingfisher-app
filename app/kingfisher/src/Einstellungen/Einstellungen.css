@@ -339,6 +339,10 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell .konto-zeile .g-zeile-text { min-width: 0; display: grid; gap: 1px; }
 #root .settings-shell .konto-name { justify-self: start; max-width: 100%; min-height: 0; padding: 0; border: 0; background: none; color: var(--g-tinte); text-align: left; cursor: text; border-radius: 4px; }
 #root .settings-shell .konto-name:hover { text-decoration: underline; text-decoration-color: var(--g-linie); text-underline-offset: 3px; }
+/* Paket S, Befund 8: „Umbenennen“ sichtbar neben dem Namen, leise wie ein Verweis; der Name selbst ist kein Knopf mehr. */
+#root .settings-shell .konto-titel { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--g-a3); min-width: 0; }
+#root .settings-shell .konto-titel > .g-zeile-titel { min-width: 0; overflow-wrap: anywhere; }
+#root .settings-shell .konto-umbenennen { min-height: 0; padding: 0 2px; font-size: 13px; font-weight: 500; }
 #root .settings-shell .konto-name-eingabe { width: 100%; min-height: 36px; padding: 4px 8px; font: 500 16px/1.35 var(--g-schrift); }
 #root .settings-shell .konto-stand { white-space: normal; overflow-wrap: anywhere; font: var(--g-fussnote); color: var(--g-leise); }
 #root .settings-shell .konto-stand-fehler { color: var(--g-rot); white-space: normal; }

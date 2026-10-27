@@ -29,7 +29,7 @@ test("richtige Einzahl bei Dokumenten", () => {
 });
 
 test("Kostenwarnung nur bei einem Modell außerhalb dieses Rechners, und dann welches (Befund 28)", () => {
-  assert.equal(kostenSatz(false, null), "Dabei wird kein Sprachmodell gerufen.");
+  assert.equal(kostenSatz(false, null), "Dabei wird keine KI gerufen.");
   assert.doesNotMatch(kostenSatz(true, null), /Kosten verursach/);
   assert.match(kostenSatz(true, null), /auf diesem Rechner; das kostet nichts/);
   assert.match(kostenSatz(true, "gpt-oss:120b-cloud"), /^Dabei kann gpt-oss:120b-cloud gerufen werden; .*Kosten verursachen\.$/);

@@ -48,7 +48,9 @@ def test_nach_alles_einrichten_bereit_und_die_liste_stimmt(app_und_client):
     assert app.state.settings.provider == ''   # die Ursache der widersprüchlichen Anzeige bleibt bestehen …
     stand = lokale_ki(client)                    # … und stört die Aussage nicht mehr
     assert stand['zustand'] == 'bereit' and stand['lokal'] is True and stand['erreichbar'] is True
-    assert stand['satz'] == f'Eingerichtet und bereit: {MODELL} läuft auf diesem Rechner.'
+    assert stand['satz'] == 'Eingerichtet und bereit: Die KI läuft auf diesem Rechner.'
+    # Paket S, Befund 1: Kurzform und Satz ohne Modellkennung; die steht in `modell`.
+    assert MODELL not in stand['kurz'] + stand['satz'] and stand['modell'] == MODELL
     assert MODELL in stand['installiert'] and 'bge-m3:latest' in stand['installiert']
     # Die Modellliste kommt von der Adresse, unter der Kingfisher Ollama selbst findet, nicht aus Docker.
     assert 'host.docker.internal' not in stand['endpunkt']

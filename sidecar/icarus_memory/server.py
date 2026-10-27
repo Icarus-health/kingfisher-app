@@ -1122,13 +1122,19 @@ def _wire_scheduler(app: FastAPI) -> None:
         from .world_monitor import WorldMonitor
         monitor = WorldMonitor(app.state.settings, app.state.episodes, app.state.claims,
             lambda settings: config.save(_data_dir(), settings), app.state.conversation_lock)
+        from .nach_draussen import quellen_an
         for source in monitor.list():
             if not source['enabled']:
                 continue
             if was_enabled and not app.state.settings.schedule.enabled:
                 break
+            # „Weitere öffentliche Quellen“ unter „Was Kingfisher darf“ (Paket S): aus, ruft der Zeitplan nichts ab;
+            # geprüft vor jeder Quelle, damit ein Ausschalten mitten im Lauf gleich wirkt.
+            if was_enabled and not quellen_an(app.state.settings):
+                break
             try:
-                monitor.refresh(source['id'], permitted=lambda: not was_enabled or app.state.settings.schedule.enabled)
+                monitor.refresh(source['id'], permitted=lambda: not was_enabled or (
+                    app.state.settings.schedule.enabled and quellen_an(app.state.settings)))
                 results.append(JobResult('world:' + source['id'], True, 'Öffentliche Quelle aktualisiert.'))
             except (ValueError, KeyError):
                 results.append(JobResult('world:' + source['id'], False, 'Öffentliche Quelle gerade nicht erreichbar.'))
@@ -2200,8 +2206,11 @@ def create_app(
             source_id = f"calendar-{uuid.uuid4().hex}"
             config.store_secret(getattr(app.state, "keychain", Keychain()),
                                 config.integration_secret_name("calendar", source_id), passwort)
-            neu.append(config.CalendarSourceSettings(id=source_id, label=f"{wer}: {kalender.name}"[:120], kind="caldav",
-                                                     url=kalender.url, user=adresse))
+            neu.append(config.CalendarSourceSettings(
+                id=source_id, label=kalender_anmeldung.kalender_name(
+                    anbieter.label if anbieter is not None else "", kalender.name, adresse,
+                    [e.label for e in [*settings.calendar_sources, *neu]])[:120],
+                kind="caldav", url=kalender.url, user=adresse))
         settings.calendar_sources.extend(neu)
         config.save(_data_dir(), settings)
         _build_agent(app)
@@ -3283,10 +3292,13 @@ def create_app(
         # nie den fremden Quelltext oder die behaupteten Werte.
         try:
             clarifications = app.state.knowledge_service.clarifications()
+            # Je Klärung ein eigener Titel (Paket S, Befund 6: zwei hießen beide „Gedächtnis klären“). Mitgegeben wird
+            # nur das Merkmal, und `morning.klaerung_titel` nimmt es nur aus einer festen Liste: kein Name, kein Wert,
+            # nichts aus der fremden Quelle.
             result["knowledge"] = {
                 "pending": len(app.state.knowledge_service.pending()),
                 "clarifications": [
-                    {"id": item["id"]} for item in clarifications
+                    {"id": item["id"], "merkmal": str(item.get("predicate") or "")} for item in clarifications
                 ],
                 "error": None,
             }
@@ -5166,8 +5178,14 @@ def create_app(
         gewaehlt = zaehlung.bereich_gewaehlt(bereich)
         ids = zaehlung.ids_im_bereich(app, gewaehlt, project_id=project_id)
         try:
+            projekte = None
+            if q.strip():
+                try:
+                    projekte = {p.id: p.name for p in app.state.workspace.projects(include_closed=True)}
+                except Exception:  # noqa: BLE001 - ohne Projektliste sucht die Suche nur in den Aufgaben selbst
+                    projekte = None
             seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor, ids=ids,
-                                         auswahl=gewaehlt)
+                                         auswahl=gewaehlt, projekte=projekte)
             antwort = {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
             if view == 'mine' and cursor is None:
                 antwort['heute_dran'] = zaehlung.heute_dran_zahl(app, _aufgaben_jetzt(timezone_name),

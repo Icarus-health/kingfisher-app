@@ -457,7 +457,38 @@ class Durchlauf:
             self.proposals.entscheidung_aendern(proposal_id, ProposalState.PENDING, von=(ProposalState.ACCEPTED,))
         except ProposalError:
             pass
-        return {'proposal_id': proposal_id, 'satz': 'Der Vorschlag steht wieder zur Prüfung.'}
+        satz, projekt = 'Der Vorschlag steht wieder zur Prüfung.', None
+        nur_dafuer = self._projekt_nur_dafuer(task, proposal_id)
+        if nur_dafuer is not None:
+            name, leer = nur_dafuer
+            entfernt = False
+            if leer:
+                try:
+                    entfernt = bool(self.workspace.remove_project(task.project_id))
+                except Exception:  # noqa: BLE001 - im Zweifel bleibt das Projekt (fail closed)
+                    entfernt = False
+            projekt = {'name': name, 'entfernt': entfernt}
+            satz += (f' Das dafür angelegte Projekt „{name}“ ist wieder weg.' if entfernt
+                     else f' Das Projekt „{name}“ bleibt, weil inzwischen anderes dazugehört.')
+        return {'proposal_id': proposal_id, 'satz': satz, 'projekt': projekt}
+
+    def _projekt_nur_dafuer(self, task: Any, proposal_id: str) -> tuple[str, bool] | None:
+        """(Name, leer), wenn das Projekt der Aufgabe beim Übernehmen dieses Vorschlags neu angelegt wurde („Neues
+        Projekt“); leer heißt: keine andere Aufgabe, keine Quelle, keine Notiz, kein Termin (`remove_project` prüft
+        Notizen und Termine selbst). Sonst None (Paket S, offener Rest aus Z: vorher blieb es immer stehen)."""
+        from .workspace import projekt_kennung_aus_vorschlag
+        pid = task.project_id
+        if not pid or self.workspace is None or pid != projekt_kennung_aus_vorschlag(proposal_id):
+            return None
+        try:
+            name = self.workspace.project(pid).name
+        except Exception:  # noqa: BLE001
+            return None
+        try:
+            leer = not self.tasks.by_project(pid, include_closed=True) and not self.episodes.by_project(pid, limit=1)
+        except Exception:  # noqa: BLE001
+            leer = False
+        return name, leer
 
     def gruppe_zuruecknehmen(self, gruppe: str) -> dict[str, Any]:
         """Nimmt eine gemeinsame Übernahme ganz zurück: Die Aufgaben gehen, die Vorschläge stehen wieder offen da.

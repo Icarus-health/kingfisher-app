@@ -18,3 +18,4 @@ export { Seitenwechsel, Sprunglink } from "./Seitenwechsel";
 export { seitenTitel, fokusVerloren, seiteGewechselt } from "./seitenwechselModell.ts";
 export { AnsageAnzeige } from "./Ansage";
 export { sageAn, ansagen, AnsageOrt } from "./ansageOrt.ts";
+export { PasswortFeld } from "./PasswortFeld";

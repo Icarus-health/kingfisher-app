@@ -21,7 +21,7 @@ from typing import Any, Callable
 from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import bereiche, config
+from . import bereiche, config, identitaet
 
 _MAC = "mac-calendar"
 MAX_NAME = 120
@@ -255,9 +255,16 @@ def uebersicht(app: Any, *, jetzt: datetime | None = None) -> dict[str, Any]:
     except Exception:  # noqa: BLE001 - ohne Stand bleibt die Liste
         staende = {}
     postfaecher = []
+    #: Was in einem unbestätigten Postfach eines privaten Anbieters steht, je Adresse; auch für seinen Kalender.
+    inhalte: dict[str, bereiche.Inhalt] = {}
     for e in settings.mail_accounts:
         bestaetigt = zuordnung.get(e.id)
-        vorschlag = None if bestaetigt else bereiche.vorschlag_postfach(_adresse(e))
+        vorschlag = None
+        if not bestaetigt:
+            inhalt = None
+            if identitaet.ist_privater_anbieter(_adresse(e)):
+                inhalt = inhalte[_adresse(e).casefold()] = bereiche.inhalt_des_postfachs(app, e.id)
+            vorschlag = bereiche.vorschlag_postfach(_adresse(e), inhalt)
         postfaecher.append({"id": e.id, "name": e.label, "adresse": _adresse(e), "bereich": bestaetigt,
                             "vorschlag": vorschlag.to_dict() if vorschlag else None,
                             "stand": kurzer_mailstand(staende.get(e.id), e.label, jetzt) if e.configured else None})
@@ -270,7 +277,8 @@ def uebersicht(app: Any, *, jetzt: datetime | None = None) -> dict[str, Any]:
                           if e.user and p.user.strip().casefold() == e.user.strip().casefold()), None)
             vorschlag = bereiche.vorschlag_kalender(
                 e.label, adresse=e.user if "@" in (e.user or "") else "",
-                konto=(konto.label, zuordnung.get(konto.id, "")) if konto is not None else None)
+                konto=(konto.label, zuordnung.get(konto.id, "")) if konto is not None else None,
+                inhalt=inhalte.get((e.user or "").strip().casefold()))
         geheimnis = bool(_integration_secret(app, "calendar", e.id))
         if e.kind == "microsoft":
             from .microsoft_routes import zugang_da

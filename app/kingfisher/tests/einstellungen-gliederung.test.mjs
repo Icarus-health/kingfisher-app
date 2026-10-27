@@ -31,9 +31,12 @@ test("KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und a
   }
 });
 
-test("es gibt genau zehn Schalter, und bei jedem steht, was den Rechner verlässt", () => {
+test("es gibt genau elf Schalter, und bei jedem steht, was den Rechner verlässt", () => {
   // Paket D der Persona-Prüfung: Webabruf und Update-Prüfung stehen jetzt auch hier, mit ihrem Satz.
-  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud", "cloud_einordnung", "web", "updates", "aufgaben_selbst"]);
+  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud", "cloud_einordnung", "web", "quellen", "updates", "aufgaben_selbst"]);
+  // Paket S, offener Rest aus D: die eingetragenen öffentlichen Seiten, ehrlich wie die Update-Prüfung.
+  assert.match(SCHALTER.quellen.verlaesst, /IP-Adresse/);
+  assert.match(SCHALTER.quellen.verlaesst, /Aus: /);
   for (const [id, schalter] of Object.entries(SCHALTER)) {
     assert.match(schalter.verlaesst, /verl(ä|a)ss/, `${id}: sagt nicht, was den Rechner verlässt`);
     assert.ok(schalter.titel.length > 8 && schalter.verlaesst.length < 260, id);

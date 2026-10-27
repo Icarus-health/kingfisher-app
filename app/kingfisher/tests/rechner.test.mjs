@@ -73,7 +73,7 @@ test("Am Ende genau ein Satz: alles, teilweise oder nichts; nie „Fast alles“
   const teil = abschluss(laden([auftrag("frage", "fertig"), auftrag("antwort", "fehler", {fehler: NICHT})]));
   assert.match(teil.text, /^Teilweise eingerichtet: 1 von 2 Aufgaben\./);
   for (const ende of [nichts, teil]) assert.doesNotMatch(ende.text, /Fast alles/);
-  assert.equal(ladenLaeuftSatz({prozent: 60}).startsWith("Kingfisher lädt sein Sprachmodell: 60 %."), true);
+  assert.equal(ladenLaeuftSatz({prozent: 60}).startsWith("Kingfisher lädt seine KI: 60 %."), true);
 });
 
 test("Jedes Problem steht einmal, nicht je Aufgabe einer Fähigkeit (Befund 7)", () => {

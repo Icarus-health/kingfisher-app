@@ -98,7 +98,7 @@ export function MailSourceForm({ form, provider, providers, submitting, fehler =
     <label>{provider?.app_password ? "App-Passwort" : "Postfachpasswort"}<input autoComplete="new-password" onChange={(event) => onChange({ ...form, password: event.target.value })} type="password" value={form.password} /></label>
     {provider?.hint ? <p className="source-hint">{provider.hint}{provider.help_url ? <> <a href={provider.help_url} rel="noreferrer" target="_blank">{provider.help_label || "Mehr erfahren"}</a></> : null}</p> : null}
     <p className="source-hint">Das Passwort wird nur im lokalen Schlüsselbund abgelegt und nicht erneut angezeigt.</p>
-    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Lokal speichern</button></div>
+    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Speichern</button></div>
     <FehlerAmKnopf text={fehler} />
   </form>;
 }
@@ -118,7 +118,7 @@ export function CalendarSourceForm({ form, submitting, fehler = "", onCancel, on
     <label>{form.kind === "ical" ? "Adresse des Kalender-Abos" : "Adresse des Kalenders"}<input onChange={(event) => onChange({ ...form, url: event.target.value })} placeholder="https://…" required type="url" value={form.url} /></label>
     {form.kind === "caldav" ? <><label>Benutzername<input onChange={(event) => onChange({ ...form, user: event.target.value })} required value={form.user} /></label><label>App-Passwort<input autoComplete="new-password" onChange={(event) => onChange({ ...form, password: event.target.value })} type="password" value={form.password} /></label></> : <p className="source-hint">Für Google-Kalender kannst du die persönliche HTTPS-iCalendar-Adresse jedes einzelnen Kalenders abonnieren.</p>}
     <p className="source-hint">Der Zugang bleibt lokal. Ein Abo wird nicht an weitere Dienste weitergegeben.</p>
-    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Lokal speichern</button></div>
+    <div className="source-form-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={onCancel} type="button">Abbrechen</button><button className="g-knopf-getoent" disabled={submitting} type="submit">Speichern</button></div>
     <FehlerAmKnopf text={fehler} />
   </form>;
 }

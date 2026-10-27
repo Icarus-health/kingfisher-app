@@ -56,7 +56,7 @@ test('optional ChatGPT sign-in starts closed, but restored flow and errors remai
   const tree=render(()=>ChatGPTAccess(),[{connected:false,accounts:[],secure_storage:true},[],'',false,{session_id:'test',url:'https://auth.openai.com/test'},false,'','Anmeldung fehlgeschlagen','','']);
   const login=nodes(tree,n=>n.type==='details'&&text(n).includes('Mit deinem ChatGPT-Konto verbinden'))[0];assert.ok(login);assert.equal(Boolean(login.props.open),false);
   assert.match(firstLayer(tree),/Anmeldung läuft im Browser/);assert.match(firstLayer(tree),/Anmeldung fehlgeschlagen/);
-  assert.match(text(login),/außerhalb der EU/);assert.equal(nodes(login,n=>n.type==='button'&&text(n)==='Continue with ChatGPT')[0].props.disabled,true);
+  assert.match(text(login),/außerhalb der EU/);assert.equal(nodes(login,n=>n.type==='button'&&text(n)==='Mit ChatGPT anmelden')[0].props.disabled,true);
 });
 test('cloud memory pause and errors remain visible before optional explanations',()=>{
   const job={id:'test',state:'paused',selected:100,position:20,completed:20,failed:0,requests:20,request_limit:100,model:'test',stop_reason:'Pausiert durch dich',issues:[]};

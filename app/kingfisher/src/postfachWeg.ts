@@ -48,3 +48,20 @@ export const erkanntText = (anbieter: Pick<MailProvider, "id" | "label">) =>
  * (Paket K); umbenennen geht unter Zugänge mit einem Klick auf den Namen. Ohne Adresse der Anbieter. */
 export const postfachName = (adresse: string, anbieter: Pick<MailProvider, "id" | "label">) =>
   adresse.trim().toLowerCase() || anbieter.label;
+
+/** Ein schon verbundenes Postfach, wie es `GET /api/v1/konten` nennt. */
+export type Verbundenes = {id: string; name: string; adresse: string};
+
+/**
+ * Ist die getippte Adresse schon verbunden (Persona-Prüfung, Paket S, Befund 4)? Erkannt wird es an der Adresse, bevor
+ * jemand ein Passwort sucht; der Sidecar prüft beim Speichern zusätzlich Anmeldung und Server (`doppeltes_postfach`).
+ */
+export function schonVerbunden(adresse: string, postfaecher: readonly Verbundenes[]): Verbundenes | null {
+  const sauber = adresse.trim().toLowerCase();
+  if (!adresseFertig(sauber)) return null;
+  return postfaecher.find(p => p.adresse.trim().toLowerCase() === sauber) ?? null;
+}
+
+/** Der ruhige Hinweis dazu; der Weg dorthin steht daneben (unter Zugänge ein Knopf zur Zeile). */
+export const schonVerbundenSatz = (name: string) => `Dieses Postfach ist schon verbunden: ${name}. Kingfisher liest es bereits.`;
+export const SCHON_VERBUNDEN_WO = "Du findest es unter Einstellungen → Zugänge.";

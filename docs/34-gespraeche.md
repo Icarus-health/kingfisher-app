@@ -124,7 +124,9 @@ keine von beiden. Eine automatische Zuordnung ist nur ein Vorschlag und schreibt
 Quelle (Regel des Gedächtnisses). Was die Bestätigung hinzufügt (Kontakte, Texte, Projekt), merkt
 die Ablage in `uebernommen`; „Zuordnung lösen“ und eine Bestätigung für einen anderen Termin
 nehmen genau das wieder zurück (`EpisodeStore.remove_contacts`, `link_project(…, None)`), nie,
-was schon vorher in der Quelle stand. Eine falsche Person lässt sich zusätzlich in ihrer Akte
+was schon vorher in der Quelle stand. Zuordnen und Lösen fragen nicht vorher; danach steht der Hinweis mit
+„Rückgängig“, das genau den Stand von vorher herstellt, auch die Sperre nach dem Lösen
+(`POST /api/v1/transkripte/{id}/zuordnung/rueckgaengig`, `Zuordner.wiederherstellen`, Paket S). Eine falsche Person lässt sich zusätzlich in ihrer Akte
 ablehnen (D1).
 
 ### Ablage

@@ -82,7 +82,10 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
       if (!alive.current) return;
       setTask(null); setZurPruefungSatz(antwort.satz); onChanged();
       zeigeHinweis({text: antwort.satz, danach: `${zitat(aufgabe.title)} ist wieder übernommen.`, rueckgaengig: async () => {
-        await api.acceptTaskCandidate(antwort.proposal_id, {title: aufgabe.title, project_id: aufgabe.project_id ?? null, due: aufgabe.due ?? null, waiting_for: aufgabe.wartet_auf ?? null});
+        // Ging das dafür angelegte Projekt mit zurück, legt Rückgängig es wieder an (dieselbe Kennung, Paket S).
+        const neuesProjekt = antwort.projekt?.entfernt ? antwort.projekt.name : null;
+        await api.acceptTaskCandidate(antwort.proposal_id, {title: aufgabe.title, project_id: neuesProjekt ? null : aufgabe.project_id ?? null,
+          new_project_name: neuesProjekt, due: aufgabe.due ?? null, waiting_for: aufgabe.wartet_auf ?? null});
         onChanged(); setRevision(value => value + 1);
       }});
     } catch (problem) {

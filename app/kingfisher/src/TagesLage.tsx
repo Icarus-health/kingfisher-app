@@ -6,11 +6,17 @@ import { navigate } from "./ui";
 import { TerminVorbereitung } from "./TerminVorbereitung";
 import "./TagesLage.css";
 import { dailyIntroduction } from "./dailyFlow";
+import { zeigeHinweis } from "./grundlage";
 
 // Das Morgenbriefing in drei bis fünf Zeilen: ein Urteil, keine Liste. Jede Zeile hat ihre Aktion
 // (Vorbereitung öffnen, Quelle öffnen); was fehlt oder nicht belegt ist, steht nicht da. Die Vorbereitung
 // der Termine entsteht ohne Klick im Sidecar (tag_routes.py); hier wird nur gezeigt und gefragt.
 const KOPF: Record<string, string> = { termin: "Wohin", leute: "Wer kommt", einpacken: "Einpacken", fristen: "Fristen", aufgaben_post: "Post", wetter: "Wetter", geburtstag: "Geburtstag", welt: "Welt" };
+
+/** Der Hinweis nach „Abbestellen“: was passiert ist und wo es später wieder geht. */
+export const abbestelltSatz = (quelle: boolean) => quelle
+  ? "Abbestellt. Wieder einschalten geht auch später unter Einstellungen → Was Kingfisher darf."
+  : "Abbestellt. Wieder zulassen geht auch später unter Einstellungen → Was Kingfisher darf."
 
 export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: boolean}) {
   const [daten, setDaten] = useState<TagBriefing | null>(null);
@@ -62,10 +68,13 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
     if (arbeitet || !a.ref) return;
     setArbeitet(true); setMeldung("");
     try {
-      await api.weltAbbestellen(a.art === "welt_quelle" ? { quelle_id: a.ref } : { sache: a.ref });
+      const ziel = a.art === "welt_quelle" ? { quelle_id: a.ref } : { sache: a.ref };
+      await api.weltAbbestellen(ziel);
       await laden(true);
-      setMeldung(a.art === "welt_quelle" ? "Abbestellt. Unter Einstellungen → Was Kingfisher darf kannst du die Quelle wieder einschalten."
-        : "Abbestellt. Unter Einstellungen → Was Kingfisher darf kannst du es wieder zulassen.");
+      // Ohne Rückfrage, mit Rückgängig (Paket S, Prüffrage 5): Abbestellen lässt sich ganz zurücknehmen, samt der
+      // Meldung des Tages. Später geht es auch unter „Was Kingfisher darf“.
+      zeigeHinweis({ text: abbestelltSatz(a.art === "welt_quelle"), danach: "Wieder bestellt.",
+        rueckgaengig: async () => { await api.weltAbbestellenRueckgaengig(ziel); await laden(true); } });
     } catch { setMeldung("Das konnte nicht abbestellt werden. Bitte erneut versuchen."); }
     finally { setArbeitet(false); }
   }

@@ -55,8 +55,10 @@ test("Die Wahl wird je Seite gemerkt; ohne Speicher gilt „Alle“", () => {
 });
 
 test("Sätze nach Umbenennen und Bereichswahl; ein leerer oder gleicher Name ändert nichts", () => {
-  assert.equal(bereichText({bereiche: BEREICHE}, "Firma", "arbeit"), "Firma gehört jetzt zu Arbeit.");
-  assert.equal(bereichText({bereiche: BEREICHE}, "Firma", null), "Firma hat keinen Bereich mehr.");
+  assert.equal(bereichText({bereiche: BEREICHE}, "Firma", "arbeit"), "„Firma“ gehört jetzt zum Bereich Arbeit.");
+  assert.equal(bereichText({bereiche: BEREICHE}, "Firma", null), "„Firma“ hat keinen Bereich mehr.");
+  // Paket S, Befund 6: vorher „Privat gehört jetzt zu Privat.“
+  assert.equal(bereichText({bereiche: BEREICHE}, "Privat", "privat"), "„Privat“ gehört jetzt zum Bereich Privat.");
   assert.equal(neuerName("  Anna   privat ", "x"), "Anna privat");
   assert.equal(neuerName("x", "x"), null);
   assert.equal(neuerName("   ", "x"), null);

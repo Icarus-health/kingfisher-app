@@ -43,6 +43,8 @@ export type MorningBriefing = {
   needs_you: Attention[];
   happening_now: Attention[];
   working_memory_more?: boolean;
+  /** Wohin „Mehr“ unter „Neu eingegangen“ führt (Paket S, Befund 7); fehlt es, gilt `working_memory_more`. */
+  neu_mehr?: "nachrichten" | "gedaechtnis" | null;
   later_today: CalendarItem[];
   /** Der nächste Termin nach heute (bis eine Woche), für „Heute keine Termine. Nächster: …“ (Paket U, H8). */
   naechster_termin?: { title: string; start: string; ganztags: boolean } | null;
@@ -1038,6 +1040,11 @@ export type LokaleKi = {
 };
 
 export class DocumentPreviewError extends Error {}
+/** Die Zeitzone des Geräts („Europe/Berlin“), leer, wenn der Browser keine nennt. */
+export function geraeteZone(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { return ""; }
+}
+
 export class ApiError extends Error {
   // `detail` ist der Grund, den der Server nennt, wenn er einen nennt.
   // `grund` ist die Kennung dazu, wo der Server eine nennt (etwa `adresse_fehlt` beim Kalender).
@@ -1202,7 +1209,10 @@ export type CloudProtokollEintrag = {zeit: string; anbieter: string; modell: str
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: CloudAnbieter[];
   ollama_cloud?: {modelle: string[]; hinweis: string}};
 export type CloudProviderPrivacy = {checked_at:string;region:string;training:string;retention:string;billing:string;sources:Array<{label:string;url:string}>};
-export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;privacy?:CloudProviderPrivacy};
+/** Ein Modell zur Wahl (Paket S, Befund 5): Kennung und ein Titel in Alltagsworten; das erste ist vorbelegt. */
+export type CloudModellWahl = {id: string; titel: string};
+export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;
+  modelle?: CloudModellWahl[]; import_available?:boolean;privacy?:CloudProviderPrivacy};
 export type CloudMemoryProvider = "chatgpt" | "anthropic";
 export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
 export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boolean; secure_storage:boolean;
@@ -1292,6 +1302,9 @@ export const api = {
   cloudProtokoll: () => request<{eintraege: CloudProtokollEintrag[]}>("/api/v1/cloud/protokoll"),
   webAbruf: () => request<{an: boolean}>("/api/v1/darf/web"),
   webAbrufSetzen: (an: boolean) => request<{an: boolean}>("/api/v1/darf/web", {method: "PUT", body: JSON.stringify({an})}),
+  /** Eingetragene öffentliche Seiten nach Zeitplan abrufen (Paket S): an oder aus, und wie viele eingetragen sind. */
+  quellenAbruf: () => request<{an: boolean; anzahl: number}>("/api/v1/darf/quellen"),
+  quellenAbrufSetzen: (an: boolean) => request<{an: boolean; anzahl: number}>("/api/v1/darf/quellen", {method: "PUT", body: JSON.stringify({an})}),
   gespraechVorwaermen: () => request<{ ergebnis: string; cloud: boolean }>("/api/v1/gespraech/vorwaermen", { method: "POST" }),
   saetzeSetzen: (saetze: "an" | "aus") =>
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),
@@ -1418,6 +1431,8 @@ export const api = {
   transkriptOrdnerTrennen: () => request<TranskriptOrdner & { entzogen: number }>("/api/v1/transkripte/ordner", { method: "DELETE" }),
   transkriptAktiv: (enabled: boolean) => request<TranskriptOrdner>("/api/v1/transcript-sync", { method: "PUT", body: JSON.stringify({ enabled }) }),
   transkriptZuordnen: (id: string, termin: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "POST", body: JSON.stringify({ termin }) }),
+  /** „Rückgängig“ nach „Zu diesem Termin“ oder „Gehört nicht hierher“ (Paket S): genau der Stand von vorher. */
+  transkriptRueckgaengig: (episodeId: string) => request<unknown>(`/api/v1/transkripte/${encodeURIComponent(episodeId)}/zuordnung/rueckgaengig`, {method: "POST"}),
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
   macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
@@ -1441,7 +1456,10 @@ export const api = {
   testModel: () => request<{ ok: boolean }>("/api/v1/setup/test/modell", { method: "POST" }),
   /** `post: false`: ohne Posteingang, damit Heute den Gruß sofort zeigt (Befund 22); danach folgt der volle Abruf. */
   // Ohne Zeitzone des Browsers: Es gilt die eingestellte (Kingfisher und du), nicht die des Rechners (Fremdprobe 2, Befund 9).
-  morning: (post = true) => request<MorningBriefing>(`/api/v1/morning-briefing${post ? "" : "?post=false"}`),
+  // Mit der Zeitzone des Geräts, wie die Uhr in der Seitenleiste (`LiveClock`): Gruß und „heute“ folgen der Tageszeit,
+  // die der Mensch sieht (Paket S, Befund 6: „Guten Tag“ um 19:47).
+  morning: (post = true) => request<MorningBriefing>(`/api/v1/morning-briefing?${new URLSearchParams({
+    ...(geraeteZone() ? {timezone: geraeteZone()} : {}), ...(post ? {} : {post: "false"})})}`),
   status: () => request<{ chat: boolean }>("/api/v1/status"),
   createConversation: (title = "Neues Gespräch") =>
     request<ConversationPayload>("/api/v1/conversations", {
@@ -1556,7 +1574,8 @@ export const api = {
   aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
   alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
   aufgabenZurueckgenommen: () => request<{aufgaben: ZurueckgenommeneAufgabe[]}>("/api/v1/aufgaben-von-selbst/zurueckgenommen"),
-  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
+  /** `projekt`: das beim Übernehmen neu angelegte Projekt und ob es mit zurückging (Paket S); sonst null. */
+  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string; projekt?: {name: string; entfernt: boolean} | null}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
   gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
@@ -1688,6 +1707,8 @@ export const api = {
   weltFeedWeg: (id: string) => request<WeltStand>(`/api/v1/welt/feeds/${encodeURIComponent(id)}`, { method: "DELETE" }),
   weltFeedSchalter: (id: string, an: boolean) => request<WeltStand>(`/api/v1/welt/feeds/${encodeURIComponent(id)}/schalter`, { method: "POST", body: JSON.stringify({ an }) }),
   weltAbbestellen: (ziel: { quelle_id: string } | { sache: string }) => request<WeltStand>("/api/v1/welt/abbestellen", { method: "POST", body: JSON.stringify(ziel) }),
+  /** „Rückgängig“ nach dem Abbestellen (Paket S): der Stand von vorher, samt der Meldung des Tages. */
+  weltAbbestellenRueckgaengig: (ziel: { quelle_id: string } | { sache: string }) => request<WeltStand>("/api/v1/welt/abbestellen/rueckgaengig", { method: "POST", body: JSON.stringify(ziel) }),
   weltZulassen: (sache: string) => request<WeltStand>("/api/v1/welt/zulassen", { method: "POST", body: JSON.stringify({ sache }) }),
   personDetails: (name: string, alle = false) => request<MappeEinzelheiten>(`/api/v1/memory/people/${encodeURIComponent(name)}/einzelheiten${alle ? "?alle=1" : ""}`),
   uebernehmenVorschau: (conversationId: string, messageId: string) =>

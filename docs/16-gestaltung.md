@@ -265,13 +265,20 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 | Vorschlag übernehmen (einzeln, Z4) | `POST /task-candidates/aufgabe/{id}/zurueck` (auch später: „Zurück zur Prüfung“ in der Aufgabe) |
 | „+ Aufgabe“ (Z4: bleibt in der Liste, „Öffnen“ im Hinweis) | `POST /tasks/{id}/drop` |
 | Von Kingfisher angelegt: zurücknehmen / wiederherstellen | `POST /aufgaben-von-selbst/{id}/rueckgaengig` ↔ `/wiederherstellen` (auch später unter „Erledigt → Zurückgenommen“) |
+| Welt-Meldung abbestellen (Quelle oder Sache; Paket S) | `POST /welt/abbestellen/rueckgaengig`: Feed, Weltquelle oder Sache wie vorher, die Meldung des Tages steht wieder da (später auch unter „Was Kingfisher darf“) |
+| Mitschrift „Zu diesem Termin“ / „Gehört nicht hierher“ (Paket S) | `POST /transkripte/{id}/zuordnung/rueckgaengig`: genau der Stand von vorher, auch die Sperre nach dem Lösen fällt weg |
 
 Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt, und sie ist seit B3 ein Dialog (`Rueckfrage`): Entscheidung zurücknehmen („Wirklich
 zurücknehmen?“), eine Quelle nicht mehr verwenden (was daraus folgte, kommt nicht von selbst zurück), Sortierergebnis
-verwerfen, eine Quelle entfernen, Mitschrift zuordnen oder lösen (Lösen sperrt den Termin für den Vorschlag), Welt-Meldung
-abbestellen (die Meldung des Tages bleibt gestrichen). Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
+verwerfen, eine Quelle entfernen. Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
 der Post verwerfen, einen Aufgabenvorschlag ablehnen. Eigene „…rückgängig“-Knöpfe mit Versionen (Ordner, Bilder,
 Gruppierungen im Gedächtnis) bleiben, wo sie sind.
+
+**Abbestellen und Mitschrift zuordnen (Paket S, 27.10.2026).** Hier stand bis Paket B, beide fragten vorher; der Code
+fragte nicht, und es gab auch keinen Weg zurück. Entschieden nach Prüffrage 5 („Kann er es rückgängig machen? Wo ja,
+braucht es keine Rückfrage“): Beide bekamen einen vollständigen Weg zurück (die Meldung des Tages kommt wieder, die
+Sperre nach dem Lösen fällt weg), und deshalb keine Rückfrage, sondern den Hinweis mit „Rückgängig“. Eine Rückfrage vor
+einem Klick, der sich ganz zurücknehmen lässt, wäre eine Entscheidung zu viel.
 
 ## Barrierefreiheit (Paket B, 27.10.2026)
 

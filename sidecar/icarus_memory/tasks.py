@@ -899,11 +899,12 @@ class TaskStore:
 
     def page(self, view: str = 'mine', *, project_id: str | None = None,
              q: str = '', limit: int = 200, cursor: str | None = None,
-             ids: set[str] | None = None, auswahl: str | None = None) -> dict[str, Any]:
+             ids: set[str] | None = None, auswahl: str | None = None,
+             projekte: dict[str, str] | None = None) -> dict[str, Any]:
         from .task_pages import query_page
         with self._lock:
             page = query_page(self._conn, view, project_id=project_id, q=q, limit=limit, cursor=cursor,
-                              ids=ids, auswahl=auswahl)
+                              ids=ids, auswahl=auswahl, projekte=projekte)
         page['tasks'] = [self._from_row(row).to_dict() for row in page.pop('rows')]
         return page
 

@@ -27,7 +27,7 @@ function WorkingMemoryProgress({progress, enabled, wartet, stale = false, pauseR
   const status = stale ? "Der aktuelle Fortschritt ist nicht erreichbar. Die Zahlen zeigen den letzten bekannten Stand."
     : remaining === 0 ? skipped ? "Das Sortieren ist abgeschlossen; einige Quellen konnten nicht sortiert werden." : "Alle Quellen sind sortiert."
     : pauseReason && enabled ? pauseReason
-    : wartet ? "Der Rest wird sortiert, sobald das Sprachmodell auf diesem Rechner bereit ist."
+    : wartet ? "Der Rest wird sortiert, sobald die KI auf diesem Rechner bereit ist."
     : !enabled ? "Das automatische Sortieren ist pausiert. Der Rest wird sortiert, sobald es wieder läuft."
     : estimate ? `Noch etwa ${roughDuration(estimate)}, solange die App geöffnet ist.`
     : "Die Restzeit wird nach den ersten Durchgängen geschätzt.";
@@ -47,7 +47,7 @@ export function SemanticMemoryProgress({progress, stale = false}: {progress: Non
   const explanation = stale ? "Der aktuelle Stand ist gerade nicht erreichbar. Die Zahlen zeigen den letzten bekannten Stand."
     : status === "disabled" ? "Die Bedeutungssuche ist ausgeschaltet."
     : paused ? paused
-    : status === "unavailable" ? progress.identity_checked_at === null ? "Das lokale Suchmodell und der Suchindex wurden noch nicht geprüft. Der Stand wird automatisch erneut geprüft." : "Die Bedeutungssuche ist gerade nicht bereit. Der Stand wird automatisch erneut geprüft."
+    : status === "unavailable" ? progress.identity_checked_at === null ? "Die Suche auf diesem Rechner wurde noch nicht geprüft. Der Stand wird automatisch erneut geprüft." : "Die Bedeutungssuche ist gerade nicht bereit. Der Stand wird automatisch erneut geprüft."
     : complete ? "Die bisher sortierten Abschnitte sind für die Bedeutungssuche vorbereitet."
     : total === 0 ? "Sobald sortierte Abschnitte vorliegen, werden sie für die Bedeutungssuche vorbereitet."
     : pending ? "Weitere Abschnitte werden im Hintergrund vorbereitet."
