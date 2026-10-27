@@ -142,3 +142,15 @@ test("Umbenennen steht sichtbar neben dem Namen; der Name selbst ist kein Knopf"
     neben: "", busy: false, onUmbenennen: async () => null, onBereich() {}, onNeuerBereich: async () => null }));
   assert.doesNotMatch(mac, /Umbenennen/, "ein Mac-Kalender heißt, wie er auf dem Mac heißt");
 });
+
+// -- Offener Rest aus D: eingetragene öffentliche Seiten unter „Was Kingfisher darf“ ---------------------------------
+
+test("die eingetragenen öffentlichen Seiten stehen mit Schalter und ehrlichem Satz unter „Was Kingfisher darf“", async () => {
+  const darf = quelle("Einstellungen/Darf.tsx");
+  assert.ok(darf.indexOf("<WebSchalter />") < darf.indexOf("<QuellenSchalter />") && darf.indexOf("<QuellenSchalter />") < darf.indexOf("<FassungSchalter />"));
+  const { quellenAnzahlSatz } = await server.ssrLoadModule("/src/Einstellungen/Darf.tsx");
+  assert.equal(quellenAnzahlSatz(0), "Noch keine Seite eingetragen; dann geht hier nichts hinaus.");
+  assert.equal(quellenAnzahlSatz(2), "Eingetragen sind 2 Seiten.");
+  const { TECHNIK } = await import("../src/Einstellungen/gliederung.ts");
+  assert.match(TECHNIK.find(t => t.id === "quellen").satz, /steht unter „Was Kingfisher darf“/);
+});

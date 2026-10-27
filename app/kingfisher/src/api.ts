@@ -1297,6 +1297,9 @@ export const api = {
   cloudProtokoll: () => request<{eintraege: CloudProtokollEintrag[]}>("/api/v1/cloud/protokoll"),
   webAbruf: () => request<{an: boolean}>("/api/v1/darf/web"),
   webAbrufSetzen: (an: boolean) => request<{an: boolean}>("/api/v1/darf/web", {method: "PUT", body: JSON.stringify({an})}),
+  /** Eingetragene öffentliche Seiten nach Zeitplan abrufen (Paket S): an oder aus, und wie viele eingetragen sind. */
+  quellenAbruf: () => request<{an: boolean; anzahl: number}>("/api/v1/darf/quellen"),
+  quellenAbrufSetzen: (an: boolean) => request<{an: boolean; anzahl: number}>("/api/v1/darf/quellen", {method: "PUT", body: JSON.stringify({an})}),
   gespraechVorwaermen: () => request<{ ergebnis: string; cloud: boolean }>("/api/v1/gespraech/vorwaermen", { method: "POST" }),
   saetzeSetzen: (saetze: "an" | "aus") =>
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),

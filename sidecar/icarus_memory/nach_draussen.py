@@ -13,6 +13,9 @@ Drei Dinge an einer Stelle:
 * **Der Webabruf als Schalter** (`GET/PUT /api/v1/darf/web`): Ist er aus, bekommt das Modell das Werkzeug
   `web_abruf` gar nicht erst angeboten. Ist er an (Vorgabe), braucht jeder einzelne Abruf trotzdem die Freigabe im
   Gespräch (`policy.Policy._IMMER_FREIGABE`).
+* **Weitere öffentliche Quellen nach Zeitplan** (`GET/PUT /api/v1/darf/quellen`, Paket S, offener Rest aus D): Die
+  Seiten, die der Mensch unter „Für Techniker“ selbst eingetragen hat, ruft der Zeitplan ab; aus, ruft er sie nicht mehr
+  ab (`server.py`, Lauf des Zeitplans). „Jetzt abrufen“ bleibt ein eigener Klick.
 """
 from __future__ import annotations
 
@@ -91,6 +94,16 @@ def web_an(settings: Any) -> bool:
     return getattr(settings, 'web_abruf', 'an') != 'aus'
 
 
+def quellen_an(settings: Any) -> bool:
+    """Ruft der Zeitplan die selbst eingetragenen öffentlichen Quellen ab?"""
+    return getattr(settings, 'quellen_abruf', 'an') != 'aus'
+
+
+def quellen_stand(settings: Any) -> dict[str, Any]:
+    eingetragen = [q for q in (getattr(settings, 'world_sources', None) or []) if isinstance(q, dict) and q.get('enabled', True)]
+    return {'an': quellen_an(settings), 'anzahl': len(eingetragen)}
+
+
 class WebIn(BaseModel):
     model_config = ConfigDict(extra='forbid')
     an: bool
@@ -123,6 +136,18 @@ def register(app, guard, data_dir: Callable[[], Any], rebuild: Callable[[], Any]
         rebuild()
         return {'an': web_an(settings)}
 
+    @app.get('/api/v1/darf/quellen', dependencies=guard)
+    def quellen_lesen() -> dict[str, Any]:
+        return quellen_stand(app.state.settings)
 
-__all__ = ['ANBIETER', 'WOFUER', 'anbieter_id', 'protokoll', 'region', 'register', 'satz', 'vermerken', 'web_an',
-           'wohin']
+    @app.put('/api/v1/darf/quellen', dependencies=guard)
+    def quellen_schalten(body: WebIn) -> dict[str, Any]:
+        """Abruf nach Zeitplan an oder aus. Aus wartet nicht auf einen laufenden Lauf; der prüft vor jeder Quelle neu."""
+        settings = app.state.settings
+        settings.quellen_abruf = 'an' if body.an else 'aus'
+        config.save(data_dir(), settings)
+        return quellen_stand(settings)
+
+
+__all__ = ['ANBIETER', 'WOFUER', 'anbieter_id', 'protokoll', 'quellen_an', 'quellen_stand', 'region', 'register', 'satz',
+           'vermerken', 'web_an', 'wohin']

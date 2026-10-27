@@ -48,6 +48,9 @@ export const SCHALTER = {
   // Webabruf im Gespräch (Persona-Prüfung, D2): an, aber jeder einzelne Abruf wartet auf deine Freigabe im Gespräch.
   web: { titel: "Webseiten im Gespräch abrufen",
     verlaesst: "Es verlässt die Adresse der Seite den Rechner, und erst, wenn du den Abruf im Gespräch freigibst; die Seite sieht dabei deine IP-Adresse. Aus: Kingfisher ruft keine Webseiten ab." },
+  // Offener Rest aus D (Paket S): „Weitere öffentliche Quellen“ rief nach Zeitplan ab und stand nur unter „Für Techniker“.
+  quellen: { titel: "Eingetragene öffentliche Seiten abrufen",
+    verlaesst: "Je Seite verlässt eine Abfrage den Rechner: Die Seiten, die du unter „Für Techniker“ eingetragen hast, ruft Kingfisher regelmäßig von selbst ab; jede sieht dabei deine IP-Adresse. Aus: nur noch auf deinen Klick." },
   // Update-Prüfung (Persona-Prüfung, D3): an, weil Sicherheitsupdates sonst niemanden erreichen; ehrlich benannt
   // (fassungsAngebot.ts übernimmt den Satz als `SATZ_PRUEFEN`). Vorher stand dort „Über dich geht dabei nichts hinaus.“
   updates: { titel: "Nach neuen Fassungen sehen",
@@ -107,7 +110,7 @@ export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }>
   { id: "befunde", titel: "Befunde der Prüfung über alle Akten", satz: "Widersprüche und Lücken, die die regelmäßige Prüfung gefunden hat." },
   { id: "hintergrund", titel: "Zeitplan und Hintergrund", satz: "Ob und wie oft Kingfisher deine Mails abruft, ältere Mails einliest und Quellen sortiert." },
   { id: "filter", titel: "Filterregeln für Post", satz: "Erlaubte und gesperrte Absender für die automatische Aufnahme." },
-  { id: "quellen", titel: "Weitere öffentliche Quellen", satz: "Öffentliche Seiten, die Kingfisher von Hand oder nach Zeitplan abruft." },
+  { id: "quellen", titel: "Weitere öffentliche Quellen", satz: "Öffentliche Seiten, die du selbst einträgst. Ob Kingfisher sie regelmäßig von selbst abruft, steht unter „Was Kingfisher darf“." },
   { id: "kartendienst", titel: "Eigener Kartendienst für die Wegezeit", satz: "Nötig nur ohne Apple Karten: Dienst und Schlüssel für die Wegezeit." },
   { id: "google", titel: "Google-Anmeldung vorbereiten", satz: "Einmalige Vorbereitung, damit „Mit Google anmelden“ für Post und Kalender funktioniert." },
   { id: "microsoft", titel: "Microsoft-Anmeldung vorbereiten", satz: "Die Kennung der App, damit „Mit Microsoft anmelden“ für Post, Kalender und Teams-Mitschriften funktioniert." },

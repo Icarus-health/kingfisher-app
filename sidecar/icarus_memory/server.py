@@ -1122,13 +1122,19 @@ def _wire_scheduler(app: FastAPI) -> None:
         from .world_monitor import WorldMonitor
         monitor = WorldMonitor(app.state.settings, app.state.episodes, app.state.claims,
             lambda settings: config.save(_data_dir(), settings), app.state.conversation_lock)
+        from .nach_draussen import quellen_an
         for source in monitor.list():
             if not source['enabled']:
                 continue
             if was_enabled and not app.state.settings.schedule.enabled:
                 break
+            # „Weitere öffentliche Quellen“ unter „Was Kingfisher darf“ (Paket S): aus, ruft der Zeitplan nichts ab;
+            # geprüft vor jeder Quelle, damit ein Ausschalten mitten im Lauf gleich wirkt.
+            if was_enabled and not quellen_an(app.state.settings):
+                break
             try:
-                monitor.refresh(source['id'], permitted=lambda: not was_enabled or app.state.settings.schedule.enabled)
+                monitor.refresh(source['id'], permitted=lambda: not was_enabled or (
+                    app.state.settings.schedule.enabled and quellen_an(app.state.settings)))
                 results.append(JobResult('world:' + source['id'], True, 'Öffentliche Quelle aktualisiert.'))
             except (ValueError, KeyError):
                 results.append(JobResult('world:' + source['id'], False, 'Öffentliche Quelle gerade nicht erreichbar.'))

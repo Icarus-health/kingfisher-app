@@ -316,3 +316,35 @@ def test_mehr_unter_neu_eingegangen_fuehrt_zu_den_neuen_mails() -> None:
     assert compose(dashboard(1, 4), now=jetzt, target=date(2026, 10, 26))["neu_mehr"] == "gedaechtnis"
     # Genau drei Mails, keine weiteren Quellen: kein „Mehr“.
     assert compose(dashboard(3, 0), now=jetzt, target=date(2026, 10, 26))["neu_mehr"] is None
+
+
+# -- Offener Rest aus D: eingetragene öffentliche Seiten unter „Was Kingfisher darf“ ---------------------------------
+
+
+def test_eingetragene_oeffentliche_seiten_ruft_der_zeitplan_nur_mit_schalter_ab(tmp_path, monkeypatch) -> None:
+    from icarus_memory import world_monitor
+    app = _app(tmp_path, monkeypatch)
+    app.state.settings.schedule.enabled = True
+    app.state.settings.world_sources.append({
+        "id": "world-test", "url": "https://example.com/feed", "label": "Testquelle", "topics": [], "enabled": True,
+        "episode_id": None, "last_success": None, "error": None, "truncated": False})
+    abrufe: list[str] = []
+
+    def abruf(url):
+        abrufe.append(url)
+        raise OSError("Probe: kein Netz")
+    monkeypatch.setattr(world_monitor, "fetch_public_text", abruf)
+    client = TestClient(app)
+    assert client.get("/api/v1/darf/quellen").json() == {"an": True, "anzahl": 1}
+    # Vorgabe an: wer eine Seite einträgt, will sie lesen.
+    client.post("/schedule/run")
+    assert abrufe == ["https://example.com/feed"]
+    # Aus: Der Zeitplan ruft nichts mehr ab, und es bleibt nach dem Neustart aus.
+    assert client.put("/api/v1/darf/quellen", json={"an": False}).json() == {"an": False, "anzahl": 1}
+    jobs = {job["name"] for job in client.post("/schedule/run").json()["jobs"]}
+    assert abrufe == ["https://example.com/feed"] and "world:world-test" not in jobs
+    assert config.load(tmp_path).quellen_abruf == "aus"
+    # Wieder an: der nächste Lauf ruft wieder ab.
+    client.put("/api/v1/darf/quellen", json={"an": True})
+    client.post("/schedule/run")
+    assert len(abrufe) == 2
