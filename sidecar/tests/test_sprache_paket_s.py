@@ -393,3 +393,29 @@ def test_falsche_viertelstunde_faellt_weiter(quelle, satz) -> None:
     assert not urteil.bestanden
     # Verworfen an der Uhrzeit, nicht an etwas anderem (sonst fiele der Satz aus dem falschen Grund).
     assert urteil.gruende and not any("gibt es nicht" in g for g in urteil.gruende), urteil.gruende
+
+
+# -- Offener Rest aus A-II: „zuletzt“ ist höchstens jetzt ------------------------------------------------------------
+
+
+def test_zuletzt_unter_mit_wem_zaehlt_keine_kuenftigen_termine(tmp_path) -> None:
+    from datetime import timedelta
+
+    from icarus_memory.vorbereitung import teilnehmer
+    episodes = EpisodeStore(tmp_path / "episodes.sqlite3")
+    jetzt = datetime.now(timezone.utc)
+    anna = "Anna Keller <anna.keller@kanzlei.example>"
+    for titel, zeit in (("Mail von Anna", jetzt - timedelta(days=3)), ("Termin im Dezember", jetzt + timedelta(days=47))):
+        episodes.record(EpisodeKind.MESSAGE if titel.startswith("Mail") else EpisodeKind.EVENT, titel, titel,
+                        Provenance(source_type=SourceType.EMAIL if titel.startswith("Mail") else SourceType.CALENDAR,
+                                   source_ref=f"probe:{titel}"), participants=[anna], occurred_at=zeit)
+    index = episodes.participants_for_addresses(["anna.keller@kanzlei.example"])
+    zeile = teilnehmer([anna], index=index)[0]
+    assert zeile["kontakte"] == 2, "der künftige Termin bleibt eine Quelle"
+    zuletzt = datetime.fromisoformat(zeile["zuletzt"])
+    assert zuletzt <= jetzt and (jetzt - zuletzt) < timedelta(days=4), zeile["zuletzt"]
+    # Nur Künftiges: kein „zuletzt“.
+    bert = "Bert Probe <bert@kanzlei.example>"
+    episodes.record(EpisodeKind.EVENT, "Nur künftig", "Nur künftig", Provenance(source_type=SourceType.CALENDAR,
+                    source_ref="probe:kuenftig"), participants=[bert], occurred_at=jetzt + timedelta(days=5))
+    assert teilnehmer([bert], index=episodes.participants_for_addresses(["bert@kanzlei.example"]))[0]["zuletzt"] is None

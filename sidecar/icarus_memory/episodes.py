@@ -275,6 +275,18 @@ def sql_nicht_ignoriert(alias: str = "episodes") -> str:
     return f"{alias}.state NOT IN ({_sql_liste(IGNORIERTE_ZUSTAENDE)}) AND {sql_mail_parent_valid(alias)}"
 
 
+def _kuenftig(zeit: str, jetzt: datetime) -> bool:
+    """Liegt die Zeit einer Quelle nach `jetzt`? Ein Termin im Dezember ist kein „zuletzt“ (Paket S, offener Rest aus
+    A-II: unter „Mit wem“ stand „zuletzt 13.12.2026“). Unlesbare Zeiten zählen wie bisher."""
+    try:
+        moment = datetime.fromisoformat(str(zeit))
+    except ValueError:
+        return False
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=timezone.utc)
+    return moment > jetzt
+
+
 def sql_aktuelle_fassung(alias: str = "episodes") -> str:
     """Die aktuelle Fassung ihrer Quelle (oder eine Quelle ohne Schlüssel)."""
     return (f"({alias}.source_key = '' OR EXISTS (SELECT 1 FROM source_heads h "
@@ -1866,7 +1878,9 @@ class EpisodeStore:
         # jede weitere Abfrage liest daraus (Kopie nur der gefragten Einträge). Dasselbe Ergebnis: Auch die Einzelabfrage
         # prüfte die Adresse genau, die Textsuche war nur Vorfilter.
         from .zwischenspeicher import marke
-        stand = (marke(self._conn, self._lock), anzeigenamen)
+        # Die Stunde gehört zum Stand: „zuletzt“ zählt nur Vergangenes (`_kuenftig`), und ein Termin wird auch ohne
+        # Schreibvorgang Vergangenheit.
+        stand = (marke(self._conn, self._lock), anzeigenamen, datetime.now(timezone.utc).strftime('%Y-%m-%dT%H'))
         with self._teilnehmer_sperre:
             alle = self._teilnehmer_alle.get(anzeigenamen)
             if alle is None or alle[0] != stand:
@@ -1888,6 +1902,7 @@ class EpisodeStore:
         if gesucht is None:
             return self._alle_teilnehmer(anzeigenamen=anzeigenamen)
         ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
+        jetzt = datetime.now(timezone.utc)
         muster = ['%' + a.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for a in gesucht]
         # In Paketen: Eine OR-Kette über tausende Adressen sprengt SQLite („Expression tree is too large“).
         # Eine Quelle, die mehrere Pakete trifft, zählt trotzdem nur einmal.
@@ -1924,7 +1939,7 @@ class EpisodeStore:
                     eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt
-                if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
+                if zeit and not _kuenftig(zeit, jetzt) and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
                     eintrag['zuletzt'] = zeit
         return ergebnis
 
@@ -1932,6 +1947,7 @@ class EpisodeStore:
         """Wie `_participants_for_addresses`, aber für jede Adresse des Bestands (ein Lesedurchgang)."""
         from .kontakte import anzeigename
         ergebnis: dict[str, dict[str, Any]] = {}
+        jetzt = datetime.now(timezone.utc)
         with self._lock:
             zeilen = self._conn.execute(
                 "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id, "
@@ -1954,7 +1970,7 @@ class EpisodeStore:
                     eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt
-                if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
+                if zeit and not _kuenftig(zeit, jetzt) and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
                     eintrag['zuletzt'] = zeit
         return ergebnis
 
