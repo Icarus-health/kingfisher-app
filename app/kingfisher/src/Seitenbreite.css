@@ -52,7 +52,10 @@
   .shell > .sidebar .sidebar-foot { display: flex; flex: 0 0 auto; margin: 0; }
   .thread-command { left: 16px; right: 16px; bottom: 16px; }
   .thread-send-error, .memory-send-error { left: 24px; right: 24px; }
-  .shell main :is(.tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history) { padding: 20px 16px 48px; }
+  /* 16 px Seitenrand unter 900 px. Bis Paket S traf die Regel nie: Der Selektor lautete `main :is(…)` (ein Kind von main),
+     die Klassen sitzen aber an main selbst. Nur der Rand links und rechts; oben und unten bleibt, was die Seite vorgibt
+     (die Regel trug dort Werte, die nie galten, und nach ihnen ist keine Seite gebaut). */
+  .shell main:is(.tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history) { padding-inline: 16px; }
   .shell main.conversation-page, .shell main.memory-page { padding: 16px; }
 }
 

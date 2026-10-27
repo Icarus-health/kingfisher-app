@@ -178,3 +178,12 @@ test("Abbestellen und Mitschrift zuordnen fragen nicht vorher, der Hinweis träg
   assert.match(doku, /\| Welt-Meldung abbestellen[^\n]*\/welt\/abbestellen\/rueckgaengig/);
   assert.match(doku, /\| Mitschrift „Zu diesem Termin“[^\n]*\/transkripte\/\{id\}\/zuordnung\/rueckgaengig/);
 });
+
+// -- Offener Rest aus H: 16 px Seitenrand unter 900 px ---------------------------------------------------------------
+
+test("die Regel für 16 px Seitenrand unter 900 px trifft main selbst", () => {
+  const css = quelle("Seitenbreite.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  const block = css.slice(css.indexOf("@media (max-width: 900px)"), css.indexOf("@media (max-width: 700px)"));
+  assert.match(block, /\.shell main:is\(\.tasks-page, \.settings-page, \.profile-page, \.inbox-page, \.conversation-history\) \{ padding-inline: 16px; \}/);
+  assert.doesNotMatch(css, /main :is\(\.tasks-page/, "kein Leerzeichen zwischen main und :is: sonst trifft die Regel nie");
+});
