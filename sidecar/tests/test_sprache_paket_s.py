@@ -154,3 +154,23 @@ def test_kalender_derselben_adresse_folgt_dem_inhalt_des_postfachs(tmp_path, mon
         _mail(app, "mail-kunde", "petra.sander@nordlicht-werke.example", f"Frau Hartmann,\nanbei: {teil}.\nNordlicht Werke GmbH")
     kalender = TestClient(app).get("/api/v1/konten").json()["kalender"]
     assert kalender[0]["vorschlag"]["bereich"] == "arbeit"
+
+
+# -- Befund 5: Cloud-Modell vorbelegt, als Liste ----------------------------------------------------------------------
+
+
+def test_jeder_cloudanbieter_hat_ein_vorbelegtes_modell_in_alltagsworten(tmp_path, monkeypatch) -> None:
+    import re
+
+    from icarus_memory.cloud_access_routes import CloudAccessIn
+    from icarus_memory.model_roles_routes import _MODELLNAME
+    antwort = TestClient(_app(tmp_path, monkeypatch)).get("/api/v1/models/cloud-access").json()
+    muster = re.compile(CloudAccessIn.model_fields["model"].metadata[0].pattern)
+    for anbieter in antwort["providers"]:
+        modelle = anbieter["modelle"]
+        assert modelle, anbieter["id"]
+        assert modelle[0]["titel"].startswith("Empfohlen"), anbieter["id"]
+        for modell in modelle:
+            # Speicherbar (Feld) und als Rollenmodell gültig (Mistral, OpenRouter verlangen einen Namen).
+            assert muster.fullmatch(modell["id"]) and _MODELLNAME.fullmatch(modell["id"]), modell
+            assert modell["id"] not in modell["titel"], "der Titel sagt, wofür es taugt, nicht die Kennung"

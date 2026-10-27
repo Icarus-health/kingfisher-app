@@ -9,6 +9,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { schonVerbunden, schonVerbundenSatz } from "../src/postfachWeg.ts";
 import { vorbelegteAdresse } from "../src/kalenderWeg.ts";
+import { ANDERES_MODELL, listenWert, vorbelegtesModell } from "../src/cloudAccessForm.ts";
 import { testCache } from "./testcache.mjs";
 
 const quelle = name => readFileSync(new URL(`../src/${name}`, import.meta.url), "utf8");
@@ -65,4 +66,23 @@ test("der Kalender nimmt zuerst das Postfach, dessen Anbieter den Kalender mit d
   assert.equal(vorbelegteAdresse([{ ...praxis, secret_present: false }, gmail], anbieter), "miriam.fehr@gmail.com",
     "ohne gespeichertes Passwort zählt das Postfach nicht als gleicher Weg");
   assert.equal(vorbelegteAdresse([], anbieter), "");
+});
+
+// -- Befund 5: Cloud einschalten ohne Modellnamen -------------------------------------------------------------------
+
+test("das Modell ist vorbelegt: gespeichert, sonst das empfohlene; die Wahl ist eine Liste", () => {
+  const modelle = [{ id: "claude-sonnet-5-5", titel: "Empfohlen: gründlich und schnell" }, { id: "claude-sonnet-5", titel: "Die Fassung davor" }];
+  assert.equal(vorbelegtesModell({ model: "", modelle }), "claude-sonnet-5-5");
+  assert.equal(vorbelegtesModell({ model: "claude-sonnet-5", modelle }), "claude-sonnet-5");
+  assert.equal(vorbelegtesModell({ model: "", modelle: [] }), "");
+  assert.equal(listenWert("claude-sonnet-5", modelle), "claude-sonnet-5");
+  assert.equal(listenWert("eigenes-modell", modelle), ANDERES_MODELL, "ein eigener Name: das Feld für Techniker");
+  const karte = quelle("CloudAccess.tsx");
+  assert.match(karte, /<select value=\{wert\}/);
+  assert.doesNotMatch(karte, /Endpunkt/);
+  assert.doesNotMatch(karte, />API-Schlüssel/, "vorne „Zugangsschlüssel“, das Wort des Anbieters in Klammern");
+  assert.match(karte, /<summary>Für Techniker<\/summary>[\s\S]*provider\.endpoint/);
+  assert.match(quelle("ChatGPTAccess.tsx"), />Mit ChatGPT anmelden</);
+  assert.doesNotMatch(quelle("ChatGPTAccess.tsx"), /Continue with/);
+  assert.doesNotMatch(quelle("Einstellungen/CloudSchalter.tsx"), /gespeicherten Zugang und ein Modell/);
 });

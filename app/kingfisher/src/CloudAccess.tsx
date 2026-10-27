@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type CloudAccessState, type CloudProviderAccess } from "./api";
-import { cloudAccessSaveBody } from "./cloudAccessForm";
+import { ANDERES_MODELL, cloudAccessSaveBody, listenWert, vorbelegtesModell } from "./cloudAccessForm";
 import { announceCloudAccessChange } from "./cloudAccessEvents";
 import "./CloudAccess.css";
 
@@ -15,6 +15,8 @@ export function CloudAccess() {
   const [drafts, setDrafts] = useState<Record<string, {apiKey: string; model: string}>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ok: boolean; text: string} | null>(null);
+  // „Anderes Modell“ gewählt: Das Namensfeld bleibt offen, auch solange es noch leer ist.
+  const [eigenesModell, setEigenesModell] = useState<Record<string, boolean>>({});
   const loadVersion = useRef(0);
 
   async function load() {
@@ -26,7 +28,7 @@ export function CloudAccess() {
       setState(next);
       setDrafts(current => Object.fromEntries(next.providers.map(provider => [provider.id, {
         apiKey: "",
-        model: current[provider.id]?.model ?? provider.model,
+        model: current[provider.id]?.model ?? vorbelegtesModell(provider),
       }])));
     } catch {
       if (version === loadVersion.current) setLoadingError(true);
@@ -43,14 +45,14 @@ export function CloudAccess() {
   }
 
   async function save(provider: CloudProviderAccess) {
-    const draft = drafts[provider.id] ?? {apiKey: "", model: provider.model};
+    const draft = drafts[provider.id] ?? {apiKey: "", model: vorbelegtesModell(provider)};
     setBusy(provider.id); setNotice(null);
     try {
       const next = await api.saveCloudAccess(provider.id, cloudAccessSaveBody(draft.apiKey, draft.model));
       loadVersion.current++;
       setState(next);
       setDrafts(current => ({...current, [provider.id]: {
-        apiKey: "", model: next.providers.find(item => item.id === provider.id)?.model ?? draft.model,
+        apiKey: "", model: vorbelegtesModell(next.providers.find(item => item.id === provider.id) ?? {model: draft.model}),
       }}));
       setNotice({ok: true, text: `${provider.label} Zugangsdaten gespeichert. Dadurch wurde keine Cloud-Nutzung eingeschaltet.`});
       announceCloudAccessChange();
@@ -65,7 +67,7 @@ export function CloudAccess() {
       const next = await api.removeCloudAccess(provider.id);
       loadVersion.current++;
       setState(next);
-      setDrafts(current => ({...current, [provider.id]: {apiKey: "", model: next.providers.find(item => item.id === provider.id)?.model ?? ""}}));
+      setDrafts(current => ({...current, [provider.id]: {apiKey: "", model: vorbelegtesModell(next.providers.find(item => item.id === provider.id) ?? provider)}}));
       setNotice({ok: true, text: `${provider.label} Schlüssel wurde von diesem Rechner entfernt. Dieser Zugang wird nicht mehr genutzt.`});
       announceCloudAccessChange();
     } catch (error) {
@@ -81,25 +83,41 @@ export function CloudAccess() {
     {state && !state.storage_available ? <p className="model-rec-warn" role="status">Der sichere Schlüsselspeicher ist auf diesem Rechner nicht verfügbar. Schlüssel können hier nicht gespeichert werden.</p> : null}
     {state?.notice ? <p className="source-hint">{state.notice}</p> : null}
     {state?.providers.map(provider => {
-      const draft = drafts[provider.id] ?? {apiKey: "", model: provider.model};
+      const draft = drafts[provider.id] ?? {apiKey: "", model: vorbelegtesModell(provider)};
       const disabled = busy !== null;
+      const wert = eigenesModell?.[provider.id] ? ANDERES_MODELL : listenWert(draft.model, provider.modelle);
       return <details className="cloud-access-entry" key={provider.id}>
-        <summary><strong>{provider.label}</strong><span>{draft.apiKey || draft.model !== provider.model ? "Ungespeichert" : provider.key_present ? "Schlüssel hinterlegt" : "Nicht eingerichtet"}</span></summary>
+        <summary><strong>{provider.label}</strong><span>{draft.apiKey || (provider.key_present && draft.model !== provider.model) ? "Ungespeichert" : provider.key_present ? "Schlüssel hinterlegt" : "Nicht eingerichtet"}</span></summary>
         <fieldset className="cloud-access-provider">
         <legend>{provider.label}</legend>
-        <p className="source-hint">Endpunkt: <code>{provider.endpoint}</code></p>
         {provider.privacy ? <details className="quiet-details"><summary>Datenschutz, Region und Kosten</summary>
           <p>{provider.privacy.region}</p><p>{provider.privacy.training}</p><p>{provider.privacy.retention}</p><p>{provider.privacy.billing}</p>
           <p>Geprüft am {provider.privacy.checked_at}. {provider.privacy.sources.map(source=><span key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a>{" · "}</span>)}</p>
         </details>:null}
+        {/* Paket S, Befund 5: eine Liste mit dem empfohlenen Modell vorbelegt statt eines leeren Feldes für den Namen. */}
         <label>Modell
-          <input value={draft.model} disabled={disabled} onChange={event => change(provider, "model", event.target.value)} autoComplete="off" />
+          <select value={wert} disabled={disabled} onChange={event => {
+            const gewaehlt = event.target.value;
+            setEigenesModell(current => ({...current, [provider.id]: gewaehlt === ANDERES_MODELL}));
+            if (gewaehlt !== ANDERES_MODELL) change(provider, "model", gewaehlt);
+          }}>
+            {(provider.modelle ?? []).map(modell => <option key={modell.id} value={modell.id}>{modell.titel}</option>)}
+            <option value={ANDERES_MODELL}>Anderes Modell (für Techniker) …</option>
+          </select>
         </label>
-        <label>API-Schlüssel {provider.key_present ? <small>(bereits hinterlegt; leer lassen, um ihn zu behalten)</small> : null}
+        {wert === ANDERES_MODELL ? <label>Name des Modells beim Anbieter
+          <input value={draft.model} disabled={disabled} onChange={event => change(provider, "model", event.target.value)} autoComplete="off" spellCheck={false} />
+        </label> : null}
+        {/* „API-Schlüssel“ heißt er beim Anbieter; danach sucht der Mensch dort, deshalb steht das Wort in Klammern. */}
+        <label>Zugangsschlüssel vom Anbieter <small>(dort „API-Schlüssel“ oder „API key“)</small>{provider.key_present ? <small> Bereits hinterlegt; leer lassen, um ihn zu behalten.</small> : null}
           <input type="password" value={draft.apiKey} disabled={disabled || !state.storage_available}
             onChange={event => change(provider, "apiKey", event.target.value)} autoComplete="new-password"
             placeholder={provider.key_present ? "Neuen Schlüssel eingeben, um ihn zu ersetzen" : "Schlüssel hier eingeben"} />
         </label>
+        <details className="quiet-details"><summary>Für Techniker</summary>
+          <p>Adresse des Anbieters: <code>{provider.endpoint}</code></p>
+          {draft.model ? <p>Modell: <code>{draft.model}</code></p> : null}
+        </details>
         <div className="source-form-actions">
           <button className="primary-action" type="button" disabled={disabled || !state.storage_available || (!provider.key_present && !draft.apiKey.trim())} onClick={() => void save(provider)}>Speichern</button>
           {provider.key_present ? <button className="secondary-action" type="button" disabled={disabled || !state.storage_available} onClick={() => void remove(provider)}>Schlüssel entfernen</button> : null}

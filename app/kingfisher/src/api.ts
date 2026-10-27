@@ -1202,7 +1202,10 @@ export type CloudProtokollEintrag = {zeit: string; anbieter: string; modell: str
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: CloudAnbieter[];
   ollama_cloud?: {modelle: string[]; hinweis: string}};
 export type CloudProviderPrivacy = {checked_at:string;region:string;training:string;retention:string;billing:string;sources:Array<{label:string;url:string}>};
-export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;privacy?:CloudProviderPrivacy};
+/** Ein Modell zur Wahl (Paket S, Befund 5): Kennung und ein Titel in Alltagsworten; das erste ist vorbelegt. */
+export type CloudModellWahl = {id: string; titel: string};
+export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;
+  modelle?: CloudModellWahl[]; import_available?:boolean;privacy?:CloudProviderPrivacy};
 export type CloudMemoryProvider = "chatgpt" | "anthropic";
 export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
 export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boolean; secure_storage:boolean;

@@ -132,7 +132,7 @@ export function CloudSchalter() {
       {frage && !an && mitSchluessel.length > 0 && <p className="source-hint cloud-wartet" role="status">{SCHALTER.cloud.wartet}</p>}
       {frage && !an && (mitSchluessel.length === 0
         ? <div className="darf-frage" role="group" aria-label="Cloud einschalten">
-          <p>Dafür braucht es einen gespeicherten Zugang und ein Modell. Richte beides unter <a href="#ki">KI &amp; Modelle</a> ein. Bis dahin bleibt alles auf diesem Rechner.</p>
+          <p>Dafür braucht es einen Zugangsschlüssel vom Anbieter. Trag ihn unter <a href="#ki">KI &amp; Modelle</a> ein; ein passendes Modell ist dort schon gewählt. Bis dahin bleibt alles auf diesem Rechner.</p>
           <button type="button" className="secondary-action" onClick={() => setFrage(false)}>Verstanden</button>
         </div>
         : <div className="darf-frage" role="group" aria-label="Cloud einschalten">
