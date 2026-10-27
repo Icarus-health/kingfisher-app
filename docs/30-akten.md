@@ -416,7 +416,18 @@ Modell):
 * **Schalter** „Aufgaben aus Mails selbst anlegen“ unter „Was Kingfisher darf“, Vorgabe an
   ([`47-einstellungen.md`](47-einstellungen.md#aufgaben-aus-mails-selbst-anlegen-26102026)). Aus: nichts entsteht.
 
-Protokoll: [`runs/2026-10-26-automatik-aufgaben`](runs/2026-10-26-automatik-aufgaben/README.md).
+* **Ein Rückweg, der bleibt** (Persona-Prüfung, Paket Z2 und Z4, 27.10.2026). Der Hinweis ist nie der einzige Weg
+  zurück: Zurückgenommenes steht dauerhaft unter „Erledigt → Zurückgenommen“ mit „Wiederherstellen“
+  (`GET /api/v1/aufgaben-von-selbst/zurueckgenommen`, `TaskStore.anlage_zurueckgenommen`, jüngste zuerst, bis 50).
+  Ein übernommener Vorschlag trägt `angelegt.art` `uebernommen` (einzeln) oder `alle_uebernehmen` und in der Aufgabe
+  „Aus einem Vorschlag übernommen am … · Zurück zur Prüfung“ (bei „Alle übernehmen“ dazu „Alle dieser Übernahme
+  zurück“): `POST /api/v1/task-candidates/aufgabe/{id}/zurueck` entfernt die Aufgabe und stellt den Vorschlag wieder
+  offen (nicht verworfen), solange die Aufgabe offen ist; Erledigtes und von Hand Angelegtes bleiben (409 mit Satz).
+  Einzeln übernehmen bleibt in der Prüfliste, mit Hinweis „„…“ übernommen. · Rückgängig · Ansehen“; „+ Aufgabe“
+  bleibt in der Liste, mit „Öffnen“ und „Rückgängig“ (verwirft). Nichts öffnet mehr ungefragt im Vollbild.
+
+Protokoll: [`runs/2026-10-26-automatik-aufgaben`](runs/2026-10-26-automatik-aufgaben/README.md); Rückweg:
+[`runs/2026-10-26-befunde-zahlen`](runs/2026-10-26-befunde-zahlen/README.md).
 
 ## Schnittstelle
 

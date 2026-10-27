@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from .datumstext import MONATE, iso_versuchen as _tag
 from .datumstext import tag_und_monat as _datum
+from . import zaehlung
 
 # Mehr trägt kein Mensch am Morgen. Alles Weitere steht im Nachsatz und in den
 # Ansichten dahinter — es geht nicht verloren, es drängt sich nur nicht vor.
@@ -60,12 +61,16 @@ class Punkt:
     aktion: str | None = None
     """Beschriftung des Knopfes — die Folge, nicht „OK“."""
 
+    anzahl: int = 1
+    """Für wie viele Dinge der Punkt steht: „Heute sind 3 Aufgaben fällig.“ steht für drei (Paket Z1, `zaehlung.py`)."""
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "text": self.text,
             "quelle": self.quelle,
             "ref": self.ref,
             "aktion": self.aktion,
+            "anzahl": self.anzahl,
         }
 
 
@@ -74,12 +79,16 @@ class Briefing:
     einleitung: str
     punkte: list[Punkt] = field(default_factory=list)
     nachsatz: str | None = None
+    zaehlung: dict[str, int] = field(default_factory=lambda: {"aufgaben": 0, "weitere": 0})
+    """Was dich heute braucht, ganz gezählt (`zaehlung.py`): `aufgaben` nach der einen Regel „braucht dich heute“,
+    `weitere` die übrigen Punkte, auch die hinter den drei sichtbaren."""
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "einleitung": self.einleitung,
             "punkte": [p.to_dict() for p in self.punkte],
             "nachsatz": self.nachsatz,
+            "zaehlung": dict(self.zaehlung),
         }
 
 
@@ -96,15 +105,19 @@ def _gleicher_tag(a: datetime, b: datetime) -> bool:
 
 
 def _ueberfaellige(aufgaben: list[dict], jetzt: datetime) -> list[tuple[datetime, dict]]:
-    """Überfälliges, das Älteste zuerst. Es hat am längsten gewartet."""
+    """Überfälliges, das Älteste zuerst. Es hat am längsten gewartet.
+
+    Dieselbe Regel wie unter „Aufgaben“ (`zaehlung.py`): offen bei dir, fällig an einem früheren Kalendertag. Eine
+    wartende Aufgabe ist nicht deine Versäumnis; bis 1.0.29 galt hier das Feld `overdue` (Uhrzeit, nicht Tag)."""
     treffer: list[tuple[datetime, dict]] = []
     for aufgabe in aufgaben:
-        if not aufgabe.get("overdue"):
+        if not zaehlung.ist_ueberfaellig(aufgabe, jetzt):
             continue
         faellig = _tag(aufgabe.get("due"))
         if faellig is not None:
             treffer.append((faellig, aufgabe))
-    treffer.sort(key=lambda paar: paar[0])
+    treffer.sort(key=lambda paar: (paar[0].replace(tzinfo=None) if paar[0].tzinfo is None
+                                   else paar[0].astimezone(jetzt.tzinfo or paar[0].tzinfo).replace(tzinfo=None)))
     return treffer
 
 
@@ -149,18 +162,10 @@ def _naechster_termin(termine: list[dict], jetzt: datetime) -> tuple[datetime, d
 
 
 def _heute_faellig(aufgaben: list[dict], jetzt: datetime) -> list[dict]:
-    treffer = []
-    for aufgabe in aufgaben:
-        if aufgabe.get("overdue"):
-            continue
-        faellig = _tag(aufgabe.get("due"))
-        # A UTC timestamp can fall on the previous/next civil date from the
-        # user's perspective. Date-only and naive values keep their written day.
-        if faellig is not None and faellig.tzinfo is not None and jetzt.tzinfo is not None:
-            faellig = faellig.astimezone(jetzt.tzinfo)
-        if faellig is not None and _gleicher_tag(faellig, jetzt):
-            treffer.append(aufgabe)
-    return treffer
+    """Der Rest von „braucht dich heute“ (`zaehlung.heute_dran`): fällig am heutigen Kalendertag, auch wenn die Uhrzeit
+    schon vorbei ist. A UTC timestamp can fall on the previous/next civil date from the user's perspective. Date-only and
+    naive values keep their written day."""
+    return [a for a in zaehlung.heute_dran(aufgaben, jetzt) if not zaehlung.ist_ueberfaellig(a, jetzt)]
 
 
 def _wochen(tage: int) -> str:
@@ -422,6 +427,7 @@ def erstelle(
             quelle="aufgabe",
             ref=heute[0].get("id") if len(heute) == 1 else None,
             aktion="Ansehen",
+            anzahl=len(heute),
         ))
 
     # 8. Ein Vorhaben, an dem zu lange nichts geschah. Bewusst leises Gewicht:
@@ -487,6 +493,15 @@ def erstelle(
     if review_tasks and len(review_tasks) > 3:
         review_points[0].text += f" {len(review_tasks) - 3} weitere Aufgaben benötigen eine Verlaufsprüfung."
 
+    # Ganz gezählt, bevor auf drei gekürzt wird (Paket Z1): die Aufgaben nach der einen Regel, und jeder andere Punkt
+    # einmal. Ein Punkt zu einer Aufgabe, die schon unter den Aufgaben zählt (überfällig, heute, deren
+    # Verlaufsprüfung), zählt nicht noch einmal.
+    dran = zaehlung.heute_dran(aufgaben, jetzt)
+    dran_ids = {a.get("id") for a in dran}
+    aufgabenpunkte = {id(p) for p in kandidaten if p.quelle in ("aufgabe", "wartet")
+                      and (p.ref in dran_ids or (p.ref is None and p.anzahl > 1))}
+    zaehlung_heute = {"aufgaben": len(dran), "weitere": sum(1 for p in kandidaten if id(p) not in aufgabenpunkte)}
+
     kandidaten.sort(key=lambda p: p.gewicht, reverse=True)
     punkte = kandidaten[:MAX_PUNKTE]
 
@@ -537,4 +552,5 @@ def erstelle(
         einleitung=einleitung,
         punkte=punkte,
         nachsatz=" ".join(uebrig) if uebrig else None,
+        zaehlung=zaehlung_heute,
     )

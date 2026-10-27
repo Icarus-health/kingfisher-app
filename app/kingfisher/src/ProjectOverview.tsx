@@ -10,8 +10,8 @@ function dateLabel(value: string | null) {
   return Number.isNaN(date.getTime()) ? 'Termin nicht lesbar' : date.toLocaleString('de-DE', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
-export function ProjectOverview({projectId, revision, onView, onTask}: {
-  projectId: string; revision: number;
+export function ProjectOverview({projectId, bereich = '', revision, onView, onTask}: {
+  projectId: string; bereich?: string; revision: number;
   onView: (view: View) => void; onTask: (id: string, view: View) => void;
 }) {
   const [result,setResult] = useState<ProjectTaskOverview | null>(null);
@@ -19,11 +19,12 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
   useEffect(() => {
     let active = true;
     setResult(null); setError('');
-    if (projectId) api.projectOverview(projectId).then(value => {
+    // Mit dem Bereich der Liste: dieselbe Auswahl wie darunter (Paket Z1).
+    if (projectId) api.projectOverview(projectId, bereich).then(value => {
       if (active) setResult(value);
     }).catch(() => {if(active) setError('Der Projektüberblick ist gerade nicht erreichbar.');});
     return () => {active=false;};
-  }, [projectId,revision]);
+  }, [projectId,revision,bereich]);
   if (!projectId) return null;
   const data = result?.project_id === projectId ? result : null;
   function preview(tasks: Task[], view: 'mine' | 'waiting') {

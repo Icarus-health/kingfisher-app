@@ -214,13 +214,27 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 - **Ein Ort, ein Hinweis.** Unten mittig über allem, dunkel (`--g-tinte`), schmal in voller Breite mit 16 px Rand. Ein
   neuer Hinweis ersetzt den alten. Er gehört der App, nicht der Seite: Er bleibt, wenn die Zeile mit der Aktion
   verschwindet oder die Seite wechselt (etwa nach „Akte anlegen“).
-- **Zeit.** Nach 6 s geht er von selbst; Maus darauf oder sichtbarer Tastaturfokus halten ihn, danach laufen die 6 s
-  von vorn. Ein Fehler (auch ein misslungenes Zurücknehmen: „Nicht zurückgenommen. Die Änderung gilt weiter.“ mit
-  „Erneut versuchen“) steht 10 s und wird als Fehler angesagt.
-- **Bedienung.** Escape schließt ihn, ⌘Z bzw. Strg+Z nimmt zurück, aber nie in einem Eingabefeld. Wer mit der Tastatur
-  arbeitet und dessen Knopf mit der Zeile verschwunden ist, bekommt den Fokus auf „Rückgängig“; mit der Maus nie.
-- **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt;
-  „Rückgängig“ nennt seine Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
+- **Zeit (Paket Z2, 27.10.2026).** Er steht mindestens 10 s, bei langem Satz länger (4 s plus 80 ms je Zeichen); Maus,
+  Finger (gedrückt) oder sichtbarer Tastaturfokus halten ihn, danach beginnt die Zeit von vorn. Ein Fehler (auch ein
+  misslungenes Zurücknehmen: „Nicht zurückgenommen. Die Änderung gilt weiter.“ mit „Erneut versuchen“) steht mindestens
+  15 s und wird als Fehler angesagt. Bis 1.0.29 waren es 6 s, und Berühren am Handy hielt ihn nicht.
+- **Nie der einzige Weg zurück (Z2).** Was der Hinweis anbietet, steht auch an der Sache selbst: Zurückgenommenes unter
+  „Erledigt → Zurückgenommen“ mit „Wiederherstellen“, ein übernommener Vorschlag in der Aufgabe mit „Zurück zur
+  Prüfung“, Erledigtes unter „Erledigt“. Deshalb ist die Zeitgrenze des Hinweises keine Grenze für das Zurücknehmen
+  (WCAG 2.2.1).
+- **Bedienung und Fokus (Z3).** Escape schließt ihn, ⌘Z bzw. Strg+Z nimmt zurück, aber nie in einem Eingabefeld. Der
+  Fokus springt **nie** auf „Rückgängig“: Bis 1.0.29 tat er das, wenn der auslösende Knopf mit seiner Zeile verschwand,
+  und ein zweites Enter nahm dann alles sofort zurück. Jetzt bleibt er am Auslöser (Umbenennen: auf dem Namen), wartet,
+  solange der Auslöser gesperrt ist, und geht sonst auf die Liste oder den Abschnitt, in dem die Zeile stand
+  (`grundlage/fokusZiel.ts`; `tabindex=-1`, kein neuer Tab-Halt). Dort löst ein zweites Enter nichts aus, Tab führt zur
+  nächsten Zeile. Den Hinweis erreicht man mit Tab oder dem Kürzel, vorausgewählt ist er nicht.
+- **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt,
+  bei „Rückgängig“ mit „Zurücknehmen mit Steuerung Z.“ (am Mac „Befehl Z“), nur für Vorleser; „Rückgängig“ nennt seine
+  Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
+- **Am Handy (Z3).** Bis 700 px steht er oben, wenn er unten Bedienbares verdecken würde und oben nicht. Solange er
+  steht, hat die Seite unten Platz in seiner Höhe (`html.g-hinweis-offen`, `--g-hinweis-platz`), und was man gerade
+  bedient hat, rückt aus ihm heraus. In einer dichten Liste kann er für seine Standzeit eine Zeile am Rand überdecken;
+  sie lässt sich darunter hervorrollen.
 - **Nie erfunden.** Ein Hinweis hat nur dann „Rückgängig“, wenn es dafür schon einen Weg im Sidecar gibt (die Gegenroute).
   Wo es keinen gibt, sagt er nur, was passiert ist, und eine Rückfrage davor bleibt.
 
@@ -238,6 +252,9 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 | Quelle: „Gehört nicht dazu“, „Doch zuordnen“, „Wer ist gemeint?“ | `PUT`/`DELETE /akten/quellen/{id}/zuordnung` |
 | Quelle einem Projekt zuordnen; weitere Mails desselben Absenders | `PUT /episodes/{id}/project` mit dem Projekt von vorher; `PUT /episodes/projects` |
 | Gruppenvorschlag für Organisationen ablehnen | `POST /organisation-group-suggestions/{id}/undo-dismissal` |
+| Vorschlag übernehmen (einzeln, Z4) | `POST /task-candidates/aufgabe/{id}/zurueck` (auch später: „Zurück zur Prüfung“ in der Aufgabe) |
+| „+ Aufgabe“ (Z4: bleibt in der Liste, „Öffnen“ im Hinweis) | `POST /tasks/{id}/drop` |
+| Von Kingfisher angelegt: zurücknehmen / wiederherstellen | `POST /aufgaben-von-selbst/{id}/rueckgaengig` ↔ `/wiederherstellen` (auch später unter „Erledigt → Zurückgenommen“) |
 
 Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt: Entscheidung zurücknehmen („Wirklich
 zurücknehmen?“), eine Quelle nicht mehr verwenden (was daraus folgte, kommt nicht von selbst zurück), Sortierergebnis

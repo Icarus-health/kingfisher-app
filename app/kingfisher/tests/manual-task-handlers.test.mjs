@@ -18,7 +18,7 @@ try {
  const {Tasks}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
  const values=[],refs=[];let si=0,ri=0,creates=0;const d={state(initial){const i=si++;if(!(i in values))values[i]=typeof initial==='function'?initial():initial;return[values[i],v=>{values[i]=typeof v==='function'?v(values[i]):v;}];},ref(initial){const i=ri++;return refs[i]??=( {current:initial});},render(){si=ri=0;globalThis.__driver=d;return Tasks({recentConversation:null});}};
  api.completeTask=async()=>{throw Error('synthetic failure');};api.addTask=async p=>{creates++;return{id:'new-task',...p};};api.tasks=async()=>({tasks:[],total:0,stand:'synthetic',next_cursor:null,limit:50});
- let tree=d.render();const pageSlot=values.findIndex(v=>v && typeof v==='object' && 'selectionKey' in v);assert.notEqual(pageSlot,-1);values[pageSlot]={...values[pageSlot],selectionKey:JSON.stringify({view:'mine',projectId:'',q:''}),tasks:[{id:'existing-task',title:'Existing',status:'open'}]};tree=d.render();
+ let tree=d.render();const pageSlot=values.findIndex(v=>v && typeof v==='object' && 'selectionKey' in v);assert.notEqual(pageSlot,-1);values[pageSlot]={...values[pageSlot],selectionKey:JSON.stringify({view:'mine',projectId:'',q:'',bereich:'alle'}),tasks:[{id:'existing-task',title:'Existing',status:'open'}]};tree=d.render();
  nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
  const form=nodes(tree,n=>n.type==='form'&&n.props.className==='task-create')[0];nodes(form,n=>n.type==='input')[0].props.onChange({target:{value:'Unsubmitted new draft'}});tree=d.render();
  // „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist; die Prüfliste meldet ihre Zahl.

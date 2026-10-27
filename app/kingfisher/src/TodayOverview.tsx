@@ -6,7 +6,8 @@ import { DetailPanel } from "./DetailPanel";
 import { TaskDetail } from "./TaskDetail";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { taskHref } from "./taskWorkflow";
-import { eingangZeile, naechsterTerminText, zaehlerText } from "./heute";
+import { eingangZeile, naechsterTerminText } from "./heute";
+import { brauchtDichZaehler, heuteZahlen } from "./zahlen";
 import { type Attention, type MorningBriefing } from "./api";
 import { BriefingSuggestion } from "./BriefingSuggestion";
 import { AufgabenVonSelbstZeile } from "./AufgabenSelbstHeute";
@@ -78,6 +79,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   // mit „Rückgängig“ (V4, TodayTaskRow).
   const [offeneAufgabe, setOffeneAufgabe] = useState<Attention | null>(null);
   const attention = todayAttention(briefing);
+  const zahlen = heuteZahlen(briefing);
+  const zaehler = brauchtDichZaehler(heuteZahlen(briefing));
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
   const naechster = naechsterTerminText(briefing.naechster_termin, briefing.timezone);
@@ -91,7 +94,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   // Zahl leise neben der Überschrift, leere Bereiche in einem Satz (Paket U, H2 und H8).
   return <div className="today-overview">
     <section className="today-panel today-attention" aria-labelledby="today-attention-title">
-      <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2>{zaehlerText(attention.length) ? <span className="today-count">{zaehlerText(attention.length)}</span> : null}</header>
+      {/* Die Zahl ist die ganze (Paket Z1): „3 von 22“, wenn hier nur das Wichtigste steht. */}
+      <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2>{zaehler ? <span className="today-count">{zaehler}</span> : null}</header>
       <div className="today-flaeche">
       {reviewStatus && <p className="today-notice" role="status">{reviewStatus.message} <a href="/vorhaben?view=mine">Aufgaben prüfen →</a></p>}
       {attention.length ? <ul className="today-attention-list">{attention.map(item => {
@@ -116,6 +120,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
         </li>;
       })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen."
         : (briefing.historical_task_reviews ?? 0) > 0 ? "Nichts Neues wartet auf dich." : "Nichts wartet auf dich."}</p>}
+      {/* Zeigt Heute nur das Wichtigste, sagt es das, und der Rest ist einen Klick entfernt (Paket Z1). */}
+      {zahlen.gezeigt < zahlen.gesamt ? <p className="today-notice today-mehr">Hier steht das Wichtigste, {zahlen.gezeigt} von {zahlen.gesamt}.{zahlen.aufgaben ? <> <a href="/vorhaben?view=mine">{zahlen.aufgaben === 1 ? "Die Aufgabe ansehen" : `Alle ${zahlen.aufgaben} Aufgaben ansehen`}</a></> : null}</p> : null}
       <NeueProjekte onChange={() => onChange()} />
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
       <AufgabenVonSelbstZeile onChanged={() => onChange()} />

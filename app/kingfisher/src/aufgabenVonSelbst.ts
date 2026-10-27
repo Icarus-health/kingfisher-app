@@ -1,4 +1,6 @@
 import type {AlleUebernehmenErgebnis, AufgabeAngelegt, AufgabePerson, AufgabenVonSelbstHeute} from "./api";
+import {zitat, type HinweisDaten} from "./grundlage/hinweisOrt.ts";
+import {taskHref} from "./taskWorkflow.ts";
 
 // Aufgaben von selbst (26.10.2026, docs/66-automatik.md): Eindeutige Bitten an dich und eigene Zusagen legt Kingfisher
 // selbst an, mit „Von Kingfisher angelegt · Rückgängig“; Unsichere bleiben Vorschläge, mit „Alle übernehmen“. Was und
@@ -71,4 +73,42 @@ export function gruppeZurueckText(ergebnis: {zurueckgenommen: number; geblieben:
 /** Die leise Zeile unter einem Vorschlag: Projekt, Person, Frist, schon vorbefüllt. */
 export function vorschlagMeta(projekt: string, person: AufgabePerson | null | undefined, frist: string): string {
   return [projekt, person ? (person.name || person.adresse) : "", frist].filter(Boolean).join(" · ");
+}
+
+// -- Ein Rückweg, der bleibt (Paket Z2, Z4) ----------------------------------------------------------------------------
+
+const TAG_LANG = new Intl.DateTimeFormat("de-DE", {day: "numeric", month: "long"});
+const tagVon = (wert: string | null | undefined) => {
+  if (!wert) return "";
+  const datum = new Date(wert);
+  return Number.isNaN(datum.getTime()) ? "" : TAG_LANG.format(datum);
+};
+
+/** Die leise Zeile unter einer zurückgenommenen Aufgabe in „Erledigt → Zurückgenommen“. */
+export function zurueckgenommenNeben(eintrag: {zurueck_am: string}): string {
+  const tag = tagVon(eintrag.zurueck_am);
+  return tag ? `Von Kingfisher angelegt, am ${tag} zurückgenommen` : "Von Kingfisher angelegt, zurückgenommen";
+}
+
+/** In der Aufgabe selbst: woher sie kam, wenn aus einem übernommenen Vorschlag (dort steht „Zurück zur Prüfung“). */
+export function uebernahmeZeile(task: {angelegt?: AufgabeAngelegt | null}): string | null {
+  const a = task.angelegt;
+  if (!a || (a.art !== "uebernommen" && a.art !== "alle_uebernehmen")) return null;
+  const tag = tagVon(a.am);
+  const wie = a.art === "alle_uebernehmen" ? "Mit „Alle übernehmen“ übernommen" : "Aus einem Vorschlag übernommen";
+  return tag ? `${wie} am ${tag}` : wie;
+}
+
+type Aufgabe = {id: string; title: string; project_id?: string | null};
+
+/** Nach „Übernehmen“: die Liste bleibt, der Hinweis sagt es; Rückgängig schickt den Vorschlag zurück zur Prüfung. */
+export function uebernommenHinweis(task: Aufgabe, zurPruefung: () => Promise<unknown>): HinweisDaten {
+  return {text: `${zitat(task.title)} übernommen.`, rueckgaengig: zurPruefung, danach: "Der Vorschlag steht wieder zur Prüfung.",
+    verweis: {text: "Ansehen", href: taskHref({id: task.id, project_id: null})}};
+}
+
+/** Nach „+ Aufgabe“: die Aufgabe steht in der Liste (nicht im Vollbild); öffnen auf Wunsch, Rückgängig verwirft sie. */
+export function angelegtHinweis(task: Aufgabe, verwerfen: () => Promise<unknown>): HinweisDaten {
+  return {text: `${zitat(task.title)} angelegt.`, rueckgaengig: verwerfen, danach: `${zitat(task.title)} verworfen.`,
+    verweis: {text: "Öffnen", href: taskHref({id: task.id, project_id: null})}};
 }

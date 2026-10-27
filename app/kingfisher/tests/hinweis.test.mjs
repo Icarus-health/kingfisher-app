@@ -25,7 +25,7 @@ function testUhr() {
   };
 }
 
-test("ein Hinweis zur Zeit: der neue ersetzt den alten, nach sechs Sekunden geht er von selbst", () => {
+test("ein Hinweis zur Zeit: der neue ersetzt den alten, nach zehn Sekunden (Paket Z2) geht er von selbst", () => {
   const uhr = testUhr(); const ort = new HinweisOrt(uhr);
   let meldungen = 0; ort.abonnieren(() => { meldungen += 1; });
   const eins = ort.zeigen({ text: "Eins." });
@@ -40,7 +40,7 @@ test("ein Hinweis zur Zeit: der neue ersetzt den alten, nach sechs Sekunden geht
   uhr.vor(1);
   assert.equal(ort.stand(), null);
   assert.ok(meldungen >= 3);
-  assert.equal(HINWEIS_DAUER, 6000);
+  assert.equal(HINWEIS_DAUER, 10000);
 });
 
 test("Maus und Fokus halten den Hinweis; erst wenn nichts mehr hält, laufen die sechs Sekunden von vorn", () => {
@@ -165,7 +165,8 @@ test("Anzeige: der Ort ist immer da (status, polite), der Hinweis eine Zeile mit
   ort.zeigen({ text: "„Flyer“ erledigt.", rueckgaengig() {} });
   const voll = renderToStaticMarkup(h(g.HinweisAnzeige, { ort }));
   assert.match(voll, /^<div class="g-hinweis-ort" role="status" aria-live="polite" aria-atomic="true"><div class="g-hinweis" tabindex="-1" data-phase="offen">/);
-  assert.match(voll, /<span class="g-hinweis-text">„Flyer“ erledigt\.<\/span><span class="g-hinweis-aktionen"><span class="g-hinweis-punkt" aria-hidden="true">·<\/span><button type="button" class="g-hinweis-knopf" aria-keyshortcuts="Meta\+Z Control\+Z">Rückgängig<\/button>/);
+  // Vorleser hören dazu, wie man zurücknimmt, ohne dass der Fokus auf „Rückgängig“ springt (Paket Z3).
+  assert.match(voll, /<span class="g-hinweis-text">„Flyer“ erledigt\.<span class="visually-hidden"> Zurücknehmen mit (Steuerung|Befehl) Z\.<\/span><\/span><span class="g-hinweis-aktionen"><span class="g-hinweis-punkt" aria-hidden="true">·<\/span><button type="button" class="g-hinweis-knopf" aria-keyshortcuts="Meta\+Z Control\+Z">Rückgängig<\/button>/);
   ort.zeigen({ text: "Nur gesagt." });
   assert.doesNotMatch(renderToStaticMarkup(h(g.HinweisAnzeige, { ort })), /<button/, "ohne Rückweg kein Knopf");
   ort.zeigen({ text: "Nicht gemerkt.", fehler: true });
@@ -178,7 +179,7 @@ test("Anzeige: Escape schließt, Maus und Fokus halten, ⌘Z wirkt, der Fokus ko
   const anzeige = quelle("grundlage/Hinweis.tsx");
   assert.match(anzeige, /if \(e\.key !== "Escape" \|\| !zustand\) return;\n\s*e\.preventDefault\(\);\n\s*ort\.schliessen\(zustand\.nummer\);/);
   assert.match(anzeige, /onMouseEnter=\{\(\) => ort\.halten\("maus", true\)\} onMouseLeave=\{\(\) => ort\.halten\("maus", false\)\}/);
-  assert.match(anzeige, /onFocus=\{e => ort\.halten\("fokus", sichtbarerFokus\(e\.target\)\)\}/);
+  assert.match(anzeige, /onFocus=\{e => \{ fokusDrin\.current = true; ort\.halten\("fokus", sichtbarerFokus\(e\.target\)\); \}\}/);
   assert.match(anzeige, /document\.addEventListener\("pointerdown", zeiger, true\)/);
   assert.match(anzeige, /document\.addEventListener\("keydown", taste\)/);
   assert.match(anzeige, /if \(!nummer \|\| typeof document === "undefined" \|\| !tastatur\.current\) return;/);

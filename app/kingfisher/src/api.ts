@@ -21,6 +21,8 @@ export type Attention = {
   reason?: string;
   action?: string | null;
   review_required?: boolean;
+  /** Für wie viele Dinge die Zeile steht: „Heute sind 3 Aufgaben fällig.“ steht für drei (Paket Z1). */
+  anzahl?: number;
   /** Bei Aufgaben unter „Braucht dich“: die Aufgabe selbst (wie `/api/v1/tasks`) und ihr Projektname (V1). */
   task?: Task | null;
   project_name?: string | null;
@@ -53,6 +55,9 @@ export type MorningBriefing = {
     attribution_url?: string;
   };
   partial_failures: Array<{ section: string; message: string }>;
+  /** Was dich heute braucht, ganz gezählt (Paket Z1, `zaehlung.py`): Aufgaben nach derselben Regel wie unter
+   * „Aufgaben“ und die übrigen Punkte, auch die hinter den drei sichtbaren. */
+  braucht_dich?: { aufgaben: number; weitere: number };
 };
 
 /** Ein Beleg der Satzantwort. `kennzeichen` trägt die Arten `andere_person` und `ausserhalb_zeitraum` (kennzeichnung.py). */
@@ -520,13 +525,16 @@ export type Task = {
 
 export type AufgabePerson = {adresse: string; name: string};
 export type AufgabeAngelegt = {
-  art: "automatisch" | "alle_uebernehmen";
+  /** `uebernommen`: ein einzeln übernommener Vorschlag (Paket Z2, Z4); geht wie `alle_uebernehmen` zurück zur Prüfung. */
+  art: "automatisch" | "alle_uebernehmen" | "uebernommen";
   am: string;
   /** Nur bei `automatisch`: „Von Kingfisher angelegt, weil …“, der Grundsatz, Mail und Richtung. */
   satz?: string; grundsatz?: string; richtung?: "bitte" | "zusage" | null; episode_id?: string; mail_titel?: string;
   wer?: string; datum?: string | null; gruppe?: string;
 };
 export type AufgabenVonSelbstHeute = {anzahl: number; satz: string; aufgaben: Array<{id: string; title: string; status: string; satz: string}>};
+/** Was Kingfisher angelegt und du zurückgenommen hast; dauerhaft wiederherstellbar (Paket Z2). */
+export type ZurueckgenommeneAufgabe = {id: string; title: string; zurueck_am: string; satz: string};
 export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler: Array<{id: string; grund: string}>};
 
 export type ProjectTaskOverview = {
@@ -1505,9 +1513,11 @@ export const api = {
     request<KalenderAnmeldung>("/api/v1/integrations/calendar/anmelden", { method: "POST", body: JSON.stringify(data) }),
   removeIntegration: (kind: "mail" | "calendar", id: string) =>
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
-  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
+  // `bereich` filtert im Sidecar, vor Zählen und Blättern; `heute_dran` kommt mit der ersten Seite von „Meine Aufgaben“
+  // (Paket Z1, zaehlung.py). „Heute“ gilt in der eingestellten Zeitzone, wie auf Heute (ohne die des Browsers).
+  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number; bereich?: string} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number; heute_dran?: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {}), ...(options.bereich && options.bereich !== "alle" ? {bereich: options.bereich} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
-  projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
+  projectOverview: (id: string, bereich = "") => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview${bereich && bereich !== "alle" ? `?${new URLSearchParams({bereich})}` : ""}`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),
@@ -1545,6 +1555,8 @@ export const api = {
   aufgabenVonSelbstZuruecknehmen: (task_ids: string[]) => request<{aufgaben: Task[]; satz: string}>("/api/v1/aufgaben-von-selbst/rueckgaengig", {method: "POST", body: JSON.stringify({task_ids})}),
   aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
   alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
+  aufgabenZurueckgenommen: () => request<{aufgaben: ZurueckgenommeneAufgabe[]}>("/api/v1/aufgaben-von-selbst/zurueckgenommen"),
+  zurPruefung: (taskId: string) => request<{satz: string; proposal_id: string}>(`/api/v1/task-candidates/aufgabe/${encodeURIComponent(taskId)}/zurueck`, {method: "POST"}),
   gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),

@@ -20,6 +20,7 @@ import {
   type Konten, type Konto,
 } from "../kontenBereiche";
 import { KontoZeile } from "./KontoZeile";
+import { kalenderZeilen } from "../zahlen";
 import { gefuellterZugang, ZUGAENGE, zugangListe } from "./gliederung";
 import { NeuAnmelden } from "./NeuAnmelden";
 import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
@@ -205,6 +206,8 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   const selectedProvider = providers.find((item) => item.id === mail.provider);
   const accounts = overview?.mail_accounts ?? [];
   const calendars = overview?.calendar_sources ?? [];
+  // Was unter „Kalender“ steht, auch die Mac-Kalender; die Zahl darüber ist die Länge dieser Liste (Paket Z1).
+  const kalenderListe = kalenderZeilen(overview, konten);
   // Genau ein gefüllter Knopf: Ist die Einrichtung offen, ist es „Einrichtung fortsetzen“; sonst der erste fehlende Zugang.
   const gefuellt = gefuellterZugang(einrichtungOffen, overview ? accounts.length : null, overview ? calendars.length : null);
   const knopf = (art: "mail" | "calendar") => gefuellt === art ? "g-knopf zugang-neu" : "g-knopf-getoent zugang-neu";
@@ -248,18 +251,19 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
     </div> : null}
 
     <Gruppe className="zugang-gruppe" label={ZUGAENGE.kalender.titel} titel={ZUGAENGE.kalender.titel} flaecheKlasse="zugang-liste"
-      zahl={calendars.length && !(alleKnopf && !konten?.postfaecher.some(k => offen[k.id])) ? zaehlen(calendars.length, "Kalender", "Kalender") : null}
+      zahl={kalenderListe.length && !(alleKnopf && !konten?.postfaecher.some(k => offen[k.id])) ? zaehlen(kalenderListe.length, "Kalender", "Kalender") : null}
       aktion={alleKnopf && !konten?.postfaecher.some(k => offen[k.id]) ? alleKnopf : null}
       fussnote={calendars.length ? ZUGAENGE.trennen : system.mac_helfer ? "Google, Mac oder ein Kalender-Abo." : "Google oder ein Kalender-Abo."}
       fussAktion={openForm === "calendar" ? null : <button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button">{plus}Kalender hinzufügen</button>}>
         {ohneListe}
-        {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
-        {calendars.map((source) => {
-          const konto = konten?.kalender.find(k => k.id === source.id) ?? { ...ohneKonto(source.id, source.label, ""), art: source.kind };
+        {overview && kalenderListe.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
+        {/* Eingetragene Kalender, dann die Mac-Kalender, die Kingfisher liest: Bereich ja, Name und Trennen am Mac (unten
+            „Kalender auf diesem Mac“). */}
+        {kalenderListe.map(({ id, quelle: source, konto: gefunden }) => {
+          if (!source) return gefunden ? kontoZeile(gefunden, "calendar-days", kalenderNeben(gefunden), undefined) : null;
+          const konto = gefunden ?? { ...ohneKonto(id, source.label, ""), art: source.kind };
           return kontoZeile(konto, "calendar-days", kalenderNeben(konto), source.configured ? undefined : sourceState(source), { kind: "calendar" });
         })}
-        {/* Die Mac-Kalender, die Kingfisher liest: Bereich ja, Name und Trennen am Mac (unten „Kalender auf diesem Mac“). */}
-        {konten?.kalender.filter(k => k.art === "mac").map(konto => kontoZeile(konto, "calendar-days", kalenderNeben(konto), undefined))}
     </Gruppe>
     {/* Kalender wie Mail (Befund 7): vorne die Mailadresse; das Abo mit eigener Adresse steht eingeklappt für Techniker. */}
     {openForm === "calendar" ? <div className="source-form kalender-hinzufuegen zugang-formular" aria-label="Kalender hinzufügen">
