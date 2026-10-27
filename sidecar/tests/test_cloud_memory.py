@@ -58,8 +58,13 @@ def setup(tmp_path, *, connected=True, provider=None):
                           lambda _model: chosen, lambda: dict(grant), threading.RLock())
     return episodes, jobs, grant, chosen
 
+#: Obergrenze fürs Warten auf den Hintergrundfaden. Allein braucht der größte Lauf (101 Quellen) rund 2,5 s; unter
+#: der vollen Suite mit vier Prozessen auf einem CI-Rechner lag er schon über 5 s. Bestehende Läufe kehren sofort zurück.
+FADEN_WARTEN = 30
+
+
 def finish(jobs, job_id):
-    jobs._threads[job_id].join(timeout=5)
+    jobs._threads[job_id].join(timeout=FADEN_WARTEN)
     assert not jobs._threads[job_id].is_alive()
     return jobs.status(job_id)["job"]
 
@@ -550,7 +555,7 @@ def test_resume_waits_for_paused_inflight_worker_to_exit(tmp_path):
     with pytest.raises(CloudMemoryError, match="laufende Anfrage"):
         jobs.resume(job_id)
     release.set()
-    jobs._threads[job_id].join(timeout=5)
+    jobs._threads[job_id].join(timeout=FADEN_WARTEN)
     assert jobs.status(job_id)["job"]["state"] == "paused"
     provider.on_call = None
     resumed = jobs.resume(job_id)
@@ -579,7 +584,7 @@ def test_pause_during_provider_preparation_blocks_late_http_send(tmp_path):
     assert prepared.wait(2)
     jobs.pause(job_id)
     release.set()
-    jobs._threads[job_id].join(timeout=5)
+    jobs._threads[job_id].join(timeout=FADEN_WARTEN)
 
     paused = jobs.status(job_id)["job"]
     assert paused["state"] == "paused"
@@ -611,7 +616,7 @@ def test_restart_recovers_running_job_as_paused_without_traffic(tmp_path):
     preview = jobs.preview()
     started = jobs.start(preview["preview_id"], "subscription-test", True)
     job_id = started["job"]["id"]
-    jobs._threads[job_id].join(timeout=5)
+    jobs._threads[job_id].join(timeout=FADEN_WARTEN)
     with jobs._connect() as db:
         db.execute("UPDATE cloud_memory_jobs SET state='running' WHERE id=?", (job_id,))
 
