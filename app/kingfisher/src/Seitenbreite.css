@@ -4,7 +4,7 @@
 
    * unter 1100 px stapeln sich Spalten, die nebeneinander keinen Platz mehr haben,
    * unter 900 px wird die Seitenleiste ein Streifen oben (sonst deckt die feste Leiste die Seite zu), ohne eigenen
-     Rollbalken; unter 700 px nur mit Symbolen und dem Namen des aktiven Bereichs,
+     Rollbalken; unter 700 px (am Handy) eine feste, beschriftete Leiste unten mit vier Zielen und „Mehr“ (Paket H, H2),
    * unter 700 px haben Formulare und Raster eine Spalte.
 
    Breite Inhalte brechen um, statt die Seite zu weiten. Diese Datei wird als letzte geladen (main.tsx). */
@@ -57,7 +57,6 @@
 }
 
 @media (max-width: 700px) {
-  .shell > .sidebar .nav-item:not(.active) span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .shell main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) { min-height: 0; padding: 8px 0; }
   .shell main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) h1 { font-size: 28px; }
   .tasks-add, .inbox-heading > button { position: static; margin-top: 12px; }
@@ -113,4 +112,83 @@
   .shell > .sidebar .nav-item { min-height: 36px; }
   .shell > .sidebar .sidebar-clock { order: 0; padding: 0 12px; }
   .shell > .sidebar .sidebar-foot { padding-top: 4px; margin: 0; }
+}
+
+/* Navigation am Handy (Persona-Prüfung, Paket H, H2, 27.10.2026). Bis 1.0.29 war sie unter 700 px ein Streifen oben aus
+   sieben Symbolen ohne Beschriftung, der mit der Seite wegrollte. Jetzt steht unten eine feste Leiste wie am iPhone:
+   vier Ziele mit Zeichen und Namen und „Mehr“ (HandyLeiste.tsx, handyZiele.ts), über `safe-area-inset-bottom`. Die Seite hat
+   unten Platz in ihrer Höhe (`--g-unten`), damit sie nichts verdeckt; was unten klebt (Hinweis, Auswahlleiste,
+   Detailpaneel), steht darüber. Breit gibt es sie nicht; dort bleibt die Seitenleiste, wie sie war. */
+.shell > .sidebar > .handy-leiste { display: none; }
+@media (max-width: 700px) {
+  .shell { padding-bottom: var(--g-unten); }
+  .shell > .sidebar { position: fixed; inset: auto 0 0 0; z-index: 50; display: block; width: auto; height: auto; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); overflow: visible; }
+  .shell > .sidebar > :not(.handy-leiste) { display: none; }
+  .shell > .sidebar > .handy-leiste { position: relative; display: flex; align-items: stretch; gap: 0; height: var(--g-leiste); margin: 0; padding: 0 var(--g-a1); }
+  .handy-ziel {
+    flex: 1 1 0; min-width: var(--g-ziel); min-height: var(--g-ziel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    margin: 0; padding: 4px 2px 2px; border: 0; border-radius: var(--g-radius-bedien); background: transparent; color: var(--nordic-nav-leise);
+    font: 500 11px/1.1 var(--g-schrift); letter-spacing: .01em; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .handy-ziel .interface-icon { width: 24px; height: 24px; }
+  .handy-ziel.aktiv, .handy-ziel[aria-expanded="true"] { color: var(--nordic-nav-tinte-aktiv); font-weight: 600; }
+  .handy-ziel.aktiv .interface-icon { stroke-width: 2; }
+  .handy-ziel:focus-visible, .handy-mehr-ziel:focus-visible { outline: 2px solid var(--nordic-nav-fokus); outline-offset: -2px; }
+  .handy-ziel:disabled, .handy-mehr-ziel:disabled { opacity: .6; cursor: default; }
+  /* „Mehr“ klappt über der Leiste auf: die übrigen Ziele mit einem Satz, was darin steht. */
+  .handy-mehr { position: absolute; right: var(--g-a2); bottom: calc(100% + var(--g-a2)); width: min(340px, calc(100vw - 2 * var(--g-a2)));
+    display: grid; padding: var(--g-a1) 0; border-radius: var(--g-radius-flaeche); background: var(--nordic-nav); box-shadow: 0 12px 32px rgba(var(--g-schatten-rgb),.28), inset 0 0 0 1px var(--nordic-nav-glanz); }
+  .handy-mehr[hidden] { display: none; }
+  .handy-mehr-ziel { display: flex; align-items: center; gap: var(--g-a3); min-height: var(--g-zeile); margin: 0; padding: var(--g-a2) var(--g-a4); border: 0; background: transparent; color: var(--nordic-nav-tinte); text-align: left; cursor: pointer; }
+  .handy-mehr-ziel + .handy-mehr-ziel { box-shadow: inset 0 1px 0 var(--nordic-nav-glanz); }
+  .handy-mehr-ziel.aktiv { background: var(--nordic-nav-active); color: var(--nordic-nav-tinte-aktiv); }
+  .handy-mehr-ziel .interface-icon { flex: 0 0 auto; width: 22px; height: 22px; }
+  .handy-mehr-text { display: grid; gap: 2px; min-width: 0; }
+  .handy-mehr-text strong { font: 600 16px/1.3 var(--g-schrift); }
+  .handy-mehr-text small { font: 400 13px/1.35 var(--g-schrift); color: var(--nordic-nav-leise); }
+  /* Gespräche füllen das Fenster über der Leiste. */
+  .shell:has(> main.workspace-chat) { grid-template-rows: minmax(0, 1fr); }
+  /* Detailpaneel, Hinweis und die klebende Auswahl unter Aufgaben stehen über der Leiste, nicht dahinter. */
+  #root .workspace-detail { bottom: var(--g-unten); }
+  #root main.aufgaben .task-vorschlaege-auswahl { bottom: calc(var(--g-unten) + var(--g-a3)); }
+}
+@media (prefers-color-scheme: dark) and (max-width: 700px) {
+  .shell > .sidebar { box-shadow: inset 0 1px 0 var(--nordic-nav-glanz); }
+}
+
+/* Tippziele am Handy (Persona-Prüfung, Paket H, H3, 27.10.2026). Mit grobem Zeiger (Finger) hat jedes Bedienelement eine
+   Trefffläche von mindestens 44 × 44 px (WCAG 2.5.8 verlangt 24, Apple 44). Bis 1.0.29 waren „Rückgängig“ 83 × 20,
+   „Ansehen“ 58 × 17, Belegnummern 22 × 22, Segmente 38, kompakte Knöpfe 36 px hoch. Das Bild bleibt, wie es ist: Leise
+   Knöpfe, Verweise und Segmente bekommen eine unsichtbare Fläche (`::after`, mittig, mindestens 44 × 44, nur dort, wo
+   die Klasse keine eigene Lage hat); getönte Knöpfe, Felder und Aufklapper werden 44 hoch. Geprüft im Browser von
+   scripts/probe_tippziele_ui.py; die Regel steht in tests/handy-tippziele.test.mjs. */
+@media (pointer: coarse) {
+  #root :is(.g-segment, .text-action, .quiet-source-toggle, .konto-name, .today-text-link, .g-knopf-schlicht, .g-hinweis-knopf,
+    .satz-nr, .akte-knopf-leise, .calendar-grid-date, main :is(p, small, span) > a[href]) { position: relative; }
+  #root :is(.g-segment, .text-action, .quiet-source-toggle, .konto-name, .today-text-link, .g-knopf-schlicht, .g-hinweis-knopf,
+    .satz-nr, .akte-knopf-leise, .calendar-grid-date, main :is(p, small, span) > a[href])::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, var(--g-ziel)); height: max(100%, var(--g-ziel));
+    transform: translate(-50%, -50%);
+  }
+  /* Belegnummern hinter einem Satz: so weit auseinander, dass jede ihre eigene Fläche hat. */
+  #root button.satz-nr + button.satz-nr { margin-left: 22px; }
+  /* Ein Verweis mitten im Satz bleibt im Satz; seine Fläche reicht über die Zeile (der Satz rückt nicht). */
+  #root .shell .today-source-status .today-text-link, #root .today-postfach a { display: inline-block; }
+  /* Kompakte Segmente stehen in einer Leiste mit 2 px Rand; 40 + 2 + 2 ergibt die Fläche von 44. */
+  #root .g-segmente.g-kompakt .g-segment { min-height: 40px; }
+  /* Knöpfe mit Grund, Felder und Aufklapper: 44 hoch. */
+  #root :is(.g-kompakt, .secondary-action, .primary-action, .tasks-add, .akte-knopf, .g-knopf-getoent, .g-knopf, .calendar-all-day-event,
+    .text-action:not(small *), .document-folders button, .memory-view-actions button) { min-height: var(--g-ziel) !important; }
+  #root .calendar-all-day-event { display: flex; align-items: center; }
+  #root .shell main :is(select, input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file'])) { min-height: var(--g-ziel) !important; }
+  #root .command-bar input { align-self: stretch; min-height: var(--g-ziel); }
+  #root details > summary { min-height: var(--g-ziel) !important; display: flex; align-items: center; }
+  /* Der Name eines Kontos ist zugleich der Knopf zum Umbenennen; seine Fläche reicht über die Zeile, die Zeile rückt nicht. */
+  #root .settings-shell .konto-name { padding-block: 12px !important; margin-block: -12px; }
+  /* „Hintergrund“ auf Heute steht mit negativem Rand in der Zeile; am Finger bekommt er seine ganze Höhe. */
+  #root .today-hintergrund > summary { margin-block: 0; }
+  /* Der Zeitstrahl der Akte: Am Finger ist die ganze Spur das Ziel, der nächste Punkt öffnet seine Quelle (wie der Tag im
+     Monat); die Punkte bleiben für Tastatur und Vorleser Knöpfe. */
+  #root .akte-punkt { pointer-events: none; }
+  #root .akte-spur-bahn { cursor: pointer; }
 }

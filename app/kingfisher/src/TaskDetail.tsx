@@ -127,7 +127,7 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
       {task.angelegt?.art === 'alle_uebernehmen' && task.angelegt.gruppe ? <><span aria-hidden="true"> · </span><button type="button" className="text-action" disabled={busy} onClick={() => void ganzeUebernahmeZurueck(task.angelegt!.gruppe!)}>Alle dieser Übernahme zurück</button></> : null}</p>}
     {/* Seltenes steht unter der Aufgabe, nicht davor: erst die Sache, dann der Weg weg von ihr. */}
     {task && (task.project_id || task.status === 'open') && <p className="task-detail-more">
-      {task.project_id&&<button type="button" className="text-action" onClick={()=>navigate(`/memory/projects/${encodeURIComponent(task.project_id!)}?${new URLSearchParams({return_to:'/memory?tab=projects'})}`)}>Projekt im Gedächtnis öffnen</button>}
+      {task.project_id&&<button type="button" className="text-action" onClick={()=>navigate(`/memory/projects/${encodeURIComponent(task.project_id!)}?${new URLSearchParams({return_to:'/memory?tab=projects'})}`)}>Akte des Projekts öffnen</button>}
       {task.status==='open'&&<button type="button" className="text-action" disabled={busy} onClick={()=>void mitHinweis(()=>api.dropTask(task.id), verworfenHinweis(task, () => change(() => api.reopenTask(task.id))))}>Aufgabe verwerfen</button>}
     </p>}
   </div>;

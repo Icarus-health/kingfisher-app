@@ -11,6 +11,7 @@ import { ProfileSource } from "./ProfileSource";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
 import { memoryReturnPath } from "./profileReturn";
+import { naechsterPunkt } from "./tippFlaeche";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { Leer, zeigeHinweis } from "./grundlage";
 import { initials } from "./WorkspaceMemoryModel";
@@ -239,7 +240,14 @@ function Zeitstrahl({ strahl }: { strahl: NonNullable<Akte["zeitstrahl"]> }) {
     <div className="akte-strahl" ref={bahnRef} onKeyDown={tasten} role="group" aria-label="Zeitstrahl: mit den Pfeiltasten von Punkt zu Punkt">
       {SPUREN.filter(spur => punkte.some(x => x.p.art === spur.art)).map(spur => <div className="akte-spur" key={spur.art}>
         <span className="akte-spur-name">{spur.text}</span>
-        <div className="akte-spur-bahn">
+        {/* Am Finger ist die ganze Spur das Ziel (Paket H, H3): Ein Tipp wählt den nächsten Punkt bis 22 px daneben. */}
+        <div className="akte-spur-bahn" onClick={ereignis => {
+          if (ereignis.target !== ereignis.currentTarget) return;
+          const r = ereignis.currentTarget.getBoundingClientRect();
+          const liste = punkte.filter(x => x.p.art === spur.art);
+          const i = naechsterPunkt(liste.map(x => r.left + r.width * lage(x.zeit.getTime()) / 100), ereignis.clientX);
+          if (i !== null) setGewaehlt(gewaehlt === liste[i].p ? null : liste[i].p);
+        }}>
           {punkte.filter(x => x.p.art === spur.art).map(x => <button key={nummer.get(x.p)} type="button" data-punkt={nummer.get(x.p)}
             tabIndex={nummer.get(x.p) === aktiv ? 0 : -1} onFocus={() => setFokus(nummer.get(x.p) ?? 0)}
             className={`akte-punkt akte-punkt-${x.p.art}${x.p.abgesagt ? " akte-punkt-abgesagt" : ""}${x.p.offen ? " akte-punkt-offen" : ""}${x.p.abschnitt === "Zusage" || x.p.abschnitt === "Bitte" ? " akte-punkt-zusage" : ""}${gewaehlt === x.p ? " akte-punkt-gewaehlt" : ""}`}

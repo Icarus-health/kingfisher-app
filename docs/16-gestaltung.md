@@ -55,11 +55,12 @@ dort nichts geändert werden muss. Ein Fachwort vorne ist ein Fehler; ein Test s
 
 **Seitenbreite.** Keine Seite ist breiter als das Fenster, und es gibt keine Mindestbreite, auch nicht für einzelne
 Seiten. Drei Stufen gelten überall (`Seitenbreite.css`): Unter 1100 px stapeln sich Spalten, unter 900 px wird die
-Seitenleiste ein Streifen oben, unter 700 px haben Formulare und Raster eine Spalte. Was nicht passt, bricht um; nichts
+Seitenleiste ein Streifen oben, unter 700 px haben Formulare und Raster eine Spalte, und die Navigation ist eine feste,
+beschriftete Leiste unten (seit Paket H, siehe „Handy“). Was nicht passt, bricht um; nichts
 zwingt zum seitlichen Scrollen, nichts wird am Rand abgeschnitten (einzige Ausnahme: Segmentleisten rollen in sich, siehe
 „Grundlage vom 23.10.2026“). Das gilt auch für den Streifen selbst: Alle Ziele
-stehen ohne Rollen im Bild, das Zeichen über seinem Namen in kleiner Schrift; unter 700 px trägt nur der aktive Bereich
-seinen Namen (Fremdprobe 3, Befund 14). Wer eine Seite baut, prüft sie bei 390, 768 und
+stehen ohne Rollen im Bild, das Zeichen über seinem Namen in kleiner Schrift (Fremdprobe 3, Befund 14). Unter 700 px
+trug bis 1.0.29 nur der aktive Bereich seinen Namen; seit Paket H steht dort die Leiste unten, jedes Ziel mit Namen. Wer eine Seite baut, prüft sie bei 390, 768 und
 1280 px (`scripts/probe_seiten_ui.py`).
 
 ## Freigegebene Gestaltung vom 15.10.2026
@@ -237,7 +238,10 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 - **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt,
   bei „Rückgängig“ mit „Zurücknehmen mit Steuerung Z.“ (am Mac „Befehl Z“), nur für Vorleser; „Rückgängig“ nennt seine
   Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
-- **Am Handy (Z3).** Bis 700 px steht er oben, wenn er unten Bedienbares verdecken würde und oben nicht. Solange er
+- **Am Handy (Paket H).** Mit der Navigationsleiste unten hat er einen festen Platz direkt darüber. Lag dort etwas
+  Bedienbares, rückt die Seite um diesen Platz nach oben: Was eben zu sehen war, bleibt zu sehen, er verdeckt nichts.
+  Die Regel unten (Z3) gilt nur noch ohne Leiste (Einrichtung).
+- **Am Handy ohne Leiste (Z3).** Bis 700 px steht er oben, wenn er unten Bedienbares verdecken würde und oben nicht. Solange er
   steht, hat die Seite unten Platz in seiner Höhe (`html.g-hinweis-offen`, `--g-hinweis-platz`), und was man gerade
   bedient hat, rückt aus ihm heraus. In einer dichten Liste kann er für seine Standzeit eine Zeile am Rand überdecken;
   sie lässt sich darunter hervorrollen.
@@ -299,6 +303,35 @@ Maßstab ist WCAG 2.2 AA, geprüft mit Tastatur und dem Barrierefreiheitsbaum (P
   Fläche das Ziel; die Termine im Tag sind Zeichen ohne eigenen Tab-Halt, mindestens 24 px hoch (`calendarGrid.ts`).
 - **Überschriften.** Ein h1 je Seite, keine Sprünge, keine doppelten h1/h2. Was unter dem Seitentitel als Liste steht,
   trägt seinen Namen als h2 (sichtbar steht er im Segment); die Mail im Lesebereich beginnt mit ihrem Betreff als h2.
+
+## Handy (Paket H, 27.10.2026)
+
+Maßstab: ein Daumen, 390 px, oft dunkel (Persona „Leon Krüger“; Protokoll:
+[`runs/2026-10-26-befunde-handy`](runs/2026-10-26-befunde-handy/README.md)). Alles gilt bis 700 px Breite bzw. mit
+grobem Zeiger; breit bleibt die Oberfläche, wie sie war.
+
+- **Navigation unten.** Eine feste Leiste wie am iPhone, über `safe-area-inset-bottom` (`viewport-fit=cover`): Heute,
+  Gespräche, Aufgaben, Kalender, jedes mit Zeichen und Namen, und „Mehr“. „Mehr“ klappt darüber Nachrichten, Gedächtnis
+  („Menschen, Dokumente und Suche“) und Einstellungen auf, je mit einem Satz; Escape oder ein Tipp daneben klappt zu.
+  Steht die Seite unter „Mehr“, trägt „Mehr“ die Markierung. Warum diese vier: Unterwegs entscheidet man, was dran ist,
+  fragt, hakt ab und sieht nach, wann und wo; Post hat das Handy selbst (das Wichtige daraus steht auf Heute), das
+  Gedächtnis fragt man meist über Gespräche ab. Die Seite hat unten Platz in Höhe der Leiste (`--g-unten`); was unten
+  klebt (Hinweis, Auswahl unter „Zur Prüfung“, Detailpaneel), steht darüber (`HandyLeiste.tsx`, `handyZiele.ts`).
+- **Projekte an einem Ort.** Sie stehen unter Aufgaben → Projekte (anlegen, Status, Aufgaben, Board), jedes mit „Akte
+  öffnen“. „Gedächtnis → Projekte“ zeigte dieselben Projekte noch einmal; es ist kein Segment mehr, das Gedächtnis
+  verweist mit „Projekte unter Aufgaben“ dorthin, und alte Verweise (`/memory?tab=projects`) führen dorthin
+  (`projekteOrt.ts`).
+- **Kalender.** Vorgabe am Handy ist die Liste: die nächsten sieben Tage ab heute, je Termin Uhrzeit, ganzer Titel und
+  Ort. Breit bleibt es der Monat. Gemerkt wird nur, was der Nutzer im Umschalter wählt (`kalenderAnsicht.ts`); bis 1.0.29
+  schrieb die Seite jede Ansicht zurück, auch die Vorgabe. Die Woche zeigt schmal alle sieben Tage (je mindestens 44 px),
+  der Monat rollt beim Öffnen die Woche des gewählten Tages ins Bild (ohne `scrollIntoView`). Titel brechen an
+  Wortgrenzen und trennen mit Strich (`hyphens: auto`, `lang="de"`), nie `overflow-wrap: anywhere`.
+- **Tippziele 44 × 44.** Mit grobem Zeiger (`pointer: coarse`) hat jedes Bedienelement eine Trefffläche von mindestens
+  44 × 44 px. Das Bild bleibt ruhig: Leise Knöpfe, Verweise, Segmente und Belegnummern bekommen eine unsichtbare Fläche
+  (`::after`, mittig, `max(100%, 44px)`); getönte Knöpfe, Felder und Aufklapper werden 44 hoch. Im Zeitstrahl der Akte ist
+  am Finger die ganze Spur das Ziel, ein Tipp wählt den nächsten Punkt (wie der Tag im Monat).
+  `scripts/probe_tippziele_ui.py` misst die wirksame Fläche aller Bedienelemente auf 29 Seiten und Zuständen und meldet
+  jedes unter 44 px.
 
 ## Dunkelmodus vom 25.10.2026
 

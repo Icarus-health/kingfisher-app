@@ -22,6 +22,10 @@ import { Leer, Segmente } from "./grundlage";
 import "./WorkspaceMemoryDetails.css";
 import "./Gedaechtnis.css";
 import { memoryReturnPath } from "./profileReturn";
+import { projekteImGedaechtnis } from "./projekteOrt";
+
+/** Führt der Rückweg zu den Projekten (unter Aufgaben, Paket H, H2), heißt er so. */
+const zurueckName = (pfad: string) => projekteImGedaechtnis(pfad.slice(pfad.indexOf("?") + 1)) ? "← Projekte" : "← Gedächtnis";
 
 type ProfileKind = "person" | "project";
 type PersonTab = "overview" | "projects" | "conversations" | "documents" | "notes";
@@ -151,7 +155,7 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, kind))} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, kind))} type="button">{zurueckName(memoryReturnPath(window.location.search, kind))}</button>
       {error ? <section className="profile-state" aria-label={title}><Leer zeichen="people" satz="Dieses Profil ist gerade nicht erreichbar oder nicht belegt." aktion={<button className="g-knopf-getoent" onClick={() => window.location.reload()} type="button">Wiederholen</button>} /></section> : null}
       {!error && !data && !contactSources ? <section className="profile-state profile-loading" aria-label={`${title} wird geladen`}><i /><i /><i /></section> : null}
       {contactSources ? <section className="profile-card profile-wide profile-absender">
@@ -180,7 +184,7 @@ export function RegistryProfile({ identifier, recentConversation }: { identifier
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))} type="button">{zurueckName(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))}</button>
       {error ? <section className="profile-state" aria-label="Profil"><Leer zeichen="people" satz="Dieses Profil ist gerade nicht erreichbar oder nicht belegt." aktion={<button className="g-knopf-getoent" onClick={() => window.location.reload()} type="button">Wiederholen</button>} /></section> : null}
       {!error && !data ? <section className="profile-state profile-loading" aria-label="Profil wird geladen"><i /><i /><i /></section> : null}
       {data ? <>

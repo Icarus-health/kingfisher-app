@@ -106,6 +106,8 @@
      die Jahresansicht so breit, dass jeder Tag ein Ziel von 44 px ist. */
   --g-kal-zeitspalte: 56px;
   --g-kal-zeitspalte-schmal: 44px;
+  /* Woche am Handy: 34 px für „08:00“, damit jeder der sieben Tage bei 390 px mindestens 44 px breit ist (Paket H, H3). */
+  --g-kal-zeitspalte-woche-schmal: 34px;
   --g-kal-tag: 88px;
   --g-kal-tag-schmal: 76px;
   --g-kal-stunde: 48px;
@@ -118,6 +120,9 @@
 
   /* Ziele und Bewegung. */
   --g-ziel: 44px;
+  /* Höhe der festen Navigationsleiste am Handy (Paket H, H2) und was unten frei bleibt; breit 0. */
+  --g-leiste: 0px;
+  --g-unten: 0px;
   --g-ziel-kompakt: 36px;
   --g-zeile: 52px;
   --g-bewegung: 200ms cubic-bezier(.25,.1,.25,1);
@@ -364,6 +369,11 @@
 /* Hinweis: eine Zeile unten in der Mitte („„Angebot prüfen“ erledigt · Rückgängig“), dunkel auf hellem Grund wie am
    iPhone; geht nach sechs Sekunden, bleibt bei Maus und Fokus (grundlage/hinweisOrt.ts). Schmal: volle Breite im Rand. */
 .g-hinweis-ort { position: fixed; z-index: 60; left: 0; right: 0; bottom: max(var(--g-a5), env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 var(--g-a4); pointer-events: none; }
+/* Am Handy hat der Hinweis einen festen Platz direkt über der Navigationsleiste (Paket H, H2). */
+@media (max-width: 700px) {
+  :root { --g-leiste: 60px; --g-unten: calc(var(--g-leiste) + env(safe-area-inset-bottom)); }
+  body:has(.shell > .sidebar) .g-hinweis-ort { bottom: calc(var(--g-unten) + var(--g-a2)); }
+}
 .g-hinweis {
   display: flex; align-items: center; gap: var(--g-a2); box-sizing: border-box; max-width: min(560px, 100%);
   min-height: var(--g-zeile); padding: var(--g-a1) var(--g-a2) var(--g-a1) var(--g-a4); border-radius: var(--g-radius-flaeche);
