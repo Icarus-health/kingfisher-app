@@ -467,8 +467,11 @@ def main() -> int:
                 stand = seite.request.get(basis + f'/api/v1/conversations/{gespraech}').json()
                 episode = next(l['episode_id'] for m in stand['messages'] for l in ((m.get('metadata') or {}).get('context') or {}).get('source_links', []))
                 ansicht.get_by_role('button', name='Nicht mehr verwenden').click()
-                pruef['15_rueckfrage'] = ansicht.get_by_role('group', name='Nicht mehr verwenden').inner_text()
-                ansicht.get_by_role('button', name='Ja, nicht mehr verwenden').click()
+                # Die Rückfrage ist ein Dialog über der Seite (Paket B, B3), der Fokus beginnt auf „Abbrechen“.
+                rueckfrage = seite.get_by_role('alertdialog', name='Diese Frage nicht mehr verwenden?')
+                pruef['15_rueckfrage'] = rueckfrage.inner_text()
+                pruef['15_rueckfrage_fokus'] = seite.evaluate("() => document.activeElement.textContent") == 'Abbrechen'
+                rueckfrage.get_by_role('button', name='Ja, nicht mehr verwenden').click()
                 seite.get_by_text('Grundlage geändert oder ausgeschlossen').first.wait_for(timeout=10000)
                 pruef['15_nicht_mehr_verwendet'] = seite.request.get(basis + f'/api/v1/episodes/{episode}').json().get('state') == 'ignored'
                 # Zurück wie vorher (für die übrigen Prüfungen); in der Oberfläche heißt das „Wieder verwenden“.

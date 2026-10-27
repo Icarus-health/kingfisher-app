@@ -161,6 +161,12 @@ Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschr
 | `Unterkopf` (V4) | `titel`, `zeile?`, `aktion?` | `g-unterkopf`, `g-unterkopf-zeile`; Kopf einer Unteransicht (Gedächtnis: Verarbeitung, Aussagen prüfen) |
 | `Bestaetigung` (V4) | `titel`, `label`, `knoepfe?`, `children` (der Satz als `<strong>`) | `g-bestaetigung`, `-titel`, `-knoepfe`; Freigabe, Gedächtnisvorschlag, Vorschlag für die Akte |
 | `HinweisAnzeige` (V4) | einmal in `main.tsx`; die Seiten rufen `zeigeHinweis({ text, rueckgaengig?, danach?, verweis?, fehler? })` | `g-hinweis-ort`, `g-hinweis`, `-text`, `-aktionen`, `-punkt`, `-knopf` |
+| `Rueckfrage` (B3) | `frage`, `satz?`, `bestaetigen`, `abbrechen?` (Vorgabe „Abbrechen“), `onBestaetigen`, `onAbbrechen`, `arbeitet?`, `gesperrt?`, `rot?`, `start?` (`"feld"`, wenn erst etwas einzutragen ist), `fehler?`, `children?`; die Seite zeigt sie, solange gefragt wird | `g-rueckfrage`, `-frage`, `-satz`, `-fehler`, `-knoepfe`, `g-knopf-rot`; modaler `<dialog>` mit `role=alertdialog` über allem (Portal in `body`) |
+| `AnsageAnzeige` (B1) | einmal in `main.tsx`; die Seiten rufen `sageAn(satz)` | unsichtbarer Ort `role=status`, `aria-live=polite`; leert sich vor jedem Satz, damit auch ein gleicher angesagt wird |
+| `Seitenwechsel`, `Sprunglink` (B2) | einmal in `main.tsx`, vor der App | Fenstertitel je Seite (`seitenTitel`), Fokus auf die Hauptüberschrift nach einem Wechsel; `g-sprunglink` |
+
+Seit B5 (27.10.2026) hat `Gruppe` eine Stufe (`stufe?`: 2, 3 oder 4) für ihre Überschrift: 3, wenn die Gruppe in
+einem Abschnitt mit eigener h2 steht (die Gruppen der Aufgabenliste unter „Meine Aufgaben“).
 
 Seit V4 (25.10.2026) kann `Gruppe` mehr: `zahl?` und `aktion?` rechts im Kopf, `fussAktion?` rechts unter der Fläche
 neben der Fußnote (Klassen `g-gruppe-zahl`, `g-gruppe-aktion`, `g-gruppe-fuss`; so die Zugänge der Einstellungen),
@@ -256,12 +262,43 @@ Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer 
 | „+ Aufgabe“ (Z4: bleibt in der Liste, „Öffnen“ im Hinweis) | `POST /tasks/{id}/drop` |
 | Von Kingfisher angelegt: zurücknehmen / wiederherstellen | `POST /aufgaben-von-selbst/{id}/rueckgaengig` ↔ `/wiederherstellen` (auch später unter „Erledigt → Zurückgenommen“) |
 
-Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt: Entscheidung zurücknehmen („Wirklich
+Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt, und sie ist seit B3 ein Dialog (`Rueckfrage`): Entscheidung zurücknehmen („Wirklich
 zurücknehmen?“), eine Quelle nicht mehr verwenden (was daraus folgte, kommt nicht von selbst zurück), Sortierergebnis
 verwerfen, eine Quelle entfernen, Mitschrift zuordnen oder lösen (Lösen sperrt den Termin für den Vorschlag), Welt-Meldung
 abbestellen (die Meldung des Tages bleibt gestrichen). Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
 der Post verwerfen, einen Aufgabenvorschlag ablehnen. Eigene „…rückgängig“-Knöpfe mit Versionen (Ordner, Bilder,
 Gruppierungen im Gedächtnis) bleiben, wo sie sind.
+
+## Barrierefreiheit (Paket B, 27.10.2026)
+
+Maßstab ist WCAG 2.2 AA, geprüft mit Tastatur und dem Barrierefreiheitsbaum (Protokoll:
+[`runs/2026-10-26-befunde-barrierefrei`](runs/2026-10-26-befunde-barrierefrei/README.md)).
+
+- **Rückfragen sind Dialoge.** Eine Frage vor etwas, das sich nicht zurücknehmen lässt, steht nicht mehr als Satz in der
+  Zeile, sondern als ruhiges Blatt über der Seite (`Rueckfrage`): die Frage in einem Satz, höchstens ein Satz dazu, rechts
+  „Abbrechen“ (vorausgewählt) und die Aktion, rot getönt, wenn sie etwas entfernt. Tab bleibt im Dialog, Escape bricht ab,
+  danach steht der Fokus wieder am Auslöser, und ist der mit seiner Zeile verschwunden, auf der Liste (`fokusZiel`, Z3).
+  Solange die Aktion läuft, bleiben die Knöpfe stehen (`aria-disabled`), und ein Fehler steht im Dialog. Kein eigenes
+  `role=alertdialog` und keine Bestätigungsgruppe in einer Zeile (`tests/rueckfrage.test.mjs` sucht danach).
+- **Wo bin ich?** Jede Seite trägt ihren Namen im Fenstertitel („Aufgaben – Kingfisher“, ein Gespräch oder eine Akte mit
+  ihrem Namen davor). Geht beim Seitenwechsel der Fokus verloren, steht er auf der Hauptüberschrift (`tabindex=-1`, kein
+  Tab-Halt); was die neue Seite selbst fokussiert, bleibt. „Zum Inhalt springen“ ist der erste Tab-Halt und erscheint nur
+  mit Fokus. Kein `scrollIntoView` ohne Fokus: Chrome setzt damit den Ausgangspunkt für Tab (`segmentInsBild`).
+- **Die Antwort wird angesagt.** Ist eine Antwort im Gespräch fertig, sagt der Ort für Ansagen ihren Anfang einmal an
+  (ein bis zwei Sätze, ohne Markdown und Belegnummern, `antwortAnsage.ts`); den Zwischenstand sagt nur die Wartezeile in
+  Schritten. Der Fokus bleibt im Eingabefeld, auch nach dem Sendeknopf und wenn die Frage auf einer anderen Seite begann.
+- **Fokus sichtbar.** Felder zeigen ihn als Kante von 2 px in der Auswahlfarbe (`outline`, nicht als Schatten, den lokale
+  Regeln überschreiben); Felder, deren Rahmen fokussiert wird (Suche und Eingabe im Gespräch), am Rahmen. Keine Regel nimmt
+  den Fokus weg, ohne dass ein Rahmen ihn zeigt.
+- **Kontrast.** Platzhalter haben eine Rolle, `--g-platzhalter` `#5a6776` hell und `#9aa6b2` dunkel, mindestens 4,8:1
+  auf jedem Feldgrund (bis 1.0.29 `#8592a0`, 2,6–3,2:1). Auf dem Bergbild von Heute steht der Stand in Tinte und tritt über
+  die Strichstärke zurück, nicht über die Farbe. Die Zahl im Segment ist Tinte zu 72 %.
+- **Kalendermonat.** Ein Raster (`role=grid`, Wochen als Zeilen über `subgrid`, Wochentage als Spaltenköpfe) mit einem
+  Tab-Halt auf dem gewählten Tag. Pfeiltasten von Tag zu Tag, Pos1/Ende zur Woche, Bild auf/ab einen Monat; Enter öffnet
+  die Termine des Tages in der Liste darunter. Jeder Tag heißt „Dienstag, 27. Oktober, 2 Termine, heute“ und ist als ganze
+  Fläche das Ziel; die Termine im Tag sind Zeichen ohne eigenen Tab-Halt, mindestens 24 px hoch (`calendarGrid.ts`).
+- **Überschriften.** Ein h1 je Seite, keine Sprünge, keine doppelten h1/h2. Was unter dem Seitentitel als Liste steht,
+  trägt seinen Namen als h2 (sichtbar steht er im Segment); die Mail im Lesebereich beginnt mit ihrem Betreff als h2.
 
 ## Dunkelmodus vom 25.10.2026
 

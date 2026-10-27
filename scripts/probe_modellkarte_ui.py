@@ -133,7 +133,8 @@ def main() -> int:
         wurzel = karte('ablehnen')
         assert wurzel.get_by_role('button', name='Antworten formulieren: Einrichten').is_visible()
         wurzel.get_by_role('button', name='Antworten formulieren: Einrichten').click()
-        wurzel.get_by_role('button', name='Laden und einrichten').click()
+        # Die Rückfrage ist ein Dialog über der Seite (Paket B, B3).
+        seite.get_by_role('alertdialog').get_by_role('button', name='Laden und einrichten').click()
         seite.wait_for_selector('.model-rec-note[role=alert]', timeout=15000)
         ablehnung = seite.locator('.model-rec-note').inner_text()
         pruef['ablehnung'] = ablehnung
