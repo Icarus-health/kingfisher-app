@@ -383,6 +383,12 @@ Entscheidung des Nutzers ([66-automatik.md](66-automatik.md)): **Bereich je Post
 * **Filter**: Kalender und Aufgaben haben ein Segment „Alle · Arbeit · Privat · …“, sobald mindestens zwei Bereiche einem
   Konto zugeordnet sind; die Wahl merkt sich jede Seite (Browser). Auf der Kalenderseite bleiben **ausgeblendete
   Kalender ausgeblendet** (gespeichert, `PUT /api/v1/kalender/ausgeblendet`).
+* **Eine Zahl** (Persona-Prüfung, Paket Z1, 27.10.2026): Der Aufgabenfilter filtert im Sidecar, vor Zählen und
+  Blättern (`GET /api/v1/tasks?bereich=…`, `…/projects/{id}/task-overview?bereich=…`, `zaehlung.ids_im_bereich`). Zahl
+  am Segment, Projektüberblick und Liste sind dieselbe Auswahl; über einer leeren Liste steht keine „1“ mehr. Unter
+  „Zugänge“ zählt „N Kalender verbunden“ die Zeilen darunter, auch die Mac-Kalender (`zahlen.kalenderZeilen`). Liegen
+  die Termine eines Zeitraums (im gewählten Bereich) nur in ausgeblendeten Kalendern, sagt der Kalender das statt „keine
+  Termine“ und blendet sie mit einem Klick ein („Einblenden“, `zahlen.ausgeblendetLage`).
 * Prüfung: `sidecar/tests/test_konten_bereiche.py`, `app/kingfisher/tests/konten-bereiche.test.mjs`, Browserprobe
   `scripts/probe_konten_ui.py` ([Protokoll](runs/2026-10-26-automatik-konten/README.md)).
 
