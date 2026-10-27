@@ -198,6 +198,13 @@ def fixture(now: datetime) -> dict[str, Any]:
     return payload
 
 
+def _braucht_dich(briefing: dict[str, Any], attention: dict[str, dict[str, Any]]) -> dict[str, int]:
+    """`zaehlung` des Briefings und die offenen Klärungen, die Heute zusätzlich zeigt."""
+    gezaehlt = briefing.get("zaehlung") if isinstance(briefing.get("zaehlung"), dict) else {}
+    klaerungen = sum(1 for item in attention.values() if item.get("source") == "knowledge")
+    return {"aufgaben": int(gezaehlt.get("aufgaben") or 0), "weitere": int(gezaehlt.get("weitere") or 0) + klaerungen}
+
+
 def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             wetter=None, nutzername: str = "", verlauf: list[str] | None = None) -> dict[str, Any]:
     if os.environ.get("KINGFISHER_FIXTURE", "").lower() == "morning":
@@ -224,6 +231,8 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             "source_ref": ref,
             "reason": text,
             "action": point.get("aktion"),
+            # Für wie viele Dinge die Zeile steht (Paket Z1): „Heute sind 3 Aufgaben fällig.“ steht für drei.
+            "anzahl": int(point.get("anzahl") or 1),
         }
         if source in ("aufgabe", "wartet"):
             task = tasks_by_id.get(ref, {})
@@ -305,6 +314,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             "source_ref": reference,
             "reason": "Offene Klärung",
             "action": None,
+            "anzahl": 1,
         }
 
     happening: list[dict[str, Any]] = []
@@ -461,6 +471,9 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         "relevance_count": len(attention),
         "historical_task_reviews": int((dashboard.get("task_candidates") or {}).get("review_pending") or 0),
         "needs_you": list(attention.values())[:3],
+        # Was dich heute braucht, ganz gezählt (Paket Z1, `zaehlung.py`): die Aufgaben nach derselben Regel wie unter
+        # „Aufgaben“, dazu die übrigen Punkte, auch die über die drei sichtbaren hinaus. Heute sagt damit „1 von 18“.
+        "braucht_dich": _braucht_dich(briefing, attention),
         "happening_now": happening[:3],
         "working_memory_more": bool(dashboard.get('working_memory', {}).get('truncated') or
             sum(not ist_eigene_quelle(r.get('source_type'), r.get('source_ref'))

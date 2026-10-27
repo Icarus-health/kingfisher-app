@@ -5150,14 +5150,29 @@ def create_app(
     @app.get("/api/v1/tasks", dependencies=guard)
     def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None,
                               q: str = Query(default='', max_length=200), limit: int = Query(default=200, ge=1, le=200),
-                              cursor: str | None = Query(default=None, max_length=2048)) -> dict[str, Any]:
-        """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
+                              cursor: str | None = Query(default=None, max_length=2048),
+                              bereich: str | None = Query(default=None, max_length=80),
+                              timezone_name: str | None = Query(default=None, alias='timezone', max_length=100)) -> dict[str, Any]:
+        """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht.
+
+        `bereich` („arbeit“, „privat“, ein eigener; „alle“ oder leer: kein Filter) filtert hier, vor Zählen und Blättern
+        (Paket Z1): `total` ist dann die Zahl am Segment und die Länge der Liste zugleich. Auf der ersten Seite von
+        „Meine Aufgaben“ steht `heute_dran`, „N Aufgaben brauchen dich heute“, nach derselben Regel wie auf Heute
+        (`zaehlung.py`), für die ganze Auswahl (Projekt, Bereich; ohne Suche), nicht nur die Seite."""
         from .task_pages import TaskPageChanged
+        from . import zaehlung
         if project_id:
             _validate_task_project(project_id, allow_closed=True)
+        gewaehlt = zaehlung.bereich_gewaehlt(bereich)
+        ids = zaehlung.ids_im_bereich(app, gewaehlt, project_id=project_id)
         try:
-            seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)
-            return {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
+            seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor, ids=ids,
+                                         auswahl=gewaehlt)
+            antwort = {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
+            if view == 'mine' and cursor is None:
+                antwort['heute_dran'] = zaehlung.heute_dran_zahl(app, _aufgaben_jetzt(timezone_name),
+                                                                 project_id=project_id, ids=ids)
+            return antwort
         except TaskPageChanged as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
@@ -5726,9 +5741,24 @@ def create_app(
         return project.to_dict()
 
     @app.get("/api/v1/projects/{project_id}/task-overview", dependencies=guard)
-    def project_task_overview(project_id: str) -> dict[str, Any]:
+    def project_task_overview(project_id: str, bereich: str | None = Query(default=None, max_length=80)) -> dict[str, Any]:
+        """Offen, wartet, erledigt eines Projekts; mit `bereich` dieselbe Auswahl wie die Liste darunter (Paket Z1)."""
+        from . import zaehlung
         _validate_task_project(project_id, allow_closed=True)
-        return app.state.tasks.project_overview(project_id)
+        return app.state.tasks.project_overview(project_id, ids=zaehlung.ids_im_bereich(app, bereich, project_id=project_id))
+
+    def _aufgaben_jetzt(timezone_name: str | None) -> datetime:
+        """Jetzt in der Zeitzone, nach der „heute“ gilt: wie das Briefing (`morning_briefing`), Vorgabe die eingestellte."""
+        zone = None
+        if timezone_name:
+            try:
+                zone = ZoneInfo(timezone_name)
+            except (ZoneInfoNotFoundError, ValueError) as exc:
+                raise HTTPException(status_code=422, detail="Die Zeitzone ist nicht verfügbar.") from exc
+        if zone is None:
+            from .model import user_timezone
+            zone = user_timezone()
+        return datetime.now(zone) if zone else datetime.now().astimezone()
 
     @app.get("/api/v1/projects/{project_id}", dependencies=guard)
     @app.get("/projects/{project_id}", dependencies=guard)

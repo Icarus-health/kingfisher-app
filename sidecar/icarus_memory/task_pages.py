@@ -9,7 +9,9 @@ class TaskPageChanged(ValueError):
     pass
 
 
-def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cursor=None):
+def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cursor=None, ids=None, auswahl=None):
+    """`ids` begrenzt auf diese Aufgaben (Bereichsfilter, `zaehlung.ids_im_bereich`); `auswahl` benennt diese Begrenzung
+    im Stand, damit ein Cursor nur in der Auswahl gilt, aus der er stammt."""
     if view not in ('mine', 'waiting', 'done') or type(limit) is not int or not 1 <= limit <= 200:
         raise ValueError('Ungültige Aufgabenansicht oder Seitengröße.')
     if not isinstance(q, str) or len(q) > 200:
@@ -20,6 +22,8 @@ def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cur
     try:
         latest = connection.execute('SELECT sequence, recorded_at, task_id FROM task_events ORDER BY sequence DESC LIMIT 1').fetchone()
         state = [list(latest) if latest else [], view, project_id or None, terms, limit]
+        if auswahl is not None:
+            state.append(auswahl)
         stand = hashlib.sha256(json.dumps(state, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
         offset = 0
         if cursor is not None:
@@ -41,6 +45,9 @@ def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cur
         if project_id:
             conditions.append('project_id = ?')
             params.append(project_id)
+        if ids is not None:
+            conditions.append('id IN (SELECT value FROM json_each(?))')
+            params.append(json.dumps(sorted(ids)))
         searchable = "kf_casefold(title || char(10) || COALESCE(json_extract(document, '$.notes'), '') || char(10) || COALESCE(" + waiting + ", ''))"
         for term in terms:
             conditions.append('instr(' + searchable + ', ?) > 0')
