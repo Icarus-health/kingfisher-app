@@ -1596,6 +1596,9 @@ def create_app(
     inspection = create_inspection_app(_data_dir())
     if pending(_data_dir()):
         return inspection
+    # Brach ein Wiederherstellen ab (Strom, Absturz), gilt der alte Stand: zurückhängen, bevor eine Ablage öffnet.
+    from .sicherung_zurueck import nach_abbruch_aufraeumen
+    nach_abbruch_aufraeumen(_data_dir())
     # Vor dem ersten Öffnen: steht ein Umbau an, erst eine Kopie von vorher.
     backup_before_update(_data_dir())
     app = FastAPI(title="Kingfisher", version="0.1.0")
@@ -6898,6 +6901,53 @@ def create_app(
                 "self-model.vor-wiederherstellung-….sqlite3."
             ),
         }
+
+    @app.get("/api/v1/sicherungen", dependencies=guard)
+    def sicherungen_liste() -> dict[str, Any]:
+        """Die Sicherungen zum Auswählen (Einstellungen → Sicherung) und welcher Stand seit dem letzten Mal gilt."""
+        from . import sicherung_zurueck
+        return {"sicherungen": sicherung_zurueck.liste(_data_dir()), "zuletzt": sicherung_zurueck.zuletzt(_data_dir())}
+
+    @app.post("/api/v1/sicherungen/wiederherstellen", dependencies=guard)
+    def sicherung_wiederherstellen(body: RestoreIn) -> dict[str, Any]:
+        """Stellt eine Sicherung aus der Liste wieder her (Persona-Prüfung, Paket P, D7; `sicherung_zurueck.py`).
+
+        Nur ein Name aus dem eigenen Sicherungsordner. Vorher sichert Kingfisher den jetzigen Stand (der Weg zurück),
+        dann tauscht es das Gedächtnis atomar aus; Einstellungen, Schlüssel und Freigaben bleiben auf dem heutigen
+        Stand. Die Middleware lässt währenddessen keine andere Anfrage zu (`restore_boundary.EXKLUSIV`).
+        """
+        from . import sicherung_zurueck
+        data_dir = _data_dir()
+        try:
+            sicherung_zurueck.finden(data_dir, body.name)
+        except sicherung_zurueck.SicherungFehler as fehler:
+            raise HTTPException(status_code=fehler.status, detail=str(fehler)) from fehler
+        scheduler = getattr(app.state, "scheduler", None)
+        lief = bool(scheduler is not None and getattr(scheduler, "_thread", None) is not None
+                    and scheduler._thread.is_alive())
+        if scheduler is not None:
+            scheduler.stop()
+        _close_persistent_state(app)
+        try:
+            stand = sicherung_zurueck.wiederherstellen(data_dir, body.name)
+        except sicherung_zurueck.SicherungFehler as fehler:
+            raise HTTPException(status_code=fehler.status, detail=str(fehler)) from fehler
+        finally:
+            # Neu öffnen in jedem Fall: nach Erfolg den eingespielten Stand, sonst den unveränderten alten.
+            _reopen_persistent_state(app)
+            for name in ("akten_lesungen", "verzeichnis_zwischen"):
+                speicher = getattr(app.state, name, None)
+                if speicher is not None:
+                    speicher.leeren()
+            scheduler = getattr(app.state, "scheduler", None)
+            if lief and scheduler is not None:
+                scheduler.start()
+        try:
+            app.state.audit.record("sicherung_wiederherstellen", "write_local", "auto", "executed",
+                                   {"name": stand["name"], "rueckgaengig": stand["rueckgaengig"]})
+        except Exception:  # noqa: BLE001
+            pass
+        return stand
 
     @app.post("/export/file", dependencies=guard)
     def export_file(body: ExportIn) -> dict[str, Any]:
