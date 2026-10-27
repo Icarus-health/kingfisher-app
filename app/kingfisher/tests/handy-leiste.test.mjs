@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
-import { LEISTE, MEHR, aktivUnterMehr } from "../src/handyLeiste.ts";
+import { LEISTE, MEHR, aktivUnterMehr } from "../src/handyZiele.ts";
 import { PROJEKTE_ORT, projekteImGedaechtnis } from "../src/projekteOrt.ts";
 import { testCache } from "./testcache.mjs";
 

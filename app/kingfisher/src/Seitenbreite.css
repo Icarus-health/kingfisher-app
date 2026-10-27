@@ -116,7 +116,7 @@
 
 /* Navigation am Handy (Persona-Prüfung, Paket H, H2, 27.10.2026). Bis 1.0.29 war sie unter 700 px ein Streifen oben aus
    sieben Symbolen ohne Beschriftung, der mit der Seite wegrollte. Jetzt steht unten eine feste Leiste wie am iPhone:
-   vier Ziele mit Zeichen und Namen und „Mehr“ (chrome.tsx, handyLeiste.ts), über `safe-area-inset-bottom`. Die Seite hat
+   vier Ziele mit Zeichen und Namen und „Mehr“ (HandyLeiste.tsx, handyZiele.ts), über `safe-area-inset-bottom`. Die Seite hat
    unten Platz in ihrer Höhe (`--g-unten`), damit sie nichts verdeckt; was unten klebt (Hinweis, Auswahlleiste,
    Detailpaneel), steht darüber. Breit gibt es sie nicht; dort bleibt die Seitenleiste, wie sie war. */
 .shell > .sidebar > .handy-leiste { display: none; }
@@ -154,4 +154,41 @@
 }
 @media (prefers-color-scheme: dark) and (max-width: 700px) {
   .shell > .sidebar { box-shadow: inset 0 1px 0 var(--nordic-nav-glanz); }
+}
+
+/* Tippziele am Handy (Persona-Prüfung, Paket H, H3, 27.10.2026). Mit grobem Zeiger (Finger) hat jedes Bedienelement eine
+   Trefffläche von mindestens 44 × 44 px (WCAG 2.5.8 verlangt 24, Apple 44). Bis 1.0.29 waren „Rückgängig“ 83 × 20,
+   „Ansehen“ 58 × 17, Belegnummern 22 × 22, Segmente 38, kompakte Knöpfe 36 px hoch. Das Bild bleibt, wie es ist: Leise
+   Knöpfe, Verweise und Segmente bekommen eine unsichtbare Fläche (`::after`, mittig, mindestens 44 × 44, nur dort, wo
+   die Klasse keine eigene Lage hat); getönte Knöpfe, Felder und Aufklapper werden 44 hoch. Geprüft im Browser von
+   scripts/probe_tippziele_ui.py; die Regel steht in tests/handy-tippziele.test.mjs. */
+@media (pointer: coarse) {
+  #root :is(.g-segment, .text-action, .quiet-source-toggle, .konto-name, .today-text-link, .g-knopf-schlicht, .g-hinweis-knopf,
+    .satz-nr, .akte-knopf-leise, .calendar-grid-date, main :is(p, small, span) > a[href]) { position: relative; }
+  #root :is(.g-segment, .text-action, .quiet-source-toggle, .konto-name, .today-text-link, .g-knopf-schlicht, .g-hinweis-knopf,
+    .satz-nr, .akte-knopf-leise, .calendar-grid-date, main :is(p, small, span) > a[href])::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, var(--g-ziel)); height: max(100%, var(--g-ziel));
+    transform: translate(-50%, -50%);
+  }
+  /* Belegnummern hinter einem Satz: so weit auseinander, dass jede ihre eigene Fläche hat. */
+  #root button.satz-nr + button.satz-nr { margin-left: 22px; }
+  /* Ein Verweis mitten im Satz bleibt im Satz; seine Fläche reicht über die Zeile (der Satz rückt nicht). */
+  #root .shell .today-source-status .today-text-link, #root .today-postfach a { display: inline-block; }
+  /* Kompakte Segmente stehen in einer Leiste mit 2 px Rand; 40 + 2 + 2 ergibt die Fläche von 44. */
+  #root .g-segmente.g-kompakt .g-segment { min-height: 40px; }
+  /* Knöpfe mit Grund, Felder und Aufklapper: 44 hoch. */
+  #root :is(.g-kompakt, .secondary-action, .primary-action, .tasks-add, .akte-knopf, .g-knopf-getoent, .g-knopf, .calendar-all-day-event,
+    .text-action, .document-folders button, .memory-view-actions button) { min-height: var(--g-ziel) !important; }
+  #root .calendar-all-day-event { display: flex; align-items: center; }
+  #root .shell main :is(select, input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file'])) { min-height: var(--g-ziel) !important; }
+  #root .command-bar input { align-self: stretch; min-height: var(--g-ziel); }
+  #root details > summary { min-height: var(--g-ziel) !important; display: flex; align-items: center; }
+  /* Der Name eines Kontos ist zugleich der Knopf zum Umbenennen; seine Fläche reicht über die Zeile, die Zeile rückt nicht. */
+  #root .settings-shell .konto-name { padding-block: 12px !important; margin-block: -12px; }
+  /* „Hintergrund“ auf Heute steht mit negativem Rand in der Zeile; am Finger bekommt er seine ganze Höhe. */
+  #root .today-hintergrund > summary { margin-block: 0; }
+  /* Der Zeitstrahl der Akte: Am Finger ist die ganze Spur das Ziel, der nächste Punkt öffnet seine Quelle (wie der Tag im
+     Monat); die Punkte bleiben für Tastatur und Vorleser Knöpfe. */
+  #root .akte-punkt { pointer-events: none; }
+  #root .akte-spur-bahn { cursor: pointer; }
 }

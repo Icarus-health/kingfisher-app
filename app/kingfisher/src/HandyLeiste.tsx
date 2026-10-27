@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { navigate, type NavigationLabel } from "./ui";
 import { InterfaceIcon, type ZeichenName } from "./InterfaceIcon";
-import { LEISTE, MEHR, aktivUnterMehr } from "./handyLeiste";
+import { LEISTE, MEHR, aktivUnterMehr } from "./handyZiele";
 
 /**
  * Am Handy: eine feste Leiste unten (über `safe-area-inset-bottom`), jedes Ziel mit Zeichen und Namen, mindestens

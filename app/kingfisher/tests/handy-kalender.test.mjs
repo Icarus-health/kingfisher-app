@@ -69,7 +69,7 @@ test("die Seite: Vorgabe nach Breite, gemerkt wird nur die Wahl, die Woche rollt
 test("Woche am Handy: alle sieben Tage ohne seitliches Rollen; Titel brechen an Wortgrenzen, mit Trennstrich", () => {
   const css = ohneKommentare(quelle("CalendarPage.css"));
   const schmal = css.slice(css.indexOf("@media(max-width:700px)"));
-  assert.match(schmal, /\.calendar-time-grid:not\(\.single-day\) \{ grid-template-columns:var\(--g-kal-zeitspalte-schmal\) repeat\(7,minmax\(0,1fr\)\); \}/);
+  assert.match(schmal, /\.calendar-time-grid:not\(\.single-day\) \{ grid-template-columns:var\(--g-kal-zeitspalte-woche-schmal\) repeat\(7,minmax\(0,1fr\)\); \}/);
   assert.doesNotMatch(schmal, /repeat\(7,minmax\(var\(--g-kal-tag-schmal\)/, "keine Mindestbreite je Tag mehr");
   // Schmal bricht ein Titel nur an Wortgrenzen und trennt mit Strich (hyphens:auto, lang=de); ein Wort wird nie ohne
   // Strich zerschnitten (kein overflow-wrap:anywhere/break-word in der engen Spalte).

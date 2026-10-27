@@ -192,6 +192,8 @@
   #root .calendar-page .calendar-source-choice + .calendar-source-choice { border-top:0; }
 }
 @media(max-width:700px) {
+  /* Rand wie auf den übrigen Seiten am Handy (16 px statt 28): Die Woche braucht die Breite für sieben Tage zu 44 px. */
+  #root main.calendar-page { padding-left:var(--g-a4); padding-right:var(--g-a4); }
   #root .calendar-page .calendar-actions .g-segmente { width:100%; }
   #root .calendar-page .calendar-actions .g-segment { flex:1 0 auto; padding:0 12px; }
   #root .calendar-page .calendar-period { flex-wrap:nowrap; }
@@ -212,12 +214,13 @@
   /* Woche schmal (Paket H, H1): alle sieben Tage im Bild, ohne seitliches Rollen (bis 1.0.29 je Tag mindestens 76 px,
      Freitag bis Sonntag lagen rechts versteckt). In der engen Spalte bricht ein Titel nur an Wortgrenzen und trennt mit
      Strich (hyphens:auto, lang=de); ein Wort wird nie ohne Strich zerschnitten. Den ganzen Titel zeigen die Details. */
-  #root .calendar-page .calendar-time-grid:not(.single-day) { grid-template-columns:var(--g-kal-zeitspalte-schmal) repeat(7,minmax(0,1fr)); }
+  #root .calendar-page .calendar-time-grid:not(.single-day) { grid-template-columns:var(--g-kal-zeitspalte-woche-schmal) repeat(7,minmax(0,1fr)); }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-hour { padding-right:3px; font-size:11px; }
   #root .calendar-page .calendar-time-grid.single-day { grid-template-columns:var(--g-kal-zeitspalte-schmal) minmax(0,1fr); }
   #root .calendar-page .calendar-grid-date { flex-direction:column; gap:2px; min-height:52px; }
   #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-grid-date span { font-size:11px; }
   #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-grid-date strong { min-width:26px; height:26px; font-size:15px; }
-  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-all-day { padding-inline:1px; }
+  #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-all-day { padding-inline:0; }
   #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-all-day-event { padding:2px 3px; border-left-width:2px; font-size:10px; }
   #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-time-event { padding:2px 3px; border-left-width:2px; border-radius:4px; }
   #root .calendar-page .calendar-time-grid:not(.single-day) .calendar-time-event small { font-size:10px; }
