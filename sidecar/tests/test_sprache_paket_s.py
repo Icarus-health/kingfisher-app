@@ -466,3 +466,56 @@ def test_ein_vorhandenes_projekt_bleibt_immer(client) -> None:  # noqa: F811
     zurueck = client.post(f'/api/v1/task-candidates/aufgabe/{aufgabe["id"]}/zurueck').json()
     assert zurueck['satz'] == 'Der Vorschlag steht wieder zur Prüfung.' and zurueck['projekt'] is None
     assert app.state.workspace.project(vorhanden.id).name == 'Messe Herbst'
+
+
+# -- Offener Rest aus B: Abbestellen und Mitschrift zuordnen/lösen ohne Rückfrage, mit vollem Rückgängig ----------------
+
+
+def test_abbestellen_laesst_sich_ganz_zuruecknehmen_samt_meldung_des_tages() -> None:
+    from tests.test_welt_meldungen import viele
+    for art in ("sache", "quelle"):
+        a = viele()
+        meldung = a.dienst.aktualisieren(jetzt=a.jetzt)
+        vorher = a.dienst.welt().to_dict()
+        if art == "sache":
+            assert a.dienst.sache_abbestellen(meldung["sache"])
+        else:
+            assert a.dienst.quelle_abbestellen(meldung["quelle_id"])
+        assert a.dienst.heute() is None
+        ziel = {"sache": meldung["sache"]} if art == "sache" else {"quelle_id": meldung["quelle_id"]}
+        # Ein anderes Ziel nimmt nichts zurück.
+        assert not a.dienst.abbestellen_rueckgaengig(**({"sache": "ort:mainz"} if art == "sache" else {"quelle_id": "x"}))
+        assert a.dienst.abbestellen_rueckgaengig(**ziel)
+        nachher = a.dienst.welt().to_dict()
+        for teil in ("feeds", "weltquellen", "abbestellt_sachen", "heute"):
+            assert nachher[teil] == vorher[teil], (art, teil)
+        assert a.dienst.heute()["id"] == meldung["id"], "die Meldung des Tages steht wieder da"
+        assert not a.dienst.abbestellen_rueckgaengig(**ziel), "zweimal geht nicht"
+
+
+def test_mitschrift_zuordnen_und_loesen_lassen_sich_genau_zuruecknehmen() -> None:
+    from icarus_memory.server import create_app as neu
+    from tests.test_transkript_routes import anmelden, hochladen, lauf, termine, treffen
+    app = neu()
+    with TestClient(app) as client:
+        termine(app, treffen('a', 'Fokuszeit', teilnehmer=()), treffen('b', 'Abstimmung Lieferant', teilnehmer=()))
+        episode_id = hochladen(client, lauf(client, anmelden(client)), '2026-09-28 14.30 Notizen.txt', 'Hallo\nWeiter\n').json()['id']
+
+        def eintrag():
+            return next(e for e in client.get('/api/v1/transkripte').json()['eintraege'] if e['id'] == episode_id)
+        vorschlag = eintrag()
+        schluessel = vorschlag['kandidaten'][0]['key']
+        assert client.post(f'/api/v1/transkripte/{episode_id}/zuordnung', json={'termin': schluessel}).json()['status'] == 'zugeordnet'
+        zurueck = client.post(f'/api/v1/transkripte/{episode_id}/zuordnung/rueckgaengig')
+        assert zurueck.status_code == 200
+        assert (eintrag()['status'], len(eintrag()['kandidaten'])) == (vorschlag['status'], len(vorschlag['kandidaten']))
+        # Lösen sperrt den Termin; Rückgängig hebt die Sperre wieder auf.
+        client.post(f'/api/v1/transkripte/{episode_id}/zuordnung', json={'termin': schluessel})
+        zugeordnet = app.state.zuordnungen.zeile(episode_id)
+        client.delete(f'/api/v1/transkripte/{episode_id}/zuordnung')
+        assert schluessel in app.state.zuordnungen.zeile(episode_id)['abgelehnt']
+        client.post(f'/api/v1/transkripte/{episode_id}/zuordnung/rueckgaengig')
+        wieder = app.state.zuordnungen.zeile(episode_id)
+        assert (wieder['status'], wieder['termin'], wieder['von'], wieder['abgelehnt']) == (
+            zugeordnet['status'], zugeordnet['termin'], zugeordnet['von'], zugeordnet['abgelehnt'])
+        assert client.post(f'/api/v1/transkripte/{episode_id}/zuordnung/rueckgaengig').status_code == 404

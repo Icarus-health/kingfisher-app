@@ -369,6 +369,12 @@ class Zuordnungen:
                 "ORDER BY aktualisiert", (key,)).fetchall()
         return [row[0] for row in rows]
 
+    def entfernen(self, episode_id: str) -> None:
+        """Vergisst die Zeile einer Mitschrift (Rückgängig, wenn vorher keine stand)."""
+        with self._lock:
+            self._conn.execute("DELETE FROM zuordnung WHERE episode_id = ?", (episode_id,))
+            self._conn.commit()
+
     def uebernahme_merken(self, episode_id: str, uebernommen: dict[str, Any]) -> None:
         """Was eine bestätigte Zuordnung in die Quelle geschrieben hat (Kontakte, Texte, Projekt)."""
         with self._lock:
@@ -527,6 +533,29 @@ class Zuordner:
                 abgelehnt.append(zeile['termin'])
             self.ablage.schreiben(episode_id, status='allein', termin='', von='nutzer', hinweise=hinweise,
                                   kandidaten=[], gruende=[], abgelehnt=abgelehnt)
+            return self.ablage.zeile(episode_id) or {}
+
+    def wiederherstellen(self, episode_id: str, vorher: dict[str, Any] | None) -> dict[str, Any]:
+        """Rückgängig für „Zu diesem Termin“ und „Gehört nicht hierher“ (Paket S): genau der Stand von vorher.
+
+        Was die jetzige Zuordnung in die Quelle geschrieben hat, geht wieder heraus; war vorher eine bestätigte
+        Zuordnung, kommt deren Übernahme wieder hinein (dieselbe Regel wie beim Bestätigen). Eine Sperre aus dem
+        Lösen fällt mit weg, weil die Zeile von vorher sie nicht trug."""
+        with self._lock:
+            episode = self.episodes.get(episode_id)
+            if MARKE not in episode.tags:
+                raise EpisodeError('Das ist keine Mitschrift.')
+            self._uebernahme_zuruecknehmen(episode, self.ablage.zeile(episode_id))
+            if vorher is None:
+                self.ablage.entfernen(episode_id)
+                return {}
+            self.ablage.schreiben(episode_id, status=vorher['status'], termin=vorher['termin'], von=vorher['von'],
+                                  hinweise=vorher['hinweise'], kandidaten=vorher['kandidaten'],
+                                  gruende=vorher['gruende'], abgelehnt=vorher['abgelehnt'])
+            if vorher['status'] == 'zugeordnet' and vorher['von'] == 'nutzer' and vorher['termin']:
+                termin = termin_zu(self.episodes, vorher['termin'])
+                if termin is not None:
+                    self._sprecher_uebernehmen(episode, termin, vorher['hinweise'])
             return self.ablage.zeile(episode_id) or {}
 
     # -- Sprecher als Personen ------------------------------------------

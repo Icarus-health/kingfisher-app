@@ -1426,6 +1426,8 @@ export const api = {
   transkriptOrdnerTrennen: () => request<TranskriptOrdner & { entzogen: number }>("/api/v1/transkripte/ordner", { method: "DELETE" }),
   transkriptAktiv: (enabled: boolean) => request<TranskriptOrdner>("/api/v1/transcript-sync", { method: "PUT", body: JSON.stringify({ enabled }) }),
   transkriptZuordnen: (id: string, termin: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "POST", body: JSON.stringify({ termin }) }),
+  /** „Rückgängig“ nach „Zu diesem Termin“ oder „Gehört nicht hierher“ (Paket S): genau der Stand von vorher. */
+  transkriptRueckgaengig: (episodeId: string) => request<unknown>(`/api/v1/transkripte/${encodeURIComponent(episodeId)}/zuordnung/rueckgaengig`, {method: "POST"}),
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
   macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
@@ -1697,6 +1699,8 @@ export const api = {
   weltFeedWeg: (id: string) => request<WeltStand>(`/api/v1/welt/feeds/${encodeURIComponent(id)}`, { method: "DELETE" }),
   weltFeedSchalter: (id: string, an: boolean) => request<WeltStand>(`/api/v1/welt/feeds/${encodeURIComponent(id)}/schalter`, { method: "POST", body: JSON.stringify({ an }) }),
   weltAbbestellen: (ziel: { quelle_id: string } | { sache: string }) => request<WeltStand>("/api/v1/welt/abbestellen", { method: "POST", body: JSON.stringify(ziel) }),
+  /** „Rückgängig“ nach dem Abbestellen (Paket S): der Stand von vorher, samt der Meldung des Tages. */
+  weltAbbestellenRueckgaengig: (ziel: { quelle_id: string } | { sache: string }) => request<WeltStand>("/api/v1/welt/abbestellen/rueckgaengig", { method: "POST", body: JSON.stringify(ziel) }),
   weltZulassen: (sache: string) => request<WeltStand>("/api/v1/welt/zulassen", { method: "POST", body: JSON.stringify({ sache }) }),
   personDetails: (name: string, alle = false) => request<MappeEinzelheiten>(`/api/v1/memory/people/${encodeURIComponent(name)}/einzelheiten${alle ? "?alle=1" : ""}`),
   uebernehmenVorschau: (conversationId: string, messageId: string) =>

@@ -162,3 +162,19 @@ test("Rückgängig nach „Zurück zur Prüfung“ legt ein mitgenommenes Projek
   assert.match(detail, /const neuesProjekt = antwort\.projekt\?\.entfernt \? antwort\.projekt\.name : null;/);
   assert.match(detail, /project_id: neuesProjekt \? null : aufgabe\.project_id \?\? null,\s*new_project_name: neuesProjekt/);
 });
+
+// -- Offener Rest aus B: Abbestellen und Mitschrift zuordnen/lösen -------------------------------------------------
+
+test("Abbestellen und Mitschrift zuordnen fragen nicht vorher, der Hinweis trägt Rückgängig; die Gestaltung sagt dasselbe", () => {
+  const lage = quelle("TagesLage.tsx");
+  assert.match(lage, /zeigeHinweis\(\{ text: abbestelltSatz\(a\.art === "welt_quelle"\), danach: "Wieder bestellt\.",\s*rueckgaengig: async \(\) => \{ await api\.weltAbbestellenRueckgaengig\(ziel\)/);
+  assert.doesNotMatch(lage, /Rueckfrage/);
+  const nach = quelle("CalendarFollowup.tsx");
+  assert.match(nach, /rueckgaengig: async \(\) => \{\s*await api\.transkriptRueckgaengig\(episodeId\)/);
+  assert.doesNotMatch(nach, /<Rueckfrage/);
+  const doku = readFileSync(new URL("../../../docs/16-gestaltung.md", import.meta.url), "utf8");
+  const ohne = doku.slice(doku.indexOf("Ohne „Rückgängig“ (kein vollständiger Weg zurück)"), doku.indexOf("**Abbestellen und Mitschrift zuordnen"));
+  assert.doesNotMatch(ohne, /Mitschrift zuordnen|Welt-Meldung/, "nicht mehr unter „Rückfrage bleibt“");
+  assert.match(doku, /\| Welt-Meldung abbestellen[^\n]*\/welt\/abbestellen\/rueckgaengig/);
+  assert.match(doku, /\| Mitschrift „Zu diesem Termin“[^\n]*\/transkripte\/\{id\}\/zuordnung\/rueckgaengig/);
+});
