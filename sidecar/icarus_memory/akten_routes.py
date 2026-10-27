@@ -275,6 +275,24 @@ def verbinden(app) -> None:
     episodes.akten_aktualisieren = aktualisieren
 
 
+#: So viele zuletzt aktive Akten je Art rechnet der Hintergrund vor (wie „Worauf warte ich noch?“ und die Fristen).
+AKTIVE_JE_ART = 60
+
+
+def aktive_akten_rechnen(app) -> int:
+    """Rechnet beim Start die zuletzt aktiven Akten vor, die „Worauf warte ich noch?“, „Was brauche ich morgen?“ und
+    das Briefing lesen (Befund A4 der Persona-Prüfung): Nach einem Update (neue Fassung der Akten) wartete die erste
+    solche Frage sonst, bis alle neu berechnet waren. Später ändern sich nur wenige Akten je neuer Mail; die rechnet
+    die Frage selbst. Liest nur die Quellen und schreibt nur den Zwischenspeicher der Akten (nur Verweise)."""
+    bezuege, akten = bausteine(app)
+    gerechnet = 0
+    for art in ('person', 'organisation', 'projekt'):
+        for eintrag in bezuege.sachen(art=art, limit=AKTIVE_JE_ART)['sachen']:
+            if akten.roh(eintrag['sache']) is not None and not akten.letzte_berechnung.get('aus_zwischenspeicher'):
+                gerechnet += 1
+    return gerechnet
+
+
 def vorwaermen(app) -> threading.Thread:
     """Baut das Verzeichnis der Bezüge im Hintergrund, gleich nach dem Start (V7, Tempo).
 
@@ -286,6 +304,7 @@ def vorwaermen(app) -> threading.Thread:
     def bauen() -> None:
         try:
             bausteine(app)[0].register()
+            aktive_akten_rechnen(app)
         except Exception:  # noqa: BLE001 - etwa ein Speicher, der beim Beenden schon geschlossen ist
             logger.debug('Verzeichnis der Bezüge nicht vorgewärmt', exc_info=True)
     faden = threading.Thread(target=bauen, name='akten-verzeichnis', daemon=True)

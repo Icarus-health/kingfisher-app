@@ -177,3 +177,19 @@ def test_terminvorbereitung_einmal_je_stand_und_neu_nach_einer_neuen_mail(core, 
         assert 'Das Plakat hätte ich gern im Format A2.' in texte(zweite) and 'Das Plakat hätte ich gern im Format A2.' not in texte(erste)
     finally:
         client.close()
+
+
+def test_beim_start_sind_die_aktiven_akten_vorgerechnet(api):
+    """Nach einem Update (neue Fassung der Akten) rechnet der Start die zuletzt aktiven Akten vor; die erste Frage
+    findet sie im Zwischenspeicher (Befund A4)."""
+    from icarus_memory.akten_routes import bausteine, vorwaermen
+    app, _ = api
+    _bestand(app.state.episodes, 5)
+    bezuege, akten = bausteine(app)
+    bezuege.aktualisieren()
+    akten.verwerfen()
+    vorwaermen(app).join(30)
+    for eintrag in bezuege.sachen(limit=100)['sachen']:
+        if eintrag['art'] in ('person', 'organisation', 'projekt'):
+            akten.roh(eintrag['sache'])
+            assert akten.letzte_berechnung['aus_zwischenspeicher'] is True, eintrag['sache']
