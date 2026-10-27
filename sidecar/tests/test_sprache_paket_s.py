@@ -254,7 +254,8 @@ def test_zwei_klaerungen_auf_heute_tragen_je_einen_eigenen_titel_ohne_namen_und_
     from icarus_memory.morning import compose, klaerung_titel
     leer = {"briefing": {"punkte": []}, "calendar": {"items": []}, "mail": {"items": []}, "tasks": {}, "episodes": {},
             "proposals": {}}
-    leer["knowledge"] = {"clarifications": [{"id": "c:1", "merkmal": "rolle"}, {"id": "c:2", "merkmal": "address"},
+    # Heute zeigt drei: eine bekannte und zwei unbekannte Merkmale, die beide „Gedächtnis klären“ hießen.
+    leer["knowledge"] = {"clarifications": [{"id": "c:1", "merkmal": "rolle"},
                                             {"id": "c:3", "merkmal": "Lieferanschrift laut Kranz GmbH"},
                                             {"id": "c:4", "merkmal": "x_7f"}]}
     jetzt = datetime(2026, 10, 26, 8, 0, tzinfo=timezone.utc)
@@ -264,8 +265,9 @@ def test_zwei_klaerungen_auf_heute_tragen_je_einen_eigenen_titel_ohne_namen_und_
     assert alle[:2] == ["Angabe klären: Rolle", "Angabe klären: Anschrift"]
     # Ein freies Merkmal kann aus der fremden Quelle stammen: es steht nicht auf Heute.
     assert alle[2] == alle[3] == "Gedächtnis klären"
-    # Heute zeigt drei; gleiche Titel werden durchgezählt.
-    assert len(set(titel)) == len(titel), titel
+    # Gleiche Titel werden durchgezählt.
+    assert len(titel) == 3 and len(set(titel)) == 3, titel
+    assert "Gedächtnis klären (2)" in titel and "Angabe klären: Rolle" in titel
     assert all("Kranz" not in t for t in titel)
 
 
