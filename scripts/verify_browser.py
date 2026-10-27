@@ -276,11 +276,17 @@ def main() -> int:
                     "retraction": True, "context_exclusion": True, "reload": True, "viewport": "1440x1000"}
             else:
                 goto("/today", "today")
-                require(page.title() == "Kingfisher", "Die gerenderte Seite hat nicht den Titel Kingfisher.")
+                # Seit Paket B (B2) trägt jede Seite ihren Namen vor der Marke („Heute – Kingfisher“); geprüft wird die Marke.
+                try:
+                    page.wait_for_function("document.title.endsWith(' – Kingfisher')", timeout=5000)
+                except Exception:
+                    pass
+                titel = page.title()
+                require(titel.endswith(" – Kingfisher"), f"Die gerenderte Seite trägt die Marke nicht im Titel: {titel!r}.")
                 require(page.get_by_alt_text("Kingfisher").count() > 0, "Das sichtbare Kingfisher-Branding fehlt.")
                 navigation = page.get_by_role("navigation", name="Hauptnavigation")
                 require(navigation.count() == 1 and navigation.inner_text().strip(), "Die Hauptnavigation ist leer.")
-                summary["checks"]["today"] = {"title": "Kingfisher", "navigation": True, "images": True, "fonts": True}
+                summary["checks"]["today"] = {"title": titel, "navigation": True, "images": True, "fonts": True}
                 screenshot("today")
 
                 conversation_path = f"/conversations/{state['conversation_id']}"
