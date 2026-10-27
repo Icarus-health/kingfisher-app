@@ -3,13 +3,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { anzahl, exportSatz, geloeschtSatz, holeStand, loeschRueckfrage, merkeStand, sicherungArt, sicherungZeit,
+import { anzahl, kopfSatz, exportSatz, geloeschtSatz, holeStand, loeschRueckfrage, merkeStand, sicherungArt, sicherungZeit,
   sichtbareSicherungen, standSatz, wiederherstellenFrage } from "../src/personDaten.ts";
 
 const NULL = { quellen_nur_ihre: 0, quellen_geteilt: 0, aussagen: 0, vorschlaege: 0, offene_vorschlaege: 0, aufgaben: 0,
   zusammenfuehrungen: 0, schreibweisen: 0, adressen: 0, vermerke: 0, zusammenfassungen: 0, gespraeche: 0, projekte: 0 };
 
 test("Die Rückfrage vor dem Löschen nennt Anzahlen, was bleibt und warum", () => {
+  assert.match(loeschRueckfrage({ name: "X", projekte: ["A", "B"], zahlen: NULL }).bleibt.join(" "), /Die Projekte „A“ und „B“: Sie gehören dir/);
   const f = loeschRueckfrage({ name: "Dora Lind", projekte: ["Mietsache Lind"], zahlen: { ...NULL, quellen_nur_ihre: 7,
     quellen_geteilt: 1, aufgaben: 1, adressen: 1, schreibweisen: 1, vermerke: 3, gespraeche: 2, projekte: 1 } });
   assert.equal(f.frage, "Alles zu Dora Lind löschen?");
@@ -59,6 +60,7 @@ test("Wiederherstellen: Frage in einem Satz mit dem Zeitpunkt, Art in Alltagsspr
   assert.equal(sicherungZeit("kaputt"), "kaputt");
   assert.match(standSatz({ stand: "2026-10-26T14:05:00+01:00", art: "regelmaessig" }), /^Wiederhergestellt: Jetzt gilt der Stand vom 26\. Oktober/);
   assert.match(standSatz({ stand: "2026-10-27T09:00:00+01:00", art: "vor_wiederherstellung" }), /^Der Stand von vorher/);
+  assert.match(kopfSatz({ stand: "2026-10-26T14:05:00+01:00", art: "regelmaessig", am: "2026-10-27T09:00:00+01:00" }), /^Jetzt gilt der Stand vom 26\. Oktober, \d\d:\d\d, wiederhergestellt am 27\. Oktober/);
 });
 
 test("Vorne die jüngsten Sicherungen, „vor dem Wiederherstellen“ nur die letzte", () => {

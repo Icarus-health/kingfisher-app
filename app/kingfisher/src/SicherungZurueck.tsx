@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { api, ApiError, type SicherungEintrag, type SicherungStand } from "./api";
 import { Rueckfrage, zeigeHinweis } from "./grundlage";
-import { holeStand, merkeStand, sicherungArt, sicherungZeit, sichtbareSicherungen, standSatz, wiederherstellenFrage } from "./personDaten";
+import { holeStand, kopfSatz, merkeStand, sicherungArt, sicherungZeit, sichtbareSicherungen, standSatz, wiederherstellenFrage } from "./personDaten";
 
 /** Nach dem Wiederherstellen lädt die Seite neu: Alle Ansichten lesen dann den eingespielten Stand. */
 function neuLaden(stand: SicherungStand) {
@@ -58,7 +58,7 @@ export function SicherungZurueck() {
 
   return <section className="source-section compact-model sicherung-zurueck" aria-labelledby={`${name}-titel`}>
     <div className="compact-integration-heading"><div><h2 id={`${name}-titel`}>Stand wiederherstellen</h2>
-      <p>{zuletzt ? standSatz(zuletzt) + ` Wiederhergestellt am ${sicherungZeit(zuletzt.am, true)}.` : "Kingfisher sichert alle vier Stunden auf diesem Rechner. Wähle einen Stand, zu dem du zurückwillst."}</p></div></div>
+      <p>{zuletzt ? kopfSatz(zuletzt) : "Kingfisher sichert alle vier Stunden auf diesem Rechner. Wähle einen Stand, zu dem du zurückwillst."}</p></div></div>
     {fehler ? <p role="alert" className="settings-error">{fehler}</p> : null}
     {!liste && !fehler ? <p role="status" className="source-hint">Sicherungen werden gelesen …</p> : null}
     {liste && !liste.length ? <p className="source-hint">Noch keine Sicherung auf diesem Rechner. Die erste entsteht von selbst, sobald Kingfisher eine Weile läuft.</p> : null}

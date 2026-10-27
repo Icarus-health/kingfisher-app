@@ -466,7 +466,9 @@ def auskunft(app: Any, angabe: str, *, jetzt: datetime | None = None) -> dict[st
         'format': FORMAT,
         'erstellt': jetzt.astimezone().isoformat(timespec='seconds'),
         'person': {'name': u.anzeige, 'schreibweisen': u.namen, 'adressen': u.adressen,
-                   'letzter_kontakt': _datum(mensch.letzter_kontakt), 'themen': list(mensch.themen),
+                   'letzter_kontakt': _datum(mensch.letzter_kontakt),
+                   # Nur Themen in Worten; technische Marken („mail:message:…“) sind keine Auskunft.
+                   'themen': [t for t in mensch.themen if ':' not in t],
                    'kreis': kreis},
         'zahlen': u.zahlen(),
         'wissen': wissen,
@@ -485,6 +487,31 @@ def auskunft(app: Any, angabe: str, *, jetzt: datetime | None = None) -> dict[st
     }
 
 
+_STAND = {'pending': 'offen', 'accepted': 'angenommen', 'rejected': 'abgelehnt', 'superseded': 'ersetzt',
+          'active': 'gilt', 'retracted': 'widerrufen', 'expired': 'abgelaufen', 'open': 'offen', 'done': 'erledigt',
+          'dropped': 'verworfen'}
+_VERMERK = {'akte_neu': 'Akte angelegt', 'akte_aktualisiert': 'Akte ergänzt', 'vorschlag_angenommen': 'Vorschlag angenommen',
+            'vorschlag_abgelehnt': 'Vorschlag abgelehnt', 'vorschlag_erzeugt': 'Vorschlag entstanden',
+            'aufgabe_post': 'Aufgabe nach Post', 'akte_vorschlag': 'Neue Akte vorgeschlagen', 'lint': 'Befund'}
+_ROLLE = {'von': 'von ihr', 'an': 'an sie', 'cc': 'in Kopie', 'bcc': 'in Blindkopie', 'beteiligt': 'beteiligt'}
+_ART = {'task': 'Aufgabe', 'knowledge': 'Wissen', 'assertion': 'Angabe', 'memory': 'Wissen'}
+
+
+def _wort(wert: Any, woerter: dict[str, str]) -> str:
+    return woerter.get(str(wert), str(wert or ''))
+
+
+def _zeit(wert: Any) -> str:
+    """„29.09.2026, 06:30“ aus einer ISO-Zeit; sonst der Wert."""
+    try:
+        zeit = datetime.fromisoformat(str(wert))
+    except (TypeError, ValueError):
+        return str(wert or '')
+    if zeit.tzinfo is not None:
+        zeit = zeit.astimezone()
+    return zeit.strftime('%d.%m.%Y, %H:%M')
+
+
 def _h(text: Any) -> str:
     return html.escape(str(text if text is not None else ''), quote=True)
 
@@ -501,7 +528,7 @@ def als_html(daten: dict[str, Any]) -> str:
         'blockquote{margin:.3rem 0 .3rem 1rem;padding-left:.6rem;border-left:3px solid #ccd;white-space:pre-wrap}'
         'small{color:#555}li{margin:.35rem 0}</style></head><body>',
         f'<h1>Was Kingfisher über {_h(p["name"])} weiß</h1>',
-        f'<p><small>Erstellt am {_h(daten["erstellt"])}. Diese Datei hat Kingfisher auf diesem Rechner erstellt; '
+        f'<p><small>Erstellt am {_h(_zeit(daten["erstellt"]))}. Diese Datei hat Kingfisher auf diesem Rechner erstellt; '
         'sie wurde nirgendwohin gesendet.</small></p>',
         '<h2>Person</h2><ul>',
         f'<li>Name: {_h(p["name"])}</li>',
@@ -511,7 +538,7 @@ def als_html(daten: dict[str, Any]) -> str:
     if p['adressen']:
         teile.append(f'<li>Adressen: {_h(", ".join(p["adressen"]))}</li>')
     if p.get('letzter_kontakt'):
-        teile.append(f'<li>Letzter Kontakt: {_h(p["letzter_kontakt"])}</li>')
+        teile.append(f'<li>Letzter Kontakt: {_h(_zeit(p["letzter_kontakt"]))}</li>')
     if p.get('themen'):
         teile.append(f'<li>Themen: {_h(", ".join(p["themen"]))}</li>')
     for k in p.get('kreis') or []:
@@ -523,11 +550,11 @@ def als_html(daten: dict[str, Any]) -> str:
         teile.append('<ul>' + ''.join(f'<li>{e}</li>' for e in eintraege) + '</ul>' if eintraege
                      else f'<p>{_h(leer)}</p>')
 
-    liste('Bestätigtes Wissen', [f'{_h(w["aussage"])} <small>({_h(w["stand"])}, seit {_h(w["seit"])})</small>'
+    liste('Bestätigtes Wissen', [f'{_h(w["aussage"])} <small>({_h(_wort(w["stand"], _STAND))}, seit {_h(_zeit(w["seit"]))})</small>'
                                  for w in daten['wissen']], 'Kein bestätigtes Wissen.')
-    liste('Vorschläge', [f'{_h(v["vorschlag"])} <small>({_h(v["art"])}, {_h(v["stand"])})</small>'
+    liste('Vorschläge', [f'{_h(v["vorschlag"])} <small>({_h(_wort(v["art"], _ART))}, {_h(_wort(v["stand"], _STAND))})</small>'
                          for v in daten['vorschlaege']], 'Keine Vorschläge.')
-    liste('Aufgaben', [f'{_h(a["titel"])} <small>({_h(a["stand"])}'
+    liste('Aufgaben', [f'{_h(a["titel"])} <small>({_h(_wort(a["stand"], _STAND))}'
                        + (f', wartet auf {_h(a["wartet_auf"])}' if a.get('wartet_auf') else '') + ')</small>'
                        for a in daten['aufgaben']], 'Keine Aufgaben.')
     liste('Projekte', [_h(n) for n in daten['projekte']], 'Kein Projekt.')
@@ -535,17 +562,18 @@ def als_html(daten: dict[str, Any]) -> str:
                                 for z in daten['zusammenfuehrungen']], 'Keine Zusammenführung.')
     quellen = []
     for q in daten['quellen']:
-        kopf = (f'<strong>{_h(q["art"])}: {_h(q["titel"])}</strong> <small>{_h(q["datum"] or "")} · '
-                f'{_h(", ".join(q["rolle"]) or "genannt")}'
+        kopf = (f'<strong>{_h(q["art"])}: {_h(q["titel"])}</strong> <small>{_h(_zeit(q["datum"]))} · '
+                f'{_h(", ".join(_ROLLE.get(r, r) for r in q["rolle"]) or "genannt")}'
                 + (f' · {q["weitere_beteiligte"]} weitere Beteiligte' if q['weitere_beteiligte'] else '')
                 + '</small>')
         quellen.append(kopf + ''.join(f'<blockquote>{_h(z)}</blockquote>' for z in q['auszug']))
     liste('Quellen', quellen, 'Keine Quelle.')
-    liste('Vermerke', [f'{_h(v["zeit"])} · {_h(v["art"])}' for v in daten['vermerke']], 'Keine Vermerke.')
+    liste('Vermerke', [f'{_h(_zeit(v["zeit"]))} · {_h(_VERMERK.get(v["art"], v["art"]))}' for v in daten['vermerke']],
+          'Keine Vermerke.')
     teile.append('<h2>Cloud</h2>')
     teile.append(f'<p>{_h(daten["cloud"]["satz"])}</p>')
     if daten['cloud']['anfragen']:
-        teile.append('<ul>' + ''.join(f'<li>{_h(a.get("zeit"))} · {_h(a.get("satz"))}</li>'
+        teile.append('<ul>' + ''.join(f'<li>{_h(_zeit(a.get("zeit")))} · {_h(a.get("satz"))}</li>'
                                       for a in daten['cloud']['anfragen']) + '</ul>')
     else:
         teile.append('<p>In den letzten 30 Tagen ging keine Anfrage an einen Cloudanbieter.</p>')
