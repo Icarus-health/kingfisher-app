@@ -146,11 +146,26 @@ den Nachrichten, wenn es mehr neue Mails gibt, sonst ins Gedächtnis. ![nachher]
 
 ## Zahlen
 
-ZAHLEN
+- Neu: `sidecar/tests/test_sprache_paket_s.py` (24 Tests, 35 mit Parametern), `app/kingfisher/tests/sprache-paket-s.test.mjs`
+  (14). Präzisiert oder angepasst: `test_konten_bereiche.py`, `test_lokale_ki.py`, `test_kalender_anmeldung.py`,
+  `test_modelle_laden.py`, `test_kingfisher.py` (Klärungstitel, weiter ohne Namen), elf Oberflächentests.
+- Volle Suite Sidecar: 8346 bestanden, 3 übersprungen, 0 fehlgeschlagen (14:52 min, `-n 4`).
+- Oberfläche: `node --test` 1039 bestanden (vorher 1025), `tsc --noEmit` sauber, `vite build` sauber.
+- `probe_seiten_ui.py` hell und dunkel: je 72 Breiten, 0 nicht in Ordnung, Konsole leer. `probe_tippziele_ui.py` hell
+  und dunkel: 29 Seiten, 1067 Ziele, 0 unter 44 px. `probe_konten_ui.py` und `probe_antwortzeit_ui.py` angepasst und grün.
 
 ## Sabotageproben
 
-SABOTAGE
+29 Proben (`befunde/sprache/skripte/sabotage.py`), je Zusicherung gebrochen, der passende Test rot, danach grün:
+Gmail ohne Inhalt wieder „Privat“ · Firma an Privatkunden zählt als Arbeit · doppeltes Postfach nicht erkannt ·
+Passwort ohne „Anzeigen“ · Cloud-Modell nicht vorbelegt · Mistral ohne Modellwahl · Abo wieder „403 Forbidden“ · Stand
+der KI mit Modellkennung · Zeiten offen · Kalender nach dem Server benannt · „Guten Tag“ am Abend · „beides“ unter
+einem Häkchen · „Privat gehört jetzt zu Privat.“ · Mails doppelt gezählt · Klärung mit freiem Merkmal · gleiche
+Klärungstitel · Suche ohne Projektnamen · „Mehr“ ins Gedächtnis · Zeitplan trotz „aus“ · „Viertel nach“ als Zeitrahmen ·
+„Viertel vor“ als :15 · „zuletzt“ mit Künftigem · Projekt bleibt immer · Projekt geht auch mit Inhalt ·
+Abbestellen-Rückgängig ohne Meldung · Mitschrift-Rückgängig mit Sperre · Seitenrand ohne Wirkung · neues Fachwort vorne ·
+Heute ohne Gerätezone. Eine Probe fing zuerst nichts (gleiche Klärungstitel: der vierte Eintrag fiel unter die drei
+sichtbaren); der Test ist geschärft, jetzt rot.
 
 ## Grenzen
 

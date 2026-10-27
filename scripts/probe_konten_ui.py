@@ -120,10 +120,13 @@ def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
     def mail(konto, titel, nummer):
         episode, _ = episodes.record(EpisodeKind.MESSAGE, titel, f'{titel}. Viele Grüße',
                                      Provenance(SourceType.EMAIL, source_ref=f'{konto}:<k{nummer}@probe.example>'),
-                                     participants=['Anna Berg <anna.berg@example.org>'], occurred_at=jetzt - timedelta(hours=nummer))
+                                     participants=['Anna Berg <anna.berg@example.org>'], occurred_at=jetzt - timedelta(hours=nummer),
+                                     contacts=[{'adresse': 'anna.berg@example.org', 'name': 'Anna Berg', 'rolle': 'von', 'ich': False}])
         return episode
     angebot = mail('mail-firma', 'Angebot Herbstmesse', 1)
     oma = mail('mail-anna', 'Geburtstag von Oma', 2)
+    # Paket S: Bei Gmail entscheidet, was im Postfach steht; ein privates Postfach braucht dafür eine Mail.
+    mail('mail-familie', 'Sonntagsessen', 3)
     tasks.add('Angebot für die Herbstmesse prüfen', Provenance(SourceType.USER_STATED, source_ref=f'episode:{angebot.id}'))
     tasks.add('Geschenk für Oma besorgen', Provenance(SourceType.USER_STATED, source_ref=f'episode:{oma.id}'))
 
@@ -201,7 +204,7 @@ def schritte(seite, neue_seite, bild, schmal, hinweis, basis, pruef) -> None:  #
         assert seite.get_by_text('Passwort deines Postfachs').count() + seite.locator('.neu-anmelden-stand').count() >= 1
         fragen = seite.locator('.konto-frage .konto-frage-satz').all_inner_texts()
         pruef['vorschlaege'] = fragen
-        assert 'Vorschlag: Privat. gmail.com ist ein privater Anbieter.' in fragen, fragen
+        assert 'Vorschlag: Privat. gmail.com ist ein privater Anbieter, und nichts darin klingt nach Arbeit.' in fragen, fragen
         assert any(f == 'Vorschlag: Arbeit. winter-catering.example ist eine Firmenadresse.' for f in fragen), fragen
         assert seite.locator('.konto-wahl', has_text='Welcher Bereich?').count() == 1, 'Gemeinsam: kein Vorschlag, eine Frage'
         bild('1-zugaenge', ganz=True)
