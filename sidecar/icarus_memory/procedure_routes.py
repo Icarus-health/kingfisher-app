@@ -18,7 +18,25 @@ def connect(app, directory):
 
 
 def explicit_learning(message):
-    return bool(re.match(r'^(?:bitte\s+)?(?:lerne|merke dir)\s+(?:diesen|folgenden|den)\s+ablauf\s*:', message.strip(), re.I))
+    if re.match(r'^(?:bitte\s+)?(?:lerne|merke dir)\s+(?:diesen|folgenden|den)\s+ablauf\s*:', message.strip(), re.I):
+        return True
+    # Nur die direkte eigene Bitte, keine Suche nach Anweisungen in Zitaten,
+    # Mails oder nachfolgenden Zeilen. Stil und biografische Fakten sind kein Ablauf.
+    line = message.strip().partition('\n')[0][:600]
+    if '?' in line:
+        return False
+    context = r'[^:!?;\n]{3,120}?'
+    request = re.match(r'^(?:bitte\s+)?(?:merke dir|lerne)\s+(?:für|bei)\s+' + context + r'\s*:\s*(.+)$', line, re.I)
+    if request is None:
+        request = re.match(r'^(?:bitte\s+)?(?:bei|für)\s+' + context
+            + r'\s+(?:bitte\s+)?(?:künftig|in zukunft|ab jetzt|immer)\s+(.+)$', line, re.I)
+    if request is None:
+        return False
+    steps = re.fullmatch(r'(?:zuerst|erst)\s+(.+?)\b(?:dann|danach|anschließend)\s+(.+)', request.group(1), re.I)
+    action = (r'\b(?:prüfen|prüfe|klären|kläre|suchen|suche|zuordnen|vergleichen|entwerfen|'
+              r'zusammenfassen|auflisten|öffnen|lesen|gegenlesen|festhalten|nachfragen|'
+              r'bestätigen|sortieren|verknüpfen|abgleichen)\b')
+    return bool(steps and all(re.search(action, step, re.I) for step in steps.groups()))
 
 
 def learn(app, message, source_episode):

@@ -16,6 +16,14 @@ ansehen, gegebenenfalls eine neue Fassung vorschlagen, dann „Geprüft überneh
 Ein übernommener Ablauf wird bei einer passenden Anfrage automatisch ausgewählt.
 „Zurücknehmen“ beendet seine Anwendung; der Verlauf bleibt nachvollziehbar.
 
+Auch eine klare dauerhafte Ablaufkorrektur kann direkt einen Vorschlag erzeugen:
+„Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann den Entwurf gegenlesen.“
+Oder: „Merke dir für Zunftmails: zuerst Anlass prüfen, danach gegenlesen.“ Die
+begrenzte Erkennung verlangt eine direkte Daueranweisung und zwei erkennbare
+Arbeitsschritte. Reine Stilwünsche, Fragen, Zitate und einmalige Aufgaben lösen
+keinen Lernaufruf aus. Für andere Formulierungen bleibt „Lerne diesen Ablauf: …“
+verfügbar. Alle Fassungen bleiben bis zur Prüfung und Bestätigung inaktiv.
+
 Die erste Fassung unterstützt gelernte Zusatzverfahren für Mailentwürfe,
 Planung und Analysen. Feste Such-, Personen-, Quellen- und Antwortprüfungen
 bleiben im vorhandenen Gedächtnispfad. Gelernter Freitext ersetzt sie nicht.

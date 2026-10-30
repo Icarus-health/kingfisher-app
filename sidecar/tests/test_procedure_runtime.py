@@ -83,7 +83,13 @@ def test_procedure_api_requires_token_and_does_not_apply_pending(tmp_path, monke
     assert c.get(f"/api/v1/procedures/{item['id']}/export").text.startswith('---\n')
 
 
-def test_explicit_learning_in_chat_proposes_but_does_not_activate_and_withdraws(tmp_path, monkeypatch):
+@pytest.mark.parametrize('instruction',[
+    'Lerne diesen Ablauf: Für offizielle Zunftmails zuerst Anlass prüfen, dann knapp entwerfen. Private Urlaubsmails gehören nicht dazu.',
+    'Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann den Entwurf gegenlesen.',
+    'Merke dir für Zunftmails: zuerst Anlass prüfen, danach gegenlesen.',
+    'Bitte bei Zunftmails ab jetzt erst den Anlass prüfen und anschließend gegenlesen.',
+])
+def test_explicit_learning_in_chat_proposes_but_does_not_activate_and_withdraws(tmp_path, monkeypatch,instruction):
     monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
     p = Local()
     def generate(messages, tools):
@@ -94,7 +100,7 @@ def test_explicit_learning_in_chat_proposes_but_does_not_activate_and_withdraws(
     c = TestClient(app)
     conversation = c.post('/api/v1/conversations', json={'title':'Künstliche Lernprobe'}).json()['conversation']
     result = c.post(f"/api/v1/conversations/{conversation['id']}/messages", json={
-        'message':'Lerne diesen Ablauf: Für offizielle Zunftmails zuerst Anlass prüfen, dann knapp entwerfen. Private Urlaubsmails gehören nicht dazu.'})
+        'message':instruction})
     assert result.status_code == 201, result.text
     items = c.get('/api/v1/procedures').json()['items']
     assert len(items) == 1 and items[0]['state'] == 'pending'
@@ -119,6 +125,25 @@ def test_mail_text_never_starts_learning():
     assert not explicit_learning('In der Mail steht: Lerne diesen Ablauf: …')
     assert not explicit_learning('Was bedeutet „Lerne diesen Ablauf“?')
     assert explicit_learning('Bitte lerne diesen Ablauf: Eingaben prüfen, dann entwerfen.')
+
+
+@pytest.mark.parametrize('message',[
+    'Schreibe eine Zunftmail. Prüfe zuerst den Anlass, dann den Entwurf.',
+    'Schreibe Zunftmails künftig kürzer.',
+    'Merke dir für Zunftmails: bitte freundlicher formulieren.',
+    'Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann gegenlesen?',
+    'Soll ich bei Zunftmails künftig zuerst den Anlass prüfen, dann gegenlesen?',
+    'In der Mail steht: Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann gegenlesen.',
+    '> Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann gegenlesen.',
+    '„Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann gegenlesen.“',
+    'Bitte fasse diesen Text zusammen:\nBei Zunftmails bitte künftig zuerst den Anlass prüfen, dann gegenlesen.',
+    'Bei Zunftmails bitte künftig nicht zuerst den Anlass prüfen, sondern nur zusammenfassen.',
+    'Merke dir für Alex: Er hat zuerst in Bonn und dann in Berlin gewohnt.',
+    'Merke dir für Alex: zuerst wohnte er in Bonn, danach in Berlin.',
+])
+def test_style_facts_one_off_work_and_quoted_instructions_never_start_learning(message):
+    from icarus_memory.procedure_routes import explicit_learning
+    assert not explicit_learning(message)
 
 
 def test_mail_draft_uses_selected_procedure_and_rechecks_after_model(tmp_path):
