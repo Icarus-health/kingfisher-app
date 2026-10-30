@@ -77,3 +77,25 @@ test('a delayed native close event cannot override a newer requested child',asyn
   assert.equal(d.render().props.open,true,'alte Schließmeldung darf den neuen Sprung nicht zurücknehmen');
  }finally{d.close();}
 });
+
+test('a requested row that was already open rereads detail and blocks acceptance while reading',()=>fixture('',async({d,calls})=>{
+ const list=rows(d),row=driver(list[1].type,list[1].props);
+ try {
+  row.render();row.run();let tree=row.render();const element={open:true};
+  tree.props.onToggle({target:element,currentTarget:element});row.render();row.run();await tick();tree=row.render();
+  assert.equal(calls.filter(path=>path==='/api/v1/procedures/b').length,1);
+  assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen')[0].props.disabled,false);
+  const fetch=globalThis.fetch;let release;
+  globalThis.fetch=async(...args)=>{
+   const response=await fetch(...args);
+   return args[0]==='/api/v1/procedures/b'?new Promise(resolve=>{release=()=>resolve(response);}):response;
+  };
+  row.props={...row.props,targeted:true};row.render();row.run();row.render();row.run();await tick();tree=row.render();
+  assert.equal(calls.filter(path=>path==='/api/v1/procedures/b').length,2,'ein neuer gezielter Aufruf liest auch eine schon geöffnete Zeile neu');
+  assert.match(text(tree),/Fassung wird gelesen/);
+  assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen').length,0);
+  release();await tick();tree=row.render();
+  assert.match(text(tree),/Nur Schritte von b/);
+  assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen')[0].props.disabled,false);
+ }finally{row.close();}
+}));

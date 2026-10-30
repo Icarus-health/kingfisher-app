@@ -30,4 +30,8 @@ Basis: `bb94507493efab70d8835593069ac3a73d366823` (PR #103, inzwischen gemergt).
 
 ## Unabhängiges Review
 
-Ausstehend vor Integration; Ergebnis wird in diesem Abschnitt ergänzt.
+Ein unabhängiges Schlussreview der gesamten UI-Änderung (Basis `bb94507`, Kopf `31b1d5f`) fand einen wichtigen Randfall: Wird eine bereits manuell geöffnete Zeile erst nachträglich zum Navigationsziel, wurde ihr alter Detailstand weiter angezeigt. Der Server verhindert eine unzulässige Übernahme weiterhin, aber die Prüfung muss vor der Handlung frisch sein.
+
+Gezielte Regression zunächst **1 statt 2 Detailabrufe**, nach Ergänzung der Zielabhängigkeit grün. Die Prüfung hält die zweite Antwort zurück und belegt zusätzlich: Während des neuen Lesens ist keine Übernahme sichtbar. Alle acht direkten Prüfwegtests bestanden. Keine kritischen oder kleineren Befunde; eine Korrekturrunde, kein zweites Review.
+
+Abgegrenzte Abnahmen: Das Review bewertet nicht den echten Mac, reale Quellen oder die Alltagswoche. Die bereits vorhandene Entwurfsbehandlung des allgemeinen Vorlageneditors wurde nicht umgebaut; dieser Schritt belegt den Gesprächsentwurf beim Rückweg und die direkte Vorschlagsprüfung, keinen allgemeinen Editor-Umbau.

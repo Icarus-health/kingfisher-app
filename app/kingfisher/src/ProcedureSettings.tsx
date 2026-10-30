@@ -96,7 +96,7 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
     request<Detail>(path(item.id)).then(value => { if (generation.current === current) setDetail(value); })
       .catch(error => { if (generation.current === current) setError(errorText(error, "Die Fassung konnte nicht geladen werden.")); });
     return () => { generation.current++; };
-  }, [opened, item.id, attempt]);
+  }, [opened, item.id, attempt, targeted]);
   // Eine Listenzeile ist keine vollständige Prüfung: Übernehmen erst nach dem Lesen der aktuellen Fassung.
   const canAccept = Boolean(detail && detail.state === "pending" && detail.current && detail.checks.structure === true && detail.checks.routing_examples === true);
   return <details className="quiet-details" open={opened} onToggle={event => { if (event.target === event.currentTarget) setOpened(event.currentTarget.open); }}>
