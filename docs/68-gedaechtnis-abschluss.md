@@ -73,7 +73,10 @@ laut Ollama; bei der Nachkontrolle waren rund 20 GiB Swap belegt. Das ist eine
 Grenze der aktuellen Lastsituation, kein Beweis für einen Kontextfehler des Modells.
 Keine fremden Programme beenden, Schutzgrenzen lockern oder günstigere Läufe auswählen.
 
-Nächster begrenzter Reparaturschritt: dauerhafte, ausdrücklich formulierte
+Umgesetzter begrenzter Reparaturschritt: dauerhafte, ausdrücklich formulierte
 Ablaufkorrekturen ohne feste Befehlsform erkennen und bereits offene passende
-Lernvorschläge mitfinden. Keine neue Ansicht, Modellrolle oder Lernberechtigung.
-Modelllauf, echte Quellenprobe und Mac-Fenster bleiben gesonderte Abnahmen.
+Lernvorschläge mitfinden. Keine neue Ansicht, Modellrolle oder Lernberechtigung:
+[Prüfungen und Grenzen](runs/2026-10-30-procedure-corrections/README.md).
+Als nächster konkreter Bedienpunkt soll „Ablauf prüfen“ den betreffenden
+Vorschlag direkt öffnen. Modelllauf, echte Quellenprobe und Mac-Fenster bleiben
+gesonderte Abnahmen.
