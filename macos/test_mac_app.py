@@ -279,12 +279,12 @@ def test_deutsche_anfuehrungszeichen_in_swift():
 
 # -- Workflow ----------------------------------------------------------------
 
-def test_workflow_baut_auf_macos_14():
+def test_workflow_baut_auf_unterstuetztem_macos_15():
     text = (REPO / '.github/workflows/mac-app.yml').read_text(encoding='utf-8')
     assert re.search(r'^  workflow_call:\n    inputs:\n      fassung:', text, re.M)
     assert re.search(r'^  pull_request:\n    paths:', text, re.M)
     assert '"macos/**"' in text and '".github/workflows/mac-app.yml"' in text
-    assert 'runs-on: macos-14' in text
+    assert 'runs-on: macos-15' in text
     assert 'bash macos/build_dmg.sh' in text
     assert 'name: Kingfisher.dmg' in text and 'path: dist/Kingfisher.dmg' in text
     # Die Fassung geht als Umgebung ins Skript, nie als Text in den Befehl.
