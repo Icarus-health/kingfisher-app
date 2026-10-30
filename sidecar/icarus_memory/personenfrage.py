@@ -11,12 +11,12 @@ Zwei Regeln sind hier wichtig:
 
 1. **Gleichnamige werden nie gemischt.** Trägt ein vollständiger Name mehr als
    eine Adresse („Alex Winter“ beim Catering und im Institut), sind es zwei
-   Personen. Nennt die Frage kein Unterscheidungsmerkmal, fragt Kingfisher mit
+   Personen, bis der Nutzer sie bestätigt zusammenführt. Ohne Merkmal fragt Kingfisher mit
    beiden zurück (`unklare_person`). Ein Merkmal ist ein Wort der Frage, das
    nur zu einer der Personen passt (Domäne oder Betreff ihrer Quellen).
-2. **Nur was belegt ist.** Teilnamen („Claudia“, „Reinhardt“) fügen Kandidaten
-   hinzu, erzwingen aber keine Rückfrage; die Auswahl des Modells und die
-   Prüfung der Absenderadressen (`working_memory_identity.py`) bleiben davor.
+2. **Nur was belegt ist.** Auch Teilnamen fragen bei mehreren Trägern zurück.
+   Nur eine bestätigte Zusammenführung oder ein unterscheidender Kontext
+   entscheidet; Häufigkeit und zeitliche Reihenfolge belegen keine Identität.
 
 Ohne Modell, ohne Einbettung: Die Zuordnung liest nur die Beteiligten der
 Quellen, mit einer einzigen Abfrage je Frage.
@@ -59,7 +59,14 @@ class Kandidat:
     adresse: str
     namen: list[str]
     quellen: list[str] = field(default_factory=list)
-    """Kennungen aller Quellen dieser Adresse, neueste zuerst."""
+    """Kennungen der aktuellen Quellen dieser Identität, neueste zuerst."""
+
+    adressen: list[str] = field(default_factory=list)
+    identitaet: str = ""
+
+    @property
+    def kennung(self) -> str:
+        return self.identitaet or self.adresse
 
     @property
     def domaene(self) -> str:
@@ -116,13 +123,21 @@ def _zeilen(episodes: Any, woerter: Iterable[str]) -> list[tuple[str, list[str],
     return episodes.participants_containing(sorted(set(woerter)), mit_herkunft=True)
 
 
-def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[Erwaehnung]:
+def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = (), confirmed_merges: Iterable[dict] = ()) -> list[Erwaehnung]:
     """Die Personen, die die Frage nennt, je genannter Folge mit allen passenden Adressen."""
     folgen = [(text, _woerter(text)) for text in namensfolgen(frage)]
     alle_woerter = {w for _, ws in folgen for w in ws if len(w) >= 3}
     if not alle_woerter:
         return []
     eigene = list(eigene)
+    from .person_merges import active_members, identity_for_address
+    from .graph import person_id_fuer
+    mitglieder = active_members(confirmed_merges)
+    # Bestätigte Mitglieder tragen gehashte Anker. Ein Metadatendurchgang
+    # löst sie auf aktuelle Adressen auf, auch nach einem Aliaswechsel.
+    # Kein Graph, keine historischen Quellen aus der Bestätigung wiederbeleben.
+    if mitglieder:
+        alle_woerter.add('@')
     # „Frau Mueller“ meint auch „Müller“ (und umgekehrt): beide Schreibweisen vorfiltern, gleich vergleichen.
     zeilen = _zeilen(episodes, alle_woerter | {v for w in alle_woerter for v in umschriften(w)})
     if not zeilen:
@@ -143,26 +158,42 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[
                 zu_adresse[nennung.adresse].append(episode_id)
             elif nennung.name:
                 ohne_adresse.append((nennung.name, episode_id))
+    gruppen: dict[str, list[str]] = defaultdict(list)
+    for adresse in namen:
+        gruppen[identity_for_address(adresse, mitglieder)].append(adresse)
+    rang = {row[0]: i for i, row in enumerate(zeilen)}
     ergebnis: list[Erwaehnung] = []
     for text, ws in folgen:
         if not ws or not all(len(w) >= 3 for w in ws):
             continue
-        treffer = []
         namenswoerter = {umschrift_gleich(w) for w in ws}
-        for adresse, zaehler in namen.items():
-            aliasse = [{umschrift_gleich(w) for w in _woerter(n)} for n in zaehler]
-            if any(namenswoerter <= alias for alias in aliasse):
-                treffer.append(adresse)
-        if not treffer:
-            continue
-        treffer.sort(key=lambda a: (-len(zu_adresse[a]), a))
         kandidaten = []
-        for adresse in treffer[:MAX_PERSONEN]:
-            quellen = list(dict.fromkeys(zu_adresse[adresse]))
-            # Alle Quellen dieser Adresse, auch die, in denen kein Name steht.
-            quellen = list(dict.fromkeys(episodes.participant_ids(adresse) + quellen))
-            alias = [n for n, _ in sorted(namen[adresse].items(), key=lambda p: (-p[1], p[0].casefold()))]
-            kandidaten.append(Kandidat(adresse, alias, quellen))
+        for kennung, adressen in gruppen.items():
+            zaehler = Counter()
+            for adresse in adressen:
+                zaehler.update(namen[adresse])
+            record = mitglieder.get(person_id_fuer('a:' + adressen[0])) if mitglieder else None
+            if record is not None:
+                zaehler[record['label']] += 1
+            alias = [n for n, _ in sorted(zaehler.items(), key=lambda p: (-p[1], p[0].casefold()))]
+            if record is not None:
+                alias = [record['label']] + [n for n in alias if n != record['label']]
+            if not any(namenswoerter <= {umschrift_gleich(w) for w in _woerter(n)} for n in alias):
+                continue
+            quellen = list(dict.fromkeys(q for adresse in adressen for q in zu_adresse[adresse]))
+            adressen = sorted(adressen)
+            kandidaten.append(Kandidat(adressen[0], alias, quellen, adressen, kennung))
+        kandidaten.sort(key=lambda k: (-len(k.quellen), k.kennung))
+        kandidaten = kandidaten[:MAX_PERSONEN]
+        for kandidat in kandidaten:
+            # Ohne aktive Gruppen enthält der Vorfilter nur die Namenszeilen.
+            # Mit @ oben sind schon alle aktuellen Adressquellen gelesen.
+            if not mitglieder:
+                kandidat.quellen = list(dict.fromkeys(episodes.participant_ids(kandidat.adresse) + kandidat.quellen))
+            else:
+                kandidat.quellen.sort(key=lambda identifier: rang[identifier])
+        if not kandidaten:
+            continue
         voll = any(namenswoerter == {umschrift_gleich(w) for w in _woerter(n)} and len(ws) >= 2
                    for k in kandidaten for n in k.namen)
         # Ein Name ohne Adresse gehört nur einem, wenn er genau einen Träger hat.
@@ -177,7 +208,8 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[
 
 def _merkmale(kandidat: Kandidat, episodes: Any) -> set[str]:
     """Wörter, an denen man eine Person erkennt: Domäne und Betreffe ihrer Quellen."""
-    merkmale = {w for w in re.split(r"[^\wäöüß]+", kandidat.domaene.casefold()) if len(w) >= 4}
+    merkmale = {w for adresse in kandidat.adressen or [kandidat.adresse]
+                for w in re.split(r"[^\wäöüß]+", domaene(adresse).casefold()) if len(w) >= 4}
     for episode_id in kandidat.quellen[:MAX_TITEL]:
         try:
             titel = episodes.get(episode_id).title
@@ -194,6 +226,13 @@ def unterscheidet(frage: str, erwaehnung: Erwaehnung, episodes: Any) -> Kandidat
     genau einer Person steht. Passen Wörter zu verschiedenen Personen, entscheidet
     keines: Die Frage bleibt offen.
     """
+    explizit = [k for k in erwaehnung.kandidaten if any(
+        re.search(r'(?<![\w.+@-])' + re.escape(a) + r'(?![\w.+@-])', frage, re.I)
+        for a in k.adressen or [k.adresse])]
+    if len(explizit) == 1:
+        return explizit[0]
+    if len(explizit) > 1:
+        return None
     frage_woerter = {w for w in re.split(r"[^\wäöüß]+", frage.casefold())
                      if len(w) >= 4 and w not in _KEIN_MERKMAL and w not in erwaehnung.woerter}
     if not frage_woerter:
@@ -211,35 +250,18 @@ def unterscheidet(frage: str, erwaehnung: Erwaehnung, episodes: Any) -> Kandidat
     return next(k for k in erwaehnung.kandidaten if k.adresse == adresse)
 
 
-def nacheinander(kandidaten: list[Kandidat], episodes: Any) -> bool:
-    """Wirken die Adressen nacheinander statt gleichzeitig?
-
-    Wer den Arbeitgeber wechselt, schreibt erst von der alten, dann von der
-    neuen Adresse: Die Zeiträume der Quellen überschneiden sich nicht. Zwei
-    Menschen gleichen Namens sind dagegen meist zur selben Zeit unterwegs. Das
-    ist ein Hinweis, kein Beweis: Es beendet nur die erzwungene Rückfrage. Die
-    Personen bleiben getrennt, bis der Nutzer sie zusammenführt.
-    """
-    spannen = []
-    for kandidat in kandidaten:
-        zeiten = episodes.reference_times(kandidat.quellen)
-        if not zeiten:
-            return False
-        spannen.append((min(zeiten), max(zeiten)))
-    spannen.sort()
-    return all(spannen[i][1] < spannen[i + 1][0] for i in range(len(spannen) - 1))
-
-
-def unklare_person(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> Erwaehnung | None:
-    """Die Nennung eines vollständigen Namens, der mehreren Personen gehört, ohne Merkmal.
-
-    Das ist der Fall für die Rückfrage mit allen Personen, es sei denn, die
-    Adressen wirken nacheinander (Adresswechsel, siehe `nacheinander`).
-    """
-    for erwaehnung in erwaehnte(frage, episodes, eigene=eigene):
-        if (erwaehnung.voller_name and len(erwaehnung.kandidaten) > 1
-                and unterscheidet(frage, erwaehnung, episodes) is None
-                and not nacheinander(erwaehnung.kandidaten, episodes)):
+def unklare_person(frage: str, episodes: Any, *, eigene: Iterable[str] = (),
+                   confirmed_merges: Iterable[dict] = (), erwaehnungen: list[Erwaehnung] | None = None) -> Erwaehnung | None:
+    """Ein genannter Name mit mehreren unbestätigten Trägern und ohne Merkmal."""
+    from .people_quality import ist_sammelpostfach, lokalteil
+    for erwaehnung in (erwaehnte(frage, episodes, eigene=eigene, confirmed_merges=confirmed_merges)
+                       if erwaehnungen is None else erwaehnungen):
+        # Ein allgemeines Postfach belegt keinen Menschen. Erst eine ausdrückliche
+        # Bestätigung darf es in eine Personenidentität aufnehmen.
+        menschen = [k for k in erwaehnung.kandidaten if k.kennung.startswith('merge:')
+                    or not ist_sammelpostfach(lokalteil(k.adresse))]
+        erwaehnung = Erwaehnung(erwaehnung.text, erwaehnung.woerter, menschen, erwaehnung.voller_name)
+        if (len(menschen) > 1 and unterscheidet(frage, erwaehnung, episodes) is None):
             return erwaehnung
     return None
 
@@ -247,28 +269,29 @@ def unklare_person(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> 
 def gemeinte_unter_namensvettern(frage: str, episodes: Any, *, eigene: Iterable[str] = (),
                                  erwaehnungen: list[Erwaehnung] | None = None
                                  ) -> list[tuple[Erwaehnung, Kandidat, list[Kandidat]]]:
-    """Je Nennung eines vollen Namens mit mehreren Trägern, bei der die Frage für einen entscheidet: (Nennung, gemeint, andere).
+    """Je Nennung mit mehreren Trägern, bei der die Frage für einen entscheidet: (Nennung, gemeint, andere).
 
     Dieselbe Entscheidung wie in `kandidatenquellen` (ein Wort der Frage, das nur zu einer Person passt). Wo nichts
-    entscheidet, steht hier nichts: Dann fragt `unklare_person` zurück, oder die Adressen wirken nacheinander
-    (Adresswechsel), und es gibt keine Namensvettern. Teilnamen („Roth“) zählen nicht, sie meinen nie eine Person.
+    entscheidet, steht hier nichts: Dann fragt `unklare_person` zurück. Zeitliche Reihenfolge beweist
+    keinen Adresswechsel; ein Teilname mit unterscheidendem Kontext ist ebenfalls auflösbar.
 
     `erwaehnungen` sind die schon berechneten `erwaehnte(...)` der Frage: Das Nachschlagen der Namen durchsucht die
     Beteiligten des ganzen Bestands und kostet bei großem Bestand spürbar; wer es schon getan hat, reicht es weiter.
     """
     ergebnis: list[tuple[Erwaehnung, Kandidat, list[Kandidat]]] = []
     for erwaehnung in (erwaehnte(frage, episodes, eigene=eigene) if erwaehnungen is None else erwaehnungen):
-        if not erwaehnung.voller_name or len(erwaehnung.kandidaten) < 2:
+        if len(erwaehnung.kandidaten) < 2:
             continue
         gemeint = unterscheidet(frage, erwaehnung, episodes)
-        if gemeint is None or nacheinander(erwaehnung.kandidaten, episodes):
+        if gemeint is None:
             continue
         ergebnis.append((erwaehnung, gemeint, [k for k in erwaehnung.kandidaten if k.adresse != gemeint.adresse]))
     return ergebnis
 
 
 def kandidatenquellen(frage: str, episodes: Any, *, eigene: Iterable[str] = (),
-                      erwaehnungen: list[Erwaehnung] | None = None) -> list[str]:
+                      erwaehnungen: list[Erwaehnung] | None = None,
+                      confirmed_merges: Iterable[dict] = ()) -> list[str]:
     """Kennungen aller Quellen der genannten Personen, für die Kandidatenauswahl.
 
     - Eine Person: alle ihre Quellen.
@@ -280,7 +303,7 @@ def kandidatenquellen(frage: str, episodes: Any, *, eigene: Iterable[str] = (),
       Person. Hier wäre jede Auswahl geraten; es bleibt bei der Wortsuche.
     """
     quellen: list[str] = []
-    for erwaehnung in (erwaehnte(frage, episodes, eigene=eigene) if erwaehnungen is None else erwaehnungen):
+    for erwaehnung in (erwaehnte(frage, episodes, eigene=eigene, confirmed_merges=confirmed_merges) if erwaehnungen is None else erwaehnungen):
         kandidaten = erwaehnung.kandidaten
         if len(kandidaten) > 1:
             gewaehlt = unterscheidet(frage, erwaehnung, episodes)

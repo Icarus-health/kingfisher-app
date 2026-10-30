@@ -540,6 +540,11 @@ class Agent:
         eigene = getattr(self, '_eigene', None)
         return list(eigene()) if callable(eigene) else []
 
+    def _confirmed_person_merges(self):
+        """Aktuelle, widerrufbare Bestätigungen derselben Wissensablage."""
+        merges = getattr(self._knowledge, 'person_merges', None)
+        return merges.list() if merges is not None else []
+
     def _personen_der_frage(self, question):
         """Die in der Frage genannten Personen: (Quellen, Namensvettern).
 
@@ -554,7 +559,8 @@ class Agent:
         from . import personenfrage
         try:
             eigene = self._own_addresses()
-            erwaehnungen = personenfrage.erwaehnte(question, self._episodes, eigene=eigene)
+            erwaehnungen = personenfrage.erwaehnte(question, self._episodes, eigene=eigene,
+                                                 confirmed_merges=self._confirmed_person_merges())
             quellen = personenfrage.kandidatenquellen(question, self._episodes, eigene=eigene, erwaehnungen=erwaehnungen)
         except Exception:  # noqa: BLE001 - ohne Personenzuordnung bleibt die Wortsuche
             return [], []
@@ -682,7 +688,7 @@ class Agent:
         choice = {'begriff': begriff, 'art': meaning['art'], 'ref': str(meaning['ref'])}
         ids, truncated = bereich(choice, episodes=self._episodes,
                                  entities=getattr(self._knowledge, 'entities', None),
-                                 eigene=self._own_addresses())
+                                 eigene=self._own_addresses(), confirmed_merges=self._confirmed_person_merges())
         return {**choice, 'label': str(meaning['label']).strip()[:160].rstrip(), 'ids': ids,
                 'truncated': truncated, 'chosen': False}
 
@@ -696,9 +702,37 @@ class Agent:
         """Nennt die Frage einen Namen, der mehreren Menschen gehört, ohne Merkmal? Sonst None."""
         from . import personenfrage
         try:
-            return personenfrage.unklare_person(question, self._episodes, eigene=self._own_addresses())
+            return personenfrage.unklare_person(question, self._episodes, eigene=self._own_addresses(),
+                                               confirmed_merges=self._confirmed_person_merges())
         except Exception:  # noqa: BLE001 - im Zweifel den bisherigen Weg gehen
             return None
+
+    def person_identity_turn(self, question):
+        """Mehrdeutige Namen vor Fragenmodell und Recherche klären, auch bei Kurznamen.
+
+        Der bestehende Auswahlvertrag trägt den aktuellen Quellenrahmen.
+        Keine Gewichtung und kein Kalender können eine Personenwahl ersetzen.
+        """
+        if self._episodes is None:
+            return None
+        unklar = self._unklare_person(question)
+        if unklar is None:
+            return None
+        meanings = []
+        for kandidat in unklar.kandidaten:
+            name = kandidat.namen[0] if kandidat.namen else unklar.begriff
+            adressen = kandidat.adressen or [kandidat.adresse]
+            titel = []
+            for identifier in kandidat.quellen[:3]:
+                try:
+                    titel.append(self._episodes.get(identifier).title[:80])
+                except Exception:  # noqa: BLE001 - verschwundene Quelle bleibt ohne Kontext
+                    continue
+            meanings.append({'art': 'absender', 'ref': kandidat.kennung,
+                'label': f"Mails von {name} ({', '.join(adressen)})",
+                'detail': 'zuletzt: ' + ', '.join(dict.fromkeys(titel)) if titel else '',
+                'quellen': kandidat.quellen, 'anzahl': len(kandidat.quellen)})
+        return self._meaning_question(question, {'begriff': unklar.begriff, 'bedeutungen': meanings})
 
     def _meaning_turn(self, question, anfrage=None, zeiten=None):
         """Erste Suchstufe: Bei offener oder einsilbiger Frage erst klären, was gemeint ist.
@@ -710,27 +744,20 @@ class Agent:
         Stufe hilft hier nicht, der bisherige Weg antwortet.
         """
         from . import frage_weg
-        from .bedeutungen import bedeutungen
         if self._episodes is None:
             return None
+        identity = self.person_identity_turn(question)
+        if identity is not None:
+            return identity
         anfrage = anfrage or self.frage_verstehen(question)
-        unklar = self._unklare_person(question)
-        if unklar is not None:
-            # Ein Name, der zwei Menschen gehört, und nichts in der Frage entscheidet:
-            # beide anbieten, nicht raten und nicht mischen.
-            termine = self._calendar_entries()
-            found = bedeutungen(unklar.begriff, episodes=self._episodes, projects=self._project_directory(),
-                                entities=getattr(self._knowledge, 'entities', None), termine=termine or [],
-                                eigene=self._own_addresses())
-            if sum(1 for m in found['bedeutungen'] if m['art'] in {'absender', 'gegenpartei'}) > 1:
-                return self._meaning_question(question, found, calendar_missing=termine is None)
         if frage_weg.hauptsache(anfrage) is None:
             return None
         termine = self._calendar_entries()
         verstanden = frage_weg.entscheide(
             question, anfrage, episodes=self._episodes, projects=self._project_directory(),
             entities=getattr(self._knowledge, 'entities', None), termine=termine or [],
-            eigene=self._own_addresses(), bestaetigt=self._confirmed_about)
+            eigene=self._own_addresses(), bestaetigt=self._confirmed_about,
+            confirmed_merges=self._confirmed_person_merges())
         if verstanden.aktion == 'weiter':
             return None
         if verstanden.aktion == 'bedeutung':
@@ -942,7 +969,7 @@ class Agent:
         dann neu und sagt das.
         """
         from .bedeutungen import meaning_choice_current
-        if not meaning_choice_current(pending, self._episodes):
+        if not meaning_choice_current(pending, self._episodes, confirmed_merges=self._confirmed_person_merges()):
             return None
         options = pending['options']
         if not 0 <= index < len(options):
@@ -1086,6 +1113,9 @@ class Agent:
             if kommend is not None:
                 return kommend
         if retrieval_query is None and meaning_scope is None:
+            identity = self.person_identity_turn(question)
+            if identity is not None:
+                return identity
             anfrage = anfrage or self.frage_verstehen(question)
             zeiten.vorlauf('frage', getattr(anfrage, 'dauer_s', 0.0))
             staged = self._meaning_turn(question, anfrage, zeiten)

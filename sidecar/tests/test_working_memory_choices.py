@@ -42,35 +42,35 @@ def _choose(client, conversation, index, label):
                        json={'message': label, 'clarification_choice': index})
 
 
-def test_person_question_offers_senders_and_click_answers_without_model(core, tmp_path, monkeypatch):
+def test_person_question_offers_senders_before_model_and_click_searches_only_chosen_person(core, tmp_path, monkeypatch):
     app, client, provider = _api(core, tmp_path, monkeypatch)
     try:
         nord = _mail(app, 'Vorgang 4831', NORD, 'Jonas Weller <jonas@nord.example>')
         _mail(app, 'Vorgang 9584', SUED, 'Jonas Weller <weller@sued.example>')
-        calls = _selector(provider, 'needs_person_choice')
+        app.state.agent._saetze = False
+        calls = _selector(provider, 'source_reports')
         conversation = _conversation(client)
         asked = _ask(client, conversation, QUESTION)
         context = asked['metadata']['context']
-        assert context['answer_contract']['status'] == 'working_unclear'
-        labels = sorted(option['label'] for option in context['clarification_choices'])
-        assert labels == ['Jonas Weller <jonas@nord.example> · Vorgang 4831',
-                          'Jonas Weller <weller@sued.example> · Vorgang 9584']
-        index = [option['label'] for option in context['clarification_choices']].index(
-            'Jonas Weller <jonas@nord.example> · Vorgang 4831')
-        selections = len(calls)
+        assert context['answer_contract']['status'] == 'meaning_choice'
+        assert calls == []
+        options = context['meaning_choice']['options']
+        index = next(i for i, option in enumerate(options) if option['ids'] == [nord.id])
+        label = options[index]['label']
         claims_before = app.state.claims.revision
 
-        response = _choose(client, conversation, index, 'Jonas Weller <jonas@nord.example> · Vorgang 4831')
+        response = _choose(client, conversation, index, label)
         assert response.status_code == 201, response.text
         messages = response.json()['messages']
         answer = messages[-1]
         assert answer['metadata']['context']['answer_contract']['status'] == 'working_reports'
-        assert 'Deine Auswahl: Jonas Weller <jonas@nord.example> · Vorgang 4831' in answer['content']
+        assert answer['metadata']['context']['working_answer']['meaning_scope']['chosen'] is True
         assert NORD in answer['content'] and SUED not in answer['content']
         assert [link['episode_id'] for link in answer['metadata']['context']['source_links']] == [nord.id]
         assert 'clarification_choices' not in answer['metadata']['context']
-        # Die Auswahl ist eindeutig: kein neuer Modellaufruf, keine neue Aussage.
-        assert len(calls) == selections
+        # Erst nach der eindeutigen Wahl sieht das Modell Quellen dieser Person.
+        assert len(calls) == 1
+        assert [row['text'] for row in calls[0]['sources']] == [NORD]
         assert app.state.claims.revision == claims_before
         assert messages[-2]['role'] == 'user' and messages[-2]['metadata']['clarification_choice'] == index
         # Der Klick ist keine neue Aussage: nur als Abfragezeile markiert.

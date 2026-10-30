@@ -1,0 +1,56 @@
+{
+  "code_commit": "39ab8ce",
+  "synthetic_only": true,
+  "productive_data_changed": false,
+  "cloud_requests": 0,
+  "native_window": "Kingfisher Gedaechtnistest.app",
+  "test_address": "http://127.0.0.1:8893",
+  "checked_via_ui": [
+    "early three-way Alex choice",
+    "explicit Winter work/home merge",
+    "old chooser and answers invalidated",
+    "refresh reduces person choices to two",
+    "access answer links to exact original",
+    "withdrawal blocks old answer",
+    "same access question after fix reports no supported answer",
+    "task suggestion shows source time 18:30",
+    "one-click acceptance preserves person/source/time",
+    "restart retains task and confirmed identity",
+    "not-done mail leaves task open",
+    "completion proposal rejected without completing task",
+    "normal sentence answer cites original 3 November 18:30 request"
+  ],
+  "task": {
+    "title": "Protokoll senden",
+    "status": "open",
+    "due": "2026-11-03T18:30:00+01:00",
+    "person": {
+      "adresse": "nora.licht@probe.invalid",
+      "name": "Nora Licht"
+    },
+    "source": "episode:e-73bc19578e8c"
+  },
+  "normal_answer": {
+    "query": "Bis wann hat Nora Licht das Protokoll erbeten?",
+    "content": "Nora Licht hat das Protokoll bis zum 3. November 2026 um 18:30 Uhr erbeten. [1]\n\nBelege\n[1] Gedächtnisprobe · Protokoll für Nora; von Nora Licht <nora.licht@probe.invalid>; 30.10.2026\n\nAus der Akte: Nora Licht, Stand: „das Protokoll ist noch nicht fertig. Ich melde mich morgen.“; Nora Licht, Frist · Vermutlich offen 03.11.2026: „bitte sende mir das Protokoll bis zum 3. November 2026 um 18:30 Uhr.“\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).\n\nDer semantische Suchbestand war begrenzt; weitere passende Quellen können fehlen.",
+    "status": "working_reports",
+    "source_ids": [
+      "e-73bc19578e8c"
+    ],
+    "times": {
+      "frage": 0.0,
+      "suche": 0.096,
+      "antwort_modell": 12.3,
+      "saetze_modell": 6.646,
+      "satzpruefung": 0.012,
+      "gesamt": 19.1
+    }
+  },
+  "limits": [
+    "Synthetic UI acceptance is not representative private archive accuracy.",
+    "Local answers observed at 7.8 to 19 seconds, not subsecond search.",
+    "Semantic inventory reported partial coverage.",
+    "No independent model configured for sentence verification; deterministic source checks active.",
+    "Initial Nora fixture omitted source-head advancement; its first work.ok was not an indexing success. After matching the real importer head step, state complete and source refs were explicitly asserted; retrieval then passed."
+  ]
+}

@@ -35,7 +35,8 @@ AUSSERHALB = 'ausserhalb_zeitraum'
 ARTEN = (ANDERE_PERSON, AUSSERHALB)
 RAHMEN_VERSION = 1
 #: Höchstens so viele gleichnamige Personen und Namensvettern je Name im gespeicherten Rahmen.
-MAX_ANDERE = 6
+MAX_ANDERE = 6 * 20  # Sechs Kandidaten mit je höchstens zwanzig bestätigten Adressen.
+MAX_ADRESSEN = 20
 MAX_NAMEN = 4
 
 
@@ -47,18 +48,26 @@ class Gemeint:
     adresse: str
     andere: tuple[str, ...]
     """Adressen der Namensvettern."""
+    adressen: tuple[str, ...] = ()
+    """Weitere ausdrücklich bestätigte Adressen der gemeinten Person."""
 
     def als_dict(self) -> dict[str, Any]:
-        return {'name': self.name, 'adresse': self.adresse, 'andere': list(self.andere)}
+        return {'name': self.name, 'adresse': self.adresse, 'andere': list(self.andere),
+                **({'adressen': list(self.adressen)} if self.adressen else {})}
 
     @classmethod
     def aus_dict(cls, roh: Any) -> 'Gemeint | None':
-        if (not isinstance(roh, dict) or set(roh) != {'name', 'adresse', 'andere'} or not isinstance(roh['name'], str)
+        if (not isinstance(roh, dict) or set(roh) not in ({'name', 'adresse', 'andere'},
+                {'name', 'adresse', 'andere', 'adressen'}) or not isinstance(roh['name'], str)
                 or not isinstance(roh['adresse'], str) or not roh['adresse'] or not isinstance(roh['andere'], list)
                 or not roh['andere'] or len(roh['andere']) > MAX_ANDERE
                 or any(not isinstance(a, str) or not a for a in roh['andere'])):
             return None
-        return cls(roh['name'], roh['adresse'], tuple(roh['andere']))
+        adressen = roh.get('adressen', [])
+        if (not isinstance(adressen, list) or len(adressen) > MAX_ADRESSEN
+                or any(not isinstance(a, str) or not a for a in adressen)):
+            return None
+        return cls(roh['name'], roh['adresse'], tuple(roh['andere']), tuple(adressen))
 
 
 @dataclass(frozen=True)
@@ -148,7 +157,9 @@ def _datum(iso: str) -> str:
 
 def rahmen_der_frage(gemeinte, zeitraum: Zeitraum | None) -> Rahmen:
     """Der Rahmen aus `personenfrage.gemeinte_unter_namensvettern` und dem Zeitraum der Frage."""
-    personen = [Gemeint(erwaehnung.begriff, gemeint.adresse, tuple(a.adresse for a in andere)[:MAX_ANDERE])
+    personen = [Gemeint(erwaehnung.begriff, gemeint.adresse,
+                       tuple(adresse for a in andere for adresse in a.adressen or [a.adresse])[:MAX_ANDERE],
+                       tuple(a for a in gemeint.adressen if a != gemeint.adresse)[:MAX_ADRESSEN])
                 for erwaehnung, gemeint, andere in gemeinte][:MAX_NAMEN]
     return Rahmen(tuple(personen), zeitraum)
 
@@ -167,7 +178,7 @@ def kennzeichen(episode: Any, rahmen: Rahmen) -> tuple[Kennzeichen, ...]:
         adressen = {n.adresse for n in nennungen(episode) if n.adresse}
         for person in rahmen.personen:
             fremd = [a for a in person.andere if a in adressen]
-            if fremd and person.adresse not in adressen:
+            if fremd and not adressen.intersection((person.adresse, *person.adressen)):
                 marken.append(Kennzeichen(ANDERE_PERSON, fremd[0], person.name, person.adresse))
     if rahmen.zeitraum is not None:
         moment = episode.occurred_at

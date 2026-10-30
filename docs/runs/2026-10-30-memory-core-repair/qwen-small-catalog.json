@@ -1,0 +1,105 @@
+{
+  "synthetic_only": true,
+  "productive_data_changed": false,
+  "cloud_requests": 0,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "initial_pressure": {
+    "level": 1,
+    "free_percent": 63
+  },
+  "rows": [
+    {
+      "key": "winter-request",
+      "state": "complete",
+      "seconds": 8.207,
+      "expected_kinds": [
+        "request"
+      ],
+      "actual_kinds": [
+        "request"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 6677164195,
+          "size_vram": 6677164195,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 1,
+        "free_percent": 64
+      },
+      "pressure_after": {
+        "level": 2,
+        "free_percent": 26
+      }
+    },
+    {
+      "key": "sommer-delivery",
+      "state": "complete",
+      "seconds": 2.981,
+      "expected_kinds": [
+        "fact",
+        "status"
+      ],
+      "actual_kinds": [
+        "fact"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 6677164195,
+          "size_vram": 6677164195,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 2,
+        "free_percent": 26
+      },
+      "pressure_after": {
+        "level": 2,
+        "free_percent": 26
+      }
+    },
+    {
+      "key": "winter-private",
+      "state": "complete",
+      "seconds": 2.714,
+      "expected_kinds": [
+        "fact"
+      ],
+      "actual_kinds": [
+        "fact"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 6677164195,
+          "size_vram": 6677164195,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 2,
+        "free_percent": 26
+      },
+      "pressure_after": {
+        "level": 2,
+        "free_percent": 22
+      }
+    },
+    {
+      "key": "not-done",
+      "skipped": "memory guard"
+    }
+  ],
+  "final_pressure": {
+    "level": 2,
+    "free_percent": 24
+  }
+}

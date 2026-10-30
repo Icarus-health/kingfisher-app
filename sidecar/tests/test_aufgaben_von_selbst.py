@@ -115,14 +115,20 @@ def test_eindeutige_bitte_wird_ohne_klick_aufgabe_mit_herkunft_person_und_logbuc
 
 def test_eigene_zusage_wird_aufgabe_fuer_den_empfaenger_mit_frist(welt):
     episodes, tasks, proposals, _, lauf, _ = welt
-    episode = mail(episodes, 'Unterlagen', f'Hallo Anna,\n\n{ZUSAGE}\n\nLena', von=LENA, an=[ANNA])
-    p = vorschlag(proposals, episodes, episode, 'Unterlagen an Anna schicken', ZUSAGE)
+    # „Bis Freitag“ wäre an einem Freitag absichtlich mehrdeutig. Hier wird
+    # die Aufgabenübernahme geprüft; die Wochentagsauflösung hat feste Fälle unten.
+    datum = (JETZT + timedelta(days=7)).date()
+    zusage = f'Ich schicke dir die Unterlagen bis zum {datum:%d.%m.%Y}.'
+    episode = mail(episodes, 'Unterlagen', f'Hallo Anna,\n\n{zusage}\n\nLena', von=LENA, an=[ANNA])
+    p = vorschlag(proposals, episodes, episode, 'Unterlagen an Anna schicken', zusage)
     assert lauf.schritt()['angelegt'] == 1
     task = tasks.get(f't-suggestion-{p.id}')
     assert task.person == {'adresse': 'anna.berg@example.org', 'name': 'Anna Berg'}
     assert task.angelegt['richtung'] == 'zusage' and 'weil du Anna Berg am ' in task.angelegt['satz']
-    erwartet = frist_aus(ZUSAGE, episode.occurred_at)
-    assert erwartet is not None and task.due == erwartet and erwartet.weekday() == 4  # der nächste Freitag
+    from icarus_memory.model import user_timezone
+    assert task.due is not None
+    lokal = task.due.astimezone(user_timezone())
+    assert lokal.date() == datum and (lokal.hour, lokal.minute) == (23, 59)
 
 
 def test_frist_nur_bei_genau_einer_eindeutigen_angabe():
@@ -371,7 +377,9 @@ def test_alle_uebernehmen_mit_projekt_und_person_und_rueckgaengig_fuer_die_grupp
         episodes.link_project(frueher.id, projekt.id)
     # Beide unsicher (nur in Kopie): sie bleiben Vorschläge, „Alle übernehmen“ nimmt sie in einem Klick.
     _, p1 = bitte(episodes, proposals, an=[JONAS], cc=[LENA], ref='konto:n1')
-    _, p2 = bitte(episodes, proposals, an=[JONAS], cc=[LENA], titel='Rechnung 4711 prüfen', text='Bitte prüfe die Rechnung 4711 bis Freitag.', ref='konto:n2')
+    datum = (JETZT + timedelta(days=7)).date()
+    _, p2 = bitte(episodes, proposals, an=[JONAS], cc=[LENA], titel='Rechnung 4711 prüfen',
+                  text=f'Bitte prüfe die Rechnung 4711 bis zum {datum:%d.%m.%Y}.', ref='konto:n2')
     assert client.post('/api/v1/aufgaben-von-selbst/durchlauf').json()['angelegt'] == 0
     seite = client.get('/api/v1/task-candidates/page').json()
     zeilen = {z['id']: z for z in seite['items']}

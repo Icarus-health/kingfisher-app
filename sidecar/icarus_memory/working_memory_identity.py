@@ -202,7 +202,8 @@ def explicit_person_selection(question: str, source_rows: list[dict[str, Any]],
 
 
 def adjust_selection(question: str, source_rows: list[dict[str, Any]],
-                     selected_ids: list[str], *, candidate_ids: list[str] | None = None
+                     selected_ids: list[str], *, candidate_ids: list[str] | None = None,
+                     confirmed_merges=()
                      ) -> tuple[list[str], str | None, str | None]:
     """Return (selected IDs, forced status, clarification hint).
 
@@ -218,6 +219,9 @@ def adjust_selection(question: str, source_rows: list[dict[str, Any]],
             or any(not isinstance(identifier, str) for identifier in original)
             or len(set(original)) != len(original)):
         return unchanged
+    from .person_merges import active_members, identity_for_address
+    mitglieder = active_members(confirmed_merges)
+    identitaet = lambda adresse: identity_for_address(adresse, mitglieder)
     normalized_question = _normal(question)
     explicit = explicit_person_selection(question, source_rows, original, candidate_ids=candidate_ids)
     if explicit[1] is not None:
@@ -250,10 +254,10 @@ def adjust_selection(question: str, source_rows: list[dict[str, Any]],
                     and not _explicit_mailboxes(normalized_question, [s for s in candidate_senders if s is not None])
                     and not _explicit_streets(normalized_question, candidate_rows, candidate_senders)):
                 additions = []
-                selected_mailboxes = {sender[1] for sender in selected_senders if sender is not None}
+                selected_mailboxes = {identitaet(sender[1]) for sender in selected_senders if sender is not None}
                 for identifier, row, sender in zip(candidates, candidate_rows, candidate_senders):
                     if (identifier in original or sender is None or sender[0] != name
-                            or sender[1] in selected_mailboxes):
+                            or identitaet(sender[1]) in selected_mailboxes):
                         continue
                     if any(_has_shared_topic_anchor(question, name, selected_row, row)
                            for selected_row, selected_sender in zip(selected_rows, selected_senders)
@@ -276,7 +280,7 @@ def adjust_selection(question: str, source_rows: list[dict[str, Any]],
     name = next(iter(names))
     if len(re.findall(r"(?<!\w)" + re.escape(name) + r"(?!\w)", normalized_question)) != 1:
         return unchanged
-    if len({sender[1] for sender in senders}) < 2:
+    if len({identitaet(sender[1]) for sender in senders}) < 2:
         return unchanged
 
     email_matches = _explicit_mailboxes(normalized_question, senders)

@@ -1,15 +1,9 @@
-"""Aufgaben folgen der Post (Paket B6, Oktober 2026): deterministisch, reversibel, nur bei sicherer Zuordnung.
+"""Aufgaben folgen der Post: Zuordnung, Bestätigung und Rückgängig mit echten Stores.
 
-Zusicherungen:
-1. Eine eigene Antwort im selben Mailverlauf mit einem tragenden Wort des Aufgabentitels erledigt die Aufgabe, mit
-   Grund und Logbucheintrag; eine eigene Mail an die Person der Aufgabe ebenso; ein Anhang mit dem Wort im Namen zählt.
-2. Ohne tragendes Wort, bei einer Rundmail (mehr als fünf Empfänger), bei einer seit über 90 Tagen überfälligen
-   Aufgabe und bei Gleichstand zweier Aufgaben gibt es nur einen Vorschlag „Erledigt?“; nichts wird geändert.
-3. „Wartet auf Anna“ und eine Antwort von Anna im Verlauf: die Aufgabe geht zurück zu dir, nicht auf erledigt.
-4. Rückgängig stellt den vorigen Zustand wieder her und trennt Aufgabe und Mail dauerhaft.
-5. Jede Mail wird einmal verarbeitet, auch nach einem Neustart; der Bestand von vor dem Umbau wird nicht neu gedeutet.
-6. Die Briefingzeile „Erledigt durch deine Mail an …“ steht höchstens einmal; die Akte zeigt die Änderung unter
-   „Braucht dich“ mit Rückgängig; Routen antworten 404/409.
+Eigene Mails und Anhänge schlagen eine Erledigung nur vor; Bestätigung nennt
+keinen erfundenen Versand. Automatisches Zurückholen setzt bekannte exakte
+Adresse und Bezug voraus. Die bisherigen Automatiktests bestätigen jetzt
+explizit: Wortüberschneidung allein beweist keine erfüllte Aufgabe.
 Nur synthetische Daten (Lena Probe, Anna Berg, Jonas Keller).
 """
 from __future__ import annotations
@@ -51,7 +45,7 @@ def welt(tmp_path):
         store.close()
 
 
-def mail(episodes, titel, text, *, von, an=(), cc=(), tage=0, stunden=0, kennung=None, antwort_auf=()):
+def mail(episodes, titel, text, *, von, an=(), cc=(), tage=0, stunden=0, kennung=None, antwort_auf=(), source_key=""):
     """Eine Mail, wie die Aufnahme sie ablegt: Beteiligte mit Rolle, genaue Kopfzeilenbezüge."""
     empfaenger = [{'adresse': a.split('<')[-1].rstrip('>').strip(), 'name': a.split('<')[0].strip(), 'rolle': 'an'} for a in an]
     empfaenger += [{'adresse': a.split('<')[-1].rstrip('>').strip(), 'name': a.split('<')[0].strip(), 'rolle': 'cc'} for a in cc]
@@ -59,7 +53,9 @@ def mail(episodes, titel, text, *, von, an=(), cc=(), tage=0, stunden=0, kennung
     tags = ([f'mail:message:{kennung}'] if kennung else []) + [f'mail:reply:{k}' for k in antwort_auf]
     episode, _ = episodes.record(EpisodeKind.MESSAGE, titel, text, Provenance(SourceType.EMAIL, source_ref=f'test:{titel}:{tage}:{stunden}'),
                                  participants=[von, *an, *cc], contacts=kontakte, tags=tags,
-                                 occurred_at=JETZT - timedelta(days=tage, hours=stunden))
+                                 occurred_at=JETZT - timedelta(days=tage, hours=stunden), source_key=source_key)
+    if source_key:
+        episodes.advance_source_head(source_key, None, episode.id)
     return episode
 
 
@@ -103,47 +99,56 @@ def test_tragende_woerter_lassen_fuellwoerter_namen_und_handlungswoerter_weg():
 # -- Erledigt durch eigene Mail ----------------------------------------------
 
 
-def test_eigene_antwort_im_verlauf_mit_tragendem_wort_erledigt_mit_grund_und_logbuch(welt):
+def test_eigene_antwort_im_verlauf_wird_nach_bestaetigung_erledigt_mit_grund_und_logbuch(welt):
     episodes, tasks, proposals, lauf, buch = welt
     bitte = bitte_von_anna(episodes)
     task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte)
     antwort = mail(episodes, 'AW: Druckdaten für den Flyer', 'Hallo Anna, anbei die Druckdaten. Viele Grüße, Lena',
                    von=LENA, an=[ANNA], tage=0, kennung='l1', antwort_auf=['a1'])
     bericht = lauf.schritt()
-    assert bericht == {'geprueft': 2, 'erledigt': 1, 'zurueck': 0, 'vorschlaege': 0}  # Bitte und Antwort
+    assert bericht == {'geprueft': 2, 'erledigt': 0, 'zurueck': 0, 'vorschlaege': 1}  # Bitte und Antwort
+    assert tasks.get(task.id).status is TaskStatus.OPEN
+    [vorschlag] = vorschlaege(proposals)
+    lauf.vorschlag_annehmen(vorschlag.id)
     fertig = tasks.get(task.id)
     assert fertig.status is TaskStatus.DONE and fertig.done_at == antwort.occurred_at
     grund = fertig.erledigt_grund
-    assert grund['satz'] == 'Erledigt, weil du Anna Berg am 21. Oktober „Druckdaten“ geschickt hast.'
+    assert grund['satz'] == 'Erledigt nach deiner Bestätigung zur Mail an Anna Berg vom 21. Oktober.'
     assert grund['episode_id'] == antwort.id and grund['verlauf'] is True and grund['woerter'] == ['Druckdaten']
     assert fertig.geaendert_grund is None and fertig.to_dict()['erledigt_grund']['satz'] == grund['satz']
     assert [e['kind'] for e in tasks.history(task.id)][0] == 'post_completed'
     assert vorschlaege(proposals) == []
     ereignisse = [e for e in buch.ereignisse(JETZT - timedelta(days=1)) if e.art == 'aufgabe_post']
-    assert len(ereignisse) == 1 and ereignisse[0].daten == {'sorte': 'erledigt', 'aufgabe': task.id, 'mail': antwort.id, 'wie': 'verlauf'}
+    assert len(ereignisse) == 1 and ereignisse[0].daten == {'sorte': 'erledigt', 'aufgabe': task.id, 'mail': antwort.id, 'wie': 'vorschlag'}
     # Ohne Rohtext im Logbuch: weder Betreff noch Titel.
     assert 'Druckdaten' not in str(ereignisse[0].daten)
 
 
-def test_eigene_mail_an_die_person_der_aufgabe_mit_wort_erledigt_ohne_verlauf(welt):
+def test_eigene_mail_an_die_person_mit_wort_braucht_bestaetigung_ohne_verlauf(welt):
     episodes, tasks, proposals, lauf, _ = welt
     bitte = bitte_von_anna(episodes)
     task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte)
     mail(episodes, 'Flyer', 'Hallo Anna, die Druckdaten sind fertig, siehe Anhang.', von=LENA, an=[ANNA], kennung='l2')
-    assert lauf.schritt()['erledigt'] == 1
+    assert lauf.schritt()['vorschlaege'] == 1
+    assert tasks.get(task.id).status is TaskStatus.OPEN
+    [vorschlag] = vorschlaege(proposals)
+    lauf.vorschlag_annehmen(vorschlag.id)
     fertig = tasks.get(task.id)
     assert fertig.status is TaskStatus.DONE and fertig.erledigt_grund['verlauf'] is False
     assert fertig.erledigt_grund['wer'] == 'Anna Berg'
 
 
-def test_anhang_mit_dem_wort_im_namen_zaehlt_als_tragendes_wort(welt):
+def test_anhang_mit_dem_wort_im_namen_belegt_nur_den_bezug(welt):
     episodes, tasks, proposals, lauf, _ = welt
     bitte = bitte_von_anna(episodes)
     task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte)
     eigene = mail(episodes, 'AW: Druckdaten für den Flyer', 'Hallo Anna, anbei wie besprochen. Viele Grüße', von=LENA, an=[ANNA],
                   kennung='l3', antwort_auf=['a1'])
     anhang(episodes, eigene, 'Druckdaten_Flyer_final.pdf')
-    assert lauf.schritt()['erledigt'] == 1
+    assert lauf.schritt()['vorschlaege'] == 1
+    assert tasks.get(task.id).status is TaskStatus.OPEN
+    [vorschlag] = vorschlaege(proposals)
+    lauf.vorschlag_annehmen(vorschlag.id)
     assert tasks.get(task.id).status is TaskStatus.DONE
 
 
@@ -183,10 +188,10 @@ def test_ohne_tragendes_wort_nur_vorschlag_und_annehmen_erledigt(welt):
     liste = lauf.vorschlaege()
     assert [v['id'] for v in liste] == [vorschlag.id] and liste[0]['aufgabe']['id'] == task.id
     assert liste[0]['art'] == 'erledigt' and liste[0]['mail']['episode_id'] == antwort.id
-    assert liste[0]['satz'] == 'Du hast Anna Berg am 21. Oktober geantwortet („AW: Flyer“). Ist die Aufgabe damit erledigt?'
+    assert liste[0]['satz'] == 'Du hast am 21. Oktober an Anna Berg geschrieben („AW: Flyer“). Ist die Aufgabe damit erledigt?'
     fertig = lauf.vorschlag_annehmen(vorschlag.id)
     assert fertig.status is TaskStatus.DONE
-    assert fertig.erledigt_grund['satz'] == 'Erledigt, weil du Anna Berg am 21. Oktober geantwortet hast.'
+    assert fertig.erledigt_grund['satz'] == 'Erledigt nach deiner Bestätigung zur Mail an Anna Berg vom 21. Oktober.'
     assert proposals.get(vorschlag.id).state is ProposalState.ACCEPTED
     with pytest.raises(ProposalError):
         lauf.vorschlag_annehmen(vorschlag.id)
@@ -210,7 +215,7 @@ def test_lange_ueberfaellige_aufgabe_nie_automatisch(welt):
     assert tasks.get(task.id).status is TaskStatus.OPEN
 
 
-def test_zwei_gleichwertige_aufgaben_nur_vorschlag_verlauf_schlaegt_person(welt):
+def test_zwei_aufgaben_auch_mit_verlauf_nur_vorschlag(welt):
     episodes, tasks, proposals, lauf, _ = welt
     bitte = bitte_von_anna(episodes)
     a = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte)
@@ -218,7 +223,7 @@ def test_zwei_gleichwertige_aufgaben_nur_vorschlag_verlauf_schlaegt_person(welt)
     mail(episodes, 'AW: Druckdaten für den Flyer', 'Hallo Anna, anbei die Druckdaten.', von=LENA, an=[ANNA], kennung='l9', antwort_auf=['a1'])
     assert lauf.schritt() == {'geprueft': 2, 'erledigt': 0, 'zurueck': 0, 'vorschlaege': 2}
     assert tasks.get(a.id).status is TaskStatus.OPEN and tasks.get(b.id).status is TaskStatus.OPEN
-    # Verlauf schlägt Person: nur die Aufgabe aus dem Verlauf automatisch, die andere als Vorschlag.
+    # Auch der stärkere Verlaufbezug belegt keine Erfüllung: beide bleiben Vorschläge.
     zweite = mail(episodes, 'Flyer Rückseite', 'Könnten Sie die Rückseite noch einmal prüfen?', von=ANNA, an=[LENA], tage=2, kennung='a2')
     c = aufgabe(tasks, 'Rückseite prüfen', quelle=zweite)
     for p in vorschlaege(proposals):
@@ -226,8 +231,8 @@ def test_zwei_gleichwertige_aufgaben_nur_vorschlag_verlauf_schlaegt_person(welt)
     tasks.drop(b.id)
     mail(episodes, 'AW: Flyer Rückseite', 'Hallo Anna, die Rückseite ist geprüft, die Druckdaten auch.', von=LENA, an=[ANNA],
          kennung='l10', antwort_auf=['a2'])
-    assert lauf.schritt() == {'geprueft': 2, 'erledigt': 1, 'zurueck': 0, 'vorschlaege': 1}
-    assert tasks.get(c.id).status is TaskStatus.DONE and tasks.get(a.id).status is TaskStatus.OPEN
+    assert lauf.schritt() == {'geprueft': 2, 'erledigt': 0, 'zurueck': 0, 'vorschlaege': 2}
+    assert tasks.get(c.id).status is TaskStatus.OPEN and tasks.get(a.id).status is TaskStatus.OPEN
 
 
 # -- Warten aufgelöst durch fremde Mail -----------------------------------------
@@ -260,9 +265,9 @@ def test_wartet_auf_ohne_verlauf_und_wort_nur_vorschlag_verwerfen_trennt(welt):
     assert proposals.get(vorschlag.id).state is ProposalState.REJECTED
     assert tasks.post_getrennt(task.id, andere.id) is True
     assert tasks.get(task.id).wartet_auf == 'Anna Berg'
-    # Ein tragendes Wort reicht für die sichere Zuordnung, auch ohne Verlauf.
+    # Ohne bekannte Adresse bleibt auch ein Worttreffer ein Bestätigungsvorschlag.
     mail(episodes, 'Flyer', 'Hallo Lena, die Freigabe für den Flyer ist erteilt.', von=ANNA, an=[LENA], kennung='a5')
-    assert lauf.schritt()['zurueck'] == 1 and tasks.get(task.id).wartet_auf is None
+    assert lauf.schritt()['vorschlaege'] == 1 and tasks.get(task.id).wartet_auf == 'Anna Berg'
 
 
 def test_fremde_mail_erledigt_nie_eine_aufgabe_die_bei_dir_liegt(welt):
@@ -282,7 +287,10 @@ def test_rueckgaengig_stellt_her_und_verhindert_wiederholung(welt):
     bitte = bitte_von_anna(episodes)
     task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte)
     antwort = mail(episodes, 'AW: Druckdaten für den Flyer', 'Anbei die Druckdaten.', von=LENA, an=[ANNA], kennung='l12', antwort_auf=['a1'])
-    assert lauf.schritt()['erledigt'] == 1
+    assert lauf.schritt()['vorschlaege'] == 1
+    assert tasks.get(task.id).status is TaskStatus.OPEN
+    [vorschlag] = vorschlaege(proposals)
+    lauf.vorschlag_annehmen(vorschlag.id)
     wieder = lauf.rueckgaengig(task.id)
     assert wieder.status is TaskStatus.OPEN and wieder.done_at is None and wieder.erledigt_grund is None
     assert [e['kind'] for e in tasks.history(task.id)][0] == 'post_undone'
@@ -295,7 +303,8 @@ def test_rueckgaengig_stellt_her_und_verhindert_wiederholung(welt):
     assert lauf.verarbeiten(episodes.get(antwort.id)) == {'erledigt': 0, 'zurueck': 0, 'vorschlaege': 0}
     assert tasks.get(task.id).status is TaskStatus.OPEN and vorschlaege(proposals) == []
     # Rückgängig bei „wieder bei dir“ stellt das Warten samt Datum wieder her.
-    wartend = aufgabe(tasks, 'Freigabe von Jonas', wartet_auf='Jonas Keller', tage=9)
+    eigene = mail(episodes, 'Bitte Freigabe', 'Jonas, bitte die Freigabe schicken.', von=LENA, an=[JONAS], tage=10, kennung='l-jonas')
+    wartend = aufgabe(tasks, 'Freigabe von Jonas', quelle=eigene, wartet_auf='Jonas Keller', tage=9)
     mail(episodes, 'Freigabe', 'Die Freigabe ist da.', von=JONAS, an=[LENA], kennung='j1')
     assert lauf.schritt()['zurueck'] == 1
     her = lauf.rueckgaengig(wartend.id)
@@ -334,7 +343,8 @@ def test_bestand_von_vor_dem_umbau_wird_nicht_neu_gedeutet(tmp_path):
         assert lauf.schritt() == {'geprueft': 0, 'erledigt': 0, 'zurueck': 0, 'vorschlaege': 0}
         assert tasks.get(task.id).status is TaskStatus.OPEN
         mail(episodes, 'AW: AW: Druckdaten für den Flyer', 'Und hier die Druckdaten noch einmal.', von=LENA, an=[ANNA], kennung='l15', antwort_auf=['a1'])
-        assert lauf.schritt()['erledigt'] == 1
+        assert lauf.schritt()['vorschlaege'] == 1
+        assert tasks.get(task.id).status is TaskStatus.OPEN
     finally:
         for store in (episodes, tasks, proposals):
             store.close()
@@ -363,10 +373,12 @@ def test_briefing_zeile_hoechstens_einmal(welt):
     zweite = mail(episodes, 'Rückseite', 'Bitte die Rückseite prüfen.', von=JONAS, an=[LENA], tage=1, kennung='j2')
     b = aufgabe(tasks, 'Rückseite für Jonas prüfen', quelle=zweite)
     mail(episodes, 'AW: Rückseite', 'Hallo Jonas, die Rückseite ist geprüft.', von=LENA, an=[JONAS], kennung='l17', antwort_auf=['j2'])
-    assert lauf.schritt()['erledigt'] == 2
+    assert lauf.schritt()['vorschlaege'] == 2
+    for vorschlag in vorschlaege(proposals):
+        lauf.vorschlag_annehmen(vorschlag.id)
     heute = aufgaben_post.heute(tasks, JETZT)
     assert [h['id'] for h in heute] == [b.id, a.id] or [h['id'] for h in heute] == [a.id, b.id]
-    assert all(h['satz'].startswith('Erledigt, weil du') for h in heute)
+    assert all(h['satz'].startswith('Erledigt nach deiner Bestätigung') for h in heute)
     lage = tagesbriefing.erstellen([], [], None, jetzt=JETZT, aufgaben_post=heute)
     zeilen = [z for z in lage.zeilen if z.art == 'aufgaben_post']
     assert len(zeilen) == 1
@@ -402,7 +414,10 @@ def test_akte_zeigt_die_aenderung_unter_braucht_dich(welt):
     einordnen(episodes, bitte, [(BITTE, 'request')])
     task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte)
     mail(episodes, 'AW: Druckdaten für den Flyer', 'Anbei die Druckdaten.', von=LENA, an=[ANNA], kennung='l18', antwort_auf=['a1'])
-    assert lauf.schritt()['erledigt'] == 1
+    assert lauf.schritt()['vorschlaege'] == 1
+    assert tasks.get(task.id).status is TaskStatus.OPEN
+    [vorschlag] = vorschlaege(proposals)
+    lauf.vorschlag_annehmen(vorschlag.id)
     bezuege = Bezuege(episodes, workspace=None, eigene=lambda: [ICH])
     akten = Akten(episodes, bezuege, claims=None, aufgaben=lambda sache, ids: tasks.all_tasks())
     bezuege.aktualisieren()
@@ -410,7 +425,7 @@ def test_akte_zeigt_die_aenderung_unter_braucht_dich(welt):
     punkte = [p for p in akte['braucht_dich']['eintraege'] if p['art'] == 'aufgabe_post']
     assert len(punkte) == 1
     assert punkte[0]['aufgabe'] == {'id': task.id, 'title': 'Druckdaten an Anna schicken'} and punkte[0]['wahl'] == []
-    assert punkte[0]['satz'] == 'Erledigt, weil du Anna Berg am 21. Oktober „Druckdaten“ geschickt hast.'
+    assert punkte[0]['satz'] == 'Erledigt nach deiner Bestätigung zur Mail an Anna Berg vom 21. Oktober.'
     assert punkte[0]['ziel'] == f'p:{task.id}'
     # Die offene Bitte gilt in der Akte als erledigt (durch die Aufgabe), nicht mehr als offen.
     assert akte['offen']['eintraege'] == [] and akte['offen']['erledigt']['gesamt'] == 1
@@ -445,9 +460,11 @@ def test_routen_rueckgaengig_und_vorschlaege(api):
     assert client.post(f'/api/v1/tasks/{task.id}/rueckgaengig').status_code == 409
     assert client.post('/api/v1/tasks/t-fehlt/rueckgaengig').status_code == 404
     antwort = mail(episodes, 'AW: Druckdaten für den Flyer', 'Anbei die Druckdaten.', von=LENA, an=[ANNA], kennung='l19', antwort_auf=['a1'])
-    assert aufgaben_post.schritt_fuer(app)['erledigt'] == 1
+    assert aufgaben_post.schritt_fuer(app)['vorschlaege'] == 1
+    [vorschlag] = client.get('/api/v1/aufgaben-post/vorschlaege').json()['items']
+    assert client.post(f'/api/v1/aufgaben-post/vorschlaege/{vorschlag["id"]}/annehmen').status_code == 200
     gelesen = client.get(f'/api/v1/tasks/{task.id}').json()
-    assert gelesen['status'] == 'done' and gelesen['erledigt_grund']['satz'].startswith('Erledigt, weil du Anna Berg')
+    assert gelesen['status'] == 'done' and gelesen['erledigt_grund']['satz'].startswith('Erledigt nach deiner Bestätigung')
     seite = client.get('/api/v1/tasks', params={'view': 'done'}).json()
     assert seite['tasks'][0]['erledigt_grund']['episode_id'] == antwort.id
     zurueck = client.post(f'/api/v1/tasks/{task.id}/rueckgaengig')

@@ -1,4 +1,5 @@
 type TaskTarget = {id: string; status?: string; wartet_auf?: string | null; project_id?: string | null};
+type CandidateTime = {temporal_status?: string; valid_until?: string | null; frist_vorschlag?: string | null};
 
 export function localTaskDay(value: string | null | undefined) {
   if (!value) return '';
@@ -25,8 +26,19 @@ export function endOfTaskDay(value: string) {
   return new Date(`${value}T23:59:00`).toISOString();
 }
 
-export function candidateDeadline(source: {temporal_status?: string; valid_until?: string | null}, day: string) {
-  if (day && source.temporal_status === 'recent' && source.valid_until && localTaskDay(source.valid_until) === day) return source.valid_until;
+function sourceDeadline(source: CandidateTime) {
+  // Auch null ist ein geprüftes Ergebnis: keine Modellfrist darüberlegen.
+  if ('frist_vorschlag' in source) return source.frist_vorschlag;
+  return source.temporal_status === 'recent' ? source.valid_until : null;
+}
+
+export function candidateDay(source: CandidateTime) {
+  return localTaskDay(sourceDeadline(source));
+}
+
+export function candidateDeadline(source: CandidateTime, day: string) {
+  const proposed = sourceDeadline(source);
+  if (day && proposed && localTaskDay(proposed) === day) return proposed;
   return endOfTaskDay(day);
 }
 

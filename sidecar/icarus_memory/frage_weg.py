@@ -119,14 +119,21 @@ def bezug_im_bestand(anfrage: Anfrage, episodes: Any, projects: Iterable[tuple[s
 
 def entscheide(frage: str, anfrage: Anfrage, *, episodes: Any, projects: list[tuple[str, str]] | None = None,
                entities: Any = None, termine: list[dict] | None = None, eigene: Iterable[str] = (),
-               bestaetigt: Callable[[str], bool] | None = None, jetzt: datetime | None = None) -> Verstaendnis:
+               bestaetigt: Callable[[str], bool] | None = None, jetzt: datetime | None = None,
+               confirmed_merges: Iterable[dict] = ()) -> Verstaendnis:
     """Löst die Hauptsache auf und entscheidet zwischen Rückfrage, direkter Antwort und gewohntem Weg."""
+    from .personenfrage import unklare_person
+    unklar = unklare_person(frage, episodes, eigene=eigene, confirmed_merges=confirmed_merges) if episodes is not None else None
+    if unklar is not None:
+        gefunden = bedeutungen(unklar.begriff, episodes=episodes, projects=projects, entities=entities,
+                               termine=termine or [], jetzt=jetzt, eigene=eigene, confirmed_merges=confirmed_merges)
+        return Verstaendnis(anfrage, "rueckfrage", unklar.begriff, gefunden, grund="Person mehrdeutig")
     begriff = hauptsache(anfrage)
     if begriff is None or episodes is None:
         return Verstaendnis(anfrage, "weiter", grund="keine Sache")
     ueberblick = anfrage.absicht == "ueberblick"
     gefunden = bedeutungen(begriff, episodes=episodes, projects=projects, entities=entities,
-                           termine=termine or [], jetzt=jetzt, eigene=eigene)
+                           termine=termine or [], jetzt=jetzt, eigene=eigene, confirmed_merges=confirmed_merges)
     alle = gefunden["bedeutungen"]
     # Einzelne Erwähnungen sind keine Bedeutung („Python“ in dreißig Mails): Ohne tragende Bedeutung
     # gibt es nichts zu klären, und die Frage geht den gewohnten Weg.

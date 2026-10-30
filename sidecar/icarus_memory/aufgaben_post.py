@@ -1,30 +1,20 @@
-"""Aufgaben folgen der Post (Oktober 2026): Die eigene Mail erledigt die Aufgabe, die Antwort löst das Warten auf.
+"""Aufgaben folgen der Post: Mailbezug schlägt vor, er beweist keine Erfüllung.
 
-Ein Stabschef hakt ab, was er dich tun sah: „Du solltest Anna die Druckdaten schicken; die Mail ist raus, also ist
-es erledigt.“ Dieses Modul tut dasselbe, deterministisch und ohne Modell, und zwar nur dort, wo die Zuordnung sicher
-ist. Alles andere wird als Vorschlag „Erledigt?“ vorgelegt, nie geraten.
+Eigene Mails liefern nur den bestehenden Bestätigungsvorschlag „Erledigt?“.
+Wörter in Betreff, Text oder Anhang ordnen die Mail zu; sie belegen weder Versand
+bestimmter Unterlagen noch Erfüllung der Aufgabe. Der Erledigungsgrund nennt
+entsprechend die Bestätigung des Nutzers.
 
-Die drei Grundsätze (docs/30-akten.md, „Aufgaben folgen der Post“):
+Ein Wartestatus geht nur automatisch zurück zu „bei dir“, wenn eine bekannte
+exakte Gegenseitenadresse und Verlauf oder tragende Wörter zusammenpassen.
+Bloße Namensgleichheit liefert höchstens einen Vorschlag; eine widersprechende
+bekannte Adresse schließt den Treffer aus. Mehrdeutige Empfänger, Rundmails,
+über 90 Tage überfällige Aufgaben und Gleichstände ändern nichts automatisch.
 
-* **Reversibel, deshalb ohne Rückfrage.** Das automatische Erledigen ist ein Ablagevorgang, kein Fakt im Bestand.
-  Es steht sichtbar mit Grund in der Aufgabenliste und in der Akte („Erledigt, weil du Anna am 21. Oktober die
-  Druckdaten geschickt hast. Rückgängig“); `POST /api/v1/tasks/{id}/rueckgaengig` stellt den vorigen Zustand her und
-  trennt Aufgabe und Mail dauerhaft.
-* **Nur bei sicherer Zuordnung automatisch.** Erledigt durch eine eigene Mail, wenn alle drei zutreffen: (a) die
-  Mail antwortet im Verlauf der Quelle der Aufgabe oder geht an die Person der Aufgabe; (b) die Aufgabe liegt bei
-  dir (nicht „wartet auf“); (c) ein tragendes Wort des Aufgabentitels steht in Betreff, Text oder im Namen eines
-  Anhangs. Treffen (a) und (b), aber nicht (c): Vorschlag. „Wartet auf Anna“ und Anna schreibt im selben Verlauf
-  oder mit einem tragenden Wort: zurück zu „bei dir“ (nicht erledigt). Nie automatisch: Rundmails (mehr als
-  `MAX_EMPFAENGER` Empfänger), Aufgaben, die seit über `ALT_TAGE` Tagen überfällig sind, und bei Gleichstand
-  zweier Aufgaben; Verlauf schlägt Person, mehr Wörter schlagen weniger. Was der Nutzer einmal per Rückgängig oder
-  „Verwerfen“ von einer Mail getrennt hat, bleibt getrennt.
-* **Jede Mail einmal.** Der Durchlauf merkt sich seinen Stand (Zeilennummer der Episoden) und jede geprüfte Mail
-  (`aufgaben_post_mails` in `tasks.sqlite3`), auch über einen Neustart. Der Bestand von vor dem Umbau wird nicht
-  neu gedeutet: Der erste Durchlauf setzt nur den Stand.
-
-Was im Logbuch steht (`aufgabe_post`): Kennungen von Aufgabe und Mail, die Art, wie die Zuordnung zustande kam. Kein
-Text. Vorschläge sind `ProposalKind.TASK_DONE` und `TASK_WAITING_RESOLVED`; Annehmen ist dieselbe Änderung mit Grund,
-Verwerfen trennt Aufgabe und Mail.
+Jede neue Mail wird einmal geprüft, auch nach Neustart; der Erstbestand bleibt
+unberührt. Bestätigung prüft die geltenden Quellen erneut. Rückgängig stellt den
+vorigen Zustand her und trennt Aufgabe und Mail dauerhaft. Logbuch und Geschichte
+enthalten den Änderungsgrund; keine zusätzliche Wissensablage und kein Modell.
 """
 from __future__ import annotations
 
@@ -134,7 +124,7 @@ class _Mail:
 class Treffer:
     aufgabe: Task
     art: str
-    """`erledigt` (eigene Mail erledigt die Aufgabe) oder `zurueck` (Antwort löst das Warten auf)."""
+    """`erledigt` (Bestätigungsvorschlag zur eigenen Mail) oder `zurueck` (Antwort löst das Warten auf)."""
     verlauf: bool
     woerter: list[str]
     wer: dict[str, str]
@@ -231,7 +221,7 @@ class Lauf:
     # -- Lesen der Mail --
 
     def _mail(self, episode: Any) -> _Mail | None:
-        if (getattr(episode.kind, 'value', episode.kind) != EpisodeKind.MESSAGE.value
+        if (not self._geltend(episode) or getattr(episode.kind, 'value', episode.kind) != EpisodeKind.MESSAGE.value
                 or episode.provenance.source_type is not SourceType.EMAIL
                 or episode.state in AUSGEBLENDETE_ZUSTAENDE):
             return None
@@ -255,6 +245,14 @@ class Lauf:
         texte = [episode.title or '', episode.body or '', *self.episodes.anhang_titel(episode.id)]
         return _Mail(episode, 'von_mir' if ich else 'an_mich', absender, empfaenger, zeit, texte)
 
+    def _geltend(self, episode: Any) -> bool:
+        """Nur der aktuelle, nicht entzogene Originalbeleg darf eine Aufgabe ändern."""
+        try:
+            stand = self.episodes.support_snapshot(episode.id)
+            return bool(stand and stand.current())
+        except (EpisodeError, ValueError):
+            return False
+
     def _quelle(self, task: Task) -> Any | None:
         ref = task.provenance.source_ref or ''
         if not ref.startswith('episode:'):
@@ -263,10 +261,11 @@ class Lauf:
             quelle = self.episodes.get(ref[len('episode:'):])
         except EpisodeError:
             return None
-        return quelle if getattr(quelle.kind, 'value', quelle.kind) == EpisodeKind.MESSAGE.value else None
+        return quelle if (self._geltend(quelle)
+                          and getattr(quelle.kind, 'value', quelle.kind) == EpisodeKind.MESSAGE.value) else None
 
     def _gegenseite(self, quelle: Any | None, eigene: set[str]) -> dict[str, str] | None:
-        """Die Person der Aufgabe: wer die Quellmail schrieb, bei einer eigenen Mail ihr erster fremder Empfänger."""
+        """Die Person der Aufgabe: wer die Quellmail schrieb, bei einer eigenen Mail ihr einziger fremder Empfänger."""
         if quelle is None:
             return None
         kontakte = list(quelle.contacts or [])
@@ -284,7 +283,7 @@ class Lauf:
         if not von_ich:
             return absender if absender['adresse'] else None
         andere = [a for a in andere if a.get('adresse') and a['adresse'] not in eigene]
-        return andere[0] if andere else None
+        return andere[0] if len(andere) == 1 else None
 
     @staticmethod
     def _name_passt(wartet_auf: str, absender: dict[str, str]) -> bool:
@@ -311,6 +310,8 @@ class Lauf:
         treffer: list[Treffer] = []
         for task in aufgaben:
             quelle = quellen[task.id]
+            if (task.provenance.source_ref or '').startswith('episode:') and quelle is None:
+                continue  # eine entzogene/ersetzte Aufgabenquelle ist kein gültiger Bezug
             if quelle is not None and quelle.id == mail.episode.id:
                 continue  # die Quelle der Aufgabe erledigt sie nicht
             bezug = (quelle.occurred_at or quelle.recorded_at) if quelle is not None else task.created_at
@@ -324,19 +325,27 @@ class Lauf:
                 an_person = person is not None and any(e.get('adresse') == person['adresse'] for e in mail.empfaenger)
                 if not (im_verlauf or an_person):
                     continue
-                wer = person if person is not None else (mail.empfaenger[0] if mail.empfaenger else {'adresse': '', 'name': ''})
+                # Der Quellabsender muss nicht Empfänger dieser Antwort sein (Weiterleitung).
+                wer = next((e for e in mail.empfaenger if person and e['adresse'] == person['adresse']),
+                           mail.empfaenger[0] if mail.empfaenger else {'adresse': '', 'name': ''})
                 woerter = woerter_in(tragende_woerter(task.title, namen=[wer['name'], wer['adresse'].split('@')[0]]), mail.texte)
                 treffer.append(Treffer(task, 'erledigt', im_verlauf, woerter, wer,
-                                       sicher=bool(woerter) and not rundmail and not self._alt(task)))
+                                       sicher=False))  # Zuordnung ist kein Erfüllungsnachweis
             else:
                 if task.wartet_auf is None:
                     continue  # eine fremde Mail erledigt nie, was bei dir liegt
-                von_person = person is not None and person['adresse'] == mail.absender['adresse']
-                if not (self._name_passt(task.wartet_auf, mail.absender) or (im_verlauf and von_person)):
+                bekannte_adresse = mail_address(task.wartet_auf)
+                if not bekannte_adresse and person is not None and self._name_passt(task.wartet_auf, person):
+                    bekannte_adresse = person['adresse']
+                if bekannte_adresse and bekannte_adresse != mail.absender['adresse']:
+                    continue  # die bekannte Adresse schlägt auch einen passenden Vornamen/Verlauf
+                von_person = bool(bekannte_adresse and bekannte_adresse == mail.absender['adresse'])
+                if not (von_person or self._name_passt(task.wartet_auf, mail.absender)):
                     continue
                 woerter = woerter_in(tragende_woerter(task.title, namen=[task.wartet_auf, mail.absender['name']]), mail.texte)
                 treffer.append(Treffer(task, 'zurueck', im_verlauf, woerter, mail.absender,
-                                       sicher=(im_verlauf or bool(woerter)) and not self._alt(task)))
+                                       sicher=von_person and (im_verlauf or bool(woerter))
+                                       and not rundmail and not self._alt(task)))
         return treffer
 
     # -- Grund, Anwenden, Vorschlag --
@@ -344,12 +353,13 @@ class Lauf:
     def _grund(self, t: Treffer, mail: _Mail) -> dict[str, Any]:
         wer, tag = _name(t.wer) or 'die Gegenseite', tag_und_monat(_ort(mail.zeit))
         if t.art == 'erledigt':
-            satz = (f'Erledigt, weil du {wer} am {tag} {_aufzaehlung(t.woerter)} geschickt hast.' if t.woerter
-                    else f'Erledigt, weil du {wer} am {tag} geantwortet hast.')
-        elif t.verlauf or not t.woerter:
+            satz = f'Erledigt nach deiner Bestätigung zur Mail an {wer} vom {tag}.'
+        elif t.verlauf:
             satz = f'Wieder bei dir, weil {wer} am {tag} geantwortet hat.'
-        else:
+        elif t.woerter:
             satz = f'Wieder bei dir, weil {wer} am {tag} zu {_aufzaehlung(t.woerter)} geschrieben hat.'
+        else:
+            satz = f'Wieder bei dir, weil {wer} am {tag} geschrieben hat.'
         return {'art': t.art, 'satz': satz, 'episode_id': mail.episode.id, 'mail_titel': (mail.episode.title or '')[:120],
                 'wer': wer, 'datum': mail.zeit.isoformat() if mail.zeit else None,
                 'am': self._jetzt().astimezone(timezone.utc).isoformat(), 'verlauf': t.verlauf, 'woerter': list(t.woerter)}
@@ -363,18 +373,23 @@ class Lauf:
         logbuch.vermerke('aufgabe_post', sorte=t.art, aufgabe=task.id, mail=mail.episode.id, wie=wie)
         return task
 
-    def _vorschlagen(self, t: Treffer, mail: _Mail) -> bool:
+    def _vorschlag_text(self, t: Treffer, mail: _Mail) -> tuple[ProposalKind, str, str]:
         wer, tag = _name(t.wer) or 'die Gegenseite', tag_und_monat(_ort(mail.zeit))
         titel = (mail.episode.title or '').strip() or '(kein Betreff)'
         if t.art == 'erledigt':
             kind, statement = ProposalKind.TASK_DONE, f'Erledigt? „{t.aufgabe.title}“'
-            getan = 'geantwortet' if t.verlauf else 'geschrieben'
-            satz = f'Du hast {wer} am {tag} {getan} („{titel}“). Ist die Aufgabe damit erledigt?'
+            # Ein Verlauf kann weitergeleitet sein: Er beweist keine Antwort an diesen Empfänger.
+            satz = f'Du hast am {tag} an {wer} geschrieben („{titel}“). Ist die Aufgabe damit erledigt?'
             if len(mail.empfaenger) > MAX_EMPFAENGER:
                 satz = f'Du hast am {tag} an {len(mail.empfaenger)} Empfänger geschrieben („{titel}“), darunter {wer}. Ist die Aufgabe damit erledigt?'
         else:
             kind, statement = ProposalKind.TASK_WAITING_RESOLVED, f'Wieder bei dir? „{t.aufgabe.title}“'
             satz = f'{wer} hat dir am {tag} geschrieben („{titel}“). Liegt die Aufgabe damit wieder bei dir?'
+        return kind, statement, satz
+
+    def _vorschlagen(self, t: Treffer, mail: _Mail) -> bool:
+        kind, statement, satz = self._vorschlag_text(t, mail)
+        titel = (mail.episode.title or '').strip() or '(kein Betreff)'
         _, neu = self.proposals.propose(kind, statement, satz, evidence=[Evidence(mail.episode.id, titel[:200], mail.episode.digest)],
                                         target_ref=f'task:{t.aufgabe.id}', proposed_by=PROPOSED_BY)
         return bool(neu)
@@ -393,7 +408,10 @@ class Lauf:
             mail = self.episodes.get(proposal.evidence[0].episode_id)
         except EpisodeError:
             return None
-        if mail.state in AUSGEBLENDETE_ZUSTAENDE:
+        if (mail.state in AUSGEBLENDETE_ZUSTAENDE or not self._geltend(mail)
+                or mail.digest != proposal.evidence[0].digest):
+            return None
+        if (task.provenance.source_ref or '').startswith('episode:') and self._quelle(task) is None:
             return None
         return task, mail
 
@@ -407,9 +425,16 @@ class Lauf:
                     self.proposals.supersede(proposal.id)
                     continue
                 task, mail = paar
+                gelesen = self._mail(mail)
+                treffer = self._treffer(gelesen, [task]) if gelesen is not None else []
+                if not treffer:
+                    self.proposals.supersede(proposal.id)
+                    continue
+                # Auch ältere offene Vorschläge zeigen nur den heute belegten Bezug.
+                _, statement, satz = self._vorschlag_text(treffer[0], gelesen)
                 ergebnis.append({
                     'id': proposal.id, 'art': 'erledigt' if kind is ProposalKind.TASK_DONE else 'zurueck',
-                    'statement': proposal.statement, 'satz': proposal.rationale,
+                    'statement': statement, 'satz': satz,
                     'aufgabe': {'id': task.id, 'title': task.title, 'wartet_auf': task.wartet_auf,
                                 'due': task.due.isoformat() if task.due else None},
                     'mail': {'episode_id': mail.id, 'titel': mail.title,

@@ -1,0 +1,54 @@
+{
+  "synthetic_only": true,
+  "cloud_requests": 0,
+  "rows": [
+    {
+      "case": "withdrawn-access",
+      "version": "before",
+      "seconds": 10.519,
+      "reply": "{\"status\":\"no_relevant_sources\",\"ids\":[]}"
+    },
+    {
+      "case": "withdrawn-access",
+      "version": "after",
+      "seconds": 7.203,
+      "reply": "{\"status\":\"no_relevant_sources\",\"ids\":[]}"
+    },
+    {
+      "case": "paraphrase-access",
+      "version": "before",
+      "seconds": 6.663,
+      "reply": "{\"status\":\"source_reports\",\"ids\":[\"S5\"]}"
+    },
+    {
+      "case": "paraphrase-access",
+      "version": "after",
+      "seconds": 6.591,
+      "reply": "{\"status\":\"source_reports\",\"ids\":[\"S5\"]}"
+    },
+    {
+      "case": "overview",
+      "version": "before",
+      "seconds": 6.636,
+      "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\",\"S2\",\"S3\"]}"
+    },
+    {
+      "case": "overview",
+      "version": "after",
+      "seconds": 6.634,
+      "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\",\"S2\",\"S3\"]}"
+    },
+    {
+      "case": "deadline",
+      "version": "before",
+      "seconds": 6.228,
+      "reply": "{\"status\":\"source_reports\",\"ids\":[\"S3\"]}"
+    },
+    {
+      "case": "deadline",
+      "version": "after",
+      "seconds": 6.421,
+      "reply": "{\"status\":\"source_reports\",\"ids\":[\"S3\"]}"
+    }
+  ]
+}

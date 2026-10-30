@@ -4381,7 +4381,8 @@ def create_app(
                 elif (message.role == 'assistant' and isinstance(stored_context, dict)
                         and 'meaning_choice' in stored_context):
                     from .bedeutungen import meaning_choice_current
-                    if not meaning_choice_current(stored_context['meaning_choice'], app.state.episodes):
+                    if not meaning_choice_current(stored_context['meaning_choice'], app.state.episodes,
+                                                  confirmed_merges=app.state.claims.person_merges.list()):
                         # Die Bedeutungen stammen aus Quellen, die nicht mehr
                         # gelten: nichts davon bleibt wörtlich stehen.
                         value["content"] = "Diese Rückfrage ist nicht mehr aktuell."
@@ -4652,7 +4653,8 @@ def create_app(
                 meaning_pending = (pending.get('meaning_choice') if isinstance(pending, dict)
                                    and choice_answer is None else None)
                 from .bedeutungen import meaning_choice_current
-                if meaning_pending is not None and not meaning_choice_current(meaning_pending, app.state.episodes):
+                if meaning_pending is not None and not meaning_choice_current(meaning_pending, app.state.episodes,
+                        confirmed_merges=app.state.claims.person_merges.list()):
                     raise HTTPException(409, "Diese Auswahl ist nicht mehr aktuell. Bitte frage erneut.")
                 options = (working_choices(choice_answer, app.state.episodes) if choice_answer else
                            meaning_pending.get('options', []) if isinstance(meaning_pending, dict) else [])
@@ -4662,6 +4664,21 @@ def create_app(
                     raise HTTPException(409, "Diese Auswahl ist nicht mehr aktuell. Bitte frage erneut.")
                 mode, fresh_question = 'memory_evidence', False
             anfrage = None
+            identity_turn = None
+            if mode == 'auto':
+                # Eine Namenswahl muss vor Fragenmodell, Wort- und semantischer
+                # Recherche stehen, auch ohne bereits eingeordnete Quellen.
+                from .memory_routing import route
+                previous_context = (last.metadata.get('context') if last is not None
+                    and last.role == 'assistant' and last.status == 'complete' else None)
+                # Der deterministische Weg unterscheidet Fragen von neuen Aussagen,
+                # Aufträgen und Anschlussfragen im bereits gewählten Rahmen.
+                memory_question = route(body.message, previous_context, new_question=body.new_question,
+                                        working_available=True) == 'memory_evidence'
+                klaeren = getattr(app.state.agent, 'person_identity_turn', None)
+                identity_turn = klaeren(body.message) if memory_question and callable(klaeren) else None
+                if identity_turn is not None:
+                    mode, fresh_question = 'memory_evidence', True
             if mode == 'auto':
                 from .memory_routing import route
                 previous_context = (last.metadata.get('context') if last is not None
@@ -4746,7 +4763,7 @@ def create_app(
                 if mode == 'memory_evidence':
                     routing = None
                     execution_agent = app.state.agent
-                    turn = (app.state.agent.answer_working_choice(choice_answer, body.clarification_choice)
+                    turn = identity_turn or (app.state.agent.answer_working_choice(choice_answer, body.clarification_choice)
                             if choice_answer is not None else
                             app.state.agent.answer_meaning_choice(meaning_pending, body.clarification_choice)
                             if meaning_pending is not None else

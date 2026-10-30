@@ -56,6 +56,16 @@ JE_DURCHLAUF = 10
 ALLE_HOECHSTENS = 100
 EXTRACTED_BY = 'aufgaben_von_selbst'
 _RUNDMAIL = re.compile(r'\b(?:abbestellen|abmelden|unsubscribe|newsletter|nicht mehr erhalten)\b', re.I)
+# Auch ungültige Zahlen erkennen: Sie dürfen nicht unbemerkt zu 23:59 werden.
+_UHR = re.compile(r'(?<![\w:])(?:(?P<um>um)\s+)?(?P<stunde>\d+)'
+                  r'(?:(?P<trenner>[:.])(?P<minute>\d+))?[ \t]*(?P<uhr>Uhr)?'
+                  r'(?(uhr)(?!\w)|(?![\w:]))', re.I)
+_UHR_HINWEIS = re.compile(r'\bUhr\b|\b(?:um|gegen)\s+\d|\d\s*:\s*\d', re.I)
+_UHR_ZONE = re.compile(r'^\s*(?:UTC|GMT|MEZ|MESZ|CET|CEST|EST|EDT|PST|PDT|BST|Z|'
+                       r'[A-Za-z_]+/[A-Za-z_/]+|(?-i:[A-Z]{2,10})|[+-]\d{2}:?\d{2})\b', re.I)
+_UHR_UNKLAR = re.compile(r'^\s*(?:oder|bis|später|früher|ungefähr|circa|ca\b|[–—-])', re.I)
+_FRIST_UNKLAR = 'Die Frist ist nicht eindeutig auflösbar. Bitte Datum und Uhrzeit an der Quelle prüfen.'
+_FRIST_VERSTRICHEN = 'Die Frist ist bereits verstrichen. Bitte die Aufgabe an der Quelle prüfen.'
 
 
 # -- Kleine Bausteine ---------------------------------------------------------------
@@ -134,16 +144,44 @@ def person_der_quelle(episode: Any, eigene: Iterable[str]) -> tuple[str | None, 
 
 
 def frist_aus(zitat: str, bezug: datetime | None) -> datetime | None:
-    """Die Frist der Textstelle: nur, wenn genau eine eindeutige Datumsangabe darin steht und keine unklare (dann
-    23:59 Uhr dieses Tages in der Zeitzone des Nutzers); sonst keine. Eine falsche Frist ist schlimmer als keine."""
-    if bezug is None:
-        return None
+    """Eine eindeutige Frist: belegte lokale Uhrzeit, sonst Tagesende nur ohne Zeitangabe."""
+    return _frist_aufloesen(zitat, bezug)[1]
+
+
+def _frist_aufloesen(zitat: str, bezug: datetime | None) -> tuple[bool, datetime | None]:
+    """Erkannte, aber unaufgelöste Frist von einer Quelle ohne Frist unterscheiden."""
     from .fristen import fristen_in
     suche = fristen_in(zitat or '', bezug)
-    if len(suche.fristen) != 1 or suche.ohne_datum:
-        return None
-    zone = user_timezone() or timezone.utc
-    return datetime.combine(suche.fristen[0].datum, time(23, 59), tzinfo=zone)
+    uhren = [match for match in _UHR.finditer(zitat or '')
+             if match['um'] or match['uhr'] or match['trenner'] == ':']
+    erkannt = bool(suche.fristen or suche.ohne_datum or uhren or _UHR_HINWEIS.search(zitat or ''))
+    if bezug is None or len(suche.fristen) != 1 or suche.ohne_datum:
+        return erkannt, None
+    frist = suche.fristen[0]
+    zone = user_timezone()
+    if zone is None:
+        return True, None
+    if not uhren and not _UHR_HINWEIS.search(zitat):
+        return True, datetime.combine(frist.datum, time(23, 59), tzinfo=zone)
+    if len(uhren) != 1:
+        return True, None
+    uhr = uhren[0]
+    # Angefügte Zonen/Vorbehalte bleiben auch hinter Komma oder Klammern wirksam.
+    zusatz = re.sub(r'^[^\w+–—-]+', '', zitat[uhr.end():])
+    # Nur unmittelbar an dieses Datum gebunden, nicht eine Uhrzeit eines anderen Satzes.
+    if (uhr.start() < frist.ende or not re.fullmatch(r'[ \t]*,?[ \t]*', zitat[frist.ende:uhr.start()])
+            or _UHR_ZONE.match(zusatz) or _UHR_UNKLAR.match(zusatz)):
+        return True, None
+    try:
+        zeit = time(int(uhr['stunde']), int(uhr['minute'] or 0))
+        moment = datetime.combine(frist.datum, zeit, tzinfo=zone)
+    except (ValueError, OverflowError):
+        return True, None
+    # Lokale Lücke oder doppelte Stunde bei Zeitumstellung: keine Fold-Wahl raten.
+    if (moment.replace(fold=1).utcoffset() != moment.utcoffset()
+            or moment.astimezone(timezone.utc).astimezone(zone).replace(tzinfo=None) != moment.replace(tzinfo=None)):
+        return True, None
+    return True, moment
 
 
 # -- Was eindeutig ist ----------------------------------------------------------------
@@ -154,7 +192,8 @@ class Urteil:
     eindeutig: bool
     kuerzel: str
     """Kurz, für die Merkliste: `angelegt`, `keine_mail`, `ungeprueft`, `titel`, `zurueckgenommen`, `nicht_neu`,
-    `bestand`, `verlauf`, `rundmail`, `absender`, `kopie`, `rollen`, `ohne_empfaenger`, `dublette`."""
+    `bestand`, `verlauf`, `rundmail`, `absender`, `kopie`, `rollen`, `ohne_empfaenger`, `dublette`,
+    `frist_unklar`, `frist_verstrichen`."""
     satz: str
     """Ein Satz, warum: bei eindeutig der Grundsatz, sonst, warum es Vorschlag bleibt."""
     richtung: str | None = None
@@ -204,6 +243,11 @@ def pruefen(proposal: Any, episode: Any, *, eigene: Iterable[str], jetzt: dateti
         satz = f'Eine Bitte von {_name(person)} direkt an dich, aus einer neuen Mail.'
     if dublette:
         return nein('dublette', 'Diese Aufgabe gibt es schon.')
+    frist_erkannt, frist = _frist_aufloesen(zitat, episode.occurred_at)
+    if frist_erkannt and frist is None:
+        return nein('frist_unklar', _FRIST_UNKLAR)
+    if frist is not None and frist <= jetzt:
+        return nein('frist_verstrichen', _FRIST_VERSTRICHEN)
     return Urteil(True, 'angelegt', satz, richtung, person)
 
 
@@ -412,8 +456,13 @@ class Durchlauf:
         episode = self._gueltig(proposal)
         if episode is None:
             return {'person_vorschlag': None, 'frist_vorschlag': None}
-        frist = frist_aus(proposal.evidence[0].quote, episode.occurred_at)
-        return {'person_vorschlag': self.person(episode), 'frist_vorschlag': frist.isoformat() if frist else None}
+        erkannt, frist = _frist_aufloesen(proposal.evidence[0].quote, episode.occurred_at)
+        ergebnis = {'person_vorschlag': self.person(episode), 'frist_vorschlag': frist.isoformat() if frist else None}
+        if erkannt and frist is None:
+            ergebnis['temporal_reason'] = _FRIST_UNKLAR
+        elif frist is not None and frist <= self._jetzt():
+            ergebnis['temporal_reason'] = _FRIST_VERSTRICHEN
+        return ergebnis
 
     def alle_uebernehmen(self, proposal_ids: list[str], *, annehmen: Callable[..., Task]) -> dict[str, Any]:
         """Übernimmt die Vorschläge mit vorbefülltem Projekt (nur vorhandene), Person und Frist, als eine Gruppe.

@@ -301,6 +301,19 @@ def test_die_zeilen_der_kandidaten_tragen_den_auszug_und_behalten_den_volltext(e
     assert statistik['abgeschnitten'] == []
 
 
+def test_fehler_eines_vorhandenen_merge_stores_wird_nicht_als_fehlende_bestaetigung_verschluckt(episodes):
+    class DefekteMerges:
+        def list(self):
+            raise RuntimeError('synthetischer Merge-Lesefehler')
+
+    claims = Claims()
+    claims.person_merges = DefekteMerges()
+    put(episodes, 'Stiftung: Frist', mail_text())
+    einordnen(episodes)
+    with pytest.raises(RuntimeError, match='Merge-Lesefehler'):
+        wma._candidates('Wann ist die Einreichfrist der Stiftung?', episodes, claims)
+
+
 def test_das_budget_zaehlt_den_ausschnitt_nicht_den_volltext(episodes, monkeypatch):
     for nummer in range(10):
         put(episodes, f'Mail {nummer}', mail_text().replace('Beispiel', f'Beispiel{nummer}'), tage=nummer)
