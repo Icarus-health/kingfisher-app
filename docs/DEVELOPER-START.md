@@ -1,5 +1,15 @@
 # Einstieg für Entwickler und Claude Code
 
+**Verbindlicher Abschlussauftrag vom 30.10.2026:**
+[Gedächtnis und ergänzende Skill-Bibliothek fertigstellen](68-gedaechtnis-abschluss.md).
+Bestehendes gezielt abschließen; neue Produktbereiche und Modellvergleiche warten.
+Die veröffentlichte Basis ist 1.0.32. [PR #102](https://github.com/Icarus-health/kingfisher-app/pull/102)
+ergänzt eine frische Aufnahme-/Abrufprobe, deren echter Lauf wegen Speicherdrucks
+vor dem ersten abgeschlossenen Modellaufruf abbrach. Er belegt keine Modellqualität.
+Vollständiger Modelllauf, echte Mail-Stichprobe, Mac-Bedienprüfung und persönliche
+Alltagswoche bleiben gesonderte Abnahmen. Großimport unverändert pausiert.
+Die folgenden datierten Statusangaben beschreiben frühere Arbeitsstände.
+
 **Reparaturbranch vom 30.10., Kandidat 1.0.31:** Personenwahl und überholte
 Fristvorschläge sind abgesichert. Danach wurde die ergänzende
 [Ablaufbibliothek](67-bewaehrte-ablaeufe.md) implementiert: begrenzter automatischer

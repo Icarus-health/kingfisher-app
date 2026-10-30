@@ -16,6 +16,14 @@ ansehen, gegebenenfalls eine neue Fassung vorschlagen, dann „Geprüft überneh
 Ein übernommener Ablauf wird bei einer passenden Anfrage automatisch ausgewählt.
 „Zurücknehmen“ beendet seine Anwendung; der Verlauf bleibt nachvollziehbar.
 
+Auch eine klare dauerhafte Ablaufkorrektur kann direkt einen Vorschlag erzeugen:
+„Bei Zunftmails bitte künftig zuerst den Anlass prüfen, dann den Entwurf gegenlesen.“
+Oder: „Merke dir für Zunftmails: zuerst Anlass prüfen, danach gegenlesen.“ Die
+begrenzte Erkennung verlangt eine direkte Daueranweisung und zwei erkennbare
+Arbeitsschritte. Reine Stilwünsche, Fragen, Zitate und einmalige Aufgaben lösen
+keinen Lernaufruf aus. Für andere Formulierungen bleibt „Lerne diesen Ablauf: …“
+verfügbar. Alle Fassungen bleiben bis zur Prüfung und Bestätigung inaktiv.
+
 Die erste Fassung unterstützt gelernte Zusatzverfahren für Mailentwürfe,
 Planung und Analysen. Feste Such-, Personen-, Quellen- und Antwortprüfungen
 bleiben im vorhandenen Gedächtnispfad. Gelernter Freitext ersetzt sie nicht.
@@ -44,6 +52,12 @@ Vorschlägen. Unbekannte Mailinhalte und ein einzelner vermeintlicher Modellerfo
 werden nicht automatisch zu dauerhaften Arbeitsanweisungen. Bei einer erkannten
 Lernbitte wird zunächst auf Wiederverwendung geprüft. Das ist prozedurales
 Gedächtnis, kein Training von Modellgewichten und kein unbegrenztes Selbstlernen.
+
+Die Wiederverwendung berücksichtigt auch bereits offene passende Vorschläge.
+Der kleine Metadatenkatalog nennt Status und Fassung, pro Name den jüngsten
+noch gültigen Stand. Zurückgewiesene, zurückgenommene und überholte Vorschläge
+werden nicht angeboten. Höchstens acht Einträge und 2.400 Bytes gelangen in
+den Lernauftrag; ein offener Vorschlag wird dadurch nicht aktiviert.
 
 ## Prüfen, ändern und sichern
 

@@ -162,3 +162,49 @@ def test_learning_catalog_retrieves_relevant_headers_without_bodies(tmp_path):
     headers = store.learning_catalog('Lerne diesen Ablauf: Eine Mail für die Zunft vorbereiten.')
     assert [item['name'] for item in headers] == ['zunftmail']
     assert not any(key in headers[0] for key in ('steps','markdown','sources'))
+
+
+def test_learning_catalog_finds_pending_without_activating_or_duplicating_it(tmp_path):
+    store=ProcedureStore(tmp_path/'p.sqlite3')
+    first=store.propose(spec(),request_key='first-explicit-request')
+    headers=store.learning_catalog('Merke dir für die Zunft: zuerst Anlass prüfen, danach gegenlesen.')
+    assert len(headers)==1 and headers[0]['name']==first['name']
+    assert headers[0]['state']=='pending' and headers[0]['version']==1
+    assert not any(k in headers[0] for k in ('steps','markdown','sources'))
+    assert not store.select('Schreibe eine Mail für die Zunft.',area='mail')['contextual']
+    again=store.propose(spec(),request_key='second-wording-same-procedure')
+    assert again['id']==first['id'] and len(store.items())==1
+    assert store.learning_catalog('Merke dir für Nichtzunftmail: zuerst prüfen, danach gegenlesen.')==[]
+
+
+def test_learning_catalog_keeps_latest_live_revision_and_rejects_stale_sources(tmp_path):
+    stamps={'source':'one'}
+    store=ProcedureStore(tmp_path/'p.sqlite3',dependency=stamps.get)
+    first=store.propose(spec(),sources={'source':'one'});store.accept(first['id'])
+    second=store.propose({**spec(),'description':'Neue dauerhafte Reihenfolge bei Zunftmails.'},sources={'source':'one'})
+    headers=store.learning_catalog('Lerne diesen Ablauf: Für Zunftmails zuerst prüfen, dann gegenlesen.')
+    assert len(headers)==1 and headers[0]['version']==second['version'] and headers[0]['state']=='pending'
+    stamps['source']='two'
+    assert store.learning_catalog('Lerne diesen Ablauf: Für Zunftmails zuerst prüfen, dann gegenlesen.')==[]
+
+
+def test_learning_catalog_excludes_rejected_revoked_superseded_and_obsolete_pending(tmp_path):
+    store=ProcedureStore(tmp_path/'p.sqlite3')
+    rejected=store.propose({**spec(),'name':'rejected'});store.reject(rejected['id'])
+    revoked=store.propose({**spec(),'name':'revoked'});store.accept(revoked['id']);store.revoke(revoked['id'])
+    original=store.propose(spec());store.accept(original['id'])
+    obsolete=store.propose({**spec(),'description':'Dieser offene Entwurf wird bald überholt.'})
+    newer=store.propose({**spec(),'description':'Diese Fassung wird ausdrücklich übernommen.'});store.accept(newer['id'])
+    rows=store.learning_catalog('Lerne diesen Ablauf: Für Zunftmails zuerst prüfen, dann gegenlesen.')
+    assert [(r['name'],r['version'],r['state']) for r in rows]==[('zunftmail',newer['version'],'active')]
+
+
+def test_pending_learning_catalog_obeys_count_and_utf8_byte_budget(tmp_path):
+    import json
+    store=ProcedureStore(tmp_path/'p.sqlite3')
+    for i in range(20):
+        store.propose({**spec(),'name':f'pending-{i}','description':'Ä'*380})
+    headers=store.learning_catalog('Lerne diesen Ablauf: Für Zunftmails zuerst prüfen, dann gegenlesen.')
+    assert 0<len(headers)<=8
+    assert sum(len(json.dumps(h,ensure_ascii=False).encode()) for h in headers)<=2400
+    assert all(h['state']=='pending' for h in headers)
