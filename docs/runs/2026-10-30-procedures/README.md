@@ -120,3 +120,8 @@ immer einen direkten Client ohne Umgebungsproxy und ohne Weiterleitungen.
 Die echten Chat- und Mailtransport-Tests wurden mit HTTPProxy rot, anschließend
 mit ConnectionPool grün beobachtet; Remoteanbieter bleiben unverändert.
 Unabhängige Wiederholung und 38 betroffene Tests bestanden.
+
+Die alten lokalen Providerfixtures greifen nun am gemeinsamen `_client`-Einstieg
+an, statt am nur noch für entfernte Anbieter verwendeten `_http`. Assertions
+und Transportgarantien bleiben erhalten; alle 60 Tests dieser drei Dateien
+bestanden, einschließlich unabhängiger Wiederholung und Diffprüfung.
