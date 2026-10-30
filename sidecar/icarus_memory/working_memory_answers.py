@@ -368,7 +368,8 @@ def _candidates(question, episodes, claims, project_ids=(), project_names=None, 
             added.append(dict(ref))
     from .person_merges import active_members, identity_for_address
     from .episodes import mail_address
-    mitglieder = active_members(claims.person_merges.list()) if claims is not None else {}
+    merges = getattr(claims, 'person_merges', None)
+    mitglieder = active_members(merges.list()) if merges is not None else {}
     refs, rows, omitted, size = [], [], 0, 0
     abgeschnitten = []
     woerter = absatzauswahl.Suchwoerter.aus(question)

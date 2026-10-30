@@ -58,10 +58,11 @@ EXTRACTED_BY = 'aufgaben_von_selbst'
 _RUNDMAIL = re.compile(r'\b(?:abbestellen|abmelden|unsubscribe|newsletter|nicht mehr erhalten)\b', re.I)
 # Auch ungültige Zahlen erkennen: Sie dürfen nicht unbemerkt zu 23:59 werden.
 _UHR = re.compile(r'(?<![\w:])(?:(?P<um>um)\s+)?(?P<stunde>\d+)'
-                  r'(?:(?P<trenner>[:.])(?P<minute>\d+))?[ \t]*(?P<uhr>Uhr)?(?![\w:])', re.I)
+                  r'(?:(?P<trenner>[:.])(?P<minute>\d+))?[ \t]*(?P<uhr>Uhr)?'
+                  r'(?(uhr)(?!\w)|(?![\w:]))', re.I)
 _UHR_HINWEIS = re.compile(r'\bUhr\b|\b(?:um|gegen)\s+\d|\d\s*:\s*\d', re.I)
-_UHR_ZONE = re.compile(r'^\s*(?:UTC|GMT|MEZ|MESZ|CET|CEST|EST|EDT|PST|PDT|Z|'
-                       r'[A-Za-z_]+/[A-Za-z_/]+|[+-]\d{2}:?\d{2})\b', re.I)
+_UHR_ZONE = re.compile(r'^\s*(?:UTC|GMT|MEZ|MESZ|CET|CEST|EST|EDT|PST|PDT|BST|Z|'
+                       r'[A-Za-z_]+/[A-Za-z_/]+|(?-i:[A-Z]{2,10})|[+-]\d{2}:?\d{2})\b', re.I)
 _UHR_UNKLAR = re.compile(r'^\s*(?:oder|bis|später|früher|ungefähr|circa|ca\b|[–—-])', re.I)
 _FRIST_UNKLAR = 'Die Frist ist nicht eindeutig auflösbar. Bitte Datum und Uhrzeit an der Quelle prüfen.'
 _FRIST_VERSTRICHEN = 'Die Frist ist bereits verstrichen. Bitte die Aufgabe an der Quelle prüfen.'
@@ -163,9 +164,11 @@ def _frist_aufloesen(zitat: str, bezug: datetime | None) -> tuple[bool, datetime
     if zone is None or len(uhren) != 1:
         return True, None
     uhr = uhren[0]
+    # Angefügte Zonen/Vorbehalte bleiben auch hinter Komma oder Klammern wirksam.
+    zusatz = re.sub(r'^[^\w+-]+', '', zitat[uhr.end():])
     # Nur unmittelbar an dieses Datum gebunden, nicht eine Uhrzeit eines anderen Satzes.
     if (uhr.start() < frist.ende or not re.fullmatch(r'[ \t]*,?[ \t]*', zitat[frist.ende:uhr.start()])
-            or _UHR_ZONE.match(zitat[uhr.end():]) or _UHR_UNKLAR.match(zitat[uhr.end():])):
+            or _UHR_ZONE.match(zusatz) or _UHR_UNKLAR.match(zusatz)):
         return True, None
     try:
         zeit = time(int(uhr['stunde']), int(uhr['minute'] or 0))

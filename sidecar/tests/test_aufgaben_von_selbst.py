@@ -125,8 +125,10 @@ def test_eigene_zusage_wird_aufgabe_fuer_den_empfaenger_mit_frist(welt):
     task = tasks.get(f't-suggestion-{p.id}')
     assert task.person == {'adresse': 'anna.berg@example.org', 'name': 'Anna Berg'}
     assert task.angelegt['richtung'] == 'zusage' and 'weil du Anna Berg am ' in task.angelegt['satz']
-    assert task.due is not None and task.due.date() == datum
-    assert (task.due.hour, task.due.minute) == (23, 59)
+    from icarus_memory.model import user_timezone
+    assert task.due is not None
+    lokal = task.due.astimezone(user_timezone())
+    assert lokal.date() == datum and (lokal.hour, lokal.minute) == (23, 59)
 
 
 def test_frist_nur_bei_genau_einer_eindeutigen_angabe():

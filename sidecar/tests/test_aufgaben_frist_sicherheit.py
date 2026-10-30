@@ -53,6 +53,29 @@ def test_ohne_gueltige_nutzerzone_wird_keine_lokale_uhrzeit_geraten(monkeypatch)
     assert frist_aus('Bitte schicke die Druckdaten bis zum 2. November 2026 um 18 Uhr.', FRIDAY) is None
 
 
+_QUALIFIZIERTE_UHREN = ['18 Uhr (UTC)', '18 Uhr, UTC', '18 Uhr, oder später',
+                       '18 Uhr BST', '18 Uhr NZDT', '18Uhr(UTC)', '18 Uhr [GMT]', '18 Uhr; (oder später)',
+                       '18 Uhr „UTC“', "18 Uhr: 'oder später'"]
+
+
+@pytest.mark.parametrize('clock', _QUALIFIZIERTE_UHREN)
+def test_satzzeichen_und_unbekannte_zonen_ergeben_keine_exakte_lokale_frist(clock):
+    assert frist_aus(f'Bitte schicke mir die Druckdaten bis zum 2. November 2026 um {clock}.', FRIDAY) is None
+
+
+@pytest.mark.parametrize('clock', _QUALIFIZIERTE_UHREN)
+def test_automatik_uebernimmt_keine_durch_satzzeichen_verdeckte_zeitqualifikation(welt, monkeypatch, clock):
+    monkeypatch.setattr(basis, 'JETZT', FRIDAY)
+    episodes, tasks, proposals, _, lauf, _ = welt
+    _, candidate = basis.bitte(episodes, proposals,
+        text=f'Bitte schicke mir die Druckdaten bis zum 2. November 2026 um {clock}.')
+    assert lauf.schritt() == {'geprueft': 1, 'angelegt': 0, 'vorschlaege': 1}
+    assert tasks.get('t-suggestion-' + candidate.id) is None
+    assert proposals.get(candidate.id).state is ProposalState.PENDING
+    assert tasks.auto_ergebnis(candidate.id) == 'frist_unklar'
+    assert 'Frist' in lauf.vorbefuellt(candidate)['temporal_reason']
+
+
 @pytest.mark.parametrize('tail, reason', [
     ('bis Freitag', 'frist_unklar'),
     ('bis nächste Woche', 'frist_unklar'),
