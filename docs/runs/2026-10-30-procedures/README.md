@@ -38,6 +38,17 @@ Gelernte Freitexte ändern keine Belegantwortverträge, Werkzeuge oder Freigaben
 
 ## Prüfungen
 
+Abschließende vollständige Regression des finalen Sidecar-Codes: **8.324
+bestanden, 1 übersprungen, 26 Untertests**, 646,35 s bei UTC und zwei niedrig
+priorisierten Workern. Die folgenden älteren Läufe bleiben zur Nachverfolgung
+aufgeführt. Zusätzlich **571 bestanden, 1 übersprungen** in der gesamten
+synthetischen Diagnose-, Messlatten- und statischen Mac-Prüfung auf sauberem
+Git-Stand. Keine Modell-/Cloudaufrufe. Der isolierte Diagnosetransport verwendet
+jetzt ebenfalls den tatsächlichen `_client`-Einstieg; Wiederherstellung nach
+Erfolg und Fehlern zusätzlich geprüft. Unabhängiges Review und 126 Tests der
+Diagnosedatei bestanden. Die 17 zuvor roten Diagnoseprüfungen und acht wegen
+offener Arbeitskopie gesperrten Offlineprüfungen zählen nicht als grüner Stand.
+
 - Vollständige UTC-Regression mit zwei niedrig priorisierten Workern:
   **8.313 bestanden, 1 übersprungen, 26 Untertests**, 617,34 s. Zwei vorhandene
   Starlette/httpx-Warnungen. Anschließende Änderungen am kleinen nativen
