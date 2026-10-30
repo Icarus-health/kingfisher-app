@@ -25,18 +25,27 @@ def explicit_learning(message):
     line = message.strip().partition('\n')[0][:600]
     if '?' in line:
         return False
-    context = r'[^:!?;\n]{3,120}?'
-    request = re.match(r'^(?:bitte\s+)?(?:merke dir|lerne)\s+(?:für|bei)\s+' + context + r'\s*:\s*(.+)$', line, re.I)
+    context = r'(?P<scope>[^:!?;\n]{3,120}?)'
+    request = re.match(r'^(?:bitte\s+)?(?:merke dir|lerne)\s+(?:für|bei)\s+' + context + r'\s*:\s*(?P<steps>.+)$', line, re.I)
     if request is None:
         request = re.match(r'^(?:bitte\s+)?(?:bei|für)\s+' + context
-            + r'\s+(?:bitte\s+)?(?:künftig|in zukunft|ab jetzt|immer)\s+(.+)$', line, re.I)
+            + r'\s+(?:bitte\s+)?(?:künftig|in zukunft|ab jetzt|immer)\s+(?P<steps>.+)$', line, re.I)
+        if request and not (line.lower().startswith('bitte ') or
+                re.search(r'\bbitte\s+(?:künftig|in zukunft|ab jetzt|immer)\b',line,re.I)):
+            return False
     if request is None:
         return False
-    steps = re.fullmatch(r'(?:zuerst|erst)\s+(.+?)\b(?:dann|danach|anschließend)\s+(.+)', request.group(1), re.I)
+    # Beschreibungen wie „laut Handbuch gilt …“ und erzählte Handlungen
+    # bleiben normale Inhalte, auch wenn sie Tätigkeitswörter enthalten.
+    narrative = (r'\b(?:laut|steht|gilt|sagt|schreibt|berichtet|heißt|ich|wir|er|sie|du|ihr|es|'
+                 r'lernen|lernt|war|waren|wurde|ist|sind|hat|haben)\b')
+    if re.search(narrative,request.group('scope')+' '+request.group('steps'),re.I):
+        return False
+    steps = re.fullmatch(r'(?:zuerst|erst)\s+(.+?)\b(?:dann|danach|anschließend)\s+(.+)', request.group('steps'), re.I)
     action = (r'\b(?:prüfen|prüfe|klären|kläre|suchen|suche|zuordnen|vergleichen|entwerfen|'
               r'zusammenfassen|auflisten|öffnen|lesen|gegenlesen|festhalten|nachfragen|'
               r'bestätigen|sortieren|verknüpfen|abgleichen)\b')
-    return bool(steps and all(re.search(action, step, re.I) for step in steps.groups()))
+    return bool(steps and all(re.search(action+r'\s*[,.;]?\s*(?:und\s*)?$',step,re.I) for step in steps.groups()))
 
 
 def learn(app, message, source_episode):

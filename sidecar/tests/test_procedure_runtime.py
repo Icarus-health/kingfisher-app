@@ -140,10 +140,29 @@ def test_mail_text_never_starts_learning():
     'Bei Zunftmails bitte künftig nicht zuerst den Anlass prüfen, sondern nur zusammenfassen.',
     'Merke dir für Alex: Er hat zuerst in Bonn und dann in Berlin gewohnt.',
     'Merke dir für Alex: zuerst wohnte er in Bonn, danach in Berlin.',
+    'Bei Zunftmails steht künftig zuerst „Anlass prüfen“, dann „Entwurf gegenlesen“ im Text.',
+    'Für Zunftmails gilt laut Handbuch künftig zuerst Anlass prüfen, dann Entwurf gegenlesen.',
+    'Merke dir für den Kurs: zuerst lernen wir Dokumente prüfen, danach lernen wir Texte zusammenfassen.',
 ])
 def test_style_facts_one_off_work_and_quoted_instructions_never_start_learning(message):
     from icarus_memory.procedure_routes import explicit_learning
     assert not explicit_learning(message)
+
+
+def test_reported_workflow_uses_normal_http_route_and_creates_no_learning_proposal(tmp_path,monkeypatch):
+    monkeypatch.setenv('ICARUS_DATA_DIR',str(tmp_path))
+    p=Local();app=create_app(agent=agent(tmp_path,p));c=TestClient(app)
+    conversation=c.post('/api/v1/conversations',json={}).json()['conversation']['id']
+    message='Bei Zunftmails steht künftig zuerst „Anlass prüfen“, dann „Entwurf gegenlesen“ im Text.'
+    result=c.post(f'/api/v1/conversations/{conversation}/messages',json={'message':message,'answer_mode':'chat'})
+    assert result.status_code==201,result.text
+    assert len(p.seen)==1
+    assert 'Forme die ausdrückliche Arbeitsanweisung' not in json.dumps(p.seen,ensure_ascii=False)
+    assert app.state.procedures.items()==[]
+    episodes=[ep for ep in app.state.episodes.all_episodes() if ep.body==message]
+    assert len(episodes)==1
+    from icarus_memory.episodes import CHAT_LOOKUP_TAG
+    assert CHAT_LOOKUP_TAG not in episodes[0].tags
 
 
 def test_mail_draft_uses_selected_procedure_and_rechecks_after_model(tmp_path):
