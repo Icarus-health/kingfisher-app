@@ -229,7 +229,8 @@ def candidate_batches(proposals, episodes, *, now=None):
                 continue
             valid.append((proposal, episode))
         temporal = timings(episodes, [e for _, e in valid], now=now, relations=relations)
-        yield [(p, e, temporal[e.id]) for p, e in valid]
+        from .task_deadline_review import deadline_review
+        yield [(p, e, {**temporal[e.id], **(deadline_review(episodes, p, e) or {})}) for p, e in valid]
 
 
 def for_briefing(proposals, episodes, *, limit: int = BRIEFING_ITEMS, now=None) -> dict:

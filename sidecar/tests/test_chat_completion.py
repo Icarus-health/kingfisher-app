@@ -9,8 +9,8 @@ from icarus_memory.providers import OpenAICompatible, ProviderError
 def provider(monkeypatch, message):
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
         'choices': [{'message': message, 'finish_reason': 'stop'}]}))
-    monkeypatch.setattr('icarus_memory.providers._http',
-                        lambda timeout=120: httpx.Client(transport=transport))
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client',
+                        lambda self, timeout=120: httpx.Client(transport=transport))
     return OpenAICompatible('synthetic', base_url='http://127.0.0.1:11434/v1')
 
 
@@ -40,8 +40,8 @@ def test_local_ollama_chat_bounds_generation_and_disables_reasoning(monkeypatch)
         }}],
     })))
     monkeypatch.setattr(
-        'icarus_memory.providers._http',
-        lambda timeout=120: (calls.append(('timeout', timeout)) or httpx.Client(transport=transport)),
+        'icarus_memory.providers.OpenAICompatible._client',
+        lambda self, timeout=120: (calls.append(('timeout', timeout)) or httpx.Client(transport=transport)),
     )
     result = OpenAICompatible('qwen3.5:4b', base_url='http://127.0.0.1:11434/v1').complete(
         [{'role': 'user', 'content': 'synthetic'}], [])
@@ -61,7 +61,7 @@ def test_local_ollama_chat_budget_preserves_tool_calls(monkeypatch):
             'id': 'call-1', 'function': {'name': 'lookup', 'arguments': '{}'},
         }]}}],
     })))
-    monkeypatch.setattr('icarus_memory.providers._http', lambda timeout=120: httpx.Client(transport=transport))
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client', lambda self, timeout=120: httpx.Client(transport=transport))
 
     result = OpenAICompatible('qwen3.5:4b', base_url='http://127.0.0.1:11434/v1').complete(
         [{'role': 'user', 'content': 'synthetic'}], [{'name': 'lookup', 'parameters': {'type': 'object'}}])
@@ -106,7 +106,7 @@ def test_local_chat_does_not_return_a_token_truncated_answer(monkeypatch):
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json={
         'choices': [{'finish_reason': 'length', 'message': {'content': 'Partial answer'}}],
     }))
-    monkeypatch.setattr('icarus_memory.providers._http', lambda timeout=120: httpx.Client(transport=transport))
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client', lambda self, timeout=120: httpx.Client(transport=transport))
 
     with pytest.raises(ProviderError, match='Antwort abgeschnitten'):
         OpenAICompatible('local', base_url='http://127.0.0.1:11434/v1').complete(

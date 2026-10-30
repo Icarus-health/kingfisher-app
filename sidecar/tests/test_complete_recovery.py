@@ -14,6 +14,7 @@ from icarus_memory.mac_calendar import MacCalendar
 from icarus_memory.proposals import ProposalStore, Evidence
 from icarus_memory.recovery_bundle import export_bundle, restore_bundle
 from icarus_memory.regeln import RegelStore
+from icarus_memory.procedures import ProcedureStore
 from icarus_memory.rueckmeldung import Rueckmeldungen
 from icarus_memory.transkript_zuordnung import Zuordnungen
 from icarus_memory.secrets import Keychain
@@ -67,6 +68,13 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     rules=RegelStore(data/'regeln.sqlite3')
     rules.anlegen('Gesicherte Regel','zeit','notify',{'zone':'UTC'})
     rules.close()
+    procedures=ProcedureStore(data/'procedures.sqlite3')
+    procedure=procedures.propose(dict(name='recovery-mail', title='Gesicherter Ablauf',
+        description='Einen künstlichen Mailentwurf prüfen.', area='mail', triggers=['probe'],
+        steps=['Anlass prüfen. Danach den Entwurf prüfen.'],
+        positive='Schreibe eine Probe Mail.', negative='Schreibe eine Urlaubs Mail.'))
+    procedures.accept(procedure['id'])
+    procedures.close()
     MacCalendar(data/'mac-calendar.sqlite3').enable()
     zuordnungen=Zuordnungen(data/'gespraeche.sqlite3')   # Entscheidungen des Nutzers zu Mitschriften
     zuordnungen.schreiben(episode.id,status='zugeordnet',termin='k|t1',von='nutzer',hinweise={'titel':'Jour fixe'},kandidaten=[],gruende=['Von dir gewählt.'],abgelehnt=['k|t2'])
@@ -140,3 +148,8 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     journal = CalendarActions(result/'data/calendar-actions.sqlite3', lambda: None, None)
     assert journal.get('completed-draft')['status'] == 'done'
     assert journal.get('completed-draft')['provider_event_id'] == 'confirmed-event'
+    restored_procedures=ProcedureStore(result/'data/procedures.sqlite3')
+    selected=restored_procedures.select('Schreibe eine Probe Mail.', area='mail')
+    assert selected['contextual'][0]['id'] == procedure['id']
+    assert selected['contextual'][0]['version'] == procedure['version']
+    restored_procedures.close()

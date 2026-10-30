@@ -1,0 +1,62 @@
+{
+  "synthetic_only": true,
+  "data_set": "same frozen ten mails and recorded Qwen classification spans",
+  "initial_question": "Welche Frist hat Alex?",
+  "initial_status": "meaning_choice",
+  "initial_model_calls": 0,
+  "choices": [
+    {
+      "label": "Mails von Alex Sommer (sommer@beta.invalid)",
+      "art": "absender",
+      "ref": "sommer@beta.invalid",
+      "detail": "zuletzt: Projekt Birke: Lieferung, Rückblick Projekt Birke 2020",
+      "ids": [
+        "e-549c0d9b2613",
+        "e-05a883bbf630"
+      ],
+      "anzahl": 2
+    },
+    {
+      "label": "Mails von Alex Winter (winter@alpha.invalid)",
+      "art": "absender",
+      "ref": "winter@alpha.invalid",
+      "detail": "zuletzt: Projekt Atlas: Frist geändert, AW: Projekt Atlas: Druckdaten, Projekt Atlas: Druckdaten",
+      "ids": [
+        "e-c70c7ec313a8",
+        "e-081e63fa19da",
+        "e-76d1b79df41f"
+      ],
+      "anzahl": 3
+    },
+    {
+      "label": "Mails von Alex Winter (winter@home.invalid)",
+      "art": "absender",
+      "ref": "winter@home.invalid",
+      "detail": "zuletzt: Projekt Atlas: Zugang",
+      "ids": [
+        "e-e46585946313"
+      ],
+      "anzahl": 1
+    }
+  ],
+  "after_explicit_choice": {
+    "reply": "Gemeint: Mails von Alex Winter (winter@alpha.invalid)\n\nDie Frist für die Druckdaten wurde auf den 4. November 2026 um 18 Uhr geändert. [1]\n\nBelege\n[1] Projekt Atlas: Frist geändert; von Alex Winter <winter@alpha.invalid>; 30.10.2026\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).\n\nAuch gefunden: Mails von Alex Sommer (sommer@beta.invalid) (zuletzt: Projekt Birke: Lieferung, Rückblick Projekt Birke 2020) · Mails von Alex Winter (winter@home.invalid) (zuletzt: Projekt Atlas: Zugang)",
+    "seconds": 14.201,
+    "calls": 2,
+    "source_keys": [
+      "deadline-change"
+    ]
+  },
+  "pressure": [
+    {
+      "level": 1,
+      "free_percent": 67
+    },
+    {
+      "level": 2,
+      "free_percent": 27
+    }
+  ],
+  "private_data_accessed": false,
+  "bulk_import_started": false
+}

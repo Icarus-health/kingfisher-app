@@ -332,12 +332,17 @@ class Durchlauf:
         from .mail_timeline import timings
         quellen = list({e.id: e for _, e in paare}.values())
         zeiten = timings(self.episodes, quellen, now=jetzt) if quellen else {}
+        from .task_deadline_review import deadline_review
         bestand = aus_bestandsaufnahme(self.episodes, [e.id for e in quellen])
         offene_titel = {schluessel(t.title) for t in self.tasks.open_tasks(limit=None)}
         eigene = list(self._eigene())
         urteile = []
         for proposal, episode in paare:
             zitat = proposal.evidence[0].quote
+            review = deadline_review(self.episodes, proposal, episode)
+            if review is not None:
+                urteile.append(Urteil(False, 'frist_kontext', review['temporal_reason']))
+                continue
             urteile.append(pruefen(
                 proposal, episode, eigene=eigene, jetzt=jetzt,
                 zeitstatus=(zeiten.get(episode.id) or {}).get('temporal_status'),
@@ -456,6 +461,10 @@ class Durchlauf:
         episode = self._gueltig(proposal)
         if episode is None:
             return {'person_vorschlag': None, 'frist_vorschlag': None}
+        from .task_deadline_review import deadline_review
+        review = deadline_review(self.episodes, proposal, episode)
+        if review is not None:
+            return {'person_vorschlag': self.person(episode), 'frist_vorschlag': None, **review}
         erkannt, frist = _frist_aufloesen(proposal.evidence[0].quote, episode.occurred_at)
         ergebnis = {'person_vorschlag': self.person(episode), 'frist_vorschlag': frist.isoformat() if frist else None}
         if erkannt and frist is None:

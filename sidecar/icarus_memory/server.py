@@ -1444,7 +1444,7 @@ def _close_persistent_state(app: FastAPI) -> None:
         app.state.cloud_memory_jobs = None
     for name in (
         "semantic_search", "backend", "audit", "tasks", "workspace", "episodes", "proposals",
-        "conversations", "claims", "regeln", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde", "workspace_views",
+        "conversations", "claims", "regeln", "procedures", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde", "workspace_views",
     ):
         close = getattr(getattr(app.state, name, None), "close", None)
         if callable(close):
@@ -1480,6 +1480,8 @@ def _reopen_persistent_state(app: FastAPI) -> None:
         from .workspace_views import WorkspaceViews
         app.state.workspace_views = WorkspaceViews(data_dir / 'workspace-views.sqlite3')
     app.state.episodes = EpisodeStore(data_dir / "episodes.sqlite3")
+    from .procedure_routes import connect as connect_procedures
+    connect_procedures(app, data_dir)
     if getattr(app.state, "settings", None) is not None:
         from . import suchindex_routes
         suchindex_routes.anwenden(app)
@@ -1626,6 +1628,8 @@ def create_app(
     if episodes is None:
         episodes = EpisodeStore(_data_dir() / "episodes.sqlite3")
     app.state.episodes = episodes
+    from .procedure_routes import connect as connect_procedures
+    connect_procedures(app, _data_dir())
 
     if proposals is None:
         proposals = ProposalStore(_data_dir() / "proposals.sqlite3")
@@ -4630,6 +4634,10 @@ def create_app(
             last = next((item for item in reversed(previous)
                 if conversation_memory.lineage_valid(app.state.episodes, previous_lineages[item.id], validity_cache)), None)
             mode, fresh_question = body.answer_mode, body.new_question
+            from .procedure_routes import explicit_learning, learn as learn_procedure
+            learning_request = explicit_learning(body.message)
+            if learning_request:
+                mode = 'chat'
             choice_answer = None
             date_answer = None
             if body.clarification_choice is not None and body.clarification_date is not None:
@@ -4736,7 +4744,9 @@ def create_app(
                 and last_context['answer_contract'].get('status') in {'clarify', 'working_unclear'})
             # Ein Klick auf eine Auswahl ist keine neue Aussage des Nutzers.
             clicked = choice_answer is not None or meaning_pending is not None
-            lookup_only = ((mode == 'memory_evidence' and not followup)
+            # Verfahrensunterricht bleibt korrigierbares Original, ist aber
+            # weder ein eigener Arbeitsauftrag noch eine Wissensaussage.
+            lookup_only = (learning_request or (mode == 'memory_evidence' and not followup)
                            or clicked or date_answer is not None)
             source = app.state.conversations.add_message(conversation_id, "user", body.message,
                 metadata={'answer_mode': mode, 'new_question': fresh_question,
@@ -4760,7 +4770,10 @@ def create_app(
             if mode == 'memory_evidence' and last is not None:
                 input_sources.update({entry["episode_id"]: entry for entry in previous_lineages[last.id]})
             try:
-                if mode == 'memory_evidence':
+                if learning_request:
+                    routing = None
+                    turn = learn_procedure(app, body.message, source_episode)
+                elif mode == 'memory_evidence':
                     routing = None
                     execution_agent = app.state.agent
                     turn = identity_turn or (app.state.agent.answer_working_choice(choice_answer, body.clarification_choice)
@@ -4796,6 +4809,12 @@ def create_app(
                          'context_ids': [item.get('assertion_id') for item in turn.context.get('items', [])],
                          'memory_revision': turn.context.get('memory_revision'),
                          'allowed_tools': routing['allowed_tools']}, model=execution_agent.provider.model)
+                if mode == 'memory_evidence' and not learning_request:
+                    # Beschreibt den festen, bereits geprüften Belegpfad. Gelernte
+                    # Freitexte verändern dessen Auswahl und Antwortvertrag nicht.
+                    selected = app.state.procedures.select(body.message, area='memory', local=True)
+                    turn.context['procedures'] = {key:selected[key] for key in ('refs','signature','conflicts','missing')}
+                    turn.context['procedures']['execution'] = 'fixed_memory_pipeline'
                 assistant_message = app.state.conversations.add_message(
                     conversation_id,
                     "assistant",
@@ -6876,6 +6895,8 @@ def create_app(
     register_routing_routes(app, guard, _data_dir)
     from .learning_routes import register_learning_routes
     register_learning_routes(app, guard)
+    from .procedure_routes import register as register_procedure_routes
+    register_procedure_routes(app, guard)
     from .world_routes import register_world_routes
     register_world_routes(app, guard, _data_dir)
 

@@ -184,7 +184,9 @@ class OpenAICompatible:
     def _client(self, timeout: float):
         # Local-only automation must not inherit a process-wide HTTP proxy.
         # The verified job wrapper enables this on its own provider copy.
-        if getattr(self, '_verified_local_transport', False):
+        # Ein als lokal behandelter Datenfluss darf keinen Systemproxy nutzen.
+        # Das gilt auch für gewöhnlichen Chat, nicht nur geprüfte Hintergrundjobs.
+        if self.is_local or getattr(self, '_verified_local_transport', False):
             return httpx.Client(timeout=timeout, trust_env=False, follow_redirects=False)
         return _http(timeout=timeout)
 

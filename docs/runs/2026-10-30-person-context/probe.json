@@ -1,0 +1,68 @@
+{
+  "synthetic_only": true,
+  "data_set": "same frozen ten mails and recorded Qwen classification spans",
+  "initial_question": "Welche Frist hat Alex?",
+  "initial_status": "meaning_choice",
+  "initial_model_calls": 0,
+  "choices": [
+    {
+      "label": "Mails von Alex Sommer (sommer@beta.invalid)",
+      "art": "absender",
+      "ref": "sommer@beta.invalid",
+      "detail": "zuletzt: Projekt Birke: Lieferung, Rückblick Projekt Birke 2020",
+      "ids": [
+        "e-aead6eeb8ba8",
+        "e-7eda8a15dd0f"
+      ],
+      "anzahl": 2
+    },
+    {
+      "label": "Mails von Alex Winter (winter@alpha.invalid)",
+      "art": "absender",
+      "ref": "winter@alpha.invalid",
+      "detail": "zuletzt: Projekt Atlas: Frist geändert, AW: Projekt Atlas: Druckdaten, Projekt Atlas: Druckdaten",
+      "ids": [
+        "e-5f5258d05168",
+        "e-1e53e971ffcd",
+        "e-bf6a3244aea2"
+      ],
+      "anzahl": 3
+    },
+    {
+      "label": "Mails von Alex Winter (winter@home.invalid)",
+      "art": "absender",
+      "ref": "winter@home.invalid",
+      "detail": "zuletzt: Projekt Atlas: Zugang",
+      "ids": [
+        "e-04bd8286224c"
+      ],
+      "anzahl": 1
+    }
+  ],
+  "after_explicit_choice": {
+    "reply": "Quelle berichtet · automatisch eingeordnet\nGemeint: Mails von Alex Winter (winter@alpha.invalid)\n\nÄnderung · Projekt Atlas: Frist geändert\nHallo Lena,\n\ndie Frist für die Druckdaten wurde geändert: Statt dem 2. November gilt jetzt der 4. November 2026 um 18 Uhr.\n\nViele Grüße\nAlex Winter\nQuellenzeit: 30.10.2026, 10:05 Uhr\n\nAuch gefunden: Mails von Alex Sommer (sommer@beta.invalid) (zuletzt: Projekt Birke: Lieferung, Rückblick Projekt Birke 2020) · Mails von Alex Winter (winter@home.invalid) (zuletzt: Projekt Atlas: Zugang)",
+    "seconds": 15.819,
+    "calls": 1,
+    "source_keys": [
+      "deadline-change"
+    ]
+  },
+  "pressure": [
+    {
+      "level": 2,
+      "free_percent": 42
+    },
+    {
+      "level": 2,
+      "free_percent": 23
+    }
+  ],
+  "private_data_accessed": false,
+  "bulk_import_started": false,
+  "model_calls_blocked_by_probe_guard": 1,
+  "model_after_cleanup": [],
+  "pressure_after_settling": {
+    "level": 1,
+    "free_percent": 49
+  }
+}

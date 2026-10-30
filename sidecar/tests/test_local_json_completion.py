@@ -19,7 +19,7 @@ def test_openai_local_json_uses_30_second_timeout_256_tokens_and_json_mode(monke
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def post(self, *args, **kwargs): calls.append((args, kwargs)); return Response()
-    monkeypatch.setattr("icarus_memory.providers._http", lambda timeout=120.0: (calls.append(("timeout", timeout)) or Client()))
+    monkeypatch.setattr("icarus_memory.providers.OpenAICompatible._client", lambda self, timeout=120.0: (calls.append(("timeout", timeout)) or Client()))
     provider = OpenAICompatible("llama", base_url="http://127.0.0.1:11434/v1")
     reply = provider.complete_json([{"role": "user", "content": "mail"}])
     assert reply.text == '{"category":"important"}'
@@ -56,7 +56,7 @@ def test_routed_json_requires_provider_capability():
 
 
 def test_openai_json_rejects_remote_provider(monkeypatch):
-    monkeypatch.setattr("icarus_memory.providers._http", lambda timeout=120.0: pytest.fail("remote must not connect"))
+    monkeypatch.setattr("icarus_memory.providers.OpenAICompatible._client", lambda self, timeout=120.0: pytest.fail("remote must not connect"))
     provider = OpenAICompatible("remote", base_url="https://api.example.invalid/v1")
     with pytest.raises(ProviderError):
         provider.complete_json([])
@@ -98,7 +98,7 @@ def test_json_completion_rejects_tool_calls(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def post(self, *args, **kwargs): return ToolResponse()
-    monkeypatch.setattr("icarus_memory.providers._http", lambda timeout=120.0: Client())
+    monkeypatch.setattr("icarus_memory.providers.OpenAICompatible._client", lambda self, timeout=120.0: Client())
     provider = OpenAICompatible("llama", base_url="http://127.0.0.1:11434/v1")
     with pytest.raises(ProviderError):
         provider.complete_json([])
@@ -110,7 +110,7 @@ def test_person_overview_json_can_request_bounded_larger_reply(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def post(self, *args, **kwargs): calls.append(kwargs['json']); return Response()
-    monkeypatch.setattr('icarus_memory.providers._http', lambda timeout=120: (calls.append(timeout) or Client()))
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client', lambda self, timeout=120: (calls.append(timeout) or Client()))
     provider = OpenAICompatible('local', base_url='http://127.0.0.1:11434/v1')
     provider.complete_json([], max_tokens=1100)
     assert 60.0 in calls
@@ -125,7 +125,7 @@ def test_local_overview_uses_schema_constrained_json(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def post(self, *args, **kwargs): calls.append(kwargs['json']); return Response()
-    monkeypatch.setattr('icarus_memory.providers._http', lambda timeout=120: Client())
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client', lambda self, timeout=120: Client())
     provider = OpenAICompatible('local', base_url='http://127.0.0.1:11434/v1')
     schema = {'type':'object','properties':{'points':{'type':'array'}}}
     provider.complete_json([], max_tokens=1100, schema=schema)
@@ -141,7 +141,7 @@ def test_valid_json_cut_off_by_token_budget_is_not_complete(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def post(self, *args, **kwargs): return LimitedResponse()
-    monkeypatch.setattr('icarus_memory.providers._http', lambda timeout=120: Client())
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client', lambda self, timeout=120: Client())
     provider = OpenAICompatible('local', base_url='http://127.0.0.1:11434/v1')
     with pytest.raises(ProviderError):
         provider.complete_json([])

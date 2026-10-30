@@ -1,0 +1,34 @@
+{
+  "samples": [
+    {
+      "level": 2,
+      "free_percent": 35
+    },
+    {
+      "level": 2,
+      "free_percent": 35
+    },
+    {
+      "level": 2,
+      "free_percent": 35
+    },
+    {
+      "level": 2,
+      "free_percent": 35
+    },
+    {
+      "level": 2,
+      "free_percent": 31
+    },
+    {
+      "level": 4,
+      "free_percent": 20
+    }
+  ],
+  "aborted_by_guard": true,
+  "exit_code": -15,
+  "after_unload": {
+    "level": 4,
+    "free_percent": 21
+  }
+}

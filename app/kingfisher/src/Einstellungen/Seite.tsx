@@ -61,7 +61,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
     ki: <><LocalModelSettings /><ChatGPTAccess /><CloudAccess />
       <ModelRecommendation compact><Aufklapp id="geraet" praefix="ki" titel="Gerät und installierte Modelle" satz="Speicherbedarf und vorhandene Modelle."><DeviceModelHelp /></Aufklapp></ModelRecommendation></>,
     darf: <><Darf /><WorkspaceOnlineSettings /></>,
-    ich: <Ich />,
+    ich: <Ich ablaeufeOffen={ziel.ich === "ablaeufe"} />,
     sicherung: <RecoverySettings />,
     technik: <Technik integrationen={integrationen} ziel={ziel} zuBereich={waehlen} />,
   };

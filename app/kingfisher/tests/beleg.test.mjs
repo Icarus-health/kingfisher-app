@@ -55,3 +55,10 @@ test("die linke Spalte widerspricht keiner belegten Antwort", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(app, /Keine aktuell verwendbaren Gedächtnispunkte/);
 });
+
+test("Ablaufempfang zeigt den normalen Navigationsweg zur Prüfung und keine fehlende Faktenquelle", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  assert.match(app, /const procedureProposal = message\.role === "assistant" \? message\.metadata\?\.context\?\.procedure_proposal : undefined/);
+  assert.match(app, /beleg\.art === "ohne" && !procedureProposal/);
+  assert.match(app, /procedureProposal \? <button[^>]+onClick=\{\(\) => navigate\("\/settings#ich-ablaeufe"\)\}[^>]*>Ablauf prüfen<\/button>/);
+});

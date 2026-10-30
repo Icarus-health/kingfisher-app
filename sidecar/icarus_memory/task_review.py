@@ -113,14 +113,15 @@ def task_context_key(generation, metadata_digest):
 
 
 def current_task_context(episodes, episode_id):
-    from .episodes import AUSGEBLENDETE_ZUSTAENDE
+    from .episodes import AUSGEBLENDETE_ZUSTAENDE, CHAT_LOOKUP_TAG
     try:
         snapshot = episodes.support_snapshot(episode_id)
     except (ValueError, LookupError):
         return None
     if (snapshot is None or not snapshot.correction_valid or not snapshot.mail_parent_valid
             or (snapshot.head_id is not None and snapshot.head_id != snapshot.episode.id)
-            or snapshot.episode.state in AUSGEBLENDETE_ZUSTAENDE):
+            or snapshot.episode.state in AUSGEBLENDETE_ZUSTAENDE
+            or CHAT_LOOKUP_TAG in snapshot.episode.tags):
         return None
     return task_context_key(snapshot.generation, snapshot.metadata_digest)
 

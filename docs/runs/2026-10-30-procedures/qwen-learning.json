@@ -1,0 +1,48 @@
+{
+  "synthetic_only": true,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "http_status": 201,
+  "seconds": 13.634,
+  "reply": "Der Ablauf „Offizielle Zunftmail prüfen“ liegt zur Prüfung bereit. Unter Einstellungen → Kingfisher und du → Bewährte Abläufe kannst du Schritte und Beispiele prüfen und ihn übernehmen. Bis dahin bleibt er inaktiv.",
+  "proposals": 1,
+  "proposal": {
+    "name": "official-mail-drafting",
+    "title": "Offizielle Zunftmail prüfen",
+    "description": "Ablauf zur Erstellung offizieller Mails für die Zunft mit Prüfung von Anlass, Empfänger und Kontaktstil.",
+    "area": "mail",
+    "triggers": [
+      "Zunft"
+    ],
+    "positive": "Mail ist offiziell für die Zunft, daher Anlass prüfen, richtigen Empfänger wählen, Kontaktstil anwenden und Entwurf gegenlesen.",
+    "negative": "Mail ist privat (z.B. Urlaub), daher keine Prüfung des offiziellen Kontaktstils oder der Zunft-Vorgaben durchführen.",
+    "id": "proc-150d579f07e6",
+    "version": 1,
+    "state": "pending",
+    "base_version": 0,
+    "created_at": "2026-10-30T16:58:54.577645+00:00",
+    "request_key": "f0140e52ac03901ef0bcf29d0031b7d19f5dda9377ed8c0b01c63f83aa1624ae",
+    "sources": {
+      "e-1a2cba179949": "47c5908f104b1866690cf6df9b3ac52cd69504ed252071d394faf81e528ebed8"
+    },
+    "current": true,
+    "local_only": true,
+    "checks": {
+      "structure": true,
+      "routing_examples": true,
+      "human_review_required": true
+    },
+    "markdown": "---\n{\n  \"name\": \"official-mail-drafting\",\n  \"title\": \"Offizielle Zunftmail prüfen\",\n  \"description\": \"Ablauf zur Erstellung offizieller Mails für die Zunft mit Prüfung von Anlass, Empfänger und Kontaktstil.\",\n  \"area\": \"mail\",\n  \"triggers\": [\n    \"Zunft\"\n  ],\n  \"steps\": [\n    \"Prüfe den Anlass der Mail auf offiziellen Charakter im Zunftkontext.\",\n    \"Bestimme den korrekten Empfänger basierend auf dem Anlass.\",\n    \"Wende den bestätigten Kontaktstil für die Zunft an.\",\n    \"Erstelle einen kurzen Entwurf und lese diesen gegen.\"\n  ],\n  \"positive\": \"Mail ist offiziell für die Zunft, daher Anlass prüfen, richtigen Empfänger wählen, Kontaktstil anwenden und Entwurf gegenlesen.\",\n  \"negative\": \"Mail ist privat (z.B. Urlaub), daher keine Prüfung des offiziellen Kontaktstils oder der Zunft-Vorgaben durchführen.\"\n}\n---\n\n# Offizielle Zunftmail prüfen\n\nAblauf zur Erstellung offizieller Mails für die Zunft mit Prüfung von Anlass, Empfänger und Kontaktstil.\n\n1. Prüfe den Anlass der Mail auf offiziellen Charakter im Zunftkontext.\n2. Bestimme den korrekten Empfänger basierend auf dem Anlass.\n3. Wende den bestätigten Kontaktstil für die Zunft an.\n4. Erstelle einen kurzen Entwurf und lese diesen gegen.\n\n## Ergebnisprüfung\nBelege, aktuelle Nutzeranweisung und bestehende Freigaben bleiben bindend.\n",
+    "steps": [
+      "Prüfe den Anlass der Mail auf offiziellen Charakter im Zunftkontext.",
+      "Bestimme den korrekten Empfänger basierend auf dem Anlass.",
+      "Wende den bestätigten Kontaktstil für die Zunft an.",
+      "Erstelle einen kurzen Entwurf und lese diesen gegen."
+    ]
+  },
+  "independent_router_ms": 0.283,
+  "independent_router_selected": [
+    "official-mail-drafting"
+  ],
+  "negative_selected": [],
+  "after_withdrawal_selected": []
+}

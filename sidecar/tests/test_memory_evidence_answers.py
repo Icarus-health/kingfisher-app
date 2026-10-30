@@ -104,8 +104,8 @@ def test_real_provider_sends_closed_schema_and_rejects_incomplete_selection(core
         def post(self, url, **kwargs):
             requests.append(kwargs['json'])
             return Response()
-    monkeypatch.setattr('icarus_memory.providers._http',
-                        lambda timeout=120: (timeouts.append(timeout) or Client()))
+    monkeypatch.setattr('icarus_memory.providers.OpenAICompatible._client',
+                        lambda self, timeout=120: (timeouts.append(timeout) or Client()))
     agent = agent.scoped(OpenAICompatible('synthetic', base_url='http://127.0.0.1:11434/v1'), frozenset())
     turn = agent.answer_memory('Was wissen wir über Aurora?')
     assert len(requests) == 1 and timeouts == [30.0]

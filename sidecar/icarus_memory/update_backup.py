@@ -28,7 +28,7 @@ KEEP = 3
 
 
 def _targets() -> dict[str, Sequence[Migration]]:
-    from . import (audit, backends, claims, conversations, episodes, lint, logbuch, proposals, regeln, rueckmeldung, tasks,
+    from . import (audit, backends, claims, conversations, episodes, lint, logbuch, procedures, proposals, regeln, rueckmeldung, tasks,
                    transkript_zuordnung, workspace, workspace_views)
     return {
         "self-model.sqlite3": backends._MIGRATIONS,
@@ -41,6 +41,7 @@ def _targets() -> dict[str, Sequence[Migration]]:
         "conversations.sqlite3": conversations._MIGRATIONS,
         "knowledge.sqlite3": claims._MIGRATIONS,
         "regeln.sqlite3": regeln._MIGRATIONS,
+        "procedures.sqlite3": procedures._MIGRATIONS,
         "gespraeche.sqlite3": transkript_zuordnung._MIGRATIONS,
         "rueckmeldungen.sqlite3": rueckmeldung._MIGRATIONS,
         "logbuch.sqlite3": logbuch._MIGRATIONS,

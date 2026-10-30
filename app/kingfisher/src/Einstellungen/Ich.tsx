@@ -5,6 +5,7 @@ import { useEinrichtung } from "../Einrichtung/useEinrichtung";
 import { KreisStandAnzeige } from "../KreisKarten";
 import { KreisTon } from "../StilKreis";
 import { WorkingProfileSettings } from "../WorkingProfileSettings";
+import { ProcedureSettings } from "../ProcedureSettings";
 import { Aufklapp } from "./Aufklapp";
 import { ICH } from "./gliederung";
 
@@ -12,7 +13,7 @@ import { ICH } from "./gliederung";
  * Einstellungen → Kingfisher und du: was Kingfisher über dich wissen muss, damit es sich richtig anfühlt. Name und
  * Startort stehen nur hier; Wegezeit und Wetter benutzen sie und fragen nicht noch einmal (Prüffrage 2 in CLAUDE.md).
  */
-export function Ich() {
+export function Ich({ ablaeufeOffen = false }: { ablaeufeOffen?: boolean }) {
   const { stand, fehler: einrichtungFehler, aendern } = useEinrichtung();
   const [name, setName] = useState("");
   const [startort, setStartort] = useState("");
@@ -82,5 +83,6 @@ export function Ich() {
     </section>
     <div className="ich"><FassungEinstellung /></div>
     <div className="technik"><Aufklapp id="antwort" praefix="ich" titel={ICH.antwort.titel} satz={ICH.antwort.hilfe}><WorkingProfileSettings /></Aufklapp></div>
+    <div className="technik"><Aufklapp id="ablaeufe" praefix="ich" titel="Bewährte Abläufe" satz="Übernommene Vorgehensweisen und neue Vorschläge prüfen." offen={ablaeufeOffen}><ProcedureSettings /></Aufklapp></div>
   </div>;
 }

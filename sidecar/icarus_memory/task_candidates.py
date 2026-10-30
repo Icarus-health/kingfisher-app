@@ -47,6 +47,10 @@ class TaskCandidates:
                     or episode.digest != evidence.digest or not evidence.quote or evidence.quote not in episode.body
                     or not task_context_matches(candidate, self.episodes)):
                 raise ProposalError('Die Quelle ist nicht mehr gültig. Bitte erneut prüfen.')
+            from .task_deadline_review import deadline_review
+            review = deadline_review(self.episodes, candidate, episode)
+            if review is not None:
+                raise ProposalError(review['temporal_reason'])
             from .aufgaben_von_selbst import Durchlauf, person_der_quelle
             if person is None:
                 person = person_der_quelle(episode, eigene)[1]

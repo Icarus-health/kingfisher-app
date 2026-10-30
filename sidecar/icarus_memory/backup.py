@@ -52,6 +52,7 @@ SQLITE_DATA_FILES = (
     "conversations.sqlite3",
     "knowledge.sqlite3",
     "regeln.sqlite3",
+    "procedures.sqlite3",
     "mac-calendar.sqlite3",
     "calendar-actions.sqlite3",
     "gespraeche.sqlite3",

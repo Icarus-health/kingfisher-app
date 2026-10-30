@@ -181,9 +181,11 @@ def test_actual_adapter_http_boundary_ignores_proxy_and_hides_configuration(tmp_
         return real_client(*args, **kwargs)
     monkeypatch.setattr(httpx, 'Client', isolated_client)
     original = providers._http
+    original_client = providers.OpenAICompatible._client
     output = tmp_path / 'result.json'
     assert main(arguments(output), transport=fake_transport(requests)) == 0
     assert providers._http is original
+    assert providers.OpenAICompatible._client is original_client
     report = json.loads(output.read_text())
     assert report['metadata_stable'] is True
     assert report['results'][0]['provider_call_count'] == 1
@@ -232,6 +234,7 @@ def test_failures_remain_recorded_without_retries_or_redirects(tmp_path, failure
         return httpx.Response(200, json={'choices': [{'message': {'content': 'Synthetic answer'}}]})
     output = tmp_path / 'failure.json'
     before = providers._http
+    before_client = providers.OpenAICompatible._client
     assert main(arguments(output), transport=fake_transport(requests, completion=completion,
                 digest_after='changed' if failure == 'changed_digest' else None)) == 1
     report = json.loads(output.read_text())
@@ -240,6 +243,7 @@ def test_failures_remain_recorded_without_retries_or_redirects(tmp_path, failure
     assert report['results'][0]['provider_call_count'] == 1
     assert len([request for request in requests if request.url.path == '/v1/chat/completions']) == 1
     assert providers._http is before
+    assert providers.OpenAICompatible._client is before_client
 
 
 @pytest.mark.parametrize('case_id,wrong,labels,rationale', [

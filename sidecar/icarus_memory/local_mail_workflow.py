@@ -101,6 +101,15 @@ class SavedMailWorkflow:
     def _snapshot(self, identifier, *, read_archived=False):
         source, context = self._source(identifier, read_archived=read_archived)
         timing = timings(self.state.episodes, [source], now=datetime.now(timezone.utc))[identifier]
+        from .task_deadline_review import deadline_review
+        for proposal in _SourceProposals(self.state.proposals, identifier).pending(ProposalKind.TASK):
+            if (len(proposal.evidence) == 1 and proposal.evidence[0].digest == source.digest
+                    and proposal.evidence[0].quote in source.body
+                    and task_context_matches(proposal, self.state.episodes)):
+                review = deadline_review(self.state.episodes, proposal, source)
+                if review is not None:
+                    timing.update(review)
+                    break
         # Die Zeitklassifikation und Folgemails sind Teil des Prüfschritts, nicht des Originaltexts.
         material = ['saved-mail-v1',BRIEFING_VERSION,identifier,source.digest,context,source.project_id,timing['temporal_status'],timing['followup_episode_id']]
         stamp = hashlib.sha256(json.dumps(material,ensure_ascii=False).encode()).hexdigest()

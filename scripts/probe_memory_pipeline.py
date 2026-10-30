@@ -108,7 +108,7 @@ def bounded_transport(transport=None):
     # Injectable MockTransport is a Python test seam, never a CLI URL/config knob.
     def factory(timeout=None):
         return httpx.Client(timeout=TIMEOUT, trust_env=False, follow_redirects=False, transport=transport)
-    with patch.object(providers, '_http', factory):
+    with patch.object(providers.OpenAICompatible, '_client', lambda self, timeout: factory(timeout)):
         with factory() as client:
             yield client
 
