@@ -12,8 +12,9 @@ Zwei Regeln sind hier wichtig:
 1. **Gleichnamige werden nie gemischt.** Trägt ein vollständiger Name mehr als
    eine Adresse („Alex Winter“ beim Catering und im Institut), sind es zwei
    Personen, bis der Nutzer sie bestätigt zusammenführt. Ohne Merkmal fragt Kingfisher mit
-   beiden zurück (`unklare_person`). Ein Merkmal ist ein Wort der Frage, das
-   nur zu einer der Personen passt (Domäne oder Betreff ihrer Quellen).
+   beiden zurück (`unklare_person`). Ein Merkmal ist eine passende Domäne oder
+   ein ausdrücklich benannter Zusammenhang, etwa „beim Catering“ oder „Projekt Atlas“.
+   Ein erfragtes Betreffwort wie „Frist“ allein belegt keine Identität.
 2. **Nur was belegt ist.** Auch Teilnamen fragen bei mehreren Trägern zurück.
    Nur eine bestätigte Zusammenführung oder ein unterscheidender Kontext
    entscheidet; Häufigkeit und zeitliche Reihenfolge belegen keine Identität.
@@ -31,6 +32,8 @@ from typing import Any, Iterable
 
 from .identitaet import domaene, name_schluessel, nennungen
 from .word_forms import umschrift_gleich, umschriften
+from .datumstext import MONAT_NUMMER
+from .time_scope import WOCHENTAGE
 
 #: Höchstens so viele Personen je Nennung; mehr ist keine Auswahl mehr.
 MAX_PERSONEN = 6
@@ -50,6 +53,19 @@ _KEIN_MERKMAL = frozenset(
     "eigentlich welche welcher welches wieviel arbeitet arbeite arbeiten gibt haben hatte hatten "
     "wissen kenne kennen sagen gesagt geschrieben schreibt mich mir dich dir sein seine seiner ihre "
     "ihrer ihren dieser diese dieses jene jener zwischen wegen dass sowie".split())
+# Inhalts-/Vorgangsarten sind Suchziele, keine Personenmerkmale – auch nicht
+# nach „beim“ oder in einer Domäne. Im Zweifel bleibt die vorhandene Rückfrage.
+_ALLGEMEINER_KONTEXT = frozenset(
+    "aufgabe aufgaben frist fristen deadline deadlines termin termine terminen "
+    "datum daten zeit zeiten nachricht nachrichten mail mails email emails "
+    "dokument dokumente dokumenten quelle quellen anhang anhaenge "
+    "gespraech gespraeche gespraechen besprechung besprechungen sitzung sitzungen "
+    "protokoll protokolle protokollen bericht berichte berichten report reports "
+    "rueckmeldung rueckmeldungen status update updates information informationen "
+    "projekt projekte projekten jahr jahre jahren monat monate monaten woche wochen tag tage tagen".split())
+_ZEITKONTEXT = frozenset(umschrift_gleich(w) for w in (
+    *MONAT_NUMMER, *WOCHENTAGE, 'Sonnabend', 'heute', 'morgen', 'gestern',
+    'vorgestern', 'übermorgen', 'Frühling', 'Sommer', 'Herbst', 'Winter'))
 
 
 @dataclass
@@ -206,25 +222,47 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = (), confirme
     return ergebnis
 
 
-def _merkmale(kandidat: Kandidat, episodes: Any) -> set[str]:
-    """Wörter, an denen man eine Person erkennt: Domäne und Betreffe ihrer Quellen."""
-    merkmale = {w for adresse in kandidat.adressen or [kandidat.adresse]
+def _merkmale(kandidat: Kandidat, episodes: Any) -> tuple[set[str], set[str]]:
+    """Domänen getrennt von Betreffwörtern: Letztere brauchen ausdrücklichen Kontext."""
+    domaenen = {umschrift_gleich(w) for adresse in kandidat.adressen or [kandidat.adresse]
                 for w in re.split(r"[^\wäöüß]+", domaene(adresse).casefold()) if len(w) >= 4}
+    betreff = set()
     for episode_id in kandidat.quellen[:MAX_TITEL]:
         try:
             titel = episodes.get(episode_id).title
         except Exception:  # noqa: BLE001 - eine unlesbare Quelle liefert kein Merkmal
             continue
-        merkmale |= {w for w in re.split(r"[^\wäöüß]+", titel.casefold()) if len(w) >= 4}
-    return merkmale
+        betreff |= {umschrift_gleich(w) for w in re.split(r"[^\wäöüß]+", titel.casefold()) if len(w) >= 4}
+    return domaenen, betreff
+
+
+def _kontextwoerter(frage: str) -> set[str]:
+    """Benannter Zusammenhang statt beliebiger Suchwörter; im Zweifel bleibt die Rückfrage.
+
+    Nur den unmittelbar benannten Begriff lesen. Bei „beim Catering welche Frist“
+    wird damit nicht auch die erfragte Frist zu einem Personenmerkmal.
+    """
+    begriffe = re.findall(
+        r"""\b(?:beim|vom|bei|von|aus|in|im|am|an)\s+(?:(?:der|dem|den|des|das|einer|einem)\s+)?["'„«]?([\wäöüß-]+)""",
+        frage, re.I)
+    # Getrennt lesen: „im Projekt Atlas“ darf das nachfolgende Projektwort
+    # nicht schon beim Lesen von „im Projekt“ verbrauchen.
+    begriffe += re.findall(r"""\bprojekt\s+["'„«]?([\wäöüß-]+)""", frage, re.I)
+    # Bei einer Preisfrage benennt „Catering von Alex“ den Gegenstand; gefragt
+    # ist dessen Preis. Eine allgemeine „Frist von Alex“ benennt dagegen keine
+    # solche Leistung und darf weiterhin keinen Menschen wählen.
+    begriffe += re.findall(
+        r'\b(?:kostet|kosten)\s+(?:(?:das|die|der)\s+)?([\wäöüß-]+)\s+von\b', frage, re.I)
+    return {umschrift_gleich(w) for begriff in begriffe
+            for w in re.split(r'[^\wäöüß]+', begriff.casefold()) if len(w) >= 4}
 
 
 def unterscheidet(frage: str, erwaehnung: Erwaehnung, episodes: Any) -> Kandidat | None:
     """Die Person, zu der die Frage allein passt; nichts, wenn kein Wort der Frage entscheidet.
 
-    Zählt ein Wort der Frage, das (nach Abzug des Namens selbst) in den Merkmalen
-    genau einer Person steht. Passen Wörter zu verschiedenen Personen, entscheidet
-    keines: Die Frage bleibt offen.
+    Domänen und ausdrücklich benannter Projekt-/Organisationskontext können
+    entscheiden. Allgemeine Betreffwörter und ähnliche Wortanfänge tun das nicht.
+    Passen Merkmale zu verschiedenen Personen, bleibt die Frage offen.
     """
     explizit = [k for k in erwaehnung.kandidaten if any(
         re.search(r'(?<![\w.+@-])' + re.escape(a) + r'(?![\w.+@-])', frage, re.I)
@@ -233,17 +271,34 @@ def unterscheidet(frage: str, erwaehnung: Erwaehnung, episodes: Any) -> Kandidat
         return explizit[0]
     if len(explizit) > 1:
         return None
-    frage_woerter = {w for w in re.split(r"[^\wäöüß]+", frage.casefold())
-                     if len(w) >= 4 and w not in _KEIN_MERKMAL and w not in erwaehnung.woerter}
-    if not frage_woerter:
-        return None
-    merkmale = [(k, _merkmale(k, episodes)) for k in erwaehnung.kandidaten]
+    # „frist“ allein ist kein Merkmal, die ausdrücklich genannte vollständige
+    # Domäne „frist.example“ schon. Gemeinsame Domänen wählen noch niemanden;
+    # widersprüchliche Domänen-/Projektangaben werden nicht überstimmt.
+    domaenen = {domaene(a) for k in erwaehnung.kandidaten for a in k.adressen or [k.adresse]
+                if '.' in domaene(a)}
+    gruppen = [{k.adresse for k in erwaehnung.kandidaten
+                if d in {domaene(a) for a in k.adressen or [k.adresse]}}
+               for d in domaenen if re.search(
+                   r'(?<![\w.@-])' + re.escape(d) + r'(?![\w.@-])', frage, re.I)]
+    domaenenrahmen = set.intersection(*gruppen) if gruppen else None
+    frage_woerter = {umschrift_gleich(w) for w in re.split(r"[^\wäöüß]+", frage.casefold())
+                     if len(w) >= 4 and w not in _KEIN_MERKMAL and w not in erwaehnung.woerter
+                     and not w.isdecimal() and umschrift_gleich(w) not in _ALLGEMEINER_KONTEXT
+                     and umschrift_gleich(w) not in _ZEITKONTEXT}
+    kontext = _kontextwoerter(frage)
+    merkmale = [(k, domaenen | (betreff & kontext)) for k in erwaehnung.kandidaten
+                for domaenen, betreff in [_merkmale(k, episodes)]]
     passend: dict[str, set[str]] = defaultdict(set)
     for wort in frage_woerter:
-        traeger = [k.adresse for k, m in merkmale if any(wort == x or (len(wort) >= 5 and x.startswith(wort[:5]))
-                                                        for x in m)]
+        traeger = [k.adresse for k, m in merkmale if wort in m]
         if len(traeger) == 1:
             passend[traeger[0]].add(wort)
+    if domaenenrahmen is not None:
+        if not domaenenrahmen or set(passend) - domaenenrahmen:
+            return None
+        if not passend and len(domaenenrahmen) == 1:
+            adresse = next(iter(domaenenrahmen))
+            return next(k for k in erwaehnung.kandidaten if k.adresse == adresse)
     if len(passend) != 1:
         return None
     adresse = next(iter(passend))

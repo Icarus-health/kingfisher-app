@@ -112,6 +112,109 @@ def test_mit_merkmal_gilt_nur_die_eine_person(episodes, winter, frage, quelle, a
     assert winter[andere] not in quellen
 
 
+@pytest.mark.parametrize('titel,frage', [
+    ('Frist geändert', 'Welche Frist hat Alex?'),
+    ('Deadline für Atlas', 'Welche Deadline hat Alex?'),
+    ('Neue Aufgabe', 'Welche Aufgabe hat Alex?'),
+    ('Letzte Nachricht', 'Welche Nachricht habe ich von Alex?'),
+    ('Termin bestätigt', 'Welchen Termin hat Alex?'),
+    ('Rückmeldung Atlas', 'Wann kommt die Rückmeldung von Alex?'),
+    ('Lieferung bis Freitag', 'Was ist am Freitag mit Alex?'),
+])
+def test_erfragtes_betreffwort_waehlt_keinen_namensvetter(episodes, titel, frage):
+    _quelle(episodes, titel, 'Atlas ist noch offen.', ['Alex Winter <winter@alpha.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    unklar = personenfrage.unklare_person(frage, episodes)
+    assert unklar is not None
+    assert {k.adresse for k in unklar.kandidaten} == {'winter@alpha.example', 'sommer@beta.example'}
+    assert personenfrage.kandidatenquellen(frage, episodes) == []
+
+
+@pytest.mark.parametrize('frage,adresse', [
+    ('Welche Frist hat Alex im Projekt Atlas?', 'winter@alpha.example'),
+    ('Welche Frist hat Alex beim Catering?', 'winter@alpha.example'),
+    ('Welche Frist hat Alex von alpha?', 'winter@alpha.example'),
+    ('Welche Frist hat Alex (sommer@beta.example)?', 'sommer@beta.example'),
+])
+def test_expliziter_kontext_bleibt_trotz_allgemeiner_frage_nutzbar(episodes, frage, adresse):
+    first = _quelle(episodes, 'Projekt Atlas: Catering', 'Atlas ist noch offen.',
+                    ['Alex Winter <winter@alpha.example>'])
+    second = _quelle(episodes, 'Projekt Birke: Frist', 'Birke ist noch offen.',
+                     ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person(frage, episodes) is None
+    assert personenfrage.kandidatenquellen(frage, episodes) == [
+        first.id if adresse == 'winter@alpha.example' else second.id]
+
+
+def test_aehnlicher_projektname_ist_keine_identitaetsbestaetigung(episodes):
+    _quelle(episodes, 'Projekt Atlaswerk', 'Atlas ist noch offen.', ['Alex Winter <winter@alpha.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person('Welche Frist hat Alex im Projekt Atlaswind?', episodes) is not None
+
+
+def test_widersprechende_projektkontexte_bleiben_mehrdeutig(episodes):
+    _quelle(episodes, 'Projekt Atlas', 'Atlas ist noch offen.', ['Alex Winter <winter@alpha.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person('Was ist mit Alex in Projekt Atlas und Projekt Birke?', episodes) is not None
+
+
+@pytest.mark.parametrize('kontext', [
+    'aus der Nachricht', 'beim Termin', 'aus der Mail', 'in dem Dokument',
+    'aus der Quelle', 'bei der Aufgabe', 'bei der Frist', 'aus dem Gespräch',
+])
+def test_allgemeine_quellen_und_vorgangsarten_sind_auch_mit_praeposition_keine_identitaet(episodes, kontext):
+    _quelle(episodes, 'Nachricht: Mail Dokument Quelle Aufgabe Frist Gespräch Termin am Institut',
+            'Atlas ist noch offen.', ['Alex Winter <winter@alpha.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person(f'Welche Aufgaben hat Alex {kontext} übernommen?', episodes) is not None
+
+
+@pytest.mark.parametrize('kontext', [
+    'vom Institut', 'von dem Institut', 'in dem Institut', 'im Institut',
+    'bei „Institut“', 'bei "Institut"', 'aus dem Institut',
+])
+def test_organisationskontext_vertraegt_artikel_und_anfuhrungszeichen(episodes, kontext):
+    first = _quelle(episodes, 'Einladung Gastvortrag am Institut', 'Vortrag im November.',
+                    ['Alex Winter <winter@alpha.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person(f'Welche Aufgaben hat Alex {kontext}?', episodes) is None
+    assert personenfrage.kandidatenquellen(f'Welche Aufgaben hat Alex {kontext}?', episodes) == [first.id]
+
+
+@pytest.mark.parametrize('zeit,kontext', [
+    ('Freitag', 'am Freitag'), ('November', 'im November'),
+    ('Herbst', 'im Herbst'), ('2026', 'im Jahr 2026'),
+])
+def test_zeitangaben_im_betreff_beweisen_keine_person(episodes, zeit, kontext):
+    _quelle(episodes, f'Planung Jahr {zeit}', 'Atlas ist noch offen.', ['Alex Winter <winter@alpha.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person(f'Welche Aufgaben hat Alex {kontext}?', episodes) is not None
+
+
+def test_allgemeines_suchwort_in_domaene_ist_keine_personenwahl(episodes):
+    first = _quelle(episodes, 'Atlas', 'Atlas ist noch offen.', ['Alex Winter <winter@frist.example>'])
+    _quelle(episodes, 'Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person('Welche Frist hat Alex?', episodes) is not None
+    assert personenfrage.kandidatenquellen('Welche Frist hat Alex (winter@frist.example)?', episodes) == [first.id]
+
+
+@pytest.mark.parametrize('question', [
+    'Was gibt es von Alex bei frist.example?', 'Was gibt es von Alex (frist.example)?',
+])
+def test_vollstaendige_domaene_bleibt_trotz_allgemeinem_wort_eindeutig(episodes, question):
+    first = _quelle(episodes, 'Projekt Atlas', 'Atlas ist noch offen.', ['Alex Winter <winter@frist.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person(question, episodes) is None
+    assert personenfrage.kandidatenquellen(question, episodes) == [first.id]
+
+
+def test_vollstaendige_domaene_hebt_widersprechenden_kontext_nicht_auf(episodes):
+    _quelle(episodes, 'Projekt Atlas', 'Atlas ist noch offen.', ['Alex Winter <winter@frist.example>'])
+    _quelle(episodes, 'Projekt Birke', 'Birke ist noch offen.', ['Alex Sommer <sommer@beta.example>'])
+    assert personenfrage.unklare_person('Was ist mit Alex bei frist.example im Projekt Birke?', episodes) is not None
+    assert personenfrage.unklare_person('Was ist mit Alex bei frist.example und beta.example?', episodes) is not None
+
+
 def test_ohne_merkmal_sind_die_quellen_beider_kandidaten(episodes, winter):
     quellen = personenfrage.kandidatenquellen("Was ist mit Alex Winter?", episodes, eigene=[ICH])
     assert set(winter.values()) <= set(quellen)

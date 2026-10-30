@@ -91,6 +91,49 @@ def test_kurzer_name_mit_konkreter_frist_fragt_vor_modell_zurueck(bestand):
     assert len(chosen.context['working_answer']['meaning_scope']['ids']) == 1
 
 
+@pytest.mark.parametrize('question', [
+    'Welche Frist hat Alex?', 'Welche Aufgaben hat Alex?',
+    'Welche Aufgaben hat Alex aus der Nachricht übernommen?',
+    'Welche Aufgaben hat Alex beim Termin übernommen?',
+])
+def test_betreff_allein_ueberspringt_die_fruehe_personenwahl_nicht(bestand, monkeypatch, question):
+    app, provider = bestand
+    first = mail(app, 'Alex Winter', 'winter@alpha.example', title='Frist und Aufgaben: Nachricht zum Termin für Projekt Atlas')
+    second = mail(app, 'Alex Sommer', 'sommer@beta.example', title='Projekt Birke')
+    app.state.agent._frage_anbieter = lambda: provider
+    from icarus_memory import working_memory_semantic_runtime
+    class Suche:
+        def request(self):
+            return nullcontext()
+        def search(self, *args, **kwargs):
+            pytest.fail('Vor der Personenwahl darf keine semantische Suche beginnen.')
+    monkeypatch.setattr(working_memory_semantic_runtime, 'search', lambda *_: Suche())
+    client = TestClient(app)
+    cid = client.post('/api/v1/conversations', json={}).json()['conversation']['id']
+    response = client.post(f'/api/v1/conversations/{cid}/messages',
+                           json={'message': question, 'answer_mode': 'auto'})
+    assert response.status_code == 201, response.text
+    context = response.json()['context']
+    assert context['answer_contract']['status'] == 'meaning_choice'
+    assert {tuple(o['ids']) for o in context['meaning_choice']['options']} == {(first.id,), (second.id,)}
+    assert provider.calls == []
+
+
+def test_gespeicherte_stille_personenwahl_wird_nach_neuer_regel_ungueltig(bestand, monkeypatch):
+    app, provider = bestand
+    mail(app, 'Alex Winter', 'winter@alpha.example', title='Frist geändert')
+    mail(app, 'Alex Sommer', 'sommer@beta.example', title='Projekt Birke')
+    einordnen(app)
+    # Eine frühere Fassung hat ohne Nutzerwahl Winter gewählt. Danach muss auch
+    # der gespeicherte Belegrahmen veralten, nicht nur die nächste neue Frage.
+    with monkeypatch.context() as legacy:
+        legacy.setattr(personenfrage, 'unterscheidet', lambda text, mention, episodes:
+                       next(k for k in mention.kandidaten if k.adresse == 'winter@alpha.example'))
+        answer = frage(app, 'Welche Frist hat Alex?').context['working_answer']
+        assert working_memory_answers._fresh(answer, app.state.episodes, app.state.claims)
+    assert not working_memory_answers._fresh(answer, app.state.episodes, app.state.claims)
+
+
 def test_dominanz_und_getrennte_zeitraeume_waehlen_keine_person(bestand):
     app, provider = bestand
     for i in range(25):

@@ -5,6 +5,16 @@ also nur die Stufe „Abruf“. Rohdaten: `2026-09-29-c3-ohne-rauschen.{md,json}
 `2026-09-29-c3-10k-rauschen.{md,json}` in diesem Ordner, Basis in den `2026-09-29-basis-*`
 Dateien.
 
+## Ergänzung vom 30. Oktober 2026: Suchziel ist kein Personenmerkmal
+
+Ein einmaliges Betreffwort wie „Frist“, eine allgemeine Nachrichten-/Vorgangsart
+oder eine Zeitangabe entscheidet bei mehreren Namensträgern nicht. Domänen und
+expliziter Zusammenhang werden getrennt geprüft; bloß ähnliche Wortanfänge zählen
+nicht. Die Rückfrage erfolgt vor Modell und breiter Suche. Alte stille Antworten
+veralten über ihren Personenrahmen. [Aktuelle Prüfungen und Grenzen](../../runs/2026-10-30-person-context/README.md).
+
+Die folgenden Abschnitte beschreiben den historischen Ausgangsstand und dessen damalige Umsetzung.
+
 ## Befunde vor der Arbeit (am Code geprüft)
 
 1. **Nur der Absender wurde Teilnehmer.** `mail_ingestion.remember` schrieb
