@@ -85,6 +85,16 @@ test("der Fachwort-Erkenner findet ganze Wörter und lässt Alltagswörter in Ru
   assert.ok(FACHWOERTER.includes("IMAP") && FACHWOERTER.includes("Embedding") && FACHWOERTER.includes("Rolle"));
 });
 
+test("Ablaufprüfung erreicht direkt den persönlichen Bereich und erhält den aufzuklappenden Abschnitt", () => {
+  const ziel = zielAus("#ich-ablaeufe");
+  assert.equal(ziel.bereich, "ich");
+  assert.equal(ziel.ich, "ablaeufe");
+  assert.equal(kennungVon(ziel), "ich-ablaeufe");
+  assert.deepEqual(zielAus("#ich-unbekannt"), { bereich: "zugaenge", technik: null });
+  assert.match(quelle("Einstellungen/Seite.tsx"), /<Ich ablaeufeOffen=\{ziel\.ich === "ablaeufe"\}/);
+  assert.match(quelle("Einstellungen/Ich.tsx"), /id="ablaeufe"[^>]*offen=\{ablaeufeOffen\}/);
+});
+
 test("vorne steht kein Fachwort: nicht in den Texten der Gliederung", () => {
   const texte = vordereTexte();
   assert.ok(texte.length > 30, "die Gliederung liefert ihre vorderen Texte");

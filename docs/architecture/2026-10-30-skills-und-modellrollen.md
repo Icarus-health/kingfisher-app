@@ -1,6 +1,6 @@
 # Wiederverwendbare Abläufe und kleine Modellrollen
 
-Stand: 30. Oktober 2026. **Konzept und recherchierte Optionen, keine implementierte Skill-Bibliothek.** Die laufende Personenreparatur erweitert keine Modelle, Werkzeuge oder Freigaben. Vorrang bleibt der Gedächtniskern; keine automatische Wiederaufnahme des Großimports.
+Stand: 30. Oktober 2026. Der nachfolgende Entwurf wurde anschließend zur Umsetzung freigegeben. Eine begrenzte erste [Ablaufbibliothek](../67-bewaehrte-ablaeufe.md) ist im Reparaturbranch implementiert; Veröffentlichung und Mac-Abnahme werden im Lieferprotokoll getrennt nachgewiesen. Die Modelloptionen unten bleiben Recherche, Qwen9B und BGE-M3 unverändert. Keine automatische Wiederaufnahme des Großimports.
 
 ## Sinnvolle Trennung
 

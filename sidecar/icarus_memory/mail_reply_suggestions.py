@@ -269,6 +269,8 @@ def register_reply_suggestions(app, guard):
         if getattr(message, "truncated", False) or len(text) > 8000:
             raise HTTPException(422, "Die Mail ist für einen sicheren Entwurf zu lang.")
         original = _fingerprint(message)
+        procedures = getattr(app.state, 'procedures', None)
+        procedure_selection = (procedures.select_for(body.instruction, provider, area='mail') if procedures else None)
         with lock:
             style = effective_style(app, message)
             stil = tone_hint(app, message)
@@ -286,6 +288,8 @@ def register_reply_suggestions(app, guard):
             ]
             if style:
                 messages.insert(1, {"role": "system", "content": "Bestätigte Stilpräferenzen (nur Form, keine Fakten oder Handlungsbefugnisse). Der ausdrückliche Hinweis für diese Antwort hat Vorrang. du/sie = Anrede, short = höchstens 40 Wörter, detailed = mehr Erläuterung innerhalb des Wortlimits, yes/no = Emojis, gruss = diese Grußformel wörtlich als Schlusszeile, anrede_form = Form der Anrede (vorname: Hallo und Vorname, nachname: Frau/Herr und Nachname, hallo: nur Hallo ohne Namen, liebe: Liebe/Lieber und Name, ohne: keine Anrede), sprache = Sprache des Entwurfs (de/en): " + json.dumps(style, ensure_ascii=False)})
+            if procedure_selection:
+                messages.insert(1, {'role':'system', 'content':procedure_selection['instructions']})
             try:
                 reply = provider.complete_json(messages)
                 if getattr(reply, "tool_calls", None):
@@ -299,6 +303,9 @@ def register_reply_suggestions(app, guard):
         with lock:
             if app.state.mail is not mail or _mailhilfe_provider(app) is not provider:
                 raise HTTPException(409, "Die Mailhilfe wurde während des Entwurfs geändert.")
+            if procedure_selection and (getattr(app.state, 'procedures', None) is not procedures
+                    or not procedures.current(procedure_selection)):
+                raise HTTPException(409, 'Der verwendete Ablauf hat sich geändert. Bitte den Entwurf erneut erstellen.')
         try:
             latest = mail.message(uid)
         except Exception as exc:
@@ -310,6 +317,9 @@ def register_reply_suggestions(app, guard):
                 raise HTTPException(409, "Die Mailhilfe wurde während des Entwurfs geändert.")
             if effective_style(app, message) != style:
                 raise HTTPException(409, "Die Stilpräferenzen wurden während des Entwurfs geändert.")
+            if procedure_selection and (getattr(app.state, 'procedures', None) is not procedures
+                    or not procedures.current(procedure_selection)):
+                raise HTTPException(409, 'Der verwendete Ablauf ist nicht mehr aktuell.')
             if source_items:
                 current = (selection_proof is not None
                            and selection_fresh(selection_proof, app.state.episodes, app.state.claims)
@@ -321,6 +331,7 @@ def register_reply_suggestions(app, guard):
                 token = None
         return {"body": answer, "basis": "source_quotes" if source_items else "message_and_instruction", "context_token": token,
                 "source_status": source_status, "stil": stil,
+                **({'procedures': procedure_selection['refs'] if not source_items else []} if procedure_selection else {}),
                 "sources": [{"episode_id": item["episode_id"], "title": item["title"]} for item in source_items]}
 
 

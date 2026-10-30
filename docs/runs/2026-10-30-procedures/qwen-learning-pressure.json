@@ -1,0 +1,90 @@
+{
+  "samples": [
+    {
+      "level": 1,
+      "free_percent": 69
+    },
+    {
+      "level": 1,
+      "free_percent": 69
+    },
+    {
+      "level": 1,
+      "free_percent": 69
+    },
+    {
+      "level": 1,
+      "free_percent": 66
+    },
+    {
+      "level": 1,
+      "free_percent": 48
+    },
+    {
+      "level": 1,
+      "free_percent": 37
+    },
+    {
+      "level": 2,
+      "free_percent": 34
+    },
+    {
+      "level": 2,
+      "free_percent": 31
+    },
+    {
+      "level": 2,
+      "free_percent": 26
+    },
+    {
+      "level": 2,
+      "free_percent": 26
+    },
+    {
+      "level": 2,
+      "free_percent": 26
+    },
+    {
+      "level": 2,
+      "free_percent": 27
+    },
+    {
+      "level": 2,
+      "free_percent": 27
+    },
+    {
+      "level": 2,
+      "free_percent": 28
+    },
+    {
+      "level": 2,
+      "free_percent": 28
+    },
+    {
+      "level": 2,
+      "free_percent": 28
+    },
+    {
+      "level": 2,
+      "free_percent": 30
+    },
+    {
+      "level": 2,
+      "free_percent": 30
+    },
+    {
+      "level": 2,
+      "free_percent": 31
+    },
+    {
+      "level": 2,
+      "free_percent": 31
+    }
+  ],
+  "aborted_by_guard": false,
+  "exit_code": 0,
+  "after_unload": {
+    "level": 1,
+    "free_percent": 55
+  }
+}

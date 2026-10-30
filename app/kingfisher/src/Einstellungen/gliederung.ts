@@ -104,12 +104,13 @@ const ALT: Record<string, string> = {
   rueckmeldungen: "technik-rueckmeldungen", advanced: "technik",
 };
 
-export type Ziel = { bereich: Bereich; technik: string | null };
+export type Ziel = { bereich: Bereich; technik: string | null; ich?: "ablaeufe" };
 
 /** `#darf`, `#technik-akten` oder eine alte Kennung (`#world`) ergibt das Ziel; Unbekanntes führt nach vorn. */
 export function zielAus(kennung: string): Ziel {
   const roh = kennung.replace(/^#/, "").trim();
   const neu = ALT[roh] ?? roh;
+  if (neu === "ich-ablaeufe") return { bereich: "ich", technik: null, ich: "ablaeufe" };
   if (neu.startsWith("technik")) {
     const rest = neu.slice("technik".length).replace(/^-/, "");
     return { bereich: "technik", technik: TECHNIK.some(t => t.id === rest) ? rest : null };
@@ -118,7 +119,7 @@ export function zielAus(kennung: string): Ziel {
   return { bereich: bereich ? bereich.id : "zugaenge", technik: null };
 }
 
-export const kennungVon = (ziel: Ziel) => ziel.technik ? `technik-${ziel.technik}` : ziel.bereich;
+export const kennungVon = (ziel: Ziel) => ziel.ich && ziel.bereich === "ich" ? `ich-${ziel.ich}` : ziel.technik ? `technik-${ziel.technik}` : ziel.bereich;
 
 /**
  * Fachwörter, die vorne nichts zu suchen haben: Der Nutzer kann sie nicht kennen (Prüffrage 1 in CLAUDE.md). Ganze

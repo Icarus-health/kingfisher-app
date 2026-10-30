@@ -1,0 +1,157 @@
+{
+  "total_seconds": 26.903968832979444,
+  "sources": [
+    {
+      "key": "winter-request",
+      "seconds": 5.659,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-789605d24622",
+          "fingerprint": "95c1c12ec87a5b1bb24a022ef34bcf21aaef28255a814f1abb474f71a7faa724",
+          "start": 13,
+          "end": 99,
+          "kind": "request"
+        }
+      ]
+    },
+    {
+      "key": "sommer-delivery",
+      "seconds": 2.55,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-9a4391b4d1b8",
+          "fingerprint": "556087c6fb3586303f955ae5f75b96d7e80d44ebd9dc7942572914f5a24302d9",
+          "start": 13,
+          "end": 125,
+          "kind": "fact"
+        }
+      ]
+    },
+    {
+      "key": "winter-private",
+      "seconds": 2.486,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-1c5e6783a7ad",
+          "fingerprint": "a18c3782653e6de91c65609e58d77ffdd95a090823aeaa1217736408ab3fb5f3",
+          "start": 13,
+          "end": 109,
+          "kind": "fact"
+        }
+      ]
+    },
+    {
+      "key": "not-done",
+      "seconds": 2.335,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-b3c91ba8642d",
+          "fingerprint": "a548ab0e0b8489b3e7bce68084bdb3dc5b83c4a096cc33a30906409831fdef79",
+          "start": 13,
+          "end": 93,
+          "kind": "status"
+        }
+      ]
+    },
+    {
+      "key": "conditional",
+      "seconds": 2.355,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-b85a93fc90aa",
+          "fingerprint": "ed792a9c03cd2be7351dcdecb39edf9b35009839b817e7e0f3c54832c6e81e65",
+          "start": 13,
+          "end": 140,
+          "kind": "conditional"
+        }
+      ]
+    },
+    {
+      "key": "deadline-change",
+      "seconds": 2.336,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-35e2316e18fb",
+          "fingerprint": "aedd8bf0f1f660593089feefd64571364a73ed8055cab4750a636faa97401b19",
+          "start": 13,
+          "end": 122,
+          "kind": "change"
+        }
+      ]
+    },
+    {
+      "key": "third-person",
+      "seconds": 2.274,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-3599f4883fe4",
+          "fingerprint": "8e3ecacb558ec748afabc1cd49f01a623c58da0f0efb18c2ad5387958d04e433",
+          "start": 13,
+          "end": 95,
+          "kind": "commitment"
+        }
+      ]
+    },
+    {
+      "key": "historical",
+      "seconds": 2.258,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-afe9d0fbd6bc",
+          "fingerprint": "29f789b5f47f3fd8f04536bd4f38a1b07c2034b9091871dcb7ce8e86f3d3633a",
+          "start": 13,
+          "end": 66,
+          "kind": "request"
+        }
+      ]
+    },
+    {
+      "key": "nora-protocol",
+      "seconds": 2.352,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-7eced4554d86",
+          "fingerprint": "8278e332f4651a202fa2f294c1507f482f67057117aa808232ec3c1847be2e15",
+          "start": 13,
+          "end": 81,
+          "kind": "request"
+        }
+      ]
+    },
+    {
+      "key": "nora-not-done",
+      "seconds": 2.271,
+      "state": "complete",
+      "refs": [
+        {
+          "episode_id": "e-5806f226ad2a",
+          "fingerprint": "5cdb498ce7ac936a42a06de622cc216a56fe94b63cfc4b90126389f51f96dec5",
+          "start": 13,
+          "end": 72,
+          "kind": "status"
+        }
+      ]
+    }
+  ],
+  "ids": {
+    "winter-request": "e-789605d24622",
+    "sommer-delivery": "e-9a4391b4d1b8",
+    "winter-private": "e-1c5e6783a7ad",
+    "not-done": "e-b3c91ba8642d",
+    "conditional": "e-b85a93fc90aa",
+    "deadline-change": "e-35e2316e18fb",
+    "third-person": "e-3599f4883fe4",
+    "historical": "e-afe9d0fbd6bc",
+    "nora-protocol": "e-7eced4554d86",
+    "nora-not-done": "e-5806f226ad2a"
+  }
+}

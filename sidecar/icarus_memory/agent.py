@@ -204,6 +204,9 @@ class Agent:
         self._history_claim_ids: set[str] = set()
         self._history_knowledge_inputs = {}
         self._approval_knowledge_inputs = {}
+        self._procedures = None
+        self._history_procedures = None
+        self._approval_procedures = {}
         self._history_self_model_inputs: dict[str, dict[str, Any]] = {}
         self._history_self_model_unknown = False
         self._history_lineage_unknown = False
@@ -232,6 +235,8 @@ class Agent:
             knowledge_search=self._knowledge_search, knowledge_conflicts=self._knowledge_conflicts)
         scoped._runtime_boundary = getattr(self, '_runtime_boundary', None)
         scoped._approval_knowledge_inputs = self._approval_knowledge_inputs
+        scoped._procedures = self._procedures
+        scoped._approval_procedures = self._approval_procedures
         return scoped
 
     @property
@@ -1410,6 +1415,13 @@ class Agent:
         from .working_profile import resolve as resolve_profile, task_for
         self._working_profile_task = task_for(message)
         self._working_profile_message = message
+        procedures = (self._procedures.select_for(message, self._provider, area=self._working_profile_task)
+                      if self._procedures else None)
+        procedure_reset = bool(self._history and self._procedures and
+            (not self._procedures_current() or (self._history_procedures and
+             self._history_procedures.get('signature') != procedures['signature'])))
+        if procedure_reset:
+            self._clear_model_history()
         selection = resolve_profile(self._store, task=self._working_profile_task, message=message)
         signature = {key: selection[key] for key in ('ids','conflicts','overrides')}
         prior = getattr(self, '_working_profile_signature', {'ids':[], 'conflicts':[], 'overrides':{}})
@@ -1439,6 +1451,7 @@ class Agent:
                 self._clear_model_history()
             self._history_calendar_fingerprints = {calendar_fingerprint}
         self._history_local_only = local
+        self._history_procedures = procedures
         self._history.append({"role": "user", "content": message})
         turn = Turn()
         if profile_reset:
@@ -1478,7 +1491,12 @@ class Agent:
                         "history_egress": "local_only" if local else "external",
                         "history_omitted": omitted}
         turn.context['working_profile_signature'] = signature
-        if style_reset:
+        if procedures:
+            turn.context['procedures'] = {key:procedures[key] for key in ('refs','signature','conflicts','missing')}
+            turn.context['procedures']['history_reset'] = procedure_reset
+            if procedures['conflicts']:
+                turn.notices.append('Mehrere bestätigte Abläufe passen. Ich verwende das Grundverfahren, bis die Zuordnung geklärt ist.')
+        if style_reset or procedure_reset:
             turn.context['history_omitted'] = True
         selected_knowledge = knowledge_history.from_items(turn.context['items'])
         if selected_knowledge is None:
@@ -1531,7 +1549,7 @@ class Agent:
                 if conversation_source_captured else ""
             )
             messages = [
-                {"role": "system", "content": SYSTEM_PROMPT + capture_note + (
+                {"role": "system", "content": SYSTEM_PROMPT + ('\n\n' + procedures['instructions'] if procedures else '') + capture_note + (
                     "\nFür diese Modellantwort wurde kein automatischer Kalenderüberblick mitgegeben. "
                     "Erfinde keine Termine oder freie Zeiten und keine Personen-/Projektbeziehungen. "
                     "Ein einfacher Terminüberblick kann direkt in Kingfisher abgefragt werden."
@@ -1805,6 +1823,8 @@ class Agent:
                 "pending", call.arguments, model=model_name, detail=approval.id,
             )
             self._approval_knowledge_inputs[approval.id] = copy.deepcopy(self._history_knowledge_inputs)
+            self._approval_procedures[approval.id] = ({'refs':copy.deepcopy(self._history_procedures['refs'])}
+                if self._history_procedures else None)
             turn.approvals.append(approval)
             return "Wartet auf Freigabe durch den Nutzer."
 
@@ -1893,6 +1913,7 @@ class Agent:
         for identifier in list(self._approval_knowledge_inputs):
             if identifier not in pending:
                 del self._approval_knowledge_inputs[identifier]
+                self._approval_procedures.pop(identifier, None)
 
     @guarded
     def resolve(
@@ -1909,13 +1930,15 @@ class Agent:
         turn = Turn()
         self._prune_approval_inputs()
         approval_inputs = self._approval_knowledge_inputs.get(approval_id)
+        procedure_inputs = self._approval_procedures.get(approval_id)
+        procedure_reset = bool(procedure_inputs and (not self._procedures or not self._procedures.current(procedure_inputs)))
         knowledge_reset = (self._history_lineage_unknown or not self._knowledge_history_available()
                            or approval_inputs is None
                            or self._knowledge_conflict_status(approval_inputs) != 'clear'
                            or not knowledge_history.available(approval_inputs, self._knowledge,
                                                               snapshot_provider=self._snapshot_provider))
         profile_reset = self._history_self_model_unknown or not self._self_model_history_available()
-        if knowledge_reset or profile_reset:
+        if knowledge_reset or profile_reset or procedure_reset:
             self._clear_model_history()
             turn.notices.append("Frühere Wissensableitungen wurden zurückgestellt; das sichtbare Gespräch bleibt erhalten.")
         turn.context = {"items": [],
@@ -1928,6 +1951,7 @@ class Agent:
             approval = self._policy.reject(approval_id)
             turn.approval_outcome = "rejected"
             self._approval_knowledge_inputs.pop(approval_id, None)
+            self._approval_procedures.pop(approval_id, None)
             self._audit.record(
                 approval.tool,
                 approval.decision.action_class.value,
@@ -1940,10 +1964,11 @@ class Agent:
             turn.reply = "Abgelehnt. Ich habe nichts ausgeführt."
             return turn
 
-        if knowledge_reset or profile_reset:
+        if knowledge_reset or profile_reset or procedure_reset:
             approval = self._policy.reject(approval_id)
             turn.approval_outcome = "rejected"
             self._approval_knowledge_inputs.pop(approval_id, None)
+            self._approval_procedures.pop(approval_id, None)
             self._audit.record(approval.tool, approval.decision.action_class.value,
                                approval.decision.level.value, "refused", approval.arguments,
                                approved_by="user", detail="Verwendeter Kontext ist nicht mehr gültig.")
@@ -1955,6 +1980,7 @@ class Agent:
         approval = self._policy.grant(approval_id, confirmation)
         turn.approval_outcome = "approved"
         self._approval_knowledge_inputs.pop(approval_id, None)
+        self._approval_procedures.pop(approval_id, None)
 
         tool = self._tools[approval.tool]
         model_name = self._provider.model if self._provider else None
@@ -1992,6 +2018,7 @@ class Agent:
 
     def _clear_model_history(self) -> None:
         self._history.clear()
+        self._history_procedures = None
         self._history_claim_ids.clear()
         self._history_knowledge_inputs.clear()
         self._history_self_model_inputs.clear()
@@ -2015,7 +2042,11 @@ class Agent:
     def _knowledge_inputs_changed(self, revision: int) -> bool:
         return ((self._knowledge is not None and self._knowledge.revision != revision)
                 or not self._knowledge_history_available()
-                or self._history_self_model_unknown or not self._self_model_history_available())
+                or self._history_self_model_unknown or not self._self_model_history_available()
+                or not self._procedures_current())
+
+    def _procedures_current(self):
+        return not self._history_procedures or bool(self._procedures and self._procedures.current(self._history_procedures))
 
     def _invalidated_turn(self, turn: Turn, question: str) -> Turn:
         self._clear_model_history()
@@ -2047,6 +2078,9 @@ class Agent:
         self._working_profile_signature = next((m.get('context', {}).get('working_profile_signature')
             for m in reversed(messages) if m.get('role') == 'assistant'
             and isinstance(m.get('context'), dict)), None) or {'ids':[], 'conflicts':[], 'overrides':{}}
+        self._history_procedures = next((m.get('context', {}).get('procedures')
+            for m in reversed(messages) if m.get('role') == 'assistant'
+            and isinstance(m.get('context'), dict) and m['context'].get('procedures')), None)
         for item in messages:
             if item.get('role') == 'assistant':
                 profile = self_model_history.read_lineage(item.get('context'))

@@ -471,6 +471,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
               const beleg = belegStand(message);
+              const procedureProposal = message.role === "assistant" ? message.metadata?.context?.procedure_proposal : undefined;
               const candidate = card?.candidate;
               const requiresReplacement = Boolean(card?.conflicts.length);
               const memoryDecision = card?.claim_usable ? "Als Wissen bestätigt."
@@ -490,7 +491,8 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {beleg.art === "quellenlinks" ? <div className="beleg-links" role="group" aria-label="Worauf die Antwort sich stützt"><p className="beleg-kopf">{GESTUETZT_AUF}</p>
                   {message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet={false} />)}
                 </div> : null}
-                {beleg.art === "ohne" ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
+                {beleg.art === "ohne" && !procedureProposal ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
+                {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate("/settings#ich-ablaeufe")}>Ablauf prüfen</button> : null}
                 {meldbar(message) ? <div className="antwort-rueckkanal">
                   <StimmtNicht conversationId={data.conversation.id} messageId={message.id} />
                   {uebernehmbar(message) ? <InDieAkte conversationId={data.conversation.id} messageId={message.id} /> : null}

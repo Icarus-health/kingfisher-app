@@ -1,0 +1,100 @@
+{
+  "synthetic_only": true,
+  "owner": {
+    "name": "Lena Probe",
+    "address": "lena@repair.invalid"
+  },
+  "clock": "2026-10-30T15:00:00+01:00",
+  "sources": [
+    {
+      "key": "winter-request",
+      "name": "Alex Winter",
+      "address": "winter@alpha.invalid",
+      "title": "Projekt Atlas: Druckdaten",
+      "body": "Hallo Lena,\n\nbitte schicke mir die Druckdaten für Projekt Atlas bis zum 2. November 2026 um 18 Uhr.\n\nViele Grüße\nAlex Winter",
+      "occurred_at": "2026-10-30T09:00:00+00:00",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "sommer-delivery",
+      "name": "Alex Sommer",
+      "address": "sommer@beta.invalid",
+      "title": "Projekt Birke: Lieferung",
+      "body": "Hallo Lena,\n\ndie Lieferung für Projekt Birke kommt am 12. November 2026. Das ist ein Liefertermin und keine Aufgabe für dich.\n\nViele Grüße\nAlex Sommer",
+      "occurred_at": "2026-10-30T09:01:00+00:00",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "winter-private",
+      "name": "Alex Winter",
+      "address": "winter@home.invalid",
+      "title": "Projekt Atlas: Zugang",
+      "body": "Hallo Lena,\n\nder Zugang für Projekt Atlas liegt im Tresor. Ich schreibe dir hier von meiner privaten Adresse.\n\nViele Grüße\nAlex Winter",
+      "occurred_at": "2026-10-30T09:02:00+00:00",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "not-done",
+      "name": "Lena Probe",
+      "address": "lena@repair.invalid",
+      "to": "winter@alpha.invalid",
+      "title": "AW: Projekt Atlas: Druckdaten",
+      "body": "Hallo Alex,\n\ndie Druckdaten sind noch nicht fertig. Ich kann sie erst nächste Woche schicken.\n\nViele Grüße\nLena",
+      "occurred_at": "2026-10-30T09:03:00+00:00"
+    },
+    {
+      "key": "conditional",
+      "name": "Mara Feld",
+      "address": "mara@gamma.invalid",
+      "title": "Projekt Zeder: möglicher Auftrag",
+      "body": "Hallo Lena,\n\nwenn der Vorstand zustimmt, könntest du möglicherweise das Angebot bis zum 10. November erstellen. Es gibt noch keinen Auftrag.\n\nViele Grüße\nMara Feld",
+      "occurred_at": "2026-10-30T09:04:00+00:00",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "deadline-change",
+      "name": "Alex Winter",
+      "address": "winter@alpha.invalid",
+      "title": "Projekt Atlas: Frist geändert",
+      "body": "Hallo Lena,\n\ndie Frist für die Druckdaten wurde geändert: Statt dem 2. November gilt jetzt der 4. November 2026 um 18 Uhr.\n\nViele Grüße\nAlex Winter",
+      "occurred_at": "2026-10-30T09:05:00+00:00",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "third-person",
+      "name": "Mara Feld",
+      "address": "mara@gamma.invalid",
+      "title": "Projekt Zeder: Zuständigkeit",
+      "body": "Hallo Lena,\n\nJonas Roth wird den Vertrag bis zum 6. November prüfen. Du musst dafür nichts tun.\n\nViele Grüße\nMara Feld",
+      "occurred_at": "2026-10-30T09:06:00+00:00",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "historical",
+      "name": "Alex Sommer",
+      "address": "sommer@beta.invalid",
+      "title": "Rückblick Projekt Birke 2020",
+      "occurred_at": "2020-10-01T09:00:00+00:00",
+      "body": "Hallo Lena,\n\nbitte bringe den Bericht bis zum 5. Oktober 2020 mit.\n\nViele Grüße\nAlex Sommer",
+      "to": "lena@repair.invalid"
+    },
+    {
+      "key": "nora-protocol",
+      "name": "Nora Licht",
+      "address": "nora.licht@probe.invalid",
+      "to": "lena@repair.invalid",
+      "title": "Gedächtnisprobe · Protokoll für Nora",
+      "body": "Hallo Lena,\n\nbitte sende mir das Protokoll bis zum 3. November 2026 um 18:30 Uhr.\n\nViele Grüße\nNora Licht",
+      "occurred_at": "2026-10-30T11:00:00+00:00"
+    },
+    {
+      "key": "nora-not-done",
+      "name": "Lena Probe",
+      "address": "lena@repair.invalid",
+      "to": "nora.licht@probe.invalid",
+      "title": "AW: Gedächtnisprobe · Protokoll für Nora",
+      "body": "Hallo Nora,\n\ndas Protokoll ist noch nicht fertig. Ich melde mich morgen.\n\nViele Grüße\nLena",
+      "occurred_at": "2026-10-30T13:02:16+00:00"
+    }
+  ]
+}

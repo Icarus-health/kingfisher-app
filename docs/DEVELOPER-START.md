@@ -1,11 +1,13 @@
 # Einstieg für Entwickler und Claude Code
 
-**Reparaturbranch vom 30.10.:** Die nächste Personenwahlkorrektur auf Basis von
-`main`/1.0.30 ist lokal geprüft, noch nicht veröffentlicht oder installiert.
-Allgemeine Frist-/Aufgabenwörter wählen keinen Namensvetter mehr; bestätigte Identität
-und expliziter Kontext bleiben wirksam. [Nachweis und Grenzen](runs/2026-10-30-person-context/README.md).
-Die [Skill-/Modellnotiz](architecture/2026-10-30-skills-und-modellrollen.md) ist ein
-Konzept, keine neue Funktion. Die nachfolgenden datierten Fassungsangaben sind historisch.
+**Reparaturbranch vom 30.10., Kandidat 1.0.31:** Personenwahl und überholte
+Fristvorschläge sind abgesichert. Danach wurde die ergänzende
+[Ablaufbibliothek](67-bewaehrte-ablaeufe.md) implementiert: begrenzter automatischer
+Abruf, lokale Lernvorschläge und sichtbare Bestätigung. [Nachweise, Grenzen und
+gesonderter Auslieferungsstand](runs/2026-10-30-procedures/README.md).
+Die Modelloptionen der [Notiz](architecture/2026-10-30-skills-und-modellrollen.md)
+bleiben Recherche; Qwen9B/BGE-M3 und der pausierte Großimport bleiben bestehen.
+Die nachfolgenden datierten Fassungsangaben sind historisch.
 
 **Aktueller Stand (26.10.):** `main` ist **1.0.29**; veröffentlicht wird sie wie jede
 Fassung mit dem Release-Workflow (Tag `v1.0.29`, `Kingfisher.dmg` und Download-Seite). Die gemeinsame CoS-Vorschau (#46)
