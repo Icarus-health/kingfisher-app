@@ -1,0 +1,9 @@
+{
+  "ready": false,
+  "samples": [
+    {
+      "pressure": 1,
+      "free_percent": 47
+    }
+  ]
+}
