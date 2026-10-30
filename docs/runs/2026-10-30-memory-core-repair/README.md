@@ -123,3 +123,29 @@ Abnahmestand ergänzt werden. Konten/Kalender und Importpause dürfen bei diesem
 Update nicht verloren gehen. Unsichere Altänderungen werden nicht still
 zurückgesetzt. Bis zur repräsentativen Qualitätsabnahme bleibt der Großimport
 pausiert.
+
+## Nachtrag: Im nativen Fenster gefundener Themenfehler
+
+Nach dem Ausschließen der privaten synthetischen Zugangsquelle blieb der alte
+Beleg korrekt gesperrt. Die erneute **gleiche** Zugangsfrage zeigte jedoch
+Druckdatenfristen derselben Person und desselben Projekts. Das ist keine
+belegte Antwort auf die Frage, auch wenn die Zitate selbst unverändert sind.
+Die gezielte Korrektur präzisiert deshalb die vorhandene Auswahlanweisung:
+gemeinsame Identität und Aktenbezug sind Suchrahmen, keine Antwortrelevanz.
+Sinngleiche Aussagen, Übersichten und Belege zu einzelnen Teilfragen bleiben
+ausdrücklich erlaubt. Kein zusätzlicher Modellaufruf, keine neue Suchregel.
+
+[Mit den sieben tatsächlich angebotenen künstlichen Kandidaten](native-selection-focus-comparison.json)
+lieferte Qwen9B vorher zweimal die falschen Druckdaten-IDs, danach zweimal
+`no_relevant_sources` und keine IDs. Die Wiederholungen sind deterministische
+Wiederholungen desselben Falls mit Prompt-Cache, **keine vier unabhängigen
+Qualitätsfälle**. [Vier kleinere Kontrollfälle](selection-focus-comparison.json)
+behalten sinngleichen Zutritt/Safe-Beleg, Personenübersicht und aktuelle
+Druckdatenfrist; der einfachere negative Zugangsfall war bereits vorher richtig.
+Die größere native Gegenprobe bleibt für den Fehlernachweis entscheidend.
+
+Grenze: Das ist eine gemessene Verbesserung der probabilistischen
+Quellenauswahl, kein deterministischer Beweis beliebiger Antwortrelevanz.
+Eine absichtlich falsch auswählende Attrappe wäre weiterhin falsch; ein Test
+auf den Wortlaut der Anweisung würde diese Qualitätsgrenze nicht prüfen.
+Die nativen Gegenproben mit dem tatsächlich geladenen Patch folgen gesondert.
