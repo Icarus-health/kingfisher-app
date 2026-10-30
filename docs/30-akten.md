@@ -316,41 +316,42 @@ Menschen, die über mehreres schreiben, selten; das ist gewollt (lieber keine al
 
 ### Aufgaben folgen der Post (Oktober 2026)
 
-Ein Stabschef hakt ab, was er dich tun sah: „Du solltest Anna die Druckdaten schicken; die Mail ist raus,
-also ist es erledigt.“ Das leistet `aufgaben_post.py` nach jedem Takt der Mailaufnahme, deterministisch und
-ohne Modell, auch in der Pause (nur neue Post). Drei Grundsätze:
+Stand der Korrektur vom 30.10.2026: `aufgaben_post.py` prüft nach jedem Takt der Mailaufnahme neue
+Post deterministisch, ohne Modell und auch in der Pause. Ein Bezug zur Aufgabe beweist keine Erfüllung.
 
-* **Reversibel, deshalb ohne Rückfrage.** Das automatische Erledigen ist ein Ablagevorgang, kein Fakt im
-  Bestand. Es steht sichtbar mit Grund in der Aufgabenliste („Erledigt, weil du Anna Berg am 21. Oktober
-  „Druckdaten“ geschickt hast. Rückgängig“) und in der Akte der Person unter „Braucht dich“ (Art
-  `aufgabe_post`, 14 Tage lang, mit „Rückgängig“ statt einer Wahl). `POST /api/v1/tasks/{id}/rueckgaengig`
-  stellt den Zustand vor der Änderung wieder her (auch das Warten samt Datum) und merkt sich die Mail als
-  „nicht zuständig“ für diese Aufgabe (`aufgaben_post_getrennt`), damit es nicht erneut passiert.
-* **Nur bei sicherer Zuordnung automatisch.** Eine **eigene Mail** erledigt eine Aufgabe, wenn alle drei
-  zutreffen: (a) sie antwortet im Mailverlauf der Quelle der Aufgabe (genaue Kopfzeilenbezüge wie bei „gilt
-  das noch?“) oder geht an die Person der Aufgabe (den Absender der Quellmail); (b) die Aufgabe liegt bei dir,
-  nicht „wartet auf“; (c) ein tragendes Wort des Aufgabentitels (Substantive und Zahlen ohne Füll-, Handlungs-
-  und Stoppwörter, ohne die Namen der Beteiligten, mit Umschrift „Vertraege“ = „Verträge“ und Beugung
-  „Rechnung“ = „Rechnungen“) steht in Betreff, Text oder im Namen eines Anhangs. Treffen (a) und (b), aber
-  nicht (c), gibt es nur den Vorschlag **„Erledigt?“**. Eine **fremde Mail** erledigt nie, was bei dir liegt:
-  Bei „wartet auf Anna“ und einer Mail von Anna im selben Verlauf oder mit einem tragenden Wort geht die
-  Aufgabe zurück zu „bei dir“ („Wieder bei dir, weil Anna Berg am 21. Oktober geantwortet hat.“), sonst der
-  Vorschlag **„Wieder bei dir?“**. Nie automatisch: Rundmails (mehr als fünf Empfänger), Aufgaben, die seit
-  über 90 Tagen überfällig sind, und bei Gleichstand zweier Aufgaben (Verlauf schlägt Person, mehr Wörter
-  schlagen weniger). Eine Mail von vor der Bitte zählt nicht. Die Vorschläge sind `ProposalKind.TASK_DONE`
-  und `TASK_WAITING_RESOLVED` (`GET /api/v1/aufgaben-post/vorschlaege`, `…/{id}/annehmen`,
-  `…/{id}/verwerfen`); Annehmen ist dieselbe Änderung mit Grund, Verwerfen trennt Aufgabe und Mail.
-* **Jede Mail einmal.** Der Durchlauf merkt sich seinen Stand (Zeilennummer der Episoden) und jede geprüfte
-  Mail in `tasks.sqlite3` (Migration 4: `aufgaben_post_mails`, `aufgaben_post_getrennt`,
-  `aufgaben_post_stand`), auch über einen Neustart. Der Bestand von vor dem Umbau wird nicht neu gedeutet:
-  Der erste Durchlauf setzt nur den Stand.
+* **Erledigung nur nach Bestätigung.** Eine eigene Mail im genauen Verlauf der Aufgabenquelle oder an deren
+  Gegenseite liefert den bestehenden Vorschlag **„Erledigt?“**. Auch tragende Wörter im Betreff, Text oder
+  Anhangnamen belegen nur den möglichen Zusammenhang. Verneinungen, Absichten und bloße Antworten bleiben
+  offen. Der Vorschlag beschreibt die Mail, ohne Unterlagenversand zu behaupten; auch ältere offene
+  Vorschläge werden beim Anzeigen anhand der aktuellen Belege neu beschrieben. Nach Annahme lautet der
+  Grund beispielsweise „Erledigt nach deiner Bestätigung zur Mail an Anna Berg vom 21. Oktober.“
+* **Warten nur bei bekannter Adresse automatisch auflösen.** Eine eingehende Mail holt eine wartende
+  Aufgabe zu „bei dir“ zurück, wenn ihre exakte Absenderadresse als Gegenseite bekannt ist und zusätzlich
+  der genaue Verlauf oder tragende Wörter passen. Bekannt heißt: explizite Adresse im Wartestatus oder
+  eine dazu passende Person der Aufgabenquelle; bei einer eigenen Quelle muss deren fremder Empfänger
+  eindeutig sein. Ein widersprechender bekannter Absender gewinnt gegenüber einem gleichen Vornamen,
+  selbst im selben Verlauf: dann kein Treffer und kein Vorschlag für diese Aufgabe. Ohne bekannte
+  Adresse liefert ein passender Name höchstens **„Wieder bei dir?“**. Ohne Bezug bleibt auch eine
+  bekannte Adresse ein Vorschlag. Fremde Mails erledigen nie eine Aufgabe, die bei dir liegt.
+* **Quellen, Fristen und Rückgängig erhalten.** Entzogene oder ersetzte Aufgabenquellen und Mailbelege
+  sind unbrauchbar; beim Anzeigen und Annehmen werden aktuelle Fassung und Belegdigest erneut geprüft.
+  Fristen werden nicht verändert. Rundmails (mehr als fünf fremde Empfänger), seit über 90 Tagen
+  überfällige Aufgaben und gleichrangige Treffer ändern keinen Wartestatus automatisch. Verlauf schlägt
+  Person, mehr tragende Wörter schlagen weniger. Eine Mail von vor der Bitte zählt nicht.
+  `POST /api/v1/tasks/{id}/rueckgaengig` stellt den vorigen Zustand wieder her, einschließlich Warten und
+  Datum, und trennt Aufgabe und Mail dauerhaft (`aufgaben_post_getrennt`). Verwerfen trennt sie ebenfalls.
+* **Jede Mail einmal.** Zeilenstand und geprüfte Mail bleiben in `tasks.sqlite3` gespeichert (Migration 4:
+  `aufgaben_post_mails`, `aufgaben_post_getrennt`, `aufgaben_post_stand`), auch nach Neustart. Der erste
+  Durchlauf setzt nur den Stand; der frühere Bestand wird nicht automatisch neu gedeutet oder korrigiert.
 
-Jede Änderung steht im Logbuch (`aufgabe_post`: Kennungen von Aufgabe und Mail, Art, wie die Zuordnung
-zustande kam; kein Text) und in der Geschichte der Aufgabe (`post_completed`, `post_returned`,
-`post_undone`). Die erledigte Aufgabe mahnt nicht mehr; die Tageslage nennt „Erledigt durch deine Mail an
-Anna Berg: ‚Druckdaten schicken‘“ höchstens einmal (Zeile `aufgaben_post`, weitere werden gezählt). Ein
-Modell darf später nur Kandidaten liefern; es ist nicht Teil dieses Schritts. Protokoll:
-[`runs/2026-10-21-aufgaben-post`](runs/2026-10-21-aufgaben-post/README.md).
+Die bestehenden Vorschlagsarten `ProposalKind.TASK_DONE` und `TASK_WAITING_RESOLVED` und Routen
+`GET /api/v1/aufgaben-post/vorschlaege`, `…/{id}/annehmen`, `…/{id}/verwerfen` bleiben erhalten. Jede
+Änderung steht im Logbuch (`aufgabe_post`: Kennungen und Zuordnungsart, kein Text) und in der Geschichte
+(`post_completed`, `post_returned`, `post_undone`). Aufgabenliste, Akte unter „Braucht dich“ (14 Tage)
+und Tageslage zeigen den Grund samt Rückgängig; die Tageslage fasst mehrere Änderungen in einer Zeile
+zusammen. Die historische Automatikbeschreibung und ihr damaliger Nachweis stehen unter
+[`runs/2026-10-21-aufgaben-post`](runs/2026-10-21-aufgaben-post/README.md); die damalige Zusage, dass
+Wortüberschneidung eine automatische Erledigung rechtfertige, gilt seit dieser Korrektur nicht mehr.
 
 ### Aufgaben von selbst (26.10.2026)
 
