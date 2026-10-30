@@ -77,6 +77,12 @@ Umgesetzter begrenzter Reparaturschritt: dauerhafte, ausdrücklich formulierte
 Ablaufkorrekturen ohne feste Befehlsform erkennen und bereits offene passende
 Lernvorschläge mitfinden. Keine neue Ansicht, Modellrolle oder Lernberechtigung:
 [Prüfungen und Grenzen](runs/2026-10-30-procedure-corrections/README.md).
-Als nächster konkreter Bedienpunkt soll „Ablauf prüfen“ den betreffenden
-Vorschlag direkt öffnen. Modelllauf, echte Quellenprobe und Mac-Fenster bleiben
-gesonderte Abnahmen.
+Der direkte Bedienweg „Ablauf prüfen“ öffnet jetzt den genau bezeichneten
+Vorschlag mit frisch gelesenen Schritten und erhaltener Gesprächseingabe beim
+Rückweg: [UI-Nachweis und Review](runs/2026-10-30-procedure-review-link/README.md).
+Modelllauf, echte Quellenprobe und Mac-Fenster bleiben gesonderte Abnahmen.
+Eine lesende Nachkontrolle am Abend fand den persönlichen Hintergrund global
+pausiert (beide Postfächer eingerichtet); nichts fortgesetzt. Mac-Speicherdruck
+Stufe 2 und 43 Prozent freie Systemreserve genügen noch nicht für den zuvor
+festgelegten sicheren Wiederanlauf (Stufe 1, mindestens 48 Prozent stabile Reserve).
+Die eigenen Browserprüfungen werden beendet; keine fremden Programme schließen.
