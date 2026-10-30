@@ -163,6 +163,7 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
                 jetzt=clock,workspace=app.app.state.workspace,eigene=[owner])
             report['people']=[{'name':p.name,'adressen':p.adressen} for p in people]
             report['people_checks']=grade_people(catalog['people'],report['people']);save()
+            service=None
             if embedding_factory is not None:
                 from icarus_memory.working_memory_semantic_service import SemanticService
                 report['stage']='semantic_index';save()
@@ -179,6 +180,7 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
                 if report['semantic_coverage']['status']!='indexed':raise RuntimeError('Semantischer Testindex unvollständig.')
                 report['semantic_search']=True
             report['stage']='fresh_recall';save()
+            report['semantic_observations']=[]
             for case in catalog['questions']:
                 cid=app.anfrage('POST','/api/v1/conversations',{})['conversation']['id']
                 try:
@@ -192,7 +194,10 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
                     report['questions'].append({'id':case['id'],'error':type(error).__name__})
                     save()
                     if getattr(error,'fatal',False):raise
+                if service is not None:
+                    report['semantic_observations'].append({'id':case['id'],'coverage':service.coverage()})
                 save()
+            if service is not None:report['semantic_after_recall']=service.coverage()
             report['originals_preserved']=all(app.episodes.get(mapping[s['id']]).body.strip()==s['body'].strip() for s in catalog['mails'])
             report['finished']=True;report['stage']='finished';save()
     return report

@@ -41,15 +41,15 @@ class NativeProbe:
         self.identity=None
 
     def _call(self,messages,*,max_tokens,schema=None):
-        if len(self.report['model_calls'])>=self.limit:raise ProbeLimit('Aufrufgrenze erreicht.')
-        if len(json.dumps(messages,ensure_ascii=False).encode())>16000:
-            raise ProviderError('Eingabe über der sicheren 8K-Diagnosegrenze; nicht gekürzt.')
-        identity=verify_local_model(self.base)
-        if self.identity is not None and self.identity!=identity:raise ProbeLimit('Modellgewichte geändert.')
-        self.identity=identity
+        if len(self.report['model_calls'])>=self.limit:self._refuse(ProbeLimit('Aufrufgrenze erreicht.'))
         row={'stage':self.report.get('stage'),'messages':messages,'status':'started'}
         self.report['model_calls'].append(row);self.save();start=time.monotonic()
         try:
+            if len(json.dumps(messages,ensure_ascii=False).encode())>16000:
+                raise ProviderError('Eingabe über der sicheren 8K-Diagnosegrenze; nicht gekürzt.')
+            identity=verify_local_model(self.base)
+            if self.identity is not None and self.identity!=identity:raise ProbeLimit('Modellgewichte geändert.')
+            self.identity=identity
             payload={'model':self.model,'messages':messages,'stream':False,'think':False,'keep_alive':'15s',
                      'options':{'num_ctx':8192,'num_predict':min(max_tokens,1200),'temperature':0,'seed':42}}
             if schema is not None:payload['format']=schema
@@ -71,12 +71,44 @@ class NativeProbe:
         finally:
             row['seconds']=round(time.monotonic()-start,3);self.save()
 
+    def _refuse(self,error):
+        self.report.setdefault('provider_refusals',[]).append({'stage':self.report.get('stage'),'error':str(error)})
+        self.save();raise error
+
     def complete_json(self,messages,*,max_tokens=256,schema=None):
         return self._call(messages,max_tokens=max_tokens,schema=schema or 'json')
 
     def complete(self,messages,tools):
-        if tools:raise ProviderError('Werkzeugausführung gehört nicht zu dieser Quellenprobe.')
+        if tools:self._refuse(ProviderError('Werkzeugausführung gehört nicht zu dieser Quellenprobe.'))
         return self._call(messages,max_tokens=1024)
+
+
+class TrackedEmbedding:
+    """Auch Identitätsfehler vor embed() müssen im Diagnosebericht erhalten bleiben."""
+    is_local=True
+    def __init__(self,factory,report,save):
+        self.factory=factory;self.report=report;self.save=save;self.permission_check=lambda:None
+
+    def _observe(self,key,operation,**fields):
+        row={'stage':self.report.get('stage'),'status':'started',**fields}
+        self.report.setdefault(key,[]).append(row);self.save();start=time.monotonic()
+        try:
+            value=operation();row['status']='completed';return value
+        except Exception as error:
+            row.update(status='failed',error=type(error).__name__+': '+str(error));raise
+        finally:row['seconds']=round(time.monotonic()-start,3);self.save()
+
+    def __enter__(self):
+        def enter():
+            self.adapter=self.factory();self.adapter.permission_check=self.permission_check
+            self.active=self.adapter.__enter__();self.model_key=self.active.model_key
+        self._observe('embedding_sessions',enter)
+        return self
+
+    def __exit__(self,*args):return self.adapter.__exit__(*args)
+
+    def embed(self,texts):
+        return self._observe('embedding_calls',lambda:self.active.embed(texts),count=len(texts))
 
 
 def save_json(path,value):
@@ -115,10 +147,18 @@ def summarize(report,catalog=None):
     expected_questions={q['id'] for q in catalog['questions']}
     exact=lambda rows,ids: len(rows)==len(ids) and {r['id'] for r in rows}==ids
     scan=report.get('task_scan',[])
+    failures=[f'{key}:{i}' for key in ('model_calls','embedding_calls','embedding_sessions')
+              for i,row in enumerate(report.get(key,[])) if row.get('status')!='completed']
+    failures.extend(f'provider_refusal:{i}' for i,_ in enumerate(report.get('provider_refusals',[])))
     technical=(report.get('finished') is True and report.get('originals_preserved') is True
+        and not failures and not report.get('error')
         and report.get('tasks_created_without_confirmation')==0
         and (report.get('mode')!='live_qwen_bge' or
-             report.get('semantic_search') is True and report.get('semantic_coverage',{}).get('status')=='indexed')
+             (report.get('semantic_search') is True and report.get('semantic_coverage',{}).get('status')=='indexed'
+              and report.get('semantic_after_recall',{}).get('status')=='indexed'
+              and exact(report.get('semantic_observations',[]),expected_questions)
+              and all(r['coverage'].get('status')=='indexed' for r in report.get('semantic_observations',[]))
+              and all(report.get(k) for k in ('model_calls','embedding_calls','embedding_sessions'))))
         and exact(classifications,expected_sources)
         and all(r['state'] in {'complete','empty'} and r['original_body_preserved'] and r['date_absence_preserved'] for r in classifications)
         and exact(report.get('questions',[]),expected_questions)
@@ -128,6 +168,7 @@ def summarize(report,catalog=None):
         and bool(scan) and all(r['available'] and not r['failed'] and not r['cancelled'] for r in scan))
     return {'pipeline_complete':technical,'contract_checks_passed':sum(bool(v) for _,v in checks),
         'contract_checks_total':len(checks),'failed_contracts':[k for k,v in checks if not v],
+        'technical_failures':failures,
         'model_calls':len(report.get('model_calls',[])),
         'model_seconds':round(sum(c.get('seconds',0) for c in report.get('model_calls',[])),3),
         'bulk_import_authorized':False,'semantic_grade':'requires_review'}
@@ -143,18 +184,7 @@ def worker(directory):
             from icarus_memory.local_embeddings import LocalEmbedder
             report['embedding_calls']=[]
             def embedding_factory():
-                adapter=LocalEmbedder(model='bge-m3:latest',verify_weights=True,keep_alive='15s')
-                original=adapter.embed
-                def embed(texts):
-                    row={'stage':report.get('stage'),'count':len(texts),'status':'started'}
-                    report['embedding_calls'].append(row);save();start=time.monotonic()
-                    try:
-                        vectors=original(texts);row.update(status='completed',dimensions=len(vectors[0]));return vectors
-                    except Exception as exc:
-                        row.update(status='failed',error=type(exc).__name__);raise
-                    finally:row['seconds']=round(time.monotonic()-start,3);save()
-                adapter.embed=embed
-                return adapter
+                return TrackedEmbedding(lambda:LocalEmbedder(model='bge-m3:latest',verify_weights=True,keep_alive='15s'),report,save)
             run_pipeline(catalog,provider,Path(directory)/'runtime',report,save,embedding_factory=embedding_factory)
         except Exception as exc:
             report['finished']=False;report['error']=type(exc).__name__+': '+str(exc)

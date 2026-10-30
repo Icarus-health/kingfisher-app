@@ -192,6 +192,104 @@ def test_summary_never_treats_partial_coverage_or_changed_originals_as_complete(
     assert m.summarize(report)['bulk_import_authorized'] is False
 
 
+@pytest.mark.parametrize('failure', ['failed_model','unfinished_model','refusal','failed_embedding','failed_identity','stale_coverage'])
+def test_useful_fallback_never_masks_transport_failure(failure):
+    m=probe_module()
+    catalog=module().load_catalog();catalog['mails']=catalog['mails'][:1];catalog['questions']=catalog['questions'][:1]
+    report={'mode':'live_qwen_bge','finished':True,'originals_preserved':True,'tasks_created_without_confirmation':0,
+        'semantic_search':True,'semantic_coverage':{'status':'indexed'},'semantic_after_recall':{'status':'indexed'},
+        'semantic_observations':[{'id':'q01','coverage':{'status':'indexed'}}],
+        'classification':[{'id':'m01','state':'complete','original_body_preserved':True,'date_absence_preserved':True}],
+        'task_scan':[{'available':True,'failed':0,'cancelled':False}],
+        'task_checks':[{'id':'m01','checks':{'task':True}}],
+        'people_checks':dict.fromkeys(('required_identities_present','identities_not_merged','service_not_person'),True),
+        'questions':[{'id':'q01','observed':{'text':'Hilfreiches Originalzitat'},'checks':{'correct_source':True}}],
+        'model_calls':[{'status':'completed'}],'embedding_calls':[{'status':'completed'}],
+        'embedding_sessions':[{'status':'completed'}]}
+    assert m.summarize(report,catalog)['pipeline_complete'] is True
+    if failure=='failed_model':report['model_calls'].append({'status':'failed'})
+    if failure=='unfinished_model':report['model_calls'].append({'status':'started'})
+    if failure=='refusal':report['provider_refusals']=[{'error':'budget'}]
+    if failure=='failed_embedding':report['embedding_calls'].append({'status':'failed'})
+    if failure=='failed_identity':report['embedding_sessions'].append({'status':'failed'})
+    if failure=='stale_coverage':report['semantic_observations'][0]['coverage']['status']='unavailable'
+    assert m.summarize(report,catalog)['pipeline_complete'] is False
+
+
+@pytest.mark.parametrize('refusal', ['weights','input','limit','tools'])
+def test_all_pretransport_refusals_are_recorded(monkeypatch,refusal):
+    import httpx
+    from types import SimpleNamespace
+    from icarus_memory.providers import ProviderError
+    m=probe_module();report={'model_calls':[]}
+    def identity(provider):
+        if refusal=='weights':raise ProviderError('synthetic identity failure')
+        return SimpleNamespace(name=provider.model,digest='fixture')
+    monkeypatch.setattr(m,'verify_local_model',identity)
+    monkeypatch.setattr(m.httpx,'Client',lambda **kw:pytest.fail('refusal must precede source transport'))
+    p=m.NativeProbe('synthetic',report,lambda:None,limit=0 if refusal=='limit' else 1)
+    with pytest.raises(ProviderError):
+        if refusal=='tools':p.complete([], [{'name':'send_mail'}])
+        else:p.complete_json([{'role':'user','content':'x'*17000 if refusal=='input' else 'synthetic'}])
+    assert report.get('provider_refusals') or any(r['status']=='failed' for r in report['model_calls'])
+
+
+@pytest.mark.parametrize('failure',['identity','query'])
+def test_real_semantic_failure_preserves_answer_and_reports_recall_gap(tmp_path,failure):
+    from icarus_memory.providers import ProviderError,Reply
+    m=module();runner=probe_module();data=m.load_catalog()
+    data['mails']=[data['mails'][4]];data['questions']=[data['questions'][1]]
+    data['people']={'separate':[['alex.zweit@alpha.example']],'not_people':[]}
+    report={'mode':'live_qwen_bge','model_calls':[]}
+    class Language:
+        is_local=True;name=model='synthetic-mechanics-only'
+        def complete_json(self,messages,**kwargs):
+            payload=json.loads(messages[-1]['content'])
+            if 'blocks' in payload:return Reply(text=json.dumps({'items':{b['block_id']:'fact' for b in payload['blocks']}}))
+            if 'sources' in payload:return Reply(text=json.dumps({'status':'source_reports','ids':[s['id'] for s in payload['sources']]}))
+            return Reply(text='{"items":[]}')
+        def complete(self,messages,tools):return self.complete_json(messages)
+    class Embedding:
+        is_local=True;model_key='synthetic:'+('a'*64)
+        def __enter__(self):
+            if report.get('stage')=='fresh_recall' and failure=='identity':raise ProviderError('synthetic identity failure')
+            return self
+        def __exit__(self,*args):pass
+        def embed(self,texts):
+            if report.get('stage')=='fresh_recall' and failure=='query':raise ProviderError('synthetic query failure')
+            return [[1.,0.,0.] for _ in texts]
+    m.run_pipeline(data,Language(),tmp_path,report,lambda:None,
+        embedding_factory=lambda:runner.TrackedEmbedding(Embedding,report,lambda:None))
+    assert report['questions'][0]['observed']['sources']==['m05']
+    assert all(report['questions'][0]['checks'].values())  # Hilfreicher echter Zitat-Rückfall.
+    assert report['semantic_coverage']['status']=='indexed'
+    assert report['semantic_observations'][0]['coverage']['status']=='unavailable'
+    assert not runner.summarize(report,data)['pipeline_complete']
+
+
+def test_real_sentence_failure_preserves_quote_but_is_not_technical_success(tmp_path):
+    from icarus_memory.providers import ProviderError,Reply
+    from icarus_memory.satzantwort import ist_satzanfrage
+    m=module();runner=probe_module();data=m.load_catalog()
+    data['mails']=[data['mails'][4]];data['questions']=[data['questions'][1]]
+    data['people']={'separate':[['alex.zweit@alpha.example']],'not_people':[]}
+    report={'model_calls':[]}
+    class Language:
+        is_local=True;name=model='synthetic-mechanics-only'
+        def complete_json(self,messages,**kwargs):
+            if ist_satzanfrage(messages):
+                report['model_calls'].append({'status':'failed'});raise ProviderError('synthetic sentence failure')
+            payload=json.loads(messages[-1]['content'])
+            if 'blocks' in payload:return Reply(text=json.dumps({'items':{b['block_id']:'fact' for b in payload['blocks']}}))
+            if 'sources' in payload:return Reply(text=json.dumps({'status':'source_reports','ids':[s['id'] for s in payload['sources']]}))
+            return Reply(text='{"items":[]}')
+        def complete(self,messages,tools):return self.complete_json(messages)
+    m.run_pipeline(data,Language(),tmp_path,report,lambda:None)
+    assert report['model_calls'][-1]['status']=='failed'
+    assert all(report['questions'][0]['checks'].values())
+    assert not runner.summarize(report,data)['pipeline_complete']
+
+
 def test_missing_context_accounting_is_incomplete_not_a_safe_response(monkeypatch):
     import httpx
     from types import SimpleNamespace

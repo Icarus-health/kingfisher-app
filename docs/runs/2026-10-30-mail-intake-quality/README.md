@@ -24,8 +24,9 @@ Mails, Werbung, bedingte Angebote, eine unbestätigte Buchung, ausgewählte News
 Quellen mit Manipulationsversuchen sowie fehlende und mehrdeutige Datumsangaben.
 Das fehlende Maildatum wird bereits im künstlichen RFC-822-Postfach entfernt.
 
-25 neue Werkzeugtests und die betroffenen Messlatten-/Diagnostiktests:
-**340 bestanden**, eine bestehende Starlette/httpx-Abkündigungswarnung.
+Vor dem Modellversuch: 25 neue Werkzeugtests und die betroffenen
+Messlatten-/Diagnostiktests, **340 bestanden**, eine bestehende
+Starlette/httpx-Abkündigungswarnung.
 Die Mechaniktests verwenden ausdrücklich künstliche Sprach- und Suchantworten;
 sie belegen die Messung, keine Zuordnungsqualität von Qwen.
 
@@ -81,3 +82,28 @@ Reserve vollständig laufen lassen und alle Aufgaben, Identitäten und Antworten
 einzeln lesen. Danach bleiben die vertagte Bedienprüfung der veröffentlichten
 Fassung 1.0.32 im Mac-Fenster und eine kleine ausdrücklich freigegebene Realmail-Probe.
 Ein App-Update nur für dieses Prüfwerkzeug ist nicht erforderlich.
+
+## Unabhängiges Review und Werkzeugkorrektur
+
+Das unabhängige Schlussreview fand einen wichtigen Fehler im Prüfwerkzeug:
+Ein Modellfehler bei der Antwortformulierung kann im Produkt zum hilfreichen
+Originalzitat führen, ein Suchmodellfehler zum Wortsuch-Rückfall. Die ursprüngliche
+Auswertung hätte passende Wörter und Quellen in solchen Antworten als technisch
+vollständigen Lauf zählen können. Der bereits abgebrochene Versuch A wurde
+korrekt als unvollständig ausgewiesen und ist unverändert erhalten.
+
+Korrigiert wurden ausschließlich die Diagnose und deren Tests: Auch vor dem
+Transport abgewiesene Sprachmodellversuche sowie Identitätsfehler beim Öffnen
+des Suchadapters werden festgehalten. Nach jeder Frage und am Ende wird die
+semantische Abdeckung erneut gelesen. Fehler, begonnene unvollständige Aufrufe,
+Abweisungen oder fehlende Suchabdeckung sperren den technischen Gesamtstatus;
+hilfreiche Rückfallantworten bleiben als Beobachtung sichtbar.
+
+13 gezielte Regressionen scheiterten mit dem alten Werkzeug und bestehen mit
+der Korrektur. Darunter liegen echte Parser-/Speicher-/Gesprächs-API-Abläufe mit
+künstlich ausgelösten Satz-, Such- und Identitätsfehlern. Dafür wurde kein weiteres
+Modell geladen. Die tatsächliche Modell-, Realmail- und Fensterabnahme bleibt offen.
+
+Abschließende betroffene Suite nach der Korrektur: **353 bestanden**, davon
+38 Werkzeugtests; eine bestehende Starlette/httpx-Abkündigungswarnung. Kein
+Produktcode und keine Produktionskonfiguration wurden in diesem Paket geändert.
