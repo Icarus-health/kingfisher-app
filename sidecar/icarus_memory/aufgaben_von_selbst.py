@@ -159,13 +159,15 @@ def _frist_aufloesen(zitat: str, bezug: datetime | None) -> tuple[bool, datetime
         return erkannt, None
     frist = suche.fristen[0]
     zone = user_timezone()
+    if zone is None:
+        return True, None
     if not uhren and not _UHR_HINWEIS.search(zitat):
-        return True, datetime.combine(frist.datum, time(23, 59), tzinfo=zone or timezone.utc)
-    if zone is None or len(uhren) != 1:
+        return True, datetime.combine(frist.datum, time(23, 59), tzinfo=zone)
+    if len(uhren) != 1:
         return True, None
     uhr = uhren[0]
     # Angefügte Zonen/Vorbehalte bleiben auch hinter Komma oder Klammern wirksam.
-    zusatz = re.sub(r'^[^\w+-]+', '', zitat[uhr.end():])
+    zusatz = re.sub(r'^[^\w+–—-]+', '', zitat[uhr.end():])
     # Nur unmittelbar an dieses Datum gebunden, nicht eine Uhrzeit eines anderen Satzes.
     if (uhr.start() < frist.ende or not re.fullmatch(r'[ \t]*,?[ \t]*', zitat[frist.ende:uhr.start()])
             or _UHR_ZONE.match(zusatz) or _UHR_UNKLAR.match(zusatz)):

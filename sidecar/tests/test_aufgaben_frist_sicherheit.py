@@ -48,9 +48,43 @@ def test_lokale_uhrzeit_in_dst_luecke_oder_doppelter_stunde_bleibt_unklar(date):
     assert frist_aus(f'Bitte schicke die Druckdaten bis zum {date} um 02:30 Uhr.', FRIDAY) is None
 
 
-def test_ohne_gueltige_nutzerzone_wird_keine_lokale_uhrzeit_geraten(monkeypatch):
+@pytest.mark.parametrize('clock', ['', ' um 18 Uhr'])
+def test_ohne_gueltige_nutzerzone_wird_keine_lokale_uhrzeit_geraten(monkeypatch, clock):
     monkeypatch.setenv('KINGFISHER_TIMEZONE', 'ungueltig')
-    assert frist_aus('Bitte schicke die Druckdaten bis zum 2. November 2026 um 18 Uhr.', FRIDAY) is None
+    assert frist_aus(f'Bitte schicke die Druckdaten bis zum 2. November 2026{clock}.', FRIDAY) is None
+
+
+@pytest.mark.parametrize('clock', ['', ' um 18 Uhr'])
+def test_automatik_uebernimmt_keine_frist_ohne_bekannte_nutzerzone(welt, monkeypatch, clock):
+    monkeypatch.setattr(basis, 'JETZT', FRIDAY)
+    monkeypatch.setenv('KINGFISHER_TIMEZONE', 'ungueltig')
+    episodes, tasks, proposals, _, lauf, _ = welt
+    _, candidate = basis.bitte(episodes, proposals,
+        text=f'Bitte schicke mir die Druckdaten bis zum 2. November 2026{clock}.')
+    assert lauf.schritt() == {'geprueft': 1, 'angelegt': 0, 'vorschlaege': 1}
+    assert tasks.get('t-suggestion-' + candidate.id) is None
+    assert proposals.get(candidate.id).state is ProposalState.PENDING
+    assert tasks.auto_ergebnis(candidate.id) == 'frist_unklar'
+
+
+_BEREICHS_UHREN = ['18 Uhr - 19', '18 Uhr – 19', '18 Uhr — 19', '18 Uhr – nach Absprache']
+
+
+@pytest.mark.parametrize('clock', _BEREICHS_UHREN)
+def test_bereichsmarker_nach_uhrzeit_duerfen_nicht_weg_normalisiert_werden(clock):
+    assert frist_aus(f'Bitte schicke mir die Druckdaten bis zum 2. November 2026 um {clock}.', FRIDAY) is None
+
+
+@pytest.mark.parametrize('clock', _BEREICHS_UHREN)
+def test_automatik_uebernimmt_keine_durch_bereichsmarker_qualifizierte_uhrzeit(welt, monkeypatch, clock):
+    monkeypatch.setattr(basis, 'JETZT', FRIDAY)
+    episodes, tasks, proposals, _, lauf, _ = welt
+    _, candidate = basis.bitte(episodes, proposals,
+        text=f'Bitte schicke mir die Druckdaten bis zum 2. November 2026 um {clock}.')
+    assert lauf.schritt() == {'geprueft': 1, 'angelegt': 0, 'vorschlaege': 1}
+    assert tasks.get('t-suggestion-' + candidate.id) is None
+    assert proposals.get(candidate.id).state is ProposalState.PENDING
+    assert tasks.auto_ergebnis(candidate.id) == 'frist_unklar'
 
 
 _QUALIFIZIERTE_UHREN = ['18 Uhr (UTC)', '18 Uhr, UTC', '18 Uhr, oder später',
