@@ -113,16 +113,50 @@ Alltagsprüfung noch eine native Mac-Bedienprobe. Die historische Abrufprobe mit
 „Zugangskarte“ ist kein Beleg für einen Kartenort: Das zugehörige Original
 spricht nur vom Zugang. Ein wörtlicher Abruf darf daraus keine Karte erfinden.
 
-## Offene Abnahme
+## Integrierte Schlussprüfung des Controllers
 
-Die einmalige Vollsuite nach dem letzten Code, Build/Syntax und unabhängiges
-Review, die lesende Prüfung bestehender echter Aufgabenänderungen sowie
-Bestandsfingerabdruck, Sicherung, Standard-Mac-Update und native Bedienprobe
-liegen beim Controller. Erst dessen gemessener Nachweis darf hier als aktueller
-Abnahmestand ergänzt werden. Konten/Kalender und Importpause dürfen bei diesem
-Update nicht verloren gehen. Unsichere Altänderungen werden nicht still
-zurückgesetzt. Bis zur repräsentativen Qualitätsabnahme bleibt der Großimport
-pausiert.
+Produktionscode-Stand `39ab8ce` (nachfolgender Dokumentationscommit ändert keinen
+Produktionscode). Vollständige lokale Backend-Regression in UTC mit zwei
+niedrig priorisierten Workern: **8.224 bestanden, 1 übersprungen, 26 Untertests
+bestanden**, 752,64 s. Zwei bestehende Starlette/httpx-Warnungen.
+Die zuvor abgebrochene Vollprüfung mit sechs Fehlern ist kein Bestehensnachweis;
+deren Ursachen und die Reviewkorrekturen sind in den Reparaturcommits behoben.
+
+UI: **953 bestanden**, Produktionsbuild bestanden (bekannte Warnung für die
+Paketgröße). Ergänzende Diagnose-/Messlatten-/Mac-Logiktests auf dem finalen
+Code: **581 bestanden, 1 übersprungen**, 93,19 s; vorhandene Starlette-Warnung.
+Der Swift-Modulcache liegt für diese Prüfung in einem beschreibbaren temporären
+Ordner. Assetvertrag (11 Dateien, 14 Icons), Beispielschema und lokale
+Release-Vorprüfung bestanden. Unabhängiges Gesamt- und gezieltes Nachreview
+geben den Code ohne offene wichtige Befunde frei.
+
+[Native Bedienprobe](native-window-acceptance.json): bestehende Mac-Hülle,
+getrennte künstliche Daten auf Port 8893, Qwen9B/BGE-M3, keine Cloud. Personenwahl,
+bestätigte Zusammenführung, Quellenöffnung und -entzug, erneuter Abruf,
+Aufgabenübernahme und Neustart wurden durch tatsächliche Bedienung geprüft.
+Die Protokollaufgabe bleibt nach „noch nicht fertig“ offen; der vorsichtige
+Erledigt-Vorschlag wurde im Fenster verworfen. **03.11.2026, 18:30 Uhr** bleibt
+im gespeicherten Auftrag und im belegten Fristabruf erhalten.
+
+Der erste Nora-Testhelfer hatte den Quellenstand nach `record` nicht wie der
+echte Mailimport weitergeschaltet. Deshalb bedeutete sein `work.ok` noch keine
+Einordnung. Nach Korrektur des **Testhelfers** wurden `state=complete`, tragfähige
+Referenzen und der erfolgreiche Abruf ausdrücklich geprüft. Kein Produktfix
+oder nachträgliches positives Zählen dieses unvollständigen Versuchs.
+
+Die native App lud zunächst noch das ältere bereits geöffnete UI-Paket; nach
+dem normalen Neuladen zeigte auch die Vorschlagszeile die richtige Uhrzeit.
+Gemessene lokale Antworten dauerten 7,8 bis 19 Sekunden. Bei der Ressourcenprobe
+vor dem einzelnen Modelllauf: normaler Speicherdruck (1), 39 Prozent freier
+Anteil. Das ist keine dauerhafte Lastgarantie bei anderen gleichzeitig laufenden
+Modellen. Indexabdeckung wurde teilweise als begrenzt ausgewiesen; ein
+zusätzliches Satzprüfmodell ist nicht eingerichtet.
+
+Der echte Bestand wurde bis hier nur lesend auf frühere automatische
+Aufgabenänderungen geprüft: keine solchen Gründe gefunden. Keine Altänderung
+wurde zurückgesetzt. Installation, Sicherung und Bestandsvergleich des
+persönlichen Macs sind ein gesonderter Auslieferungsschritt. Bis zur
+repräsentativen Qualitätsabnahme bleibt der Großimport pausiert.
 
 ## Nachtrag: Im nativen Fenster gefundener Themenfehler
 
