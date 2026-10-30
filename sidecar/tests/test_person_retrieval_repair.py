@@ -325,3 +325,51 @@ def test_mehrdeutiger_name_in_neuer_aussage_bleibt_gespraechsquelle(bestand):
     assert data['messages'][0]['metadata']['answer_mode'] == 'chat'
     source = conversation_memory.find(app.state.episodes, cid, data['messages'][0]['id'])
     assert CHAT_LOOKUP_TAG not in source.tags
+
+
+@pytest.mark.parametrize('confirmed_group', [False, True])
+def test_personenwahl_mit_mehr_als_500_quellen_bleibt_anklickbar_und_begrenzt(bestand, confirmed_group):
+    app, provider = bestand
+    busy = []
+    for i in range(501):
+        address = 'winter@alpha.example' if not confirmed_group or i < 250 else 'home@alpha.example'
+        busy.append(mail(app, 'Alex Winter', address, title=f'Atlas Lieferung {i}', days=i + 1))
+    if confirmed_group:
+        zusammen(app)
+    other = mail(app, 'Alex Sommer', 'sommer@beta.example', text='Lieferung am 12. November.')
+    memory = WorkingMemoryStore(app.state.episodes)
+    while batch := memory.pending(limit=200):
+        for snapshot in batch:
+            assert memory.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}],
+                                 model='synthetisch')
+    client = TestClient(app)
+    cid = client.post('/api/v1/conversations', json={}).json()['conversation']['id']
+    base = f'/api/v1/conversations/{cid}'
+    asked = client.post(base + '/messages', json={'message': 'Wann ist die Lieferung von Alex?'})
+    assert asked.status_code == 201, asked.text
+    pending = asked.json()['context']['meaning_choice']
+    index = next(i for i, option in enumerate(pending['options']) if busy[0].id in option['ids'])
+    assert pending['options'][index]['anzahl'] == 501
+    assert provider.calls == []
+    opened = client.get(base)
+    assert opened.status_code == 200, opened.text
+    chosen = client.post(base + '/messages', json={'message': pending['options'][index]['label'],
+                                                  'clarification_choice': index})
+    reopened_status = opened.json()['messages'][-1]['metadata']['context']['answer_contract']['status']
+    assert (reopened_status, chosen.status_code) == ('meaning_choice', 201), chosen.text
+    answer = chosen.json()['context']['working_answer']
+    scope = answer['meaning_scope']
+    assert scope['chosen'] is True and scope['truncated'] is True
+    assert len(scope['ids']) == 500
+    assert set(scope['ids']) < {episode.id for episode in busy}
+    assert other.id not in scope['ids']
+    assert all('12. November' not in row['text'] for packet in provider.calls for row in packet['sources'])
+    # Eine neue Quelle außerhalb des gewählten, festgehaltenen Rahmens darf
+    # dessen weiterhin gültige ältere Quellen nicht aus der Identität verdrängen.
+    latest = mail(app, 'Alex Winter', 'winter@alpha.example', title='Atlas Lieferung neu', days=-1)
+    snapshot = memory.pending(episode_ids=[latest.id])[0]
+    assert memory.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}],
+                         model='synthetisch')
+    assert working_memory_answers._fresh(answer, app.state.episodes, app.state.claims)
+    app.state.episodes.ignore(scope['ids'][0])
+    assert not working_memory_answers._fresh(answer, app.state.episodes, app.state.claims)

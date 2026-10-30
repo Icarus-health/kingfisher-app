@@ -318,9 +318,9 @@ def _meaning_scope(episodes, claims, scope):
         if identity_for_address(scope['ref'], active_members(claims.person_merges.list())) != scope['ref']:
             raise ValueError('Die gewählte Personenidentität gilt nicht mehr')
     elif scope['ref'].startswith('merge:'):
-        from .bedeutungen import bereich
-        current, _ = bereich(scope, episodes=episodes, confirmed_merges=claims.person_merges.list())
-        if not set(scope['ids']) <= set(current):
+        from .bedeutungen import _personenbereich
+        current = _personenbereich(scope, episodes=episodes, confirmed_merges=claims.person_merges.list())
+        if current is None or not set(scope['ids']) <= set(current):
             raise ValueError('Die gewählte Personenidentität gilt nicht mehr')
     return list(scope['ids']), scope['truncated']
 

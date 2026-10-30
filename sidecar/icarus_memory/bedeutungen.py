@@ -557,6 +557,29 @@ def bedeutungen(begriff: str, *, episodes: Any, projects: list[tuple[str, str]] 
 MAX_BEREICH = 500
 
 
+def _personenbereich(auswahl: dict, *, episodes: Any, eigene: Iterable[str] = (),
+                    confirmed_merges: Iterable[dict] = ()) -> list[str] | None:
+    """Aktuelle Quellen einer Personenidentität, unabhängig vom Recherchebudget.
+
+    `None` lässt andere Bedeutungen auf ihrem bisherigen Weg. Leere Quellen
+    bedeuten dagegen, dass die gewählte bestätigte Identität nicht mehr gilt.
+    Diese Kennungen belegen Zugehörigkeit; erst `bereich` begrenzt die Suche.
+    """
+    art, ref, begriff = auswahl['art'], auswahl['ref'], auswahl['begriff']
+    if art != 'absender' or not ('@' in ref or ref.startswith('merge:')):
+        return None
+    from .personenfrage import erwaehnte
+    for nennung in erwaehnte(begriff, episodes, eigene=eigene, confirmed_merges=confirmed_merges):
+        for kandidat in nennung.kandidaten:
+            if kandidat.kennung == ref:
+                return kandidat.quellen
+    # Eine aufgehobene Gruppe darf ihren alten Quellenrahmen nicht behalten.
+    from .person_merges import active_members, identity_for_address
+    if ref.startswith('merge:') or identity_for_address(ref, active_members(confirmed_merges)) != ref:
+        return []
+    return None
+
+
 def bereich(auswahl: dict, *, episodes: Any, entities: Any = None,
             eigene: Iterable[str] = (), confirmed_merges: Iterable[dict] = ()) -> tuple[list[str], bool]:
     """Alle Quellen einer gewählten Bedeutung, neueste zuerst, frisch aus dem Bestand.
@@ -568,17 +591,9 @@ def bereich(auswahl: dict, *, episodes: Any, entities: Any = None,
     """
     art, ref, begriff = auswahl['art'], auswahl['ref'], auswahl['begriff']
     eigene = list(eigene)
-    if art == 'absender' and ('@' in ref or ref.startswith('merge:')):
-        from .personenfrage import erwaehnte
-        for nennung in erwaehnte(begriff, episodes, eigene=eigene, confirmed_merges=confirmed_merges):
-            for kandidat in nennung.kandidaten:
-                if kandidat.kennung == ref:
-                    ids = kandidat.quellen
-                    return ids[:MAX_BEREICH], len(ids) > MAX_BEREICH
-        # Eine aufgehobene Gruppe darf ihren alten Quellenrahmen nicht behalten.
-        from .person_merges import active_members, identity_for_address
-        if ref.startswith('merge:') or identity_for_address(ref, active_members(confirmed_merges)) != ref:
-            return [], False
+    personen = _personenbereich(auswahl, episodes=episodes, eigene=eigene, confirmed_merges=confirmed_merges)
+    if personen is not None:
+        return personen[:MAX_BEREICH], len(personen) > MAX_BEREICH
     if art == 'projekt':
         zugeordnet = [q['id'] for q in episodes.project_heads(ref, limit=MAX_BEREICH + 1)]
         return zugeordnet[:MAX_BEREICH], len(zugeordnet) > MAX_BEREICH
@@ -637,8 +652,10 @@ def meaning_choice_current(pending: Any, episodes: Any, *, confirmed_merges=None
             return False
         if confirmed_merges is not None and option['art'] == 'absender' and (
                 '@' in option['ref'] or option['ref'].startswith('merge:')):
-            current, _ = bereich({**option, 'begriff': pending['begriff']}, episodes=episodes,
-                                 confirmed_merges=confirmed_merges)
+            auswahl = {**option, 'begriff': pending['begriff']}
+            current = _personenbereich(auswahl, episodes=episodes, confirmed_merges=confirmed_merges)
+            if current is None:
+                current, _ = bereich(auswahl, episodes=episodes, confirmed_merges=confirmed_merges)
             if not current or not set(option['ids']) <= set(current):
                 return False
         ids += option['ids']
