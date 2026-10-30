@@ -98,7 +98,7 @@ def test_real_parser_store_and_api_keep_oracle_out_and_missing_task_visible(tmp_
             return Reply(text='{"items":[]}')
         def complete(self,messages,tools):return self.complete_json(messages)
     class EmbeddingBoundary:
-        is_local=True;model_key='synthetic-embedding'
+        is_local=True;model_key='synthetic-embedding:'+('a'*64)
         def __enter__(self):return self
         def __exit__(self,*args):pass
         def embed(self,texts):return [[1.0,0.0,0.0] for text in texts]
