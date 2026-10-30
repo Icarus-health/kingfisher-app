@@ -1,6 +1,6 @@
 """Explicit, reversible person groups; original identities and evidence stay intact.
 
-Only the graph projection is grouped. Claims retain their original subject and
+Projections and retrieval share the explicitly confirmed identity. Claims retain their original subject and
 validity; this decision never promotes observed source text to confirmed fact.
 """
 from __future__ import annotations
@@ -101,6 +101,29 @@ class PersonMerges(EntityRegistry):
             if cursor.rowcount != 1:
                 raise EntityError('Diese Zusammenführung besteht nicht mehr. Bitte neu laden.')
         return {'undone': True}
+
+
+def active_members(records):
+    """Aktive Bestätigungen nach ursprünglichem Personenanker, ohne Graphaufbau.
+
+    Historische Beschriftungen sind kein Quellennachweis. Aufrufer gleichen
+    diese Anker ausschließlich mit aktuell vorhandenen Beteiligten ab.
+    """
+    return {member['id']: record for record in (records or ())
+            if isinstance(record, dict) and not record.get('undone_at')
+            and isinstance(record.get('id'), str) and isinstance(record.get('label'), str)
+            and isinstance(record.get('members'), list)
+            for member in record['members']
+            if isinstance(member, dict) and isinstance(member.get('id'), str)}
+
+
+def identity_for_address(address, members):
+    """Der bestätigte Gruppenanker einer Adresse, sonst die Adresse selbst."""
+    if not members:
+        return address
+    from .graph import person_id_fuer
+    record = members.get(person_id_fuer('a:' + address))
+    return record['id'] if record is not None else address
 
 
 def project(raw, records):

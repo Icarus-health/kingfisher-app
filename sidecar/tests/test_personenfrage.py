@@ -117,10 +117,10 @@ def test_ohne_merkmal_sind_die_quellen_beider_kandidaten(episodes, winter):
     assert set(winter.values()) <= set(quellen)
 
 
-def test_verschiedene_namen_ohne_gemeinsame_adresse_sind_keine_rueckfrage(episodes):
+def test_mehrdeutiger_teilname_fragt_auch_bei_verschiedenen_namen_zurueck(episodes):
     _quelle(episodes, "A", "x", ["Claudia Reinhardt <c@x.example>"])
     _quelle(episodes, "B", "y", ["Peter Reinhardt <p@y.example>"])
-    assert personenfrage.unklare_person("Was ist mit Frau Reinhardt?", episodes) is None
+    assert personenfrage.unklare_person("Was ist mit Frau Reinhardt?", episodes) is not None
     # Ein Teilname, der zwei verschiedene Namen trifft, wird nicht geraten: keine Personenquellen.
     assert personenfrage.kandidatenquellen("Was ist mit Frau Reinhardt?", episodes) == []
     # Der ganze Name trifft genau eine Person.

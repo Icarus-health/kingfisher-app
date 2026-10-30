@@ -398,7 +398,8 @@ def _aus_gruppe(gruppe: _Gruppe, jetzt: datetime) -> dict:
 
 def bedeutungen(begriff: str, *, episodes: Any, projects: list[tuple[str, str]] | None = None,
                 entities: Any = None, termine: list[dict] | None = None,
-                jetzt: datetime | None = None, eigene: Iterable[str] = ()) -> dict[str, Any]:
+                jetzt: datetime | None = None, eigene: Iterable[str] = (),
+                confirmed_merges: Iterable[dict] = ()) -> dict[str, Any]:
     """Alle belegten Bedeutungen eines Begriffs, stärkste zuerst.
 
     `projects` sind (Kennung, Name), `termine` Kalendereinträge mit `uid`,
@@ -443,6 +444,9 @@ def bedeutungen(begriff: str, *, episodes: Any, projects: list[tuple[str, str]] 
             bedeutung['gewicht'] = _gewicht(4.0, verknuepft, None, jetzt)
             ergebnis.append(bedeutung)
 
+    from .person_merges import active_members, identity_for_address
+    mitglieder = active_members(confirmed_merges)
+
     # 3. Absender, deren Adresse oder Name den Begriff trägt, etwa
     #    unimedizin-mainz.de oder „Stadt Mainz“.
     rest = [q for q in erwaehnt if q['id'] not in vergeben]
@@ -455,21 +459,27 @@ def bedeutungen(begriff: str, *, episodes: Any, projects: list[tuple[str, str]] 
             schluessel = _absender(teilnehmer, wort)
             if schluessel is None:
                 continue
-            nach_absender[schluessel].append(quelle)
-            namen.setdefault(schluessel, _anzeige(teilnehmer))
+            record = None
+            if '@' in schluessel:
+                from .graph import person_id_fuer
+                record = mitglieder.get(person_id_fuer('a:' + schluessel))
+                schluessel = identity_for_address(schluessel, mitglieder)
+            if quelle not in nach_absender[schluessel]:
+                nach_absender[schluessel].append(quelle)
+            namen.setdefault(schluessel, record['label'] if record is not None else _anzeige(teilnehmer))
             break
     gruppen_absender = []
     for schluessel, quellen in nach_absender.items():
         vergeben.update(q['id'] for q in quellen)
         gruppen_absender.append((schluessel, quellen,
-                                 namen[schluessel] if '@' in schluessel or '.' not in schluessel else schluessel))
+                                 namen[schluessel] if '@' in schluessel or schluessel.startswith('merge:') or '.' not in schluessel else schluessel))
     # Zwei Menschen gleichen Namens mit verschiedenen Adressen: nicht zwei
     # gleiche Zeilen, sondern mit der Domäne der Adresse unterscheidbar.
     gleiche = Counter(anzeige.casefold() for schluessel, _, anzeige in gruppen_absender if '@' in schluessel)
     aufgebaut: list[_Gruppe] = []
     for schluessel, quellen, anzeige in gruppen_absender:
-        person = '@' in schluessel
-        if person and gleiche[anzeige.casefold()] > 1:
+        person = '@' in schluessel or schluessel.startswith('merge:')
+        if '@' in schluessel and gleiche[anzeige.casefold()] > 1:
             anzeige = f'{anzeige} ({schluessel.rsplit("@", 1)[1]})'
         # Was ein Mensch erkennt: die letzten Betreffe dieser Adresse.
         extra = _letzte_betreffe(quellen) if person else None
@@ -548,7 +558,7 @@ MAX_BEREICH = 500
 
 
 def bereich(auswahl: dict, *, episodes: Any, entities: Any = None,
-            eigene: Iterable[str] = ()) -> tuple[list[str], bool]:
+            eigene: Iterable[str] = (), confirmed_merges: Iterable[dict] = ()) -> tuple[list[str], bool]:
     """Alle Quellen einer gewählten Bedeutung, neueste zuerst, frisch aus dem Bestand.
 
     Anders als in der Übersicht zählt hier jede passende Quelle, auch wenn sie
@@ -558,6 +568,17 @@ def bereich(auswahl: dict, *, episodes: Any, entities: Any = None,
     """
     art, ref, begriff = auswahl['art'], auswahl['ref'], auswahl['begriff']
     eigene = list(eigene)
+    if art == 'absender' and ('@' in ref or ref.startswith('merge:')):
+        from .personenfrage import erwaehnte
+        for nennung in erwaehnte(begriff, episodes, eigene=eigene, confirmed_merges=confirmed_merges):
+            for kandidat in nennung.kandidaten:
+                if kandidat.kennung == ref:
+                    ids = kandidat.quellen
+                    return ids[:MAX_BEREICH], len(ids) > MAX_BEREICH
+        # Eine aufgehobene Gruppe darf ihren alten Quellenrahmen nicht behalten.
+        from .person_merges import active_members, identity_for_address
+        if ref.startswith('merge:') or identity_for_address(ref, active_members(confirmed_merges)) != ref:
+            return [], False
     if art == 'projekt':
         zugeordnet = [q['id'] for q in episodes.project_heads(ref, limit=MAX_BEREICH + 1)]
         return zugeordnet[:MAX_BEREICH], len(zugeordnet) > MAX_BEREICH
@@ -596,7 +617,7 @@ def bereich(auswahl: dict, *, episodes: Any, entities: Any = None,
     return passend[:MAX_BEREICH], abgeschnitten or len(passend) > MAX_BEREICH
 
 
-def meaning_choice_current(pending: Any, episodes: Any) -> bool:
+def meaning_choice_current(pending: Any, episodes: Any, *, confirmed_merges=None) -> bool:
     """Gilt eine gespeicherte Rückfrage noch?
 
     Ihre Beschriftungen stammen aus Quellen: eine Absenderdomain, ein Betreff.
@@ -614,6 +635,12 @@ def meaning_choice_current(pending: Any, episodes: Any) -> bool:
                 or not isinstance(option.get('ids'), list)
                 or not all(isinstance(value, str) for value in option['ids'])):
             return False
+        if confirmed_merges is not None and option['art'] == 'absender' and (
+                '@' in option['ref'] or option['ref'].startswith('merge:')):
+            current, _ = bereich({**option, 'begriff': pending['begriff']}, episodes=episodes,
+                                 confirmed_merges=confirmed_merges)
+            if not current or not set(option['ids']) <= set(current):
+                return False
         ids += option['ids']
     for note in pending.get('notes', []):
         if not isinstance(note, dict) or not isinstance(note.get('ids', []), list):

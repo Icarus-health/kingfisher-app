@@ -309,6 +309,19 @@ def _meaning_scope(episodes, claims, scope):
             or not all(isinstance(value, str) and value for value in scope['ids'])
             or not isinstance(scope['truncated'], bool)):
         raise ValueError('Ungültige Bedeutung')
+    if scope['ref'].startswith('merge:') and not any(
+            record['id'] == scope['ref'] and not record.get('undone_at')
+            for record in claims.person_merges.list()):
+        raise ValueError('Diese Personenzusammenführung wurde aufgehoben')
+    if scope['art'] == 'absender' and '@' in scope['ref']:
+        from .person_merges import active_members, identity_for_address
+        if identity_for_address(scope['ref'], active_members(claims.person_merges.list())) != scope['ref']:
+            raise ValueError('Die gewählte Personenidentität gilt nicht mehr')
+    elif scope['ref'].startswith('merge:'):
+        from .bedeutungen import bereich
+        current, _ = bereich(scope, episodes=episodes, confirmed_merges=claims.person_merges.list())
+        if not set(scope['ids']) <= set(current):
+            raise ValueError('Die gewählte Personenidentität gilt nicht mehr')
     return list(scope['ids']), scope['truncated']
 
 
@@ -353,6 +366,9 @@ def _candidates(question, episodes, claims, project_ids=(), project_names=None, 
         if identity not in seen and len(lexical) + len(added) < MAX_REFS:
             seen.add(identity)
             added.append(dict(ref))
+    from .person_merges import active_members, identity_for_address
+    from .episodes import mail_address
+    mitglieder = active_members(claims.person_merges.list()) if claims is not None else {}
     refs, rows, omitted, size = [], [], 0, 0
     abgeschnitten = []
     woerter = absatzauswahl.Suchwoerter.aus(question)
@@ -374,6 +390,10 @@ def _candidates(question, episodes, claims, project_ids=(), project_names=None, 
                'participants': episode.participants,
                'sender': absender_text(episode.participants, episode.contacts),
                'project_id': episode.project_id})
+        adresse = mail_address(row['sender'])
+        identitaet = identity_for_address(adresse, mitglieder) if adresse and mitglieder else None
+        if identitaet and identitaet.startswith('merge:'):
+            row['confirmed_person'] = identitaet
         if episode.project_id and (project_names or {}).get(episode.project_id):
             row['project'] = project_names[episode.project_id]
         # Zweite Stufe: Kurze Quellen gehen ganz ins Modell (Negation oder Einschränkung kann in einem anderen Absatz
@@ -653,8 +673,12 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
         # Personensuche, damit später hinzugekommene Quellen die Antwort veralten lassen.
         from . import personenfrage
         answer['person_scope'] = persons
+        nennungen = personenfrage.erwaehnte(retrieval_query or question, episodes,
+                                           confirmed_merges=claims.person_merges.list())
         answer['person_scope_basis'] = personenfrage.kandidatenquellen(
-            retrieval_query or question, episodes)[:MAX_PERSON_SOURCES]
+            retrieval_query or question, episodes, erwaehnungen=nennungen)[:MAX_PERSON_SOURCES]
+        answer['person_identity_basis'] = {a: k.kennung for n in nennungen for k in n.kandidaten
+                                           for a in k.adressen or [k.adresse]}
     shown = {row['project_id'] for row in rows if row.get('project')}
     if shown:
         # Nur für die Beschriftung von Auswahlknöpfen, nie als Beleg.
@@ -688,7 +712,10 @@ Trägt eine Quelle das Feld ausserhalb_zeitraum, liegt ihr Datum (datum_der_quel
 (gefragter_zeitraum): Wähle sie nur, wenn die Frage sie trotzdem verlangt, und nenne sie dann als außerhalb.
 Bei einer belegten expliziten Änderung im selben eindeutig zugeordneten Vorgang darfst du
 für die aktuelle Frage die geänderte Angabe auswählen. Bloßes Neuestsein reicht dafür nicht.
-Gleiche Namen beweisen nicht dieselbe Person. Bei gleichem Namen und unterschiedlichen
+confirmed_person ist ein vom Nutzer bestätigter Personenanker: Gleiche Werte
+bezeichnen dieselbe bestätigte Person, auch bei verschiedenen Namen oder Adressen.
+Das bestätigt nur die Identität, niemals den Inhalt ihrer Quellen.
+Gleiche Namen allein beweisen nicht dieselbe Person. Ohne gemeinsamen confirmed_person bei gleichem Namen und unterschiedlichen
 Absenderadressen oder anderen Identitätsmerkmalen zuerst status needs_person_choice verwenden, nicht unresolved_conflicting_sources.
 Wenn passende Angaben zum erfragten Namen verschiedene Projekte oder Vorgänge betreffen
 und die Frage keinen davon auswählt, verwende status needs_project_choice und wähle alle diese Angaben.
@@ -751,7 +778,8 @@ automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend 
             automatic_ids = [identifier for identifier in selection['ids'] if identifier.startswith('S')]
             candidate_ids = [row['id'] for row in rows if row['id'].startswith('S')]
             adjusted, forced, _ = adjust_selection(
-                question, volltext, automatic_ids, candidate_ids=candidate_ids)
+                question, volltext, automatic_ids, candidate_ids=candidate_ids,
+                confirmed_merges=claims.person_merges.list())
             has_confirmed = any(identifier.startswith('K') for identifier in selection['ids'])
             selection['ids'] = ([identifier for identifier in selection['ids'] if identifier.startswith('K')]
                                 + [identifier for identifier in adjusted if identifier.startswith('S')])
@@ -1010,8 +1038,19 @@ def _fresh(answer, episodes, claims):
             return False
         from . import personenfrage
         try:
+            nennungen = personenfrage.erwaehnte(answer.get('retrieval_query') or answer['query'], episodes,
+                                               confirmed_merges=claims.person_merges.list())
             aktuell = personenfrage.kandidatenquellen(
-                answer.get('retrieval_query') or answer['query'], episodes)[:MAX_PERSON_SOURCES]
+                answer.get('retrieval_query') or answer['query'], episodes,
+                erwaehnungen=nennungen)[:MAX_PERSON_SOURCES]
+            identitaeten = {a: k.kennung for n in nennungen for k in n.kandidaten
+                           for a in k.adressen or [k.adresse]}
+            if 'person_identity_basis' in answer and answer['person_identity_basis'] != identitaeten:
+                return False
+            if ('person_identity_basis' not in answer and answer.get('status') == 'reports' and answer['refs']
+                    and personenfrage.unklare_person(answer.get('retrieval_query') or answer['query'], episodes,
+                                                     erwaehnungen=nennungen) is not None):
+                return False  # Auch alte Arbeitsstände dürfen keine ungeklärte Identität verschweigen.
         except Exception:  # noqa: BLE001 - ohne überprüfbare Personensuche keine alte Antwort zeigen
             return False
         if aktuell != basis:

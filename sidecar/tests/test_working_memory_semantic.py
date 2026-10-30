@@ -484,7 +484,7 @@ def test_clicked_meaning_no_hit_keeps_search_coverage(core, monkeypatch, coverag
     from icarus_memory import bedeutungen
     agent, *_ = core
     _empty_coverage_search(monkeypatch, coverage)
-    monkeypatch.setattr(bedeutungen, 'meaning_choice_current', lambda *args: True)
+    monkeypatch.setattr(bedeutungen, 'meaning_choice_current', lambda *args, **kwargs: True)
     scope = {'begriff': 'Komet', 'art': 'absender', 'ref': 'comet@example.invalid',
              'label': 'Komet', 'ids': ['synthetic-source'], 'truncated': False, 'chosen': False}
     monkeypatch.setattr(agent, '_meaning_scope', lambda *args: dict(scope))

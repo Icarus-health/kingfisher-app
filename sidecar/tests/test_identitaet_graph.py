@@ -9,8 +9,8 @@ Zusicherungen:
 3. Das Profil eines Namens, der zwei Menschen gehört, wird nicht gemischt: 409 mit beiden;
    die Adresse wählt aus.
 4. Aufgaben „wartet auf Alex Winter“ werden keinem der beiden zugeschrieben.
-5. Wer nacheinander unter zwei Adressen schreibt (Arbeitgeberwechsel), löst keine erzwungene
-   Rückfrage aus; wer gleichzeitig unter zweien schreibt, schon.
+5. Wer nacheinander unter zwei Adressen schreibt, bleibt ohne Bestätigung mehrdeutig; die
+   Rückfrage gilt auch bei gleichzeitigen Quellen.
 """
 
 from __future__ import annotations
@@ -160,12 +160,12 @@ def test_wartet_auf_gleichnamige_wird_keinem_zugeschrieben(tmp_path):
 
 # -- 5. Nacheinander oder gleichzeitig ------------------------------------------------
 
-def test_adresswechsel_nacheinander_erzwingt_keine_rueckfrage(tmp_path):
+def test_getrennte_zeitraeume_beweisen_keinen_adresswechsel(tmp_path):
     episodes = _stores(tmp_path)[0]
     for tage, adresse in ((300, "j.krueger@kreisklinik.example"), (250, "j.krueger@kreisklinik.example"),
                           (100, "j.krueger@vitalzentrum.example"), (60, "j.krueger@vitalzentrum.example")):
         _mail(episodes, f"K{tage}", [f"Jasmin Krüger <{adresse}>"], tage=tage)
-    assert personenfrage.unklare_person("Wo arbeitet Jasmin Krüger jetzt?", episodes) is None
+    assert personenfrage.unklare_person("Wo arbeitet Jasmin Krüger jetzt?", episodes) is not None
     # Beide Adressen bleiben getrennte Personen; beide Quellenmengen sind Kandidaten.
     assert len(personen.alle(episodes=episodes, jetzt=JETZT)) == 2
     assert len(personenfrage.kandidatenquellen("Wo arbeitet Jasmin Krüger jetzt?", episodes)) == 4

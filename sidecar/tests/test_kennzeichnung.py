@@ -70,11 +70,13 @@ def test_ohne_entscheidung_der_frage_gibt_es_keine_namensvettern_die_rueckfrage_
     assert rahmen.leer() and kennzeichnung.kennzeichen(winter['institut'], rahmen) == ()
 
 
-def test_wer_nacheinander_die_adresse_wechselt_ist_kein_namensvetter(welt):
+def test_kontext_unterscheidet_personen_auch_bei_getrennten_zeitraeumen(welt):
     episodes, _, _ = welt
     quelle(episodes, 'Früher', 'Alt.', ['Jasmin Krüger <j.krueger@alt.example>', ICH], tage=400)
     quelle(episodes, 'Jetzt', 'Neu, Kassel.', ['Jasmin Krüger <j.krueger@neu-kassel.example>', ICH], tage=5)
-    assert personenfrage.gemeinte_unter_namensvettern('Wo arbeitet Jasmin Krüger in Kassel?', episodes, eigene=[ICH]) == []
+    vettern = personenfrage.gemeinte_unter_namensvettern('Wo arbeitet Jasmin Krüger in Kassel?', episodes, eigene=[ICH])
+    assert [(gemeint.adresse, [andere.adresse for andere in rest]) for _, gemeint, rest in vettern] == [
+        ('j.krueger@neu-kassel.example', ['j.krueger@alt.example'])]
 
 
 def test_die_namen_werden_fuer_quellen_und_namensvettern_nur_einmal_nachgeschlagen(welt, winter, monkeypatch):
@@ -86,7 +88,7 @@ def test_die_namen_werden_fuer_quellen_und_namensvettern_nur_einmal_nachgeschlag
     aufrufe = []
     echt = personenfrage.erwaehnte
     monkeypatch.setattr(personenfrage, 'erwaehnte', lambda *a, **k: aufrufe.append(1) or echt(*a, **k))
-    agent = SimpleNamespace(_episodes=episodes, _own_addresses=lambda: [ICH])
+    agent = SimpleNamespace(_episodes=episodes, _own_addresses=lambda: [ICH], _confirmed_person_merges=lambda: [])
     quellen, vettern = Agent._personen_der_frage(agent, FRAGE_CATERING)
     assert len(aufrufe) == 1
     assert quellen and [(erwaehnung.begriff, gemeint.adresse) for erwaehnung, gemeint, _ in vettern] == [
