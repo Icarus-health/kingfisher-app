@@ -188,7 +188,7 @@ def test_ohne_tragendes_wort_nur_vorschlag_und_annehmen_erledigt(welt):
     liste = lauf.vorschlaege()
     assert [v['id'] for v in liste] == [vorschlag.id] and liste[0]['aufgabe']['id'] == task.id
     assert liste[0]['art'] == 'erledigt' and liste[0]['mail']['episode_id'] == antwort.id
-    assert liste[0]['satz'] == 'Du hast Anna Berg am 21. Oktober geantwortet („AW: Flyer“). Ist die Aufgabe damit erledigt?'
+    assert liste[0]['satz'] == 'Du hast am 21. Oktober an Anna Berg geschrieben („AW: Flyer“). Ist die Aufgabe damit erledigt?'
     fertig = lauf.vorschlag_annehmen(vorschlag.id)
     assert fertig.status is TaskStatus.DONE
     assert fertig.erledigt_grund['satz'] == 'Erledigt nach deiner Bestätigung zur Mail an Anna Berg vom 21. Oktober.'

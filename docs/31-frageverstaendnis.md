@@ -121,6 +121,16 @@ der Zahl „und N weitere“; jede Quelle bleibt per Klick erreichbar.
 
 ## Wann wird zurückgefragt?
 
+**Korrektur vom 30.10.2026 für Personen:** Bei mehrdeutigem Vor-, Nach- oder vollem
+Namen gilt die Personenwahl vor den nachstehenden allgemeinen Bedeutungsgewichten,
+auch bei konkreten Fristfragen. Häufigkeit sortiert nur; sie wählt keine Person.
+Getrennte Zeiträume beweisen keinen Adresswechsel. Aktive bestätigte Zusammenführungen
+verbinden die aktuell belegten Adressen für Auswahl, Suche und Antwort; ihr Widerruf
+macht gespeicherte Personenrahmen ungültig. Explizite Adresse und tatsächlich
+unterscheidender Kontext bleiben nutzbar. Diese Prüfung läuft im Gespräch vor
+Fragedeutungsmodell und breiter Recherche. Die früheren Messwerte und Sabotageproben
+unten bleiben historische Nachweise ihres damaligen Vertrags.
+
 `frage_weg.entscheide` fragt **eng**, damit eindeutige Fragen nie aufgehalten werden:
 
 * Nur bei einer **offenen Überblicksfrage** (`ueberblick`) oder wenn **genau eine Sache**

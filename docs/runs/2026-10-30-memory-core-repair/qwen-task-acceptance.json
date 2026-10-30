@@ -1,0 +1,23 @@
+{
+  "synthetic_only": true,
+  "replayed_cached_real_qwen_proposal": true,
+  "new_model_calls": 0,
+  "report": {
+    "geprueft": 1,
+    "angelegt": 1,
+    "vorschlaege": 0
+  },
+  "tasks": [
+    {
+      "title": "Druckdaten bis 2. Nov 2026 um 18 Uhr senden",
+      "due": "2026-11-02T18:00:00+01:00",
+      "person": {
+        "adresse": "winter@alpha.invalid",
+        "name": "Alex Winter"
+      },
+      "source_ref": "episode:e-7ae3fb0f2f03",
+      "evidence": "bitte schicke mir die Druckdaten für Projekt Atlas bis zum 2. November 2026 um 18 Uhr."
+    }
+  ],
+  "exact_deadline_and_person": true
+}

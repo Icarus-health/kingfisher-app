@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {taskHref, endOfTaskDay, explicitDeadline, candidateDeadline, localTaskDay} from '../src/taskWorkflow.ts';
+import {taskHref, endOfTaskDay, explicitDeadline, candidateDay, candidateDeadline, localTaskDay} from '../src/taskWorkflow.ts';
 
 test('task links retain exact identity even for waiting or completed tasks', () => {
   assert.equal(taskHref({id: 'mail/1', status: 'open', wartet_auf: 'Anna', project_id: 'a&b'}), '/vorhaben?view=waiting&task=mail%2F1&project=a%26b');
@@ -48,4 +48,24 @@ test('deadline field and unchanged-time comparison use the same local calendar d
     assert.equal(candidateDeadline(source, '2026-10-13'), source.valid_until);
     assert.equal(localTaskDay(null), '');
   } finally {if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous;}
+});
+
+test('accepting the displayed parsed source deadline preserves 18:00 instead of silently using 23:59', () => {
+  const source = {temporal_status: 'recent', frist_vorschlag: '2026-11-02T18:00:00+01:00'};
+  const day = localTaskDay(source.frist_vorschlag);
+  assert.equal(candidateDay({...source, valid_until: '2026-11-03T23:59:00+01:00'}), day);
+  assert.equal(candidateDeadline(source, day), source.frist_vorschlag);
+  assert.equal(candidateDeadline({...source, valid_until: '2026-11-02T23:59:00+01:00'}, day), source.frist_vorschlag);
+  assert.equal(candidateDeadline({...source, temporal_status: 'old'}, day), source.frist_vorschlag);
+  assert.equal(candidateDeadline(source, ''), null);
+  assert.equal(new Date(candidateDeadline(source, '2026-11-03')).getHours(), 23);
+});
+
+test('a source-rejected deadline cannot return through model valid_until; a newly chosen day is explicit', () => {
+  const source = {temporal_status: 'recent', frist_vorschlag: null,
+    temporal_reason: 'Die Frist ist nicht eindeutig auflösbar. Bitte prüfen.',
+    valid_until: '2026-11-02T18:00:00+01:00'};
+  assert.equal(candidateDay(source), '');
+  assert.equal(candidateDeadline(source, ''), null);
+  assert.equal(candidateDeadline(source, '2026-11-02'), endOfTaskDay('2026-11-02'));
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type Project, type Task, type TaskCandidate, type TaskCandidatePage } from "./api";
-import { candidateDeadline, localTaskDay } from "./taskWorkflow";
+import { candidateDay, candidateDeadline } from "./taskWorkflow";
 import { ProfileSource } from "./ProfileSource";
 import { generationForTaskPage, isVisibleTaskPage, type TaskTemporalFilter } from "./taskSuggestionsView";
 import {DetailPanel} from './DetailPanel';
@@ -15,7 +15,7 @@ type SuggestionDraft = {open: boolean; title: string; project: string; newProjec
 function initialDraft(item: TaskCandidate): SuggestionDraft {
   return {open: false, title: item.statement, project: item.project_suggestion?.project_id ?? "", newProject: item.project_suggestion?.new_project_name ?? "",
     // Die Frist kommt aus dem Vorschlag oder, wenn die Textstelle genau eine eindeutige nennt, aus der Erkennung.
-    due: item.temporal_status === "recent" && item.valid_until ? localTaskDay(item.valid_until) : item.frist_vorschlag ? localTaskDay(item.frist_vorschlag) : "", waiting: ""};
+    due: candidateDay(item), waiting: ""};
 }
 
 function deadlineText(item: TaskCandidate, day: string) {
@@ -194,7 +194,7 @@ function Suggestion({item, draft, onDraftChange, projects, onDone,selected,onSel
       <form onSubmit={event => {event.preventDefault(); void save(true);}}>
         <fieldset className="task-suggestion-fields" disabled={busy}><label className="task-vorschlag-titel">Aufgabe<input value={draft.title} onChange={event => onDraftChange({title: event.target.value})} required maxLength={4096} /></label>
           <div className="mail-task-form-fields"><label>Projekt<select value={draft.project} onChange={event => onDraftChange({project: event.target.value,newProject:""})}><option value="">Ohne Projekt</option>{projects.filter(value => value.open).map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
-          <label>Neues Projekt<input value={draft.newProject} maxLength={200} onChange={event=>onDraftChange({newProject:event.target.value,project:""})}/></label><label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{item.temporal_status === "recent" && item.valid_until && draft.due === initialDraft(item).due ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(item.valid_until).toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
+          <label>Neues Projekt<input value={draft.newProject} maxLength={200} onChange={event=>onDraftChange({newProject:event.target.value,project:""})}/></label><label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{candidateDay(item) && draft.due === candidateDay(item) ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(candidateDeadline(item, draft.due) || '').toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
           <label>Warte auf<input value={draft.waiting} onChange={event => onDraftChange({waiting: event.target.value})} maxLength={1024} /></label></div>
           <div className="task-suggestion-actions task-vorschlag-formular-aktionen"><button className="g-knopf-schlicht" type="button" onClick={() => onDraftChange({open: false})}>Abbrechen</button><button className="primary-action" type="submit" disabled={!draft.title.trim()}>Aufgabe festhalten</button></div>
         </fieldset>

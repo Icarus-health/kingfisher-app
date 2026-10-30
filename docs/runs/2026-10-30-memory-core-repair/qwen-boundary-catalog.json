@@ -1,0 +1,161 @@
+{
+  "synthetic_only": true,
+  "productive_data_changed": false,
+  "cloud_requests": 0,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "initial_pressure": {
+    "level": 1,
+    "free_percent": 69
+  },
+  "rows": [
+    {
+      "key": "not-done",
+      "state": "complete",
+      "seconds": 9.063,
+      "expected_kinds": [
+        "status",
+        "uncertain"
+      ],
+      "actual_kinds": [
+        "status"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 6677164195,
+          "size_vram": 6677164195,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 1,
+        "free_percent": 69
+      },
+      "pressure_after": {
+        "level": 2,
+        "free_percent": 25
+      }
+    },
+    {
+      "key": "conditional",
+      "state": "complete",
+      "seconds": 7.411,
+      "expected_kinds": [
+        "conditional",
+        "uncertain",
+        "status"
+      ],
+      "actual_kinds": [
+        "conditional"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 5935181331,
+          "size_vram": 5935181331,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 2,
+        "free_percent": 27
+      },
+      "pressure_after": {
+        "level": 1,
+        "free_percent": 33
+      }
+    },
+    {
+      "key": "deadline-change",
+      "state": "complete",
+      "seconds": 4.942,
+      "expected_kinds": [
+        "change"
+      ],
+      "actual_kinds": [
+        "change"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 5842791300,
+          "size_vram": 5842791300,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 1,
+        "free_percent": 34
+      },
+      "pressure_after": {
+        "level": 1,
+        "free_percent": 36
+      }
+    },
+    {
+      "key": "third-person",
+      "state": "complete",
+      "seconds": 5.072,
+      "expected_kinds": [
+        "fact",
+        "status"
+      ],
+      "actual_kinds": [
+        "fact"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 5842791300,
+          "size_vram": 5842791300,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 1,
+        "free_percent": 36
+      },
+      "pressure_after": {
+        "level": 1,
+        "free_percent": 36
+      }
+    },
+    {
+      "key": "historical",
+      "state": "complete",
+      "seconds": 5.073,
+      "expected_kinds": [
+        "request",
+        "historical"
+      ],
+      "actual_kinds": [
+        "request"
+      ],
+      "kind_match": true,
+      "loaded_models": [
+        {
+          "name": "kingfisher-qwen3.5:9b-32k",
+          "size": 5842791300,
+          "size_vram": 5842791300,
+          "context_length": 32768
+        }
+      ],
+      "pressure_before": {
+        "level": 1,
+        "free_percent": 38
+      },
+      "pressure_after": {
+        "level": 1,
+        "free_percent": 34
+      }
+    }
+  ],
+  "final_pressure": {
+    "level": 1,
+    "free_percent": 53
+  }
+}

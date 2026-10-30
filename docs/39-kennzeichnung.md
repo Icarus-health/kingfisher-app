@@ -48,9 +48,14 @@ Menschen gehört und für den die Frage eine Person entscheidet, die gemeinte Pe
 ist dieselbe wie bei den Kandidaten der Suche (`unterscheidet`: ein Wort der Frage, das nur zu einer Person passt,
 etwa „Catering“ oder „Fragebogen“), nicht eine zweite Regel. Eine Quelle trägt die Kennzeichnung, wenn sie die Adresse
 eines Namensvetters führt und **nicht** die der gemeinten Person. Nicht gekennzeichnet werden: eine Quelle mit
-beiden Adressen, ein bloßer Name ohne Adresse („Alex Winter hat angerufen“, geraten wird nie), Namen, deren Adressen
-nacheinander wirken (Adresswechsel, `nacheinander`), Teilnamen. **Ist die Person nicht eindeutig, bleibt es bei der
-Rückfrage (E1)**: Es gibt keine neue Rückfrage und keine neue Ausnahme (unnötige Rückfragen 0 von 70). Nach einer
+beiden Adressen, ein bloßer Name ohne Adresse („Alex Winter hat angerufen“, geraten wird nie).
+Gleichnamige Kontakte, deren Adressen nur in verschiedenen Zeiträumen vorkommen, werden seit der Korrektur vom **30.10.2026**
+weiterhin getrennt behandelt: Die Chronologie belegt keinen Adresswechsel. Nur eine
+aktive bestätigte Zusammenführung verbindet ihre Adressen. Die Kennzeichnung prüft
+alle aktuell belegten Adressen einer bestätigten Person und ihrer Namensvetter.
+Teilnamen allein entscheiden keine Identität. **Ist die Person nicht eindeutig, bleibt es bei der
+Rückfrage (E1)**. Der damalige Messwert „unnötige Rückfragen 0 von 70“ bleibt ein historischer
+Messstand, keine erneute Abnahme der geänderten Identitätswahl. Nach einer
 Antwort auf die Rückfrage gilt der Rahmen der gewählten Bedeutung; er enthält nur die Quellen dieser Person, da gibt
 es nichts zu kennzeichnen.
 
@@ -162,7 +167,7 @@ Lücke.
 | K11 | Kalenderzeitraum auch in Fragen, die nicht im Rückblick stehen | 1 | `test_kalenderzeitraum_gilt_nur_im_rueckblick_…[Bis wann …]` |
 | K12 | Ein kommender Monat ohne Jahr wird geraten | 1 | `test_kalenderzeitraum_gilt_nur_im_rueckblick_…[… im Oktober …]` |
 | K13 | Ohne Entscheidung der Frage gilt die erste Person als gemeint | 1 | `test_ohne_entscheidung_der_frage_gibt_es_keine_namensvettern_die_rueckfrage_bleibt` |
-| K14 | Wer die Adresse wechselt, gilt als Namensvetter | 1 | `test_wer_nacheinander_die_adresse_wechselt_ist_kein_namensvetter` |
+| K14 (historisch) | Damals wurden getrennte Zeiträume als Adresswechsel behandelt; am 30.10.2026 als unzulässige Identitätsannahme korrigiert | 1 (damaliger Stand) | Heute: `test_getrennte_zeitraeume_beweisen_keinen_adresswechsel`, `test_dominanz_und_getrennte_zeitraeume_waehlen_keine_person` |
 | K15 | Beim Anzeigen wird der gespeicherte Rahmen ignoriert | 1 | `test_gespeicherte_satzantwort_traegt_den_rahmen_…` |
 | K16 | Die Auswahl bekommt keine Anweisung zu den neuen Feldern | 1 | `test_die_auswahl_bekommt_die_anweisung_zu_den_neuen_feldern` |
 | K17 | Die Satzanfrage zeigt dem Modell die Kennzeichnung nicht | 1 | `test_die_satzanfrage_zeigt_dem_modell_die_kennzeichnung_…` |

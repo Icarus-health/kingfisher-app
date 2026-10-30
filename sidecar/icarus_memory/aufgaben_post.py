@@ -378,8 +378,8 @@ class Lauf:
         titel = (mail.episode.title or '').strip() or '(kein Betreff)'
         if t.art == 'erledigt':
             kind, statement = ProposalKind.TASK_DONE, f'Erledigt? „{t.aufgabe.title}“'
-            getan = 'geantwortet' if t.verlauf else 'geschrieben'
-            satz = f'Du hast {wer} am {tag} {getan} („{titel}“). Ist die Aufgabe damit erledigt?'
+            # Ein Verlauf kann weitergeleitet sein: Er beweist keine Antwort an diesen Empfänger.
+            satz = f'Du hast am {tag} an {wer} geschrieben („{titel}“). Ist die Aufgabe damit erledigt?'
             if len(mail.empfaenger) > MAX_EMPFAENGER:
                 satz = f'Du hast am {tag} an {len(mail.empfaenger)} Empfänger geschrieben („{titel}“), darunter {wer}. Ist die Aufgabe damit erledigt?'
         else:

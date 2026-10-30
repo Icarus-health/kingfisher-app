@@ -128,6 +128,8 @@ def test_vorschlagsgrund_erfindet_keinen_empfaenger_aus_dem_verlauf(welt):
     lauf.schritt()
     [vorschlag] = lauf.vorschlaege()
     assert 'Du hast Anna Berg' not in vorschlag['satz']
+    assert vorschlag['satz'] == ('Du hast am 21. Oktober an Jonas Keller geschrieben '
+                                 '(„AW: Druckdaten“). Ist die Aufgabe damit erledigt?')
     erledigt = lauf.vorschlag_annehmen(vorschlag['id'])
     assert 'Mail an Anna Berg' not in erledigt.erledigt_grund['satz']
 

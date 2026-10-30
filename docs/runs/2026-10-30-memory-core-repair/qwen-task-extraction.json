@@ -1,0 +1,27 @@
+{
+  "synthetic_only": true,
+  "cloud_requests": 0,
+  "seconds": 11.315,
+  "report": {
+    "analyzed": 1,
+    "proposed": 1,
+    "failed": 0,
+    "superseded": 0,
+    "available": true,
+    "cancelled": false
+  },
+  "proposals": [
+    {
+      "id": "v-fbb96a620e8551f064143e71",
+      "title": "Druckdaten bis 2. Nov 2026 um 18 Uhr senden",
+      "reason": "In der Quelle erkannte Aufgabe oder Zusage. Bitte prüfen.",
+      "reviewed_by": "openai/kingfisher-qwen3.5:9b-32k/task-review-v1",
+      "evidence": [
+        {
+          "episode_id": "e-7ae3fb0f2f03",
+          "quote": "bitte schicke mir die Druckdaten für Projekt Atlas bis zum 2. November 2026 um 18 Uhr."
+        }
+      ]
+    }
+  ]
+}

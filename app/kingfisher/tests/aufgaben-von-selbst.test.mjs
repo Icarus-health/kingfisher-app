@@ -53,7 +53,6 @@ test("Verdrahtung: Zeile mit Rückgängig, Heute, Alle übernehmen, Projekthinwe
   assert.match(src("TodayOverview.tsx"), /<AufgabenVonSelbstZeile /);
   assert.match(src("AufgabenSelbstHeute.tsx"), /aufgabenVonSelbstWiederherstellen/, "Rückgängig des Zurücknehmens stellt wieder her");
   assert.match(src("TaskSuggestions.tsx"), /api\.alleUebernehmen\(ids\)[\s\S]*gruppeZuruecknehmen\(ergebnis\.gruppe\)/);
-  assert.match(src("TaskSuggestions.tsx"), /item\.frist_vorschlag/);
   assert.match(src("TaskSuggestions.tsx"), /item\.person_vorschlag/);
   // Heute und das Mail-Briefing übernehmen den Projekthinweis, nicht mehr „ohne Projekt“ ohne Grund.
   assert.match(src("BriefingSuggestion.tsx"), /zuordnung_aus_vorschlag: true/);
