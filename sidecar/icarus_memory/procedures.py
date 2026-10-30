@@ -179,14 +179,30 @@ class ProcedureStore:
     def learning_catalog(self, message):
         """Nur relevante Metadaten vor der Entwurfserstellung, kein Bibliotheksdump."""
         words = _terms(message) - _GENERIC_TRIGGERS
+        # Der Lernkatalog darf auch den üblichen Plural „Zunftmails“ zu
+        # „Zunftmail“ finden. Das erweitert niemals die aktive Ausführungswahl.
+        words |= {word[:-1] for word in words if len(word) > 5 and word.endswith('s')}
+        items = self.items()
+        confirmed = {}
+        for item in items:
+            if item['state'] in {'active','revoked','superseded'}:
+                confirmed[item['name']] = max(confirmed.get(item['name'],0),item['version'])
+        latest = {}
+        for item in items:
+            if (not item['current'] or item['state'] not in {'active','pending'}
+                    or item['state']=='pending' and item['base_version']!=confirmed.get(item['name'],0)):
+                continue
+            previous = latest.get(item['name'])
+            if previous is None or item['version'] > previous['version']:
+                latest[item['name']] = item
         ranked = []
-        for item in self.items(active_only=True):
+        for item in latest.values():
             score = len(words & _terms(' '.join(item['triggers'])))
             if item['current'] and score:
                 ranked.append((score, item))
         result, size = [], 0
         for _, item in sorted(ranked, key=lambda entry: -entry[0]):
-            header = {key:item[key] for key in ('name','area','triggers')}
+            header = {key:item[key] for key in ('name','area','triggers','state','version')}
             header['description'] = item['description'][:120]
             added = len(json.dumps(header, ensure_ascii=False).encode())
             if size + added <= 2400 and len(result) < 8:

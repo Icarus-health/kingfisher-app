@@ -53,6 +53,12 @@ werden nicht automatisch zu dauerhaften Arbeitsanweisungen. Bei einer erkannten
 Lernbitte wird zunächst auf Wiederverwendung geprüft. Das ist prozedurales
 Gedächtnis, kein Training von Modellgewichten und kein unbegrenztes Selbstlernen.
 
+Die Wiederverwendung berücksichtigt auch bereits offene passende Vorschläge.
+Der kleine Metadatenkatalog nennt Status und Fassung, pro Name den jüngsten
+noch gültigen Stand. Zurückgewiesene, zurückgenommene und überholte Vorschläge
+werden nicht angeboten. Höchstens acht Einträge und 2.400 Bytes gelangen in
+den Lernauftrag; ein offener Vorschlag wird dadurch nicht aktiviert.
+
 ## Prüfen, ändern und sichern
 
 Ein Vorschlag nennt Zweck, Bereich, Auslöser, Schritte, Positiv- und
