@@ -40,10 +40,10 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
   // Solange der Stand fehlt, gilt die Einrichtung als offen: Dann ist vorerst kein Zugang-Knopf gefüllt.
   const einrichtungOffen = !einrichtung || offeneSchritte(einrichtung).length > 0;
   const system = useSystem();
-  const [ziel, setZiel] = useState(() => zielAus(window.location.hash));
+  const [ziel, setZiel] = useState(() => zielAus(window.location.hash, window.location.search));
 
   useEffect(() => {
-    const lesen = () => setZiel(zielAus(window.location.hash));
+    const lesen = () => setZiel(zielAus(window.location.hash, window.location.search));
     window.addEventListener("hashchange", lesen);
     window.addEventListener("popstate", lesen);
     return () => { window.removeEventListener("hashchange", lesen); window.removeEventListener("popstate", lesen); };
@@ -61,7 +61,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
     ki: <><LocalModelSettings /><ChatGPTAccess /><CloudAccess />
       <ModelRecommendation compact><Aufklapp id="geraet" praefix="ki" titel="Gerät und installierte Modelle" satz="Speicherbedarf und vorhandene Modelle."><DeviceModelHelp /></Aufklapp></ModelRecommendation></>,
     darf: <><Darf /><WorkspaceOnlineSettings /></>,
-    ich: <Ich ablaeufeOffen={ziel.ich === "ablaeufe"} />,
+    ich: <Ich ablaeufeOffen={ziel.ich === "ablaeufe"} ablaufZiel={ziel.ablauf} />,
     sicherung: <RecoverySettings />,
     technik: <Technik integrationen={integrationen} ziel={ziel} zuBereich={waehlen} />,
   };

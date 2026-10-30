@@ -143,3 +143,12 @@ test("Zugänge: Ladebalken nur beim Laden; scheitert es, steht „Nicht geladen.
   assert.equal((code.match(/\{ohneListe\}/g) ?? []).length, 2, "beide Gruppen, Postfächer und Kalender");
   assert.equal((code.match(/source-loading/g) ?? []).length, 1, "die Balken nur an einer Stelle, hinter `laedt`");
 });
+
+test('angeforderter Ablauf gehört zum Navigationszustand auch bei unverändertem Abschnitt',()=>{
+  const a=zielAus('#ich-ablaeufe','?ablauf=proc-a');
+  const b=zielAus('#ich-ablaeufe','?ablauf=proc-b');
+  assert.equal(a.ablauf,'proc-a');assert.equal(b.ablauf,'proc-b');assert.notDeepEqual(a,b);
+  assert.equal(zielAus('#ich-ablaeufe','?ablauf=proc%2Fa').ablauf,'proc/a');
+  assert.equal(zielAus('#ich-ablaeufe').ablauf,undefined);
+  assert.equal(zielAus('#technik','?ablauf=proc-a').ablauf,undefined);
+});

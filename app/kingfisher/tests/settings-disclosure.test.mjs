@@ -35,8 +35,8 @@ test('compact settings selector retains the separate technical group and uses th
 test('reopening an optional setting preserves its mounted editor',()=>{
   const state=[];const draw=()=>Aufklapp({id:'test',titel:'Modell wählen',satz:'Details',children:'editor'});
   let tree=render(draw,state);assert.doesNotMatch(text(tree),/editor/);
-  tree.props.onToggle({currentTarget:{open:true}});tree=render(draw,state);assert.match(text(tree),/editor/);
-  tree.props.onToggle({currentTarget:{open:false}});tree=render(draw,state);assert.match(text(tree),/editor/);assert.equal(tree.props.open,false);
+  nodes(tree,n=>n.type==='summary')[0].props.onClick({preventDefault(){}});tree=render(draw,state);assert.match(text(tree),/editor/);
+  nodes(tree,n=>n.type==='summary')[0].props.onClick({preventDefault(){}});tree=render(draw,state);assert.match(text(tree),/editor/);assert.equal(tree.props.open,false);
 });
 const provider={id:'mistral',label:'Mistral',endpoint:'https://api.mistral.ai/v1',key_present:true,model:'test-model'};
 test('provider status is visible while credential fields stay closed and keep unsaved edits',()=>{

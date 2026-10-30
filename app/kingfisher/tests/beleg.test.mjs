@@ -60,5 +60,5 @@ test("Ablaufempfang zeigt den normalen Navigationsweg zur Prüfung und keine feh
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   assert.match(app, /const procedureProposal = message\.role === "assistant" \? message\.metadata\?\.context\?\.procedure_proposal : undefined/);
   assert.match(app, /beleg\.art === "ohne" && !procedureProposal/);
-  assert.match(app, /procedureProposal \? <button[^>]+onClick=\{\(\) => navigate\("\/settings#ich-ablaeufe"\)\}[^>]*>Ablauf prüfen<\/button>/);
+  assert.match(app, /procedureProposal \? <button[^>]+onClick=\{\(\) => navigate\(`\/settings\?ablauf=\$\{encodeURIComponent\(procedureProposal\.id\)\}#ich-ablaeufe`\)\}[^>]*>Ablauf prüfen<\/button>/);
 });

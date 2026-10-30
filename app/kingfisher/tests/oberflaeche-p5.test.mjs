@@ -76,7 +76,7 @@ test("P5: Datenschutz & Speicherung steht offen als Satz, die Seitenliste hat ei
 
 test("P5: Für Techniker ist eine ruhige Liste, der Satz steht erst aufgeklappt, nur ein Pfeil", () => {
   const aufklapp = quelle("Einstellungen/Aufklapp.tsx");
-  assert.match(aufklapp, /<summary><span>\{titel\}<\/span><\/summary>/);
+  assert.match(aufklapp, /<summary\b[\s\S]*?><span>\{titel\}<\/span><\/summary>/);
   assert.match(aufklapp, /<p className="einstellungen-satz">\{satz\}<\/p>\{children\}/);
   const css = ohneKommentare(quelle("Einstellungen/Einstellungen.css"));
   assert.match(css, /#root \.settings-shell \.einstellungen-aufklapp > summary::before \{ content: none; display: none; \}/, "kein zweiter Pfeil der Grundlage");

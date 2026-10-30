@@ -70,14 +70,25 @@ function download(detail: Detail) {
   URL.revokeObjectURL(url);
 }
 
-function ProcedureRow({ item, busy, onAction, onSave }: { item: Procedure; busy: boolean;
+function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item: Procedure; busy: boolean; targeted?: boolean;
   onAction: (id: string, action: "accept" | "reject" | "revoke") => Promise<void>; onSave: Save }) {
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(targeted);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [editing, setEditing] = useState(false);
   const generation = useRef(0);
+  const summary = useRef<HTMLElement>(null);
+  useEffect(() => {
+    setOpened(targeted);
+    if (!targeted) return;
+    // Erst nach dem übergeordneten Einstellungsabschnitt ins Ziel springen.
+    const frame = requestAnimationFrame(() => {
+      summary.current?.focus({ preventScroll: true });
+      summary.current?.scrollIntoView({ block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [targeted]);
   useEffect(() => {
     if (!opened) return;
     const current = ++generation.current;
@@ -88,8 +99,8 @@ function ProcedureRow({ item, busy, onAction, onSave }: { item: Procedure; busy:
   }, [opened, item.id, attempt]);
   // Eine Listenzeile ist keine vollständige Prüfung: Übernehmen erst nach dem Lesen der aktuellen Fassung.
   const canAccept = Boolean(detail && detail.state === "pending" && detail.current && detail.checks.structure === true && detail.checks.routing_examples === true);
-  return <details className="quiet-details" onToggle={event => { if (event.target === event.currentTarget) setOpened(event.currentTarget.open); }}>
-    <summary>{item.title} · Version {item.version} · {STATES[item.state]}{!item.current ? " · Grundlage verändert" : ""}</summary>
+  return <details className="quiet-details" open={opened} onToggle={event => { if (event.target === event.currentTarget) setOpened(event.currentTarget.open); }}>
+    <summary ref={summary}>{item.title} · Version {item.version} · {STATES[item.state]}{!item.current ? " · Grundlage verändert" : ""}</summary>
     {opened ? <>
       <p className="source-hint">{item.description}</p>
       {error ? <p role="alert">{error} <button type="button" className="secondary-action" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Erneut laden</button></p> : null}
@@ -119,6 +130,7 @@ function ProcedureRow({ item, busy, onAction, onSave }: { item: Procedure; busy:
 }
 
 export function ProcedureSettings() {
+  const [target, setTarget] = useState(() => new URLSearchParams(window.location.search).get("ablauf"));
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -129,6 +141,12 @@ export function ProcedureSettings() {
   const mounted = useRef(false);
   const generation = useRef(0);
   const working = useRef(false);
+  useEffect(() => {
+    const readTarget = () => setTarget(new URLSearchParams(window.location.search).get("ablauf"));
+    window.addEventListener("popstate", readTarget);
+    window.addEventListener("hashchange", readTarget);
+    return () => { window.removeEventListener("popstate", readTarget); window.removeEventListener("hashchange", readTarget); };
+  }, []);
   async function load() {
     const current = ++generation.current;
     setVerified(false);
@@ -182,8 +200,9 @@ export function ProcedureSettings() {
     {catalog ? <p>{active} verwendbar · {pending} zur Prüfung</p> : !error ? <p role="status">Abläufe werden gelesen …</p> : null}
     {message ? <p role="status">{message}</p> : null}
     {error ? <p role="alert">{error} <button className="secondary-action" type="button" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Stand erneut laden</button></p> : null}
+    {verified && target && !catalog?.items.some(item => item.id === target) ? <p role="alert">Dieser Ablauf ist nicht mehr verfügbar. Du kannst einen anderen Eintrag in der Bibliothek öffnen.</p> : null}
     {catalog ? <>
-      {catalog.items.length ? catalog.items.map(item => <ProcedureRow key={`${item.id}:${readback}`} item={item} busy={busy || !verified} onAction={act} onSave={save} />) : <p>Noch keine eigenen Abläufe vorgeschlagen.</p>}
+      {catalog.items.length ? catalog.items.map(item => <ProcedureRow key={`${item.id}:${readback}`} item={item} targeted={item.id === target} busy={busy || !verified} onAction={act} onSave={save} />) : <p>Noch keine eigenen Abläufe vorgeschlagen.</p>}
       <details className="quiet-details"><summary>Eigenen Ablauf vorschlagen</summary><ProcedureForm busy={busy || !verified} onSave={save} /></details>
       <details className="quiet-details"><summary>Mitgelieferte Abläufe ({catalog.core.length})</summary>
         <p className="source-hint">Grundabläufe gelten allgemein; weitere Abläufe werden passend zur Anfrage gewählt.</p>
