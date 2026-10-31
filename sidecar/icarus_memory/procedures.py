@@ -73,12 +73,26 @@ def _terms(text):
     return set(re.findall(r'[^\W_]+', text.casefold(), flags=re.UNICODE))
 
 
-def _leading(message):
+def _positive_clauses(message):
     # Zitate/Dokumente nach der eigentlichen Bitte setzen keinen Verfahrensbereich.
     line = message.strip().partition('\n')[0][:600]
-    # Eine verneinte Passage ist kein positiver Anwendungsbeleg. Konservativ:
-    # nach dem ersten Nein keinen späteren Kontext hinzuraten.
-    return re.split(r'\b(?:nicht|ohne|kein(?:e|en|em|er|es)?)\b', line, maxsplit=1, flags=re.I)[0]
+    line = re.split(r'\b(?:zitat|quelltext|mailtext|beispieltext)\s*:', line, maxsplit=1, flags=re.I)[0]
+    line = re.sub(r'"[^"\n]*"|„[^“\n]*“|“[^”\n]*”|‘[^’\n]*’|\'[^\'\n]*\'|`[^`\n]*`', ';', line)
+    # Offene Anführungen sind kein sicherer eigener Kontext. Wortgruppen dürfen
+    # weder über Zitatgrenzen noch über einen negierten Teilsatz hinweg entstehen.
+    line = re.split(r'["„“‘`]', line, maxsplit=1)[0]
+    negative = r'\b(?:nicht|ohne|kein(?:e|en|em|er|es)?|keinesfalls|niemals|nie|weder)\b'
+    return [part for part in re.split(r'[.!?;:,\n]', line) if not re.search(negative, part, flags=re.I)]
+
+
+def _leading(message):
+    return '; '.join(_positive_clauses(message))
+
+
+def _phrase_in(phrase, text):
+    tokens = re.findall(r'[^\W_]+', text.casefold())
+    wanted = re.findall(r'[^\W_]+', phrase.casefold())
+    return any(tokens[i:i+len(wanted)] == wanted for i in range(len(tokens)-len(wanted)+1))
 
 
 _GENERIC_TRIGGERS = frozenset('offiziell offizielle offiziellen formell freundlich kurz knapp '
@@ -89,7 +103,8 @@ _GENERIC_TRIGGERS = frozenset('offiziell offizielle offiziellen formell freundli
 def _matches(spec, message, area):
     words = _terms(_leading(message))
     return (spec['area'] == area and any(_terms(trigger) <= words for trigger in spec['triggers'])
-            and (not spec.get('contexts') or any(_terms(context) <= words for context in spec['contexts'])))
+            and (not spec.get('contexts') or any(_phrase_in(context, clause)
+                 for context in spec['contexts'] for clause in _positive_clauses(message))))
 
 
 def validate(spec):
@@ -224,14 +239,12 @@ class ProcedureStore:
             score = len(words & _terms(' '.join(item['triggers'])))
             if item['current'] and score:
                 ranked.append((score, item))
-        result, size = [], 0
+        result = []
         for _, item in sorted(ranked, key=lambda entry: -entry[0]):
             header = {key:item[key] for key in ('name','area','category','contexts','triggers','state','version')}
             header['description'] = item['description'][:120]
-            added = len(json.dumps(header, ensure_ascii=False).encode())
-            if size + added <= 2400 and len(result) < 8:
+            if len(json.dumps(result + [header], ensure_ascii=False).encode()) <= 2400 and len(result) < 8:
                 result.append(header)
-                size += added
         return result
 
     def get(self, identifier):

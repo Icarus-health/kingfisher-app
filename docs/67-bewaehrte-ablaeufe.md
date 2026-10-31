@@ -6,6 +6,38 @@ Eine Personenakte braucht deshalb keinen eigenen Skill. Aktuelle Fakten und
 bestätigter Kontaktstil werden bei jeder Anwendung aus ihren bestehenden
 Speichern gelesen, statt im Ablauf dupliziert zu werden.
 
+## Einordnung und Finden
+
+Die Bibliothek trennt drei Dinge:
+
+| Merkmal | Bedeutung |
+|---|---|
+| Grundverfahren / bei Bedarf | Die zwei essenziellen Grundverfahren gelten immer. Weitere mitgelieferte und alle eigenen Skills werden passend zur Aufgabe geladen. Ein Lernvorschlag kann sich nicht selbst zum Grundverfahren machen. |
+| Kategorie | Suchen & Prüfen, Kommunikation, Planung & Arbeit, Gedächtnispflege oder Sonstiges. Vorschläge bekommen eine Einordnung; ohne Angabe folgt die Vorgabe aus dem bestehenden Aufgabenbereich. |
+| Anwendungskontext | Allgemeiner Ablauf oder bis zu vier ausdrücklich genannte Kontexte, etwa Zunft. Bei mehreren genügt einer. Kontexte sind keine Personen- oder Projektidentitäten. |
+
+Suche und Kategoriefilter arbeiten auf den kleinen Metadaten. Der direkt aus
+einem Gespräch angeforderte Vorschlag bleibt trotz Filter sichtbar. Die
+optionale Einordnung lässt sich unter „Einordnung anpassen“ in einer neuen
+Fassung ändern. Alte Fassungen erhalten nur eine abgeleitete Anzeige; ihre
+gespeicherten Markdown-Dateien und Versionsbelege werden nicht umgeschrieben.
+
+Die Kategorie ordnet die Bibliothek, aktiviert aber keinen Ablauf. Die Auswahl
+verlangt weiterhin passenden Aufgabenbereich und einen positiven Auslöser in der
+eigenen ersten Anfragezeile. Angegebene Kontexte müssen dort als zusammenhängende
+Wortfolge stehen. Zitierte Abschnitte und verneinte Teilsätze sind keine positiven
+Kontexte; bei Unsicherheit bleibt das persönliche Zusatzverfahren weg. Auch
+„Zunftmail“ oder „Projektmails“ werden in einer ausdrücklichen Schreibbitte als
+Mailaufgabe erkannt. Freie Paraphrasen versteht diese begrenzte Auswahl nicht
+vollständig. Eine Verbesserung der Modellqualität oder Geschwindigkeit folgt
+nicht allein aus der Kategorisierung.
+
+Ein gemeinsamer Mailablauf kann bestätigten Kontaktstil und aktuelle Akten nutzen.
+Für jede Person eine Kopie anzulegen würde Fakten und Arbeitsweise vermischen.
+Besondere Abläufe sind erst sinnvoll, wenn das Vorgehen tatsächlich verschieden
+und wiederverwendbar ist. Kategorien erlauben weder neue Werkzeuge noch eine
+selbstständige Veränderung des Gedächtnisbestands.
+
 ## Benutzen
 
 Im Gespräch ausdrücklich schreiben: „Lerne diesen Ablauf: …“. Anlass, Schritte

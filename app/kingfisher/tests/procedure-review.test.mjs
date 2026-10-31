@@ -17,11 +17,11 @@ function driver(Component,props={}){const states=[],refs=[],effects=[],pending=[
  const d={props,state(v){const i=s++;if(!(i in states))states[i]=typeof v==='function'?v():v;return[states[i],n=>states[i]=typeof n==='function'?n(states[i]):n];},ref(v){return refs[r++]??={current:v};},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__procedureDriver=d;return Component(d.props);},run(){pending.splice(0).forEach(fn=>fn());},close(){effects.forEach(x=>x.cleanup?.());delete globalThis.__procedureDriver;}};return d;}
 const item=id=>({id,name:id,title:'Gleicher Titel',description:'Eine künstliche Beschreibung.',area:'mail',version:1,state:'pending',current:true,triggers:['zunft'],positive:'Zunftmail prüfen',negative:'Private Mail',checks:{structure:true,routing_examples:true,human_review_required:true}});
 const detail=id=>({...item(id),steps:[`Nur Schritte von ${id}`],sources:{},markdown:'# Test'});
-async function fixture(search,run,suppliedItems=['a','b','c'].map(item)){const old={window:globalThis.window,fetch:globalThis.fetch,raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame};
+async function fixture(search,run,suppliedItems=['a','b','c'].map(item),suppliedCore=[]){const old={window:globalThis.window,fetch:globalThis.fetch,raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame};
  const events=new Map(),calls=[];let failDetail=false;
  globalThis.window={location:{search},addEventListener(n,fn){events.set(n,fn);},removeEventListener(n){events.delete(n);}};
  globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
- globalThis.fetch=async(path)=>{calls.push(String(path));return new Response(JSON.stringify(path==='/api/v1/procedures'?{items:suppliedItems,core:[]}:failDetail?{detail:'Künstlich nicht erreichbar'}:detail(String(path).split('/').at(-1))),{status:path==='/api/v1/procedures'||!failDetail?200:404});};
+ globalThis.fetch=async(path)=>{calls.push(String(path));return new Response(JSON.stringify(path==='/api/v1/procedures'?{items:suppliedItems,core:suppliedCore}:failDetail?{detail:'Künstlich nicht erreichbar'}:detail(String(path).split('/').at(-1))),{status:path==='/api/v1/procedures'||!failDetail?200:404});};
  const d=driver(ProcedureSettings);
  try{d.render();d.run();await tick();d.render();d.run();await run({d,events,calls,fail(v){failDetail=v;}});}
  finally{d.close();globalThis.window=old.window;globalThis.fetch=old.fetch;globalThis.requestAnimationFrame=old.raf;globalThis.cancelAnimationFrame=old.caf;}
@@ -49,6 +49,15 @@ test('a direct review target remains visible while other categories are filtered
  assert.deepEqual(rows(d).map(n=>[n.props.item.id,n.props.targeted]),[['a',true],['b',false]]);
  assert.match(text(d.render()),/Der angeforderte Ablauf bleibt/);
 },[{...item('a'),category:'communication'}, {...item('b'),area:'planning',category:'planning'}]));
+
+test('search also filters the supplied procedures',()=>fixture('',async({d})=>{
+ const search=nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0];
+ search.props.onChange({target:{value:'Quellen prüfen'}});
+ assert.match(text(d.render()),/Quellen prüfen/);assert.doesNotMatch(text(d.render()),/Anderer Grundablauf/);
+ search.props.onChange({target:{value:'nicht vorhanden'}});
+ assert.doesNotMatch(text(d.render()),/Quellen prüfen|Anderer Grundablauf/);
+},[],[{id:'source',name:'source',title:'Quellen prüfen',description:'Belege lesen.',category:'essential',purpose:'research'},
+      {id:'other',name:'other',title:'Anderer Grundablauf',description:'Aufgabe erkennen.',category:'essential',purpose:'other'}]));
 
 test('a new revision keeps its reviewed classification and application contexts',()=>fixture('?ablauf=a',async({d})=>{
  const list=rows(d),row=driver(list[0].type,list[0].props);

@@ -146,3 +146,40 @@ def test_local_chat_learning_http_review_context_change_and_withdrawal(tmp_path,
         assert reopened.get(item['id'])['current'] is False
     finally:
         reopened.close()
+
+
+@pytest.mark.parametrize('message',[
+    'Schreibe eine Mail als Einladung für Freunde; im zitierten Beispiel steht „Zunft“.',
+    'Schreibe eine Mail als Einladung für Freunde. Zitat: Zunft',
+    'Schreibe eine Mail als Einladung; für die Zunft ist sie nicht gedacht.',
+    'Schreibe eine Mail als Einladung; für die Zunft ist sie keinesfalls gedacht.',
+    'Schreibe eine Mail als Einladung mit dem Text "Zunft".',
+])
+def test_context_in_quotes_or_negated_clauses_never_selects_personal_procedure(tmp_path, message):
+    from icarus_memory.working_profile import task_for
+    store=ProcedureStore(tmp_path/'p.sqlite3')
+    item=store.propose({**spec(),'triggers':['einladung'],'contexts':['Zunft'],
+        'positive':'Schreibe eine Mail als Einladung für die Zunft.',
+        'negative':'Schreibe eine Mail als Einladung für Freunde.'})
+    store.accept(item['id'])
+    assert not store.select(message,area=task_for(message))['contextual']
+    assert store.select('Schreibe eine Mail als Einladung für die Zunft; bitte nicht zu förmlich.',area='mail')['contextual']
+
+
+def test_multiterm_context_requires_a_contiguous_positive_phrase(tmp_path):
+    store=ProcedureStore(tmp_path/'p.sqlite3')
+    item=store.propose({**spec(),'triggers':['einladung'],'contexts':['Rotes Kreuz'],
+        'positive':'Schreibe eine Einladung für Rotes Kreuz.',
+        'negative':'Schreibe eine Einladung für Freunde.'})
+    store.accept(item['id'])
+    assert not store.select('Schreibe eine Mail als Einladung für die Kirchengemeinde: rotes Papier, kleines Kreuz als Verzierung.',area='mail')['contextual']
+    assert not store.select('Schreibe eine Einladung auf rotes; Kreuz wird später ergänzt.',area='mail')['contextual']
+    assert store.select('Schreibe eine Einladung für ROTES KREUZ.',area='mail')['contextual']
+
+
+def test_budget_includes_the_serialized_list_delimiters(tmp_path):
+    store=ProcedureStore(tmp_path/'p.sqlite3')
+    for i in range(8):
+        store.propose({**spec(),'name':f'entry-{i:04}','contexts':['Zunft'],'description':'A'*120})
+    headers=store.learning_catalog('Lerne diesen Ablauf: Zunftmail prüfen.')
+    assert len(json.dumps(headers,ensure_ascii=False).encode())<=2400

@@ -236,7 +236,8 @@ export function ProcedureSettings() {
       <details className="quiet-details"><summary>Mitgelieferte Abläufe ({catalog.core.length})</summary>
         {(["essential", "contextual"] as const).map(tier => <div key={tier}>
           <h4>{tier === "essential" ? "Essenzielle Grundverfahren" : "Bei Bedarf"}</h4>
-          {catalog.core.filter(item => item.category === tier && (!category || item.purpose === category)).map(item => <details className="quiet-details" key={item.id}>
+          {catalog.core.filter(item => item.category === tier && (!category || item.purpose === category)
+            && `${item.title} ${item.description}`.toLocaleLowerCase("de").includes(search.trim().toLocaleLowerCase("de"))).map(item => <details className="quiet-details" key={item.id}>
             <summary>{item.title}{item.purpose ? ` · ${CATEGORIES[item.purpose]}` : ""}</summary><p>{item.description}</p>
           </details>)}
         </div>)}
