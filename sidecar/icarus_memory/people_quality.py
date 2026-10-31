@@ -19,6 +19,9 @@ GENERIC = {
 _COMPANY_NAME = re.compile(r'\b(?:gmbh|inc|ltd|llc)\b', re.I)
 _DOMAIN_LABEL = re.compile(r'(?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,24}/?', re.I)
 _SERVICE_LABEL = re.compile(r'\bsite[ _-]+audit\b', re.I)
+# Nur eindeutige Platzhalter der Anzeige, keine Postfachregel oder Namenssuche.
+_MISSING_SENDER_LABELS = frozenset({'unbekannter absender', 'unknown sender',
+                                    'unbekannterabsender', 'unknownsender'})
 _CAMPAIGN_LOCAL = re.compile(r'(?:^|[._-])campaigns?[._-](?:response|updates?|messages?)(?:$|[._-])', re.I)
 _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
@@ -87,6 +90,8 @@ def annotate_people(nodes):
         elif not explicit and (local == 'pay' or _CAMPAIGN_LOCAL.search(local)
                 or _DOMAIN_LABEL.fullmatch(name or label) or _SERVICE_LABEL.search(name or label)):
             category, reason = 'review', 'Firmen- oder Funktionsabsender; eine Personenidentität ist noch nicht bestätigt.'
+        elif not explicit and ' '.join((name if address else label).casefold().split()) in _MISSING_SENDER_LABELS:
+            category, reason = 'review', 'Platzhalter für einen unbekannten Absender; eine Personenidentität ist noch nicht belegt.'
         elif not explicit and '@' in label and not address:
             category, reason = 'review', 'Keine eindeutige Mailadresse aus dem Absender lesbar.'
         metadata[node.id] = {

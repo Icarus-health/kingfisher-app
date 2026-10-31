@@ -46,8 +46,8 @@ und Quellen-ID beweisen keine richtige verantwortliche Person.
   Modellanfrage; `context` verweist dann auf `text`. Unterschiedliche Nachsätze,
   Negationen, Metadaten und sämtliche Quellen bleiben erhalten. Die drei früher
   zu großen Nachrichten passen damit unter die unveränderte Grenze.
-- **Diagnoseadapter:** Überträgt vollständige Werkzeugdefinitionen; kein vom
-  Modell verlangter ToolCall gelangt zur Ausführung. Eingabebyte einschließlich
+- **Diagnoseadapter:** Überträgt vollständige Werkzeugdefinitionen; ausschließlich geprüfte lokale Lesewerkzeuge gelangen über den
+  normalen Agentenpfad zur Ausführung. Datei-/Webabfrage und Schreiben bleiben gesperrt. Eingabebyte einschließlich
   Schema/Werkzeugen, Fehlerursprung und betroffene Frage werden protokolliert.
   Technischer Rückfall wird nicht als fehlendes Wissen gewertet.
 
@@ -108,3 +108,25 @@ Suchabdeckung behauptet. Persönlicher Großimport unverändert pausiert.
 Die Quellstände der lokalen Probe sind per Datei-Hash gesichert, inklusive
 separater Kennzeichnung des damals uncommitteten Testadapters. Kein Nachweis
 einer veröffentlichten Fassung aus einem Patchlauf abgeleitet.
+
+
+## Nachkorrekturen vor der nächsten vollständigen Probe
+
+- Fristsätze dürfen kein unbelegtes „ab“, „seit“ oder „nach“ am Kalenderdatum
+  hinzufügen. Explizite Quellgrenzen und neutrale Datumsangaben bleiben möglich.
+  Dies ist eine begrenzte Datumsrelationsprüfung, keine allgemeine Ereignislogik.
+- Exakte Platzhalter wie „Unbekannter Absender“ erscheinen als Prüffall, nicht
+  als bestätigter Mensch. Bestätigte Personenentscheidungen haben Vorrang; IDs,
+  Originalnamen und Quellenkanten werden nicht verändert.
+- Die Klassifikation erhält den vorhandenen rollenbelegten Mailabsender explizit.
+  Bei mehreren Beteiligten ohne Rollen wird keiner geraten; Dokumentbeteiligte
+  werden nicht zu Mailabsendern gemacht. Der Prompt grenzt Drittpersonenberichte
+  von eigenen Zusagen und konkrete Fachbriefinformationen von Werbung ab.
+  Keine globale Neuerfassung des Bestands und keine neue Newsletterfreigabe.
+- Der Diagnoseadapter lässt eng begrenzte echte lokale Leseschritte zu. Er
+  normalisiert nur seine bekannten Aufrufe für den nativen Ollama-Verlauf und
+  hält die unveränderte Eingabegrenze einschließlich Werkzeugergebnissen ein.
+  Ein verweigerter oder zu großer Schritt bleibt sichtbar fehlgeschlagen.
+
+Diese Nachkorrekturen sind bis zur erneuten Modellprobe und Gesamtprüfung keine
+Ende-zu-Ende-Abnahme und noch nicht auf dem persönlichen Mac installiert.

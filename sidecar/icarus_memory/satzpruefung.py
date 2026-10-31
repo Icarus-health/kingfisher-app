@@ -48,7 +48,10 @@ allgemeine Bedeutungs- oder Satzklammerprüfung. Wenn mehrere Ereignisse dieselb
 Uhrzeit mit verschiedenen Grenzen verbinden, kann der Vergleich eine Aussage
 vorsichtshalber zurückweisen. Was der Beleg selbst behauptet, prüft sie nicht.
 Erkannte explizite Grenzen an einzelnen Kalenderdaten werden ebenfalls auf vertauschte
-Relationen geprüft. Bei ausdrücklich genannter Gültigkeit bleiben die Grenzen
+Relationen geprüft. Sätze mit „Frist“ (auch zusammengesetzt) oder „Deadline“ dürfen
+„ab“, „seit“ oder „nach“ am Datum nur aus dem Quellkörper übernehmen; ein bloß
+genanntes Fristdatum belegt keinen Beginn. Bei ausdrücklich genannter Gültigkeit
+bleiben die Grenzen
 des über Inhaltswörter zugeordneten Satzteils erhalten. Das ist keine vollständige
 Prüfung von Ereigniszuordnung, Zeiträumen, Aktualität oder ausgelassenen Bedingungen.
 Bei Belegen mit erkannten Erlaubnissen oder Pflichten („darf“, „erlaubt“, „muss“,
@@ -206,6 +209,7 @@ _DATUM_GRENZE = re.compile(
     r'(?P<operator>ab|bis|vor|nach|seit|am)\s+(?:(?:dem|zum)\s+)?$', re.I)
 _GELTUNG = re.compile(r'\b(?:gilt|gelten|gültig\w*|gueltig\w*)\b', re.I)
 _GELTUNG_QUELLE = re.compile(r'\b(?:gilt|gelten|galt|galten|gültig\w*|gueltig\w*)\b', re.I)
+_FRIST_AUSSAGE = re.compile(r'\b(?:\w*frist(?:en|ende)?|deadline(?:s)?)\b', re.I)
 
 
 def _datumsgrenzen(text: str) -> list[tuple[Datum, str]]:
@@ -235,6 +239,7 @@ def _pruefe_datumsgrenzen(text: str, belege: Sequence[Beleg]) -> list[str]:
 
     This is not event attribution or general temporal entailment. Only clauses
     explicitly asserting validity must also retain their matching dated bounds.
+    A clause naming a deadline cannot add an unsupported recognized start bound.
     Unrelated clauses and imperative summaries remain independent.
     """
     grenzen = _datumsgrenzen(text)
@@ -245,11 +250,16 @@ def _pruefe_datumsgrenzen(text: str, belege: Sequence[Beleg]) -> list[str]:
         if passend and relation not in passend:
             gruende.append(f'Datumsgrenze an {datum.tag:02d}.{datum.monat:02d}. stimmt nicht mit dem Beleg überein')
     for klausel in _klauseln(text):
+        eigene_grenzen = _datumsgrenzen(klausel)
+        if _FRIST_AUSSAGE.search(klausel):
+            for datum, relation in eigene_grenzen:
+                if relation in {'ab', 'seit', 'nach'} and not any(
+                        _gleicher_tag(datum, d) and relation == r for d, r in beleg_grenzen):
+                    gruende.append('Datumsgrenze einer Fristaussage beginnt ohne Beleg')
         if not _GELTUNG.search(klausel):
             continue
         _, ohne_datum = _datumstellen(klausel)
         anker = _inhaltswoerter(_GELTUNG.sub('', ohne_datum))
-        eigene_grenzen = _datumsgrenzen(klausel)
         kandidaten = []
         for beleg in belege:
             for quelle in _klauseln(beleg.text):
