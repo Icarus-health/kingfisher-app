@@ -21,18 +21,12 @@ function tag(value?: string | null) {
   return Number.isNaN(zeit.getTime()) ? "" : zeit.toLocaleDateString("de-DE", { day: "numeric", month: "numeric", year: "numeric" });
 }
 
-export function BefundZeile({ befund, arbeitet, onAktion }: {
-  befund: BefundMitQuellen; arbeitet: boolean; onAktion: (befund: BefundMitQuellen, aktion: "neu" | "alt" | "erledigt" | "abgewiesen") => void;
+export function BefundZeile({ befund, arbeitet, onAktion, compact = false }: {
+  befund: BefundMitQuellen; arbeitet: boolean; compact?: boolean; onAktion: (befund: BefundMitQuellen, aktion: "neu" | "alt" | "erledigt" | "abgewiesen") => void;
 }) {
   const wahl = waehlbar(befund);
   const knoepfe = wahlTexte(befund);
-  return <li className={befund.schwere === "wichtig" ? "befund befund-wichtig" : "befund"}>
-    <p className="befund-text">{befund.text}</p>
-    <small className="befund-kopf">{befund.art_text}{tag(befund.gefunden_am) ? ` · aufgefallen am ${tag(befund.gefunden_am)}` : ""}</small>
-    {befund.sachen.length ? <div className="befund-akten" aria-label="Beteiligte Akten">
-      {befund.sachen.map(s => <button key={s.sache} type="button" className="text-action"
-        onClick={() => navigate(`/memory/akte/${encodeURIComponent(s.sache)}`)} aria-label={`Akte öffnen: ${s.name}`}>{s.name}</button>)}
-    </div> : null}
+  const pruefung = <>
     {befund.belege.length ? <div className="befund-belege" aria-label="Quellen, keine bestätigte Aussage">
       <p className="befund-hinweis">Quellenaussagen · keine bestätigten Fakten</p>
       {befund.belege.map((beleg, index) => <div className="befund-beleg" key={`${beleg.episode_id}:${index}`}>
@@ -50,6 +44,17 @@ export function BefundZeile({ befund, arbeitet, onAktion }: {
       </> : <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "erledigt")}>Erledigt</button>}
       <button type="button" className="text-action" disabled={arbeitet} onClick={() => onAktion(befund, "abgewiesen")}>Ignorieren</button>
     </div>
+  </>;
+  return <li className={befund.schwere === "wichtig" ? "befund befund-wichtig" : "befund"}>
+    <p className="befund-text">{befund.text}</p>
+    <small className="befund-kopf">{befund.art_text}{tag(befund.gefunden_am) ? ` · aufgefallen am ${tag(befund.gefunden_am)}` : ""}</small>
+    {befund.sachen.length ? <div className="befund-akten" aria-label="Beteiligte Akten">
+      {befund.sachen.map(s => <button key={s.sache} type="button" className="text-action"
+        onClick={() => navigate(`/memory/akte/${encodeURIComponent(s.sache)}`)} aria-label={`Akte öffnen: ${s.name}`}>{s.name}</button>)}
+    </div> : null}
+    {compact ? <details className="befund-details"><summary>Quellen & Entscheidung{befund.belege.length ? ` · ${befund.belege.length}` : ""}</summary>
+      <div className="befund-pruefung">{pruefung}</div>
+    </details> : pruefung}
   </li>;
 }
 

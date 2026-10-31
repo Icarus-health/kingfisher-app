@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, request } from "./api";
+import "./ProcedureSettings.css";
 
 type Area = "mail" | "planning" | "analysis";
 type Category = "communication" | "planning" | "research" | "maintenance" | "other";
@@ -114,15 +115,16 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
   }, [opened, item.id, attempt, targeted]);
   // Eine Listenzeile ist keine vollständige Prüfung: Übernehmen erst nach dem Lesen der aktuellen Fassung.
   const canAccept = Boolean(detail && detail.state === "pending" && detail.current && detail.checks.structure === true && detail.checks.routing_examples === true);
-  return <details className="quiet-details" open={opened} onToggle={event => { if (event.target === event.currentTarget) setOpened(event.currentTarget.open); }}>
-    <summary ref={summary}>{item.title} · Version {item.version} · {STATES[item.state]}{!item.current ? " · Grundlage verändert" : ""}</summary>
+  return <details className="quiet-details procedure-row" open={opened} onToggle={event => { if (event.target === event.currentTarget) setOpened(event.currentTarget.open); }}>
+    <summary ref={summary}><span className="procedure-row-heading"><span className="procedure-row-title">{item.title}</span>
+      <span className="procedure-row-meta">{CATEGORIES[categoryOf(item)]} · Version {item.version} · <span className="procedure-state" data-state={item.state}>{STATES[item.state]}</span>{!item.current ? " · Grundlage verändert" : ""}</span>
+    </span></summary>
     {opened ? <>
       <p className="source-hint">{item.description}</p>
       {error ? <p role="alert">{error} <button type="button" className="secondary-action" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Erneut laden</button></p> : null}
       {!detail && !error ? <p role="status">Fassung wird gelesen …</p> : null}
       {detail ? <>
-        <p>{AREAS[detail.area]} · Version {detail.version}{detail.base_version !== undefined ? ` · auf Basis von Version ${detail.base_version}` : ""} · {STATES[detail.state]}</p>
-        <p>{CATEGORIES[categoryOf(detail)]} · Bei Bedarf · {detail.contexts?.length ? detail.contexts.join(" / ") : "Allgemeiner Ablauf"}</p>
+        <p className="procedure-row-meta">{AREAS[detail.area]} · Bei Bedarf · {detail.contexts?.length ? detail.contexts.join(" / ") : "Allgemeiner Ablauf"}{detail.base_version !== undefined ? ` · auf Basis von Version ${detail.base_version}` : ""}</p>
         {!detail.current ? <p role="status">Die Beleggrundlage hat sich verändert. Diese Fassung kann nicht übernommen werden. Prüfe die Quellen und schlage eine neue Fassung vor.</p> : null}
         <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Ob die Schritte fachlich passen, prüfst du selbst vor dem Übernehmen.</p>
         <p><strong>Passend bei:</strong> {detail.triggers.join("; ")}</p>
@@ -159,6 +161,7 @@ export function ProcedureSettings() {
   const mounted = useRef(false);
   const generation = useRef(0);
   const working = useRef(false);
+  const searchInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const readTarget = () => setTarget(new URLSearchParams(window.location.search).get("ablauf"));
     window.addEventListener("popstate", readTarget);
@@ -216,31 +219,40 @@ export function ProcedureSettings() {
     && [item.title, item.description, ...item.triggers, ...(item.contexts || [])].join(" ").toLocaleLowerCase("de").includes(search.trim().toLocaleLowerCase("de"));
   const visible = catalog?.items.filter(item => item.id === target || matches(item)) || [];
   const outsideFilter = catalog?.items.some(item => item.id === target && !matches(item));
-  return <section className="source-section compact-model" aria-label="Bewährte Abläufe">
-    <p className="source-hint">Essenzielle Grundverfahren gelten immer. Passende übernommene Skills lädt Kingfisher bei Bedarf. Eigene Abläufe bleiben lokal und werden erst nach deiner Prüfung verwendet.</p>
-    {catalog ? <p>{active} verwendbar · {pending} zur Prüfung</p> : !error ? <p role="status">Abläufe werden gelesen …</p> : null}
+  const core = catalog?.core.filter(item => (!category || item.purpose === category)
+    && `${item.title} ${item.description}`.toLocaleLowerCase("de").includes(search.trim().toLocaleLowerCase("de"))) || [];
+  const filtered = Boolean(search.trim() || category);
+  return <section className="source-section compact-model procedure-library" aria-label="Bewährte Abläufe">
+    <p className="source-hint">Passende Abläufe werden automatisch verwendet. Neue Vorschläge prüfst du zuerst.</p>
+    {catalog ? <p className="procedure-counts"><span><strong>{active}</strong> eigene verwendbar</span><span><strong>{pending}</strong> zur Prüfung</span></p> : !error ? <p role="status">Abläufe werden gelesen …</p> : null}
     {message ? <p role="status">{message}</p> : null}
     {error ? <p role="alert">{error} <button className="secondary-action" type="button" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Stand erneut laden</button></p> : null}
     {verified && target && !catalog?.items.some(item => item.id === target) ? <p role="alert">Dieser Ablauf ist nicht mehr verfügbar. Du kannst einen anderen Eintrag in der Bibliothek öffnen.</p> : null}
     {catalog ? <>
-      <div className="source-form">
-        <label>Suche<input type="search" aria-label="Abläufe durchsuchen" value={search} onChange={event => setSearch(event.target.value)} placeholder="Titel, Anlass oder Kontext" /></label>
+      <div className="source-form procedure-filters" role="search" aria-label="Skill-Bibliothek filtern">
+        <label>Suche<input ref={searchInput} type="search" aria-label="Abläufe durchsuchen" value={search} onChange={event => setSearch(event.target.value)} placeholder="Titel, Anlass oder Kontext" /></label>
         <label>Kategorie<select aria-label="Abläufe nach Kategorie filtern" value={category} onChange={event => setCategory(event.target.value)}>
           <option value="">Alle Kategorien</option>{Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value}</option>)}
         </select></label>
+        {filtered ? <button type="button" className="g-knopf-schlicht" onClick={() => { setSearch(""); setCategory(""); searchInput.current?.focus(); }}>Filter zurücksetzen</button> : null}
       </div>
+      {filtered ? <p className="procedure-row-meta" role="status">{visible.length + core.length} Treffer{outsideFilter ? " einschließlich angefordertem Ablauf" : ""}</p> : null}
       {outsideFilter ? <p role="status">Der angeforderte Ablauf bleibt unabhängig vom Filter zur Prüfung sichtbar.</p> : null}
+      {visible.length ? <h3 className="procedure-group-title">Eigene Abläufe</h3> : null}
       {visible.map(item => <ProcedureRow key={`${item.id}:${readback}`} item={item} targeted={item.id === target} busy={busy || !verified} onAction={act} onSave={save} />)}
-      {!visible.length ? <p>{catalog.items.length ? "Keine passenden Abläufe. Passe Suche oder Kategorie an." : "Noch keine eigenen Abläufe vorgeschlagen. Im Gespräch kannst du „Lerne diesen Ablauf: …“ schreiben."}</p> : null}
-      <details className="quiet-details"><summary>Eigenen Ablauf vorschlagen</summary><ProcedureForm busy={busy || !verified} onSave={save} /></details>
-      <details className="quiet-details"><summary>Mitgelieferte Abläufe ({catalog.core.length})</summary>
-        {(["essential", "contextual"] as const).map(tier => <div key={tier}>
-          <h4>{tier === "essential" ? "Essenzielle Grundverfahren" : "Bei Bedarf"}</h4>
-          {catalog.core.filter(item => item.category === tier && (!category || item.purpose === category)
-            && `${item.title} ${item.description}`.toLocaleLowerCase("de").includes(search.trim().toLocaleLowerCase("de"))).map(item => <details className="quiet-details" key={item.id}>
-            <summary>{item.title}{item.purpose ? ` · ${CATEGORIES[item.purpose]}` : ""}</summary><p>{item.description}</p>
+      {!visible.length && !core.length ? <p role="status">{filtered ? "Keine passenden Abläufe. Passe Suche oder Kategorie an." : "Noch keine Abläufe vorhanden."}</p> : null}
+      {core.length ? <section className="procedure-core" aria-label="Mitgelieferte Abläufe">
+        {(["essential", "contextual"] as const).filter(tier => core.some(item => item.category === tier)).map(tier => <div key={tier}>
+          <h3 className="procedure-group-title">{tier === "essential" ? "Essenzielle Grundverfahren" : "Bei Bedarf"}<span className="procedure-origin">Mitgeliefert</span></h3>
+          {core.filter(item => item.category === tier).map(item => <details className="quiet-details procedure-row" key={item.id}>
+            <summary><span className="procedure-row-heading"><span className="procedure-row-title">{item.title}</span>{item.purpose ? <span className="procedure-row-meta">{CATEGORIES[item.purpose]}</span> : null}</span></summary><p>{item.description}</p>
           </details>)}
         </div>)}
+      </section> : null}
+      <details className="quiet-details procedure-help"><summary>Eigene Abläufe hinzufügen</summary>
+        <p className="source-hint">Im Gespräch kannst du „Lerne diesen Ablauf: …“ schreiben. Der Vorschlag bleibt bis zu deiner Prüfung inaktiv.</p>
+        <details className="quiet-details"><summary>Manuell vorschlagen</summary><ProcedureForm busy={busy || !verified} onSave={save} /></details>
+        <p className="source-hint">Essenzielle Grundverfahren gelten immer. Eigene Abläufe bleiben lokal; bei Bedarf lädt Kingfisher die passende übernommene Fassung.</p>
       </details>
     </> : null}
   </section>;

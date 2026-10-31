@@ -3,8 +3,9 @@
 **Verbindlicher Abschlussauftrag vom 30.10.2026:**
 [Gedächtnis und ergänzende Skill-Bibliothek fertigstellen](68-gedaechtnis-abschluss.md).
 Bestehendes gezielt abschließen; neue Produktbereiche und Modellvergleiche warten.
-Die bereits veröffentlichte Basis ist 1.0.33; dieses Paket bereitet 1.0.34 mit
-[Skill-Kategorien und eingegrenzten Kontexten](67-bewaehrte-ablaeufe.md) vor.
+Die veröffentlichte Basis 1.0.34 mit
+[Skill-Kategorien und eingegrenzten Kontexten](67-bewaehrte-ablaeufe.md) wurde auf dem Mac geprüft.
+Der [UI/UX-Fokus](superpowers/plans/2026-10-31-uiux-fokus.md) bereitet 1.0.35 vor: direkte Prüfwege, kompakte Gedächtnisfragen und lesbare Skill-Bibliothek.
 Die Fassung 1.0.33 wurde am persönlichen Mac über den normalen Updateweg geprüft,
 einschließlich vollständiger Sicherung und 18 Datenbank-Integritätsprüfungen.
 [Nachweise und offene Abnahmen](runs/2026-10-31-skill-kategorien/README.md).

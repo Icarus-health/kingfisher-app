@@ -154,9 +154,12 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
       <ul className="today-news-list">{briefing.happening_now.map(item => {
         const {zeile, titel} = eingangZeile(item, briefing.timezone, briefing.generated_at);
         const text = <span className="g-zeile-text"><span className="g-zeile-titel">{item.title}</span>{zeile ? <span className="g-zeile-neben" title={titel}>{zeile}</span> : null}</span>;
+        // Sammelzähler führen zu vorhandenen Prüfwegen. Unbekannte Arten erhalten kein geratenes Ziel.
+        const href = item.source === "episodes" ? "/memory?view=status" : item.source === "proposals" ? "/review" : null;
         // Eine Mail ist ein Klick auf die ganze Zeile; eine Quelle aus dem Gedächtnis öffnet sich unter ihr.
         return <li className="today-source" key={item.id}>
           {activityAction(item) ? <button className="g-zeile" type="button" aria-label={`Nachricht öffnen: ${item.title}`} onClick={() => onOpenMail(item.source_ref!)}>{text}<span className="g-zeile-pfeil" aria-hidden="true" /></button>
+            : href ? <a className="g-zeile" href={href}>{text}<span className="g-zeile-pfeil" aria-hidden="true" /></a>
             : <div className="g-zeile">{text}</div>}
           {item.source === "working_memory" && item.source_ref ? <ProfileSource kind="episode" id={item.source_ref} label="Quelle ansehen" allowDismiss quiet onChange={onChange} /> : null}
         </li>;
