@@ -57,7 +57,7 @@ weitere Modellvergleiche folgen nach diesem Abschluss.
 
 ## Vorhandenes und nächste Nachweise
 
-Die Reparaturen und erste Bibliothek sind in der veröffentlichten Basis 1.0.32.
+Die Reparaturen und erste Bibliothek bestehen seit der veröffentlichten Basis 1.0.32.
 Grundverfahren, begrenzte automatische Auswahl, ausdrückliches Lernen,
 Bestätigung/Rücknahme, Versionen und Quellenabhängigkeiten bestehen bereits:
 [Beschreibung](67-bewaehrte-ablaeufe.md),
@@ -81,6 +81,10 @@ Der direkte Bedienweg „Ablauf prüfen“ öffnet jetzt den genau bezeichneten
 Vorschlag mit frisch gelesenen Schritten und erhaltener Gesprächseingabe beim
 Rückweg: [UI-Nachweis und Review](runs/2026-10-30-procedure-review-link/README.md).
 Modelllauf, echte Quellenprobe und Mac-Fenster bleiben gesonderte Abnahmen.
+Die Basis 1.0.33 wurde inzwischen über den normalen Mac-Updateweg mit Sicherung
+installiert und im Fenster geprüft. Kategorie-/Kontext-Ergänzung, Einzelnachweise
+und weiterhin offene Gesamt-Abnahme:
+[Stand vom 31.10.](runs/2026-10-31-skill-kategorien/README.md).
 Eine lesende Nachkontrolle am Abend fand den persönlichen Hintergrund global
 pausiert (beide Postfächer eingerichtet); nichts fortgesetzt. Mac-Speicherdruck
 Stufe 2 und 43 Prozent freie Systemreserve genügen noch nicht für den zuvor
