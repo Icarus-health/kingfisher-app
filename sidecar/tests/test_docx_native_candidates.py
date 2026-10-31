@@ -37,7 +37,7 @@ def test_zwei_valide_leere_auswahlen_erzeugen_nur_gepruefte_literal_kandidaten(s
     assert stores[1].all_claims() == []
 
 
-def test_native_profilpaar_hat_16_gesamt_und_8_je_satz_ohne_echte_wartezeit(monkeypatch):
+def test_native_profilpaar_hat_24_gesamt_und_12_je_satz_ohne_echte_wartezeit(monkeypatch):
     elapsed, budgets = [0.0], []
     def verdict(adapter, provider, sentence, sources, deadline):
         budgets.append(deadline)
@@ -47,7 +47,7 @@ def test_native_profilpaar_hat_16_gesamt_und_8_je_satz_ohne_echte_wartezeit(monk
     result = spm.urteilen([(ROW, [beleg()]), (ROW, [beleg(2)])],
         spm.tor('an', Pruefer(model='kingfisher-qwen:9b-32k')), native_fragen=[QUESTION, QUESTION],
         uhr=lambda: elapsed[0])
-    assert [r.wert for r in result] == ['ja', 'ja'] and budgets == [8.0, 8.0]
+    assert [r.wert for r in result] == ['ja', 'ja'] and budgets == [12.0, 12.0]
 
 
 @pytest.mark.parametrize('bad', [
@@ -182,7 +182,7 @@ def test_kandidaten_behalten_native_review_frische_und_legacy_inferenzsperre(sto
 @pytest.mark.parametrize('model,native,per,total,expected', [
     ('kingfisher-qwen:9b-32k', [None, None], None, None, [8., 5.]),
     ('kingfisher-qwen:9b-32k', [QUESTION, None], None, None, [8., 5.]),
-    ('kingfisher-qwen:9b-32k', [QUESTION], None, None, [8.]),
+    ('kingfisher-qwen:9b-32k', [QUESTION], None, None, [12.]),
     ('kingfisher-qwen:9b-32k', [QUESTION] * 3, None, None, [8., 5.]),
     ('qwen:9b', [QUESTION, QUESTION], None, None, [2., 2.]),
     ('kingfisher-qwen:9b-32k', [QUESTION, QUESTION], None, 12., [8., 5.]),
@@ -202,7 +202,7 @@ def test_alle_anderen_und_expliziten_budgets_bleiben_unveraendert(monkeypatch, m
     assert budgets == expected
 
 
-@pytest.mark.parametrize('outer,expected', [(10., [8., 3.]), (-1., [])])
+@pytest.mark.parametrize('outer,expected', [(10., [10., 3.]), (-1., [])])
 def test_engere_aeussere_frist_wird_durch_native_paarbudget_nicht_verlaengert(monkeypatch, outer, expected):
     from icarus_memory import providers
     elapsed, budgets = [0.], []

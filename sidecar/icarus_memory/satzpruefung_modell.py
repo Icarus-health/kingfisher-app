@@ -311,15 +311,20 @@ def urteilen(auftraege: Sequence[tuple[str, Sequence[Any]]], tor: Tor, *, zeiten
     if native_fragen is not None and (type(native_fragen) is not list or len(native_fragen) != len(auftraege)):
         return [Urteil(UNKLAR, 'fehler') for _ in auftraege]
     profil = tor.modell.rsplit('/', 1)[-1].startswith('kingfisher-')
+    native_standard = (satz_budget is None and gesamt_budget is None and profil
+        and native_fragen is not None and 1 <= len(native_fragen) <= 2
+        and all(type(q) is str and q.strip() and len(q) <= 2000 for q in native_fragen)
+        and all(belege and all(0 < len(getattr(b, 'pruef_text', '') or b.text) <= MAX_BELEG_ZEICHEN
+                              for b in belege) for _, belege in auftraege))
     if satz_budget is None:
-        satz_budget = PROFIL_SATZ_BUDGET_S if profil else SATZ_BUDGET_S
+        satz_budget = 12.0 if native_standard else PROFIL_SATZ_BUDGET_S if profil else SATZ_BUDGET_S
     if gesamt_budget is None:
         gesamt_budget = PROFIL_GESAMT_BUDGET_S if profil else GESAMT_BUDGET_S
-        if (profil and native_fragen is not None and len(native_fragen) == 2
+        if native_standard or (profil and native_fragen is not None and len(native_fragen) == 2
                 and all(type(q) is str and 0 < len(q) <= 2000 for q in native_fragen)):
             from .providers import ProviderError, _json_transport_timeout
             try:
-                gesamt_budget = _json_transport_timeout(16.0)
+                gesamt_budget = _json_transport_timeout(12.0 * len(native_fragen) if native_standard else 16.0)
             except ProviderError:
                 return [Urteil(UNKLAR, 'zeit') for _ in auftraege]
     adapter = adapter_fuer(tor.modell)
