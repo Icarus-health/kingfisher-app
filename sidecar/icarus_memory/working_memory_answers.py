@@ -520,7 +520,8 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     Frischeprüfung bestimmt den Bereich jedes Mal neu.
 
     ``saetze`` (E3) lässt das Modell nach der Auswahl eine kurze belegte Antwort in Sätzen
-    formulieren (``satzantwort.py``); scheitert das, bleibt es beim Zitatmodus. ``pruefung`` ist das zweite Tor
+    formulieren (``satzantwort.py``); scheitert das, bleiben die Originale über Quellenlinks zugänglich.
+    ``pruefung`` ist das zweite Tor
     der Satzprüfung (``satzpruefung_modell.tor``, Rolle ``pruefung``); ohne läuft es nicht.
 
     ``zeiten`` (``zeitmessung.Zeiten``, optional) misst Suche, ersten Modellaufruf, Sätze und Satzprüfung.
@@ -763,6 +764,8 @@ Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Proj
         with zeitmessung.messen(zeiten, 'antwort_modell'):
             selection = select(provider, question, rows, instruction, schema, MODEL_DECISIONS,
                                fresh=lambda: _fresh(answer, episodes, claims))
+        page_uncertainty = ((selection['status'], frozenset(selection['ids']))
+                            if selection.get('_page_uncertainty') is True else None)
         if selection['status'] in {'reports', 'person', 'conflict'}:
             automatic_ids = [identifier for identifier in selection['ids'] if identifier.startswith('S')]
             candidate_ids = [row['id'] for row in rows if row['id'].startswith('S')]
@@ -808,6 +811,13 @@ Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Proj
         fremde_zusagen = working_memory_own_commitments.ausgeschlossen(question, refs, episodes)
         selection['ids'] = [i for i in selection['ids']
                             if i not in by_id or by_id[i]['episode_id'] not in fremde_zusagen]
+        if page_uncertainty is not None and (
+                selection['status'] != page_uncertainty[0]
+                or frozenset(selection['ids']) != page_uncertainty[1]):
+            # Ein Helfer darf fremde/ausgeschlossene Quellen weiterhin sperren,
+            # aber aus der erhaltenen Seitenunklarheit keine Teilantwort machen.
+            # Auch eine unbegründete Zeitrückfrage wird nicht als Bericht gerettet.
+            raise ValueError('Die Grundlage der Rückfrage hat sich verändert.')
         if not selection['ids']:
             selection['status'] = 'unknown'
         selected = [by_id[i] for i in selection['ids'] if i in by_id]
@@ -1211,8 +1221,8 @@ def _ueberholt_zeile(eintrag, episodes):
             'abgesagt': 'Vermutlich abgesagt', 'frist': 'Frist vermutlich geändert'}[eintrag.grund] + wo
 
 
-def _zitate(answer, episodes, fallback):
-    """Die Quellen der Antwort im Wortlaut, neueste zuerst: (Zeilen, Links), oder None, wenn eine Quelle nicht mehr gilt."""
+def _zitate(answer, episodes, fallback, *, originaltext=True):
+    """Quellen samt Links, optional im Wortlaut; None, wenn eine Quelle nicht mehr gilt."""
     lines = []
     store, links, shown = WorkingMemoryStore(episodes), [], set()
     displayed = [] if fallback else answer['refs']
@@ -1258,8 +1268,10 @@ def _zitate(answer, episodes, fallback):
             heading += ' · vermutlich überholt'
         heading += ''.join({kennzeichnung.ANDERE_PERSON: ' · andere Person',
                             kennzeichnung.AUSSERHALB: ' · außerhalb des Zeitraums'}[m.art] for m in fremd)
-        lines.extend(['', heading, episode.body,
-                      f'Quellenzeit: {source_time}{recorded}'])
+        lines.extend(['', heading])
+        if originaltext:
+            lines.append(episode.body)
+        lines.append(f'Quellenzeit: {source_time}{recorded}')
         for eintrag in marken[:2]:
             lines.append(_ueberholt_zeile(eintrag, episodes))
         lines.extend(m.text() for m in fremd)
@@ -1324,14 +1336,20 @@ def render(answer, episodes, claims, *, conflict_status=None):
     # E3: eine belegte Antwort in Sätzen, sofern sie sich beim Lesen erneut bestätigt; sonst der Zitatmodus.
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
+    versuch = answer.get('satzantwort')
+    kompakt = (answer.get('status') == 'reports' and not claim_basis
+               and isinstance(versuch, dict) and versuch.get('version') == satzantwort.SATZ_VERSION
+               and ((satz is not None and satz.status == 'nichts')
+                    or (satz is None and versuch.get('status') == 'zitate')))
     if satz is not None and satz.status == 'nichts':
         # Eine leere Formulierung beweist nicht, dass die bereits ausgewählten
-        # Originale keine Antwort enthalten. Sie bleiben im Zitatmodus sichtbar;
+        # Originale keine Antwort enthalten. Sie bleiben über Quellenlinks zugänglich;
         # nur die vorgelagerte Quellenauswahl darf keine relevanten Quellen melden.
         satz = None
     lines = ([] if satz is not None else
              ['Die automatische Quellenauswahl ist noch unklar. Diese bestätigten Angaben liegen vor.']
-             if fallback else ['Quelle berichtet · automatisch eingeordnet'])
+             if fallback else ['Ich kann die Frage aus den ausgewählten Quellen noch nicht verlässlich beantworten.']
+             if kompakt else ['Quelle berichtet · automatisch eingeordnet'])
     if isinstance(answer.get('choice'), str):
         lines.append(f"Deine Auswahl: {answer['choice'][:200]}")
         if answer.get('choice_kind') == 'conflict':
@@ -1357,7 +1375,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
         texte, links = satzantwort.text_und_links(satz, episodes, claims)
         lines.extend(([''] if lines else []) + texte)
     else:
-        gezeigt = _zitate(answer, episodes, fallback)
+        gezeigt = _zitate(answer, episodes, fallback, originaltext=not kompakt)
         if gezeigt is None:
             return UNAVAILABLE, [], 'working_unavailable'
         lines.extend(gezeigt[0])

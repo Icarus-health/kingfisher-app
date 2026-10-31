@@ -82,7 +82,12 @@ def test_g_q08_other_direct_promise_cannot_survive_selection_or_quote_fallback(m
     assert status == 'working_reports'
     assert {ref['episode_id'] for ref in answer['refs']} == {own.id}
     assert {link['episode_id'] for link in links} == {own.id}
-    assert OWN_PROMISE in text and OTHER_PROMISE not in text
+    if sentences:
+        assert 'nicht verlässlich beantworten' in text
+        assert episodes.get(links[0]['episode_id']).body == OWN_PROMISE
+    else:
+        assert OWN_PROMISE in text
+    assert OTHER_PROMISE not in text
     # Exclusion is not attribution proof: raw G prose still cannot manufacture
     # 'du hast zugesagt' from an outgoing mail header.
     assert 'Du hast Nora' not in text

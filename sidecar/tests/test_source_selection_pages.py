@@ -105,8 +105,9 @@ def test_final_cannot_erase_unclear_page(status, monkeypatch):
     def answer(n, page):
         return {'status': status if n == 1 else 'source_reports', 'ids': [page[0]['id']]}
     script = Script(monkeypatch, answer)
-    with pytest.raises(ProviderError):
-        choose(script, rows())
+    result = choose(script, rows())
+    assert result['status'] == wma.MODEL_DECISIONS[status]
+    assert result['ids'] == ['S1', 'S4']
     assert len(script.calls) == 3
 
 

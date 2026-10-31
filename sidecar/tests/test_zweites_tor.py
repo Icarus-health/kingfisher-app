@@ -13,7 +13,7 @@ import pytest
 from icarus_memory import satzantwort, satzpruefung_modell as spm, working_memory_answers as wma, zeitmessung
 from tests.test_akten import mail
 from tests.test_bezuege import welt  # noqa: F401 - Fixture
-from tests.test_satzantwort import Skript, raum  # noqa: F401 - Fixture und Skriptmodell
+from tests.test_satzantwort import Skript, raum, verlinkte_originale  # noqa: F401 - Fixture und Skriptmodell
 from tests.test_satzpruefung_modell import Pruefer
 
 FRAGE = 'Wer liefert Ersatzteile an den Verein?'
@@ -75,8 +75,9 @@ def test_das_pruefmodell_verwirft_den_falschen_satz_und_die_antwort_sagt_es(raum
     assert daten['gruende'] == [f'{FALSCH}: Prüfmodell: nicht gestützt']
     assert 'Vollständigkeit der Teilantwort nicht gesichert' in daten['grund']
     text, links, status = wma.render(gespeichert, episodes, claims)
-    assert status == 'working_reports' and FALSCH not in text and RICHTIG in text
-    assert text.startswith('Quelle berichtet') and {link['episode_id'] for link in links} == {quelle.id}
+    assert status == 'working_reports' and FALSCH not in text and RICHTIG not in text
+    assert RICHTIG in verlinkte_originale(gespeichert, episodes, links)
+    assert 'nicht verlässlich beantworten' in text and {link['episode_id'] for link in links} == {quelle.id}
     assert wma.satz_struktur(gespeichert, episodes, claims) is None
     assert satzantwort.wiederherstellen(daten, episodes, claims) is None
     assert len(pruefer.anfragen) == 2, 'Jeder Satz, der die erste Prüfung bestand, wird genau einmal gefragt'
@@ -106,7 +107,7 @@ def test_unklar_und_fehler_lassen_keinen_satz_durch(raum, ausgabe):
     daten = gespeichert['satzantwort']
     assert daten['status'] == 'zitate' and daten['pruefung']['verworfen'] == 2
     text, _, _ = wma.render(gespeichert, episodes, claims)
-    assert text.startswith('Quelle berichtet') and FALSCH not in text
+    assert 'nicht verlässlich beantworten' in text and FALSCH not in text
 
 
 def test_das_zeitbudget_wird_eingehalten_und_ueberschreitung_ist_unklar(raum, monkeypatch):
@@ -175,8 +176,9 @@ def test_gespeicherte_teilverwerfung_bleibt_beim_frisch_geprueften_original(raum
     assert daten['status'] == 'zitate' and daten['verworfen'] == daten['pruefung']['verworfen'] == 1
     assert satzantwort.wiederherstellen(daten, episodes, claims) is None
     text, links, status = wma.render(gespeichert, episodes, claims)
-    assert status == 'working_reports' and text.startswith('Quelle berichtet')
-    assert RICHTIG in text and FALSCH not in text and {link['episode_id'] for link in links} == {quelle.id}
+    assert status == 'working_reports' and 'nicht verlässlich beantworten' in text
+    assert RICHTIG in verlinkte_originale(gespeichert, episodes, links)
+    assert RICHTIG not in text and FALSCH not in text and {link['episode_id'] for link in links} == {quelle.id}
     assert wma.satz_struktur(gespeichert, episodes, claims) is None and len(pruefer.anfragen) == 2
     episodes.ignore(quelle.id)
     text, links, status = wma.render(gespeichert, episodes, claims)

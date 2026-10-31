@@ -13,9 +13,11 @@ Die Sicherheit liegt nicht im Modell, sondern in dem, was danach kommt:
 * **Jeder Satz läuft durch die Satzprüfung** (`satzpruefung.py`, ohne Modell): Zahlen,
   Daten, Uhrzeiten, Namen, Kennungen und Zusagen des Satzes müssen in den genannten
   Belegen stehen, eine Verneinung darf nicht umgekehrt sein. Ein Satz, der nicht besteht,
-  wird verworfen. Nach einer Verwerfung zeigt die Gesamtantwort die erneut geprüften
-  Originalstellen, damit kein irreführendes Restfragment übrig bleibt. Fehlt eine gewählte
-  Originalquelle ganz in den Sätzen, gilt ebenfalls der Zitatmodus, auch ohne Verwerfung.
+  wird verworfen. Nach einer Verwerfung bleibt kein irreführendes Restfragment übrig.
+  Der gespeicherte Status `zitate` erhält die Originalbezüge. Automatische Antworten ohne
+  bestätigte Angaben zeigen dazu einen kurzen Unsicherheitshinweis und alle frischen
+  Originalquellenlinks; die vollständigen Texte bleiben dort zugänglich. Fehlt eine gewählte
+  Originalquelle ganz in den Sätzen, gilt derselbe Rückfall, auch ohne Verwerfung.
 * **Überholtes wird nie als Stand genannt.** Trägt ein Beleg die Kennzeichnung „überholt“
   (`akten_kontext.py`), besteht ein Satz mit seiner überholten Angabe nur, wenn er
   zugleich die neuere Quelle nennt und den Wandel benennt („verschoben“, „vorher“,
@@ -36,10 +38,10 @@ Die Sicherheit liegt nicht im Modell, sondern in dem, was danach kommt:
   zugewiesenes Modell oder vom Nutzer ausgeschaltet läuft das Tor nicht, und die Antwort sagt das.
 * **Verlässlichkeit je Satz** (`verlaesslichkeit.py`): gut, einfach oder dünn, aus Regeln (Zahl und Alter der
   Belege, Kennzeichnung, Prüfmodell). Bei einfach und dünn steht ein gedämpfter Nebensatz hinter dem Satz.
-* **Kein Raten.** Trägt nichts die Antwort, sagt das Modell „nichts_vorliegend“ und die
-  Antwort sagt ehrlich, dass nichts vorliegt. Bleibt kein Satz übrig, ist die Ausgabe
-  ungültig oder das Modell fällt aus, gilt der bisherige Zitatmodus: nie eine unbelegte
-  Antwort, nie eine leere.
+* **Kein Raten.** „nichts_vorliegend“ beim Formulieren beweist keine Abwesenheit von Information.
+  Bleibt kein Satz übrig, ist die Ausgabe ungültig oder das Modell fällt aus, zeigt die
+  automatische Antwort ihre Unsicherheit und die vollständigen Quellen über Links. Explizite
+  Zitatantworten ohne Satzversuch und bestätigte Angaben behalten ihre bisherige Darstellung.
 * **Was das Modell sieht.** Nur die gewählten Quellen und die Zeilen der Akte, nur
   lokal (dieselbe Regel wie für die Auswahl: `working_memory_answers.prepare` gibt für
   ein Cloudmodell nichts heraus, und dieses Modul fragt nur lokale Anbieter). Absätze,

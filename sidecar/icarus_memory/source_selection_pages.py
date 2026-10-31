@@ -99,7 +99,13 @@ def select(provider, question, rows, instruction, schema, decisions, *, fresh):
         if preview(final_request[0], max_tokens=256, schema=final_request[1]) is not True:
             raise ProviderError('Der vollständige Quellenvergleich passt nicht ins lokale Auswahlbudget. Bitte enger fragen.')
         final = call(union, final_request, paged=True)
-        unclear = {selection['status'] for selection in positive if selection['status'] in _UNCLEAR}
-        if unclear and unclear != {final['status']}:
+        unclear = {selection['status'] for selection in [*positive, final] if selection['status'] in _UNCLEAR}
+        if len(unclear) > 1:
             raise ProviderError('Ungeklärte Seitenauswahl darf nicht durch den Gesamtvergleich verschwinden.')
+        if unclear:
+            # Kein Mehrheitsentscheid über eine offene Frage. Alle auf den
+            # Seiten gewählten Belege bleiben Grundlage der einen Rückfrage.
+            # Nur intern: Modellantworten dürfen diese Marke nicht liefern.
+            return {'status': next(iter(unclear)), 'ids': [row['id'] for row in union],
+                    '_page_uncertainty': True}
         return final
