@@ -24,6 +24,19 @@ GOOD_TRIGGER_DRAFT = {**spec(), 'contexts':['Zunft'], 'category':'communication'
     'triggers':['zunftmail','zunftmails','zunft'],
     'positive':'Schreibe eine Zunftmail für die Zunft.',
     'negative':'Schreibe eine private Mail zur Urlaubsplanung.'}
+V2_WRONG_AREA_DRAFT = {'name':'zunftmail-check', 'title':'Zunftmail Anlass und Entwurf prüfen',
+    'description':'Prüfung des Anlasses und Gegenlesen des Entwurfs für Zunftmails vor dem Absenden.',
+    'area':'mail', 'category':'communication', 'contexts':['Zunftmail'],
+    'triggers':['zunftmails','zunftmail'], 'steps':['Anlass prüfen','Entwurf gegenlesen'],
+    'positive':'Bitte prüfe den Anlass und lies den Entwurf für einen Zunftmail.',
+    'negative':'Bitte erstelle einen Entwurf für eine private E-Mail ohne Anlassprüfung.'}
+V3_COMPOUND_CONTEXT_DRAFT = {'name':'zunftmail-check',
+    'title':'Zunftmail Anlass prüfen und Entwurf gegenlesen',
+    'description':'Vor dem Versenden einer Zunftmail den Anlass überprüfen und den Entwurf gegenlesen.',
+    'area':'mail', 'triggers':['zunftmail','zunftmails','zunft'],
+    'steps':['Anlass prüfen','Entwurf gegenlesen'],
+    'positive':'Schreibe eine Zunftmail für den Anlass und prüfe den Entwurf.',
+    'negative':'Schreibe eine private E-Mail an einen Kollegen.', 'contexts':['Zunft']}
 
 
 class DraftSequence:
@@ -54,6 +67,97 @@ def test_valid_draft_stays_one_call_and_preserves_original_instruction():
     assert provider.seen[0][0][-1] == messages[-1]
     assert messages == learning_messages()
     assert 'Nutzertätigkeit' in provider.seen[0][0][0]['content']
+
+
+def test_actual_v2_positive_example_must_work_with_the_real_task_detector():
+    from icarus_memory.working_profile import task_for
+    assert validate(V2_WRONG_AREA_DRAFT)['area'] == 'mail'
+    assert task_for(V2_WRONG_AREA_DRAFT['positive']) is None
+    provider = DraftSequence([json.dumps(V2_WRONG_AREA_DRAFT), json.dumps(GOOD_TRIGGER_DRAFT)])
+    result = draft(provider, learning_messages(), Spec.model_json_schema())
+    assert json.loads(result.text) == GOOD_TRIGGER_DRAFT
+    assert len(provider.seen) == 2
+    assert 'ursprünglichen Auftrag' in provider.seen[0][0][0]['content']
+    assert 'organisatorischen Zusammenhang' in provider.seen[0][0][0]['content']
+
+
+def test_positive_example_from_another_recognized_area_also_requires_repair():
+    wrong = {**GOOD_TRIGGER_DRAFT, 'area':'planning'}
+    provider = DraftSequence([json.dumps(wrong), json.dumps(GOOD_TRIGGER_DRAFT)])
+    result = draft(provider, learning_messages(), Spec.model_json_schema())
+    assert json.loads(result.text) == GOOD_TRIGGER_DRAFT and len(provider.seen) == 2
+
+
+@pytest.mark.parametrize('contexts,positive', [
+    ([], 'Schreibe eine Zunftmail.'),
+    (['Zunft'], 'Schreibe eine Mail für die Zunft.'),
+])
+def test_actual_v3_compound_is_not_a_separate_context_word_and_gets_only_one_repair(contexts, positive):
+    with pytest.raises(ProcedureError): validate(V3_COMPOUND_CONTEXT_DRAFT)
+    corrected = {**V3_COMPOUND_CONTEXT_DRAFT, 'contexts':contexts, 'positive':positive}
+    provider = DraftSequence([json.dumps(V3_COMPOUND_CONTEXT_DRAFT), json.dumps(corrected)])
+    result = draft(provider, learning_messages(), Spec.model_json_schema())
+    assert json.loads(result.text) == corrected and len(provider.seen) == 2
+    first = provider.seen[0][0][0]['content']
+    second = provider.seen[1][0][0]['content']
+    assert 'Zunftmail enthält nicht das eigenständige Kontextwort Zunft' in first
+    assert 'bevorzuge contexts=[]' in first
+    assert 'Wortgrenzen' in second
+    assert provider.seen[0][0][-1] == provider.seen[1][0][-1] == learning_messages()[-1]
+
+
+@pytest.mark.parametrize('area,trigger,positive', [
+    ('mail','zunftmail','Schreibe eine Zunftmail für die Zunft.'),
+    ('planning','wochenplan','Plane einen Wochenplan.'),
+    ('analysis','vergleich','Analysiere diesen Vergleich.'),
+])
+def test_valid_positive_examples_stay_one_call_in_each_existing_task_area(area, trigger, positive):
+    value = {**GOOD_TRIGGER_DRAFT, 'area':area, 'contexts':[], 'triggers':[trigger], 'positive':positive}
+    provider = DraftSequence([json.dumps(value)])
+    result = draft(provider, learning_messages(), Spec.model_json_schema())
+    assert json.loads(result.text) == value and len(provider.seen) == 1
+
+
+def test_concrete_activity_triggers_need_no_redundant_context_gate(tmp_path):
+    from icarus_memory.procedures import ProcedureStore
+    from icarus_memory.working_profile import task_for
+    value = {**GOOD_TRIGGER_DRAFT, 'contexts':[],
+             'positive':'Schreibe eine Mail für die Zunft.'}
+    provider = DraftSequence([json.dumps(value)])
+    result = draft(provider, learning_messages(), Spec.model_json_schema())
+    validated = validate(json.loads(result.text))
+    assert validated['contexts'] == [] and len(provider.seen) == 1
+    prompt = provider.seen[0][0][0]['content']
+    assert 'optionale zusätzliche' in prompt and 'contexts=[]' in prompt
+    positive = ['Schreibe eine Zunftmail.', 'Schreibe Zunftmails.', 'Schreibe eine Mail für die Zunft.']
+    negative = ['Schreibe eine private Mail für Freunde.', 'Schreibe eine Zukunftsmail.',
+                'Schreibe eine Mail für Freunde mit dem zitierten Wort „Zunft“.', 'Analysiere die Zunft.']
+    store = ProcedureStore(tmp_path/'concrete-activity.sqlite3')
+    try:
+        proposal = store.propose(validated)
+        assert all(not store.select(message, area=task_for(message))['contextual'] for message in positive)
+        store.accept(proposal['id'])
+        for message in positive:
+            selected = store.select(message, area=task_for(message))['contextual']
+            assert [item['id'] for item in selected] == [proposal['id']], message
+        assert all(not store.select(message, area=task_for(message))['contextual'] for message in negative)
+    finally:
+        store.close()
+
+
+def test_other_direct_json_schemas_keep_their_existing_contract():
+    text = json.dumps({'positive':V2_WRONG_AREA_DRAFT['positive']})
+    provider = DraftSequence([text])
+    messages = learning_messages()
+    result = draft(provider, messages, {'type':'object'})
+    assert result.text == text and len(provider.seen) == 1
+    assert provider.seen[0][0] == messages
+
+
+def test_second_nonrouting_positive_example_stops_after_the_same_single_repair():
+    provider = DraftSequence([json.dumps(V2_WRONG_AREA_DRAFT)] * 3)
+    with pytest.raises(ProcedureError): draft(provider, learning_messages(), Spec.model_json_schema())
+    assert len(provider.seen) == 2
 
 
 @pytest.mark.parametrize('bad', [json.dumps(BAD_TRIGGER_DRAFT), '{not-json'])

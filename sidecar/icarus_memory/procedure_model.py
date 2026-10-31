@@ -17,10 +17,21 @@ from .providers import OpenAICompatible, ProviderError, Reply, json_request_dead
 
 _TRIGGER_GUIDANCE = (
     '\nAuslöser beschreiben die Nutzertätigkeit oder den Auftrag, nicht die internen Prüfschritte. '
-    'Für Zunftmail-Aufträge passen etwa zunftmail, zunftmails oder zunft; '
+    'Wähle wenige konkrete Varianten für gewöhnliche Formulierungen desselben Auftrags. '
+    'Für Zunftmail-Aufträge passen etwa die Varianten zunftmail, zunftmails und zunft; '
     'Anlass prüfen und Entwurf gegenlesen gehören in steps. '
-    'Das Positivbeispiel ist eine gewöhnliche passende Nutzerbitte und enthält mindestens einen '
-    'Auslöser sowie einen ausdrücklich genannten Anwendungskontext wörtlich, ohne Beugung oder Synonyme. '
+    'Kontexte sind optionale zusätzliche Einschränkungen für einen ausdrücklich genannten '
+    'organisatorischen Zusammenhang, etwa Zunft. Wenn konkrete Tätigkeitstrigger den gesamten '
+    'Anwendungsbereich bereits eingrenzen, setze contexts=[] statt redundante zusätzliche Gates zu verlangen. '
+    'Die Singularform einer Tätigkeit ist keine zusätzliche organisatorische Einschränkung. '
+    'Wortgrenzen sind bindend: Zunftmail enthält nicht das eigenständige Kontextwort Zunft. '
+    'Bei contexts=["Zunft"] muss das Positivbeispiel etwa "Schreibe eine Mail für die Zunft." lauten. '
+    'Für die genannten konkreten Tätigkeitstrigger bevorzuge contexts=[] statt dieser redundanten Einschränkung. '
+    'Das Positivbeispiel formuliert den normalen ursprünglichen Auftrag im gewählten Bereich: '
+    'etwa Schreibe eine Mail für die Zunft für mail, Plane einen Wochenplan für planning '
+    'oder Analysiere diesen Vergleich für analysis. Interne Prüfschritte sind kein Ersatz für diesen Auftrag. '
+    'Es enthält mindestens einen Auslöser und, nur wenn contexts gesetzt ist, einen angegebenen '
+    'Anwendungskontext wörtlich, ohne Beugung oder Synonyme. '
     'Das Gegenbeispiel muss außerhalb dieses Anwendungsbereichs liegen. '
     'Nur die ursprüngliche Nutzeranweisung strukturieren; keine zusätzlichen Fakten oder Befugnisse ergänzen.'
 )
@@ -57,6 +68,7 @@ def local_context_allowed(provider):
 
 def draft(provider, messages, schema, *, permitted=None):
     from .procedures import ProcedureError, Spec, validate
+    from .working_profile import task_for
     if schema != Spec.model_json_schema():
         return _draft_once(provider, messages, schema)
     # Eine lokale Kopie erhält die zusätzliche Quellbindung. Bestehende
@@ -78,14 +90,19 @@ def draft(provider, messages, schema, *, permitted=None):
             if getattr(response, 'tool_calls', None):
                 raise ProviderError('Werkzeugaufrufe sind keine Ablaufbeschreibung.')
             try:
-                validate(json.loads(response.text))
+                data = validate(json.loads(response.text))
+                if task_for(data['positive']) != data['area']:
+                    raise ProcedureError('Das Positivbeispiel passt nicht zum automatisch erkannten Aufgabenbereich.')
                 return response
             except json.JSONDecodeError:
                 reason = 'Die Antwort war kein gültiges JSON.'
             except ProcedureError:
                 reason = ('Die Antwort erfüllt die Struktur- und Anwendungsprüfung nicht. '
                           'Prüfe besonders Auslöser, den wörtlichen Auslöser im Positivbeispiel, '
-                          'den ausdrücklichen Kontext und das abgegrenzte Gegenbeispiel.')
+                          'einen gegebenenfalls angegebenen Kontext und das abgegrenzte Gegenbeispiel. '
+                          'Beachte Wortgrenzen: Ein zusammengesetztes Tätigkeitswort enthält nicht automatisch '
+                          'das eigenständige Kontextwort; redundante Zusatzkontexte bleiben leer. '
+                          'Das Positivbeispiel muss den ursprünglichen Auftrag im gewählten Aufgabenbereich formulieren.')
             if number:
                 raise ProcedureError('Der Ablauf konnte auch nach einer begrenzten Korrektur nicht geprüft werden.')
             # Nur ein fester lokaler Validierungsgrund, nie rohe Modellausgabe

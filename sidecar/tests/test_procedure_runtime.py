@@ -128,11 +128,13 @@ def test_mail_text_never_starts_learning():
 
 
 @pytest.mark.parametrize('second_valid', [True, False])
-def test_real_learning_route_repairs_once_and_keeps_result_inactive(tmp_path, monkeypatch, second_valid):
-    from tests.test_procedure_model import BAD_TRIGGER_DRAFT, GOOD_TRIGGER_DRAFT
+@pytest.mark.parametrize('failure', ['triggers','positive_area'])
+def test_real_learning_route_repairs_once_and_keeps_result_inactive(tmp_path, monkeypatch, second_valid, failure):
+    from tests.test_procedure_model import BAD_TRIGGER_DRAFT, GOOD_TRIGGER_DRAFT, V2_WRONG_AREA_DRAFT
     monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
     p = Local()
-    outputs = iter([BAD_TRIGGER_DRAFT, GOOD_TRIGGER_DRAFT if second_valid else BAD_TRIGGER_DRAFT])
+    invalid = BAD_TRIGGER_DRAFT if failure == 'triggers' else V2_WRONG_AREA_DRAFT
+    outputs = iter([invalid, GOOD_TRIGGER_DRAFT if second_valid else invalid])
     def generate(messages, tools):
         p.seen.append(messages)
         return Reply(text=json.dumps(next(outputs)))

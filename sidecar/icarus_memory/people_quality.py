@@ -22,6 +22,8 @@ _SERVICE_LABEL = re.compile(r'\bsite[ _-]+audit\b', re.I)
 # Nur eindeutige Platzhalter der Anzeige, keine Postfachregel oder Namenssuche.
 _MISSING_SENDER_LABELS = frozenset({'unbekannter absender', 'unknown sender',
                                     'unbekannterabsender', 'unknownsender'})
+# Nur ausdrücklich kleingeschriebene Alternativen, keine Familiennamen Oder/Or.
+_NAME_ALTERNATIVES = re.compile(r'\S[ \t]+(?:oder|or)[ \t]+\S')
 _CAMPAIGN_LOCAL = re.compile(r'(?:^|[._-])campaigns?[._-](?:response|updates?|messages?)(?:$|[._-])', re.I)
 _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
@@ -64,6 +66,34 @@ def _mailbox(label):
     return name.strip(), address.casefold()
 
 
+def person_quality(name, address='', *, explicit=False):
+    """Gemeinsame Vorauswahlgrenze, kein Beweis einer menschlichen Identität.
+
+    Name und Adresse sind getrennte Originalfelder; Kommas oder RFC-Quoting
+    werden nicht als Identitätsentscheidung benutzt. Bestätigung hat Vorrang.
+    """
+    if explicit:
+        return 'person', ''
+    label = str(name or '').strip()
+    local = lokalteil(address) if address else ''
+    if ist_firmenbezeichnung(label):
+        return 'review', 'Firmenbezeichnung im Anzeigenamen; eine Personenidentität ist noch nicht bestätigt.'
+    if not address and ist_sammelpostfach(label):
+        return 'review', 'Allgemeine Servicebezeichnung; eine Personenidentität ist noch nicht bestätigt.'
+    if address and ist_sammelpostfach(local):
+        if AUTOMATED.search(local):
+            return 'automated', 'Technische Benachrichtigungsadresse; der Anzeigename belegt keine Personenidentität.'
+        return 'review', 'Allgemeines oder zusammengesetztes Servicepostfach; Person oder Organisation noch ungeklärt.'
+    if (local == 'pay' or _CAMPAIGN_LOCAL.search(local)
+            or _DOMAIN_LABEL.fullmatch(label) or _SERVICE_LABEL.search(label)):
+        return 'review', 'Firmen- oder Funktionsabsender; eine Personenidentität ist noch nicht bestätigt.'
+    if ' '.join(label.casefold().split()) in _MISSING_SENDER_LABELS:
+        return 'review', 'Platzhalter für einen unbekannten Absender; eine Personenidentität ist noch nicht belegt.'
+    if _NAME_ALTERNATIVES.search(label):
+        return 'review', 'Der Anzeigename nennt mehrere mögliche Personen; eine eindeutige Person ist nicht belegt.'
+    return 'person', ''
+
+
 def annotate_people(nodes):
     metadata = {}
     addresses = defaultdict(list)
@@ -75,24 +105,10 @@ def annotate_people(nodes):
         name, address = _mailbox(label)
         local = lokalteil(address) if address else ''
         explicit = node.attributes.get('identity_resolution') in {'explicit_registry', 'confirmed_group'}
-        category, reason = 'person', ''
+        category, reason = person_quality(name or label, address, explicit=explicit)
         if re.search(r'\(Integrationstest\)', label, re.I):
             category, reason = 'review', 'Als Integrationstest bezeichnet; Herkunft vor Bereinigung prüfen.'
-        elif not explicit and ist_firmenbezeichnung(name or label):
-            category, reason = 'review', 'Firmenbezeichnung im Anzeigenamen; eine Personenidentität ist noch nicht bestätigt.'
-        elif not explicit and not address and ist_sammelpostfach(label):
-            category, reason = 'review', 'Allgemeine Servicebezeichnung; eine Personenidentität ist noch nicht bestätigt.'
-        elif not explicit and address and ist_sammelpostfach(local):
-            if AUTOMATED.search(local):
-                category, reason = 'automated', 'Technische Benachrichtigungsadresse; der Anzeigename belegt keine Personenidentität.'
-            else:
-                category, reason = 'review', 'Allgemeines oder zusammengesetztes Servicepostfach; Person oder Organisation noch ungeklärt.'
-        elif not explicit and (local == 'pay' or _CAMPAIGN_LOCAL.search(local)
-                or _DOMAIN_LABEL.fullmatch(name or label) or _SERVICE_LABEL.search(name or label)):
-            category, reason = 'review', 'Firmen- oder Funktionsabsender; eine Personenidentität ist noch nicht bestätigt.'
-        elif not explicit and ' '.join((name if address else label).casefold().split()) in _MISSING_SENDER_LABELS:
-            category, reason = 'review', 'Platzhalter für einen unbekannten Absender; eine Personenidentität ist noch nicht belegt.'
-        elif not explicit and '@' in label and not address:
+        elif category == 'person' and not explicit and '@' in label and not address:
             category, reason = 'review', 'Keine eindeutige Mailadresse aus dem Absender lesbar.'
         metadata[node.id] = {
             'quality_category': category, 'quality_reason': reason,

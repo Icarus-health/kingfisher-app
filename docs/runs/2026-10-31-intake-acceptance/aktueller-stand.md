@@ -259,3 +259,58 @@ Die zweite echte künstliche Lernprobe erzeugte bereits einen strukturell
 validen inaktiven Entwurf, stoppte jedoch an der zu prüfenden Diagnoseforderung
 für den exakten Kontextnamen. Auswahl, Fassungswechsel und Entzug sind in
 diesem Lauf noch nicht durchlaufen. Keine persönliche Skill-Aktivierung.
+
+
+## C: erneute echte lokale Stichprobe und gezielte Nachprüfung
+
+Dieselben sechs Originalkopien und vorab festgelegten Erwartungen blieben
+unverändert. 19 tatsächliche native Aufrufe, alle mit 8192 Kontext und beiden
+Abschneideschaltern aus. Der Lauf endet regulär; 213 Ressourcenmessungen,
+minimale Reserve 28 Prozent, maximale Druckstufe 2. Vier vollständige Quellen
+wurden eingeordnet; zwei unvollständige Quellen blieben vor dem Modell.
+
+Die zuvor übersehene aktuelle Bitte wird mit exaktem Rohzitat als Vorschlag
+erhalten. Eine Frist wird nicht erfunden. Alle drei Abrufe enden ohne die alten
+Auswahl-Größenfehler. Die Antworten verwenden teils lange Originalberichte und
+sind dadurch noch keine besonders knappe Gesprächsdarstellung.
+
+Die erste Personen-Vorbelegung dieser Bitte war trotzdem unzulässig: Ein
+mehrdeutiger Portalname wurde als eine Person vorgeschlagen. Der gemeinsame
+lesende Qualitätsfilter wird jetzt auch vor der Aufgabenvorbelegung benutzt.
+Normale Namen und ausdrücklich bestätigte Entscheidungen bleiben erhalten.
+Root hat denselben privaten Quellenbestand ohne neue Modellaufrufe erneut
+vorgelegt: Die Bitte bleibt erhalten, die Person bleibt offen. Kein Original,
+Kontaktfeld oder gespeicherter Personenname wird dazu umgeschrieben.
+
+Der Taskscan zählt außerdem die zwei unvollständigen Quellen und eine nicht
+prüfbare Angebotserkennung als offen/fehlgeschlagen, statt einen falschen leeren
+Erfolg zu speichern. Für diese Quelle liegt keine abgeschlossene negative
+Aufgabenprüfung vor. C ist deshalb kein pauschales Qualitätsgrün für den
+Großimport. Alle privaten Texte und Einzelreports bleiben außerhalb des Repos.
+
+Auf der laufenden Fassung ist die Aufgabenprüfversion noch requests-v3. Der
+Reparaturzweig verwendet bereits v4; damit werden alte leere Prüfstände im
+vorhandenen begrenzten Lauf erneut betrachtet. Eine weitere globale
+Versionsanhebung ist nicht erforderlich. Die globale Importpause bleibt erhalten.
+
+## Erfolgreicher echter Skill-Ablauf v4
+
+Dieselbe künstliche Lernbitte wie in den drei erhaltenen Fehlversuchen erzeugt
+nun einen passenden inaktiven Kommunikations-Skill mit exakt den zwei verlangten
+Schritten. Vier echte native Qwen-Aufrufe durch den Produktanbieter: Entwurf und
+drei Agent-Aufrufe mit leerem Werkzeugumfang. Eine ausdrückliche Bestätigung und
+eine manuell angelegte Revision sind ausschließlich gekennzeichnete Testaktionen,
+keine automatische Aktivierung und keine persönliche Bibliotheksänderung.
+
+Drei vorab festgelegte normale Formulierungen (Singular, Plural, getrennte Wörter)
+finden den bestätigten Skill; fünf private, zitierte, negierte oder fachfremde
+Kontrollen aktivieren ihn nicht. Die tatsächlichen Modellprompts enthalten
+zunächst Version 1, danach nur Version 2. Nach Quellenentzug fehlt der Skill;
+der Gesprächskontext wird zurückgesetzt. Ohne Anlass und Empfänger fragt Qwen
+nach, statt diese zu erfinden. 32,63 Sekunden, mindestens 35 Prozent Reserve,
+maximal Druckstufe 1, kein Ressourcenabbruch.
+
+Ein einzelner positiver Entwurf beweist keine allgemeine Lernqualität. Andere
+Lernbitten können weiter zur manuellen Eingrenzung zurückgegeben werden. Die
+Bibliothek bleibt eine ergänzende Sammlung bestätigter Verfahren, kein Ersatz
+für Fakten oder neue Berechtigungen.
