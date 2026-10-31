@@ -70,7 +70,7 @@ def verify_lifecycle(provider):
 
 
 def _encoded(value):
-    try:return json.dumps(value,ensure_ascii=False,allow_nan=False).encode('utf-8')
+    try:return json.dumps(value,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode('utf-8')
     except (ValueError,TypeError,UnicodeError) as error:
         raise ProviderError('Ungültiger Modelleingang für das lokale Kontextprofil.') from error
 

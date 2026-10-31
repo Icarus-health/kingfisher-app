@@ -308,3 +308,64 @@ def test_real_profile_lifecycle_never_prepares_after_json_deadline(monkeypatch,e
     assert all(at<1.0 for at,_ in events)
     assert len(events)==(1 if expires_at=='second_unload' else 0)
     assert sum(path=='/api/chat' for path,_ in requests)==(1 if expires_at=='retention_ps' else 0)
+
+
+def test_context_wire_encoding_is_compact_and_lossless():
+    from icarus_memory.local_context_profile import _encoded
+    value={'text':'  Ändert NICHT die Quelle.\n\t ', 'items':[{'x':1,'y':2}]}
+    encoded=_encoded(value)
+    assert encoded==json.dumps(value,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode('utf-8')
+    assert json.loads(encoded)==value
+
+
+@pytest.mark.parametrize('index',[59,61,63])
+def test_f_selection_preserves_all_decoded_sources_and_fits_complete_native_budget(monkeypatch,index):
+    from pathlib import Path
+    from copy import deepcopy
+    from icarus_memory import absatzauswahl,local_context_profile as context
+    p,requests,_,_=setup(monkeypatch)
+    p.model='kingfisher-qwen3.5:9b-8k';monkeypatch.setenv(context.FLAG,p.model)
+    monkeypatch.setattr(context,'verify_profile',lambda _: 'offline-fixture')
+    fixture=json.loads((Path(__file__).parent/'fixtures/local-context-f-selection.json').read_text())
+    assert fixture['synthetic_only'] is True
+    call=next(row for row in fixture['calls'] if row['index']==index)
+    messages=deepcopy(call['messages']);original=json.loads(messages[-1]['content'])
+    # Diese gespeicherten Verweise stammen aus der bisherigen verlustfreien
+    # Gleichheitsdeduplizierung; zurück auf denselben vollständigen Text setzen.
+    expanded=[dict(row,context=row['text']) if row.get('context')==absatzauswahl.FUNDSTELLE else row
+              for row in original['sources']]
+    packed=absatzauswahl.modell_zeilen(expanded)
+    assert len(packed)==len(original['sources'])==16
+    content={**original,'sources':packed}
+    messages[-1]['content']=json.dumps(content,ensure_ascii=False,separators=(',',':'))
+    messages[0]['content']=messages[0]['content'].replace('„[Fundstelle: siehe text]“ verweist auf text.',
+        '„[siehe text]“ und „[Fundstelle: siehe text]“ verweisen auf text.')
+    payload={'model':p.model,'messages':messages,'max_tokens':256,'response_format':{'type':'json_schema',
+        'json_schema':{'name':'local_result','strict':True,'schema':call['schema']}},'reasoning_effort':'none','temperature':0}
+    ready=context.prepare(p,payload)
+    for before,after in zip(original['sources'],packed):
+        assert {key:value for key,value in before.items() if key!='context'}=={
+            key:value for key,value in after.items() if key!='context'}
+        if before.get('context')!=absatzauswahl.FUNDSTELLE:assert before['context']==after['context']
+        else:assert after['context']=='[siehe text]'
+    assert len(context._encoded(payload))<=16000 and len(context._encoded(ready.payload))<=16000
+    assert ready.payload['format']==call['schema']
+    assert json.loads(ready.payload['messages'][-1]['content'])==content
+    assert requests==[]
+
+
+def test_compact_budget_encoding_matches_actual_native_http_body(monkeypatch):
+    from icarus_memory import local_context_profile as context
+    Client=httpx.Client
+    p,requests,_,_=setup(monkeypatch);wire=[]
+    def handler(request):
+        wire.append(request.content)
+        decoded=json.loads(request.content)
+        assert request.content==context._encoded(decoded)
+        assert decoded['messages'][0]['content']=='  Quelle: NICHT erledigt.\nÄnderung?\t '
+        return httpx.Response(200,json={'done':True,'done_reason':'stop','message':{'content':'{}'},
+                                      'prompt_eval_count':100,'eval_count':5})
+    monkeypatch.setattr(p,'_client',lambda timeout:Client(timeout=timeout,trust_env=False,follow_redirects=False,
+        transport=httpx.MockTransport(handler)))
+    assert p.complete_json([{'role':'user','content':'  Quelle: NICHT erledigt.\nÄnderung?\t '}]).text=='{}'
+    assert len(wire)==1

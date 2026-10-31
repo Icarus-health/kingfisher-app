@@ -1,5 +1,8 @@
 # Aufnahme und Abruf: vollständige lokale Probe und Reparaturen
 
+**Aktueller Abnahmestand:** [Nachweise und korrigierte Transportzuordnung](aktueller-stand.md).
+Die folgenden Abschnitte bewahren den Verlauf früherer Prüfkandidaten.
+
 ## Verbindlicher Stand
 
 Basis ist die veröffentlichte und auf dem Mac installierte 1.0.35 (`68767ac`).

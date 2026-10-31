@@ -46,6 +46,7 @@ GEWICHT_NEBEN = 0.4
 VERMERK = '… [gekürzt, {gezeigt} von {gesamt} Absätzen]'
 LUECKE = '[…]'
 FUNDSTELLE = '[Fundstelle: siehe text]'
+KURZER_VERWEIS = '[siehe text]'
 
 _KOPFZEILE = re.compile(r'^\s*(?:von|from|an|to|cc|bcc|betreff|subject|datum|date|adresse|absender)\s*:', re.I)
 _SIGNATUR = re.compile(r'(?m)^--\s*$')
@@ -120,7 +121,9 @@ def modell_zeilen(zeilen: Sequence[dict]) -> list[dict]:
         text, context = row.get('text'), row.get('context')
         if (isinstance(text, str) and isinstance(context, str)
                 and len(context) > len(FUNDSTELLE) and text.strip() == context.strip()):
-            row['context'] = FUNDSTELLE
+            # Reiner Verweis bei vollständig gleichem Text; der ausführliche
+            # Fundstellenmarker in langen Auszügen bleibt unverändert.
+            row['context'] = KURZER_VERWEIS
         result.append(row)
     return result
 

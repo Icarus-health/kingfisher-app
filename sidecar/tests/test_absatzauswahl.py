@@ -67,7 +67,7 @@ def test_model_selection_deduplicates_only_identical_complete_context():
     row = Zeile(id='S1', text=text, context='\n' + text + '\n', sender='Alex <alex@example.test>')
     row.volltext = row['context']
     packed = absatzauswahl.modell_zeilen([row])
-    assert packed == [dict(row, context=absatzauswahl.FUNDSTELLE)]
+    assert packed == [dict(row, context=absatzauswahl.KURZER_VERWEIS)]
     assert row['context'] == row.volltext
     assert volltext_zeilen([row])[0]['context'] == row.volltext
     assert len(json.dumps(packed, ensure_ascii=False).encode()) < len(json.dumps([row], ensure_ascii=False).encode())
@@ -397,3 +397,13 @@ def test_prepare_zeigt_dem_modell_den_auszug_und_prueft_am_volltext(episodes, cl
     assert all(z[0]['context'] == voll for z in gepruefte.values()), 'Prüfungen lesen den Volltext, nie den Ausschnitt'
     assert antwort['search']['kuerzung']['gekuerzt'] == 1 and antwort['search']['abgeschnitten'] == []
     assert antwort['basis'] == antwort['refs'], 'Verweise und Kandidaten bleiben unverändert'
+
+
+def test_duplicate_short_context_uses_compact_reference_and_long_excerpt_keeps_its_marker():
+    text='Ein vollständiger unveränderter Text mit wichtiger Negation: NICHT erledigt.'
+    rows=[{'id':'S1','text':text,'context':text},
+          {'id':'S2','text':'Unveränderte Fundstelle.','context':absatzauswahl.FUNDSTELLE+'\nWeiterer Originalabsatz.'}]
+    before=json.loads(json.dumps(rows))
+    packed=absatzauswahl.modell_zeilen(rows)
+    assert packed[0]=={**rows[0],'context':'[siehe text]'}
+    assert packed[1]==rows[1] and rows==before

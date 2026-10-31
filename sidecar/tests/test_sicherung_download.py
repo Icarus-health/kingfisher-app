@@ -38,8 +38,10 @@ def api(tmp_path, monkeypatch):
         yield app, client, tmp_path
 
 
-def test_download_ist_verschluesselt_geprueft_und_wiederherstellbar(api, caplog):
+def test_download_ist_verschluesselt_geprueft_und_wiederherstellbar(api, caplog, monkeypatch):
     _, client, tmp_path = api
+    monkeypatch.setenv('ICARUS_MODEL', 'kingfisher-qwen3.5:9b-8k')
+    monkeypatch.setenv('ICARUS_OLLAMA_8K_PROFILE', 'kingfisher-qwen3.5:9b-8k')
     with caplog.at_level(logging.DEBUG):
         antwort = client.post('/api/v1/recovery/herunterladen', json={'password': PASSWORT})
     assert antwort.status_code == 200, antwort.text
@@ -54,7 +56,10 @@ def test_download_ist_verschluesselt_geprueft_und_wiederherstellbar(api, caplog)
     ziel = restore_bundle(archiv, tmp_path / 'wieder', PASSWORT)
     assert 'Vertrag' in [e.title for e in EpisodeStore(ziel / 'data' / 'episodes.sqlite3').all_episodes(limit=10)]
     # Die Konfiguration für die Wiederherstellung ist dabei, damit die gespeicherten Passwörter lesbar bleiben.
-    assert 'ICARUS_SECRETS_PASSPHRASE=probe-passphrase' in (ziel / 'settings.env').read_text()
+    restored_configuration = (ziel / 'settings.env').read_text()
+    assert 'ICARUS_SECRETS_PASSPHRASE=probe-passphrase' in restored_configuration
+    assert 'ICARUS_MODEL=kingfisher-qwen3.5:9b-8k\n' in restored_configuration
+    assert 'ICARUS_OLLAMA_8K_PROFILE=kingfisher-qwen3.5:9b-8k\n' in restored_configuration
     # Auf dem Rechner bleibt keine Kopie liegen.
     assert not list((tmp_path / 'daten').glob('*.recovery'))
 
