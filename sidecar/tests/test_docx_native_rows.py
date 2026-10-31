@@ -119,7 +119,7 @@ def test_leere_ruecksendefrist_darf_nicht_aus_anderem_felddatum_beantwortet_werd
 def test_native_teilmenge_belegt_niemals_globale_abwesenheit(stores, monkeypatch):
     capture(stores, monkeypatch)
     saved, _, _, provider = prepare(stores, judge=Pruefer(), leer=True)
-    assert saved['satzantwort']['status'] == 'zitate' and len(provider.satzanfragen) == 1
+    assert saved['satzantwort']['status'] == 'zitate' and len(provider.satzanfragen) == 2
 
 
 @pytest.mark.parametrize('model', [None, 'bespoke-minicheck:7b', 'tev1:4b'])

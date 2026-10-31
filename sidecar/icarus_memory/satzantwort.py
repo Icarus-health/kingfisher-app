@@ -150,6 +150,12 @@ ORIGINAL_NACHPRUEFUNG = (
     'Fehlt die verlangte Information weiterhin oder betrifft sie einen anderen Vorgang, bleibe bei '
     'nichts_vorliegend; bei Widersprüchen bleibe bei unklar. Rate nicht und erfinde keine Nummern.')
 
+NATIVE_ORIGINAL_HINWEIS = (
+    '\nEin angebotener vollständiger beschrifteter skalarer Feld-Datensatz ist eine gültige Originaleinheit, '
+    'auch wenn er kein grammatischer Satz ist. Wähle ihn nur als wörtlichen Quellenbericht, '
+    'wenn Label und Datumsrolle zur Frage passen; daraus folgt keine bestätigte Fakten- oder Personenaussage. '
+    'Fehlt die verlangte Angabe oder passt das Feld nicht, wähle keine Stelle. Rate nicht.')
+
 #: Was den Wandel einer Angabe benennt; ein Satz mit überholter Angabe braucht eines dieser Wörter.
 _WANDEL = re.compile(
     r'verschob|verlaenger|verl(?:ä|ae)nger|ge(?:ä|ae)ndert|ersetzt|vorher|bisher|fr(?:ü|ue)her|zuvor|ursprünglich|'
@@ -646,7 +652,8 @@ def _originalnachrichten(frage: str, belege: Sequence[AntwortBeleg], jetzt: date
             beleg['gekuerzt'] = True
         beleg['originalsaetze'] = [{'nr': satz, 'text': text}
                                    for (nr, satz), text in stellen.items() if nr == beleg['nr']]
-    return [{'role': 'system', 'content': ORIGINAL_ANWEISUNG},
+    hinweis = NATIVE_ORIGINAL_HINWEIS if any(b.native_rows for b in belege) else ''
+    return [{'role': 'system', 'content': ORIGINAL_ANWEISUNG + hinweis},
             {'role': 'user', 'content': json.dumps(nutzer, ensure_ascii=False)}]
 
 
@@ -748,16 +755,16 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
         with zeitmessung.messen(zeiten, 'saetze_modell'):
             antwort = anbieter.complete_json(messages, max_tokens=700, schema=ORIGINAL_SCHEMA if originalmodus else SCHEMA)
         status, saetze = _original_lesen(antwort, stellen) if originalmodus else _lesen(antwort)
-        if status == 'nichts_vorliegend' and any(b.native_rows for b in belege):
-            return Versuch('zitate', grund='Native Feldzeilen belegen keine globale Abwesenheit', modell=modell, tor=tor)
         if originalmodus and status == 'nichts_vorliegend' and not saetze:
             # Höchstens eine Nachprüfung; dieselben sichtbaren Quellen, IDs,
             # Datenschutzgrenzen und das bestehende Frage-Zeitbudget bleiben.
-            nachpruefung = [{'role': 'system', 'content': ORIGINAL_ANWEISUNG + ORIGINAL_NACHPRUEFUNG},
+            nachpruefung = [{'role': 'system', 'content': messages[0]['content'] + ORIGINAL_NACHPRUEFUNG},
                            messages[-1]]
             with zeitmessung.messen(zeiten, 'saetze_modell'):
                 antwort = anbieter.complete_json(nachpruefung, max_tokens=700, schema=ORIGINAL_SCHEMA)
             status, saetze = _original_lesen(antwort, stellen)
+        if status == 'nichts_vorliegend' and any(b.native_rows for b in belege):
+            return Versuch('zitate', grund='Native Feldzeilen belegen keine globale Abwesenheit', modell=modell, tor=tor)
     except Exception as fehler:  # noqa: BLE001 - jeder Fehler des Modells führt zu den Zitaten, nie zu einer Antwort ohne Beleg
         return Versuch('zitate', grund=f'Modell ohne brauchbare Ausgabe ({type(fehler).__name__})', modell=modell, tor=tor)
     versuch = _urteilen(status, saetze, belege, jetzt, zusatz_woerter, modell, tor, zeiten, frage)
@@ -868,7 +875,8 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
         geprueft = [pruefe_satz(s, nach_nummer, jetzt, zusatz_woerter) for s in saetze[:MAX_SAETZE]]
     durch: list[GeprueftSatz] = []
     for satz in geprueft:
-        if satz.bestanden and all(satz.text != d.text for d in durch):
+        if satz.bestanden and all(satz.text != d.text or ((satz.native or d.native)
+                and set(satz.belege) != set(d.belege)) for d in durch):
             durch.append(satz)
     verworfen = [s for s in geprueft if not s.bestanden]
     if len(saetze) > MAX_SAETZE:
