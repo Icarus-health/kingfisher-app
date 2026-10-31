@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 
-from icarus_memory import satzpruefung_modell
+from icarus_memory import absatzauswahl, satzpruefung_modell
 from icarus_memory.providers import Reply
 
 
@@ -69,7 +69,18 @@ class SkriptModell:
             return Reply(text=json.dumps({'items': items}), model=self.model)
         frage = nutzer['question'].casefold()
         woerter = next((w for schluessel, w in self.regeln.items() if schluessel.casefold() in frage), None)
-        ids = [q['id'] for q in nutzer['sources'] if str(q['id']).startswith('S') and woerter
+        # Gleicher Datenvertrag wie im echten Auswahlmodell: Feldkopien zuerst
+        # auflösen; ein alleinstehender eigener Kurzverweis meint text DIESER
+        # Zeile. Im langen Auszug ersetzt nur der Fundstellenmarker die
+        # ausgelassene Fundstelle; sein übriger Kontext bleibt unverändert.
+        # Andere Kontexte sowie Titel/Metadaten bleiben unberührt.
+        quellen = absatzauswahl.modell_zeilen_entpacken(nutzer['sources'])
+        for quelle in quellen:
+            if quelle.get('context') in (absatzauswahl.KURZER_VERWEIS, absatzauswahl.FUNDSTELLE):
+                quelle['context'] = quelle.get('text', '')
+            elif isinstance(quelle.get('context'), str):
+                quelle['context'] = quelle['context'].replace(absatzauswahl.FUNDSTELLE, quelle.get('text', ''))
+        ids = [q['id'] for q in quellen if str(q['id']).startswith('S') and woerter
                and any(w.casefold() in q.get('context', '').casefold() for w in woerter)]
         self.auswahlen.append({'frage': nutzer['question'], 'ids': ids})
         status = 'source_reports' if ids else 'no_relevant_sources'

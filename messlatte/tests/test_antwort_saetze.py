@@ -73,9 +73,11 @@ def test_sorgfaeltiges_modell_ergibt_einen_satz_mit_beleg_und_keine_falsche_auss
         ergebnis, bewertung = fragen(stufe, sorgfaeltig)
     finally:
         stufe.modell.regeln = vorher
-    assert ergebnis.text.startswith('die Frist für das Angebot verschiebt sich. Bitte senden Sie es bis zum 26. Oktober. [')
+    assert ergebnis.status == 'working_reports' and ergebnis.text.startswith('Quelle berichtet')
+    assert 'die Frist für das Angebot verschiebt sich. Bitte senden Sie es bis zum 26. Oktober.' in ergebnis.text
+    assert '12. Oktober' not in ergebnis.text and '12.10.' not in ergebnis.text
     assert bewertung.klasse == 'richtig' and not bewertung.falsche_aussage, (ergebnis.text, bewertung)
-    assert 'mainz-003' in (ergebnis.belege or ())
+    assert ergebnis.belege == ('mainz-003',), 'Nur die aktuelle Fristquelle darf die Antwort tragen'
 
 
 def test_freie_fristparaphrase_ersetzt_keine_vollstaendige_originalregel(stufe):

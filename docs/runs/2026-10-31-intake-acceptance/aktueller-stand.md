@@ -423,3 +423,41 @@ Arbeitsgedächtnisgruppen bestehen 575 betroffene Prüfungen. Die finale Vollsui
 und CI am abschließenden PR-Kopf bleiben als separate Ergebnisse im PR #108
 nachzulesen. Der zuerst lokal begonnene Lauf wurde vor diesem Testabgleich
 bewusst unterbrochen (4112 bestanden, ein Skip), nicht als Gesamtgrün ausgegeben.
+
+
+## Vollsuite und Diagnose-Rahmenwerk
+
+Auf dem abschließenden Produktcode bestehen lokal **8850 Backendtests**, ein
+plattformbedingter Skip und 26 Unterprüfungen. Dazu getrennt: **300 Diagnose-
+prüfungen**, **315 Messlatte-Prüfungen**, die bereits genannten 33 Mac-/Logiktests
+und die valide Beispielprofil-/Release-Metadatenprüfung. Diese Zahlen sind
+separate technische Gruppen, keine Genauigkeitsquote und keine Alltagsabnahme.
+
+Die zweite reguläre CI auf 6403758 bestätigt den unveränderten Backendcode unter
+Python 3.10 und 3.12 mit jeweils 8849 Erfolgen und zwei plattformbedingten Skips.
+Erst das nachfolgende Test-Rahmenwerk scheitert an 17 überholten Annahmen:
+
+- Das skriptbare Testmodell sucht nur im Kontextfeld und versteht den neuen
+  eigenen Verweis auf `text` nicht. Es meldet daher fälschlich unbekannte
+  Umsatzsteuer-/Fristangaben. Die tatsächlichen Originale und Einordnungen sind
+  vollständig; nach strikter Rückauflösung findet derselbe Fake sie wieder.
+- Eingebettete Fundstellenverweise in langen Kontexten müssen ebenfalls den
+  eigenen Originalausschnitt einsetzen, ohne Prefix, Suffix oder Negationen zu
+  verlieren. Ein neuer zu enger Kontrollfall wurde nach Root-Review ausdrücklich
+  korrigiert. Unterschiedliche Kontexte und Metadaten sind kein Freibrief für
+  beliebige Textsuche; ungültige Kopierverweise bleiben Fehler.
+- Die alte falsche Lea-Zuordnung wird inzwischen schon vom primären Schutz
+  abgefangen. Diese zusätzliche Sicherheit bleibt ein eigener Regressionstest.
+  Für die unabhängige Kalibrierung des zweiten Tors dient stattdessen eine
+  nachgewiesen erstpassfähige Rollenvertauschung zwischen nichtmenschlichen
+  Dingen. Eine lokale Fragekopie bewertet ein absichtlich falsches Prüfer-Ja
+  weiterhin als falsch; kanonische Welten und Bewertungsalgorithmus bleiben
+  unverändert.
+
+Nur Testadapter und Testfälle sind abgeglichen. Weder Produktdateien noch die
+I-/J-Sollwerte, der kanonische Katalog oder echte Originalquellen wurden dafür
+geändert. Der endgültige eingefrorene Gesamtlauf der Messlatte besteht mit
+315 Fällen. [Protokollreview](review-messlatte-protokoll.md) und
+[unabhängiges Testvertragsreview](review-messlatte-testvertrag.md) halten
+Fehlerfälle, Rot/Grün und Grenzen fest. Der letzte vollständige CI-Stand ist im
+PR #108 nachzulesen; frühere rote Läufe werden nicht als Billingproblem erklärt.
