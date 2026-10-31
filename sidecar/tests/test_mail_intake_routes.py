@@ -244,3 +244,26 @@ def test_ordner_ergaenzen_nennt_den_grund_wenn_das_postfach_schweigt(fixture, mo
     app.state.mail = SimpleNamespace(reader_for=lambda account: SimpleNamespace(folders=lambda: time.sleep(5)))
     antwort = client.post('/api/v1/mail/intake/a/ordner-ergaenzen')
     assert antwort.status_code == 503 and antwort.json()['detail'].startswith('WEB.DE antwortet gerade nicht.')
+
+
+@pytest.mark.parametrize('paused', [False, True])
+def test_existing_retry_queues_legacy_source_without_resuming_schedule_or_global_pause(fixture,paused):
+    from icarus_memory.connectors.mail import Message
+    from icarus_memory.mail_ingestion import remember
+    app,client=fixture
+    app.state.hintergrund=SimpleNamespace(pausiert=True)
+    intake=Intake(app.state.episodes);intake.start('a',['INBOX']);intake.pause('a',paused)
+    source=remember(app.state.episodes,Message('a:7.103','Erfunden','qa@example.invalid',None,'Anbei',False,
+        body='Anbei',account_id='a',truncated=True))['episode']['id']
+    with app.state.episodes.transaction():
+        app.state.episodes._conn.execute("UPDATE mail_intake_folders SET generation='7',inventory_complete=1,upper_uid=103,live_uid=103,scan_uid=103")
+        app.state.episodes._conn.execute("""INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id)
+            VALUES('a','INBOX','7',103,'history','captured',?)""",(source,))
+    reader=app.state.mail.reader_for('a')
+    reader.message_mit_anhaengen=lambda *args:pytest.fail('Retry route must only queue, never fetch')
+    assert client.get('/api/v1/mail/intake').json()['accounts'][0]['mime_refreshable']==1
+    response=client.post('/api/v1/mail/intake/a/retry')
+    assert response.status_code==200 and response.json()['background_paused']
+    assert not app.state.settings.schedule.enabled and app.state.settings.schedule.mail_accounts==[]
+    assert Intake(app.state.episodes).status('a')['paused'] is paused
+    assert app.state.episodes._conn.execute('SELECT status FROM mail_intake_items').fetchone()[0]=='pending'

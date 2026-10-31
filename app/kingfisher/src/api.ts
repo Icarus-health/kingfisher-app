@@ -270,6 +270,10 @@ export type MailIntakeFolder = {
 };
 
 export type MailIntakeAccount = {
+  /** Gespeicherte Quellen, die einmal mit dem aktuellen Anlagenleser neu abrufbar sind. */
+  mime_refreshable?: number;
+  /** Weiterhin unvollständiger MIME-Abruf, unabhängig von einer erneuten Abrufmöglichkeit. */
+  mime_incomplete?: number;
   account_id: string;
   label: string;
   connected: boolean;

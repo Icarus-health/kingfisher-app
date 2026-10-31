@@ -98,3 +98,27 @@ angefordert. Die Reparatur verwirft dessen Überlieferung für die Vollständigk
 und begrenzt den Parser, ersetzt aber nicht den IMAP-Transport. Keine Behauptung
 einer festen Speichergrenze gegen einen bösartigen Server oder einer realen
 Anbieter-, Laufzeit- oder Modellabnahme.
+
+## Bereits aufgenommener Bestand
+
+Der vorhandene Wiederholen-Knopf kann aktuelle, nicht ausgeschlossene
+Mailquellen mit einem unvollständigen MIME-Bericht erneut in die bestehende
+Aufnahme einreihen. Der Status zeigt diese Möglichkeit ohne Mailabruf an.
+Auch alte Berichte mit nicht unterstützten Anlagen sind einmalig auswählbar:
+Sie enthalten noch keine Formatkennung, daher lassen sich damalige Word-Dateien
+und Logos erst nach dem erneuten Abruf unterscheiden.
+
+Schema 26 ergänzt dafür ausschließlich einen persistenten Versionsmarker je
+Aufnahmeeintrag. Ordnerverweise derselben Anbieterquelle verbrauchen den Versuch
+gemeinsam; nur einer wird geladen. Der Abruf verwendet das bestehende Paketbudget.
+Pause, abgeschalteter Zeitplan, fehlende Berechtigung und der leichte Takt für
+neue Post verhindern den Altbestandsabruf. Quellenkopf und Fingerabdruck werden
+vor und nach dem Lesen geprüft. Der normale Aufnahmeweg erhält die Originalfassung
+und veröffentlicht eine neue Fassung nur bei passender Quellenidentität.
+Weiterhin unvollständige Ergebnisse werden nicht bei jedem Takt erneut geladen;
+unveränderte Logo-Berichte lösen keine neue Modellanalyse aus.
+
+Die gezielte synthetische Nachprüfung und unabhängige Durchsicht dieses
+Altbestandswegs werden vor Veröffentlichung separat festgehalten. Dieser Text
+behauptet keine Reparatur des persönlichen Bestands und keine bestandene
+Modell- oder Mac-Abnahme.

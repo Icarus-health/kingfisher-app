@@ -184,3 +184,23 @@ test("cleanup aborts a pending action and rejects late updates", async t => {
   resolveAction({late: true}); await pending;
   assert.deepEqual(values, [{accounts: []}]);
 });
+
+test("repairable saved mail keeps the existing retry action available and completion honest", () => {
+  const progress = deriveIntakeProgress(account({mime_refreshable: 1, folders: [folder({captured: 10,
+    duplicates: 0, pending: 0, analyzed: 10, categorized: 10, categories_pending: 0})]}));
+  assert.equal(progress.retryAvailable, true);
+  assert.equal(progress.mimeRefreshable, 1);
+  assert.equal(progress.complete, false);
+  assert.equal(progress.stage, "error");
+  assert.ok(progress.overallPercent < 100);
+});
+
+test("an attempted but unresolved MIME gap stays incomplete without offering another retry", () => {
+  const progress = deriveIntakeProgress(account({mime_refreshable: 0, mime_incomplete: 1,
+    folders: [folder({captured: 10, duplicates: 0, pending: 0, analyzed: 10, categorized: 10, categories_pending: 0})]}));
+  assert.equal(progress.retryAvailable, false);
+  assert.equal(progress.complete, false);
+  assert.equal(progress.stage, "error");
+  assert.equal(progress.mimeIncomplete, 1);
+  assert.ok(progress.overallPercent < 100);
+});
