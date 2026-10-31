@@ -93,3 +93,30 @@ def test_duplicate_groups_are_symmetric_without_transitive_identity_guess():
     for n in result:
         for peer in n.attributes['duplicate_ids']:
             assert n.id in by_id[peer].attributes['duplicate_ids']
+
+
+def test_legacy_service_and_campaign_labels_need_review_without_changing_the_source_nodes():
+    from icarus_memory.people_quality import annotate_people
+    labels=['Checkout / Cloud Tools <pay@checkout.example>',
+        'Orion Site Audit <sa@monitor.example>',
+        'Orion.example <vfe-campaign-response@shop.example>',
+        'Service <campaign-updates@sender.example>']
+    original=[person(str(i), label) for i,label in enumerate(labels)]
+    result=annotate_people(original)
+    assert all(n.attributes['quality_category']=='review' for n in result)
+    assert all(n.attributes['duplicate_ids']==[] for n in result)
+    assert [(n.id,n.kind,n.label) for n in result]==[(n.id,n.kind,n.label) for n in original]
+    assert all('quality_category' not in n.attributes for n in original)
+
+
+def test_domain_display_name_is_not_a_human_proof_even_with_an_ordinary_mailbox():
+    from icarus_memory.people_quality import annotate_people
+    assert annotate_people([person('a','orion.example <lea@orion.example>')])[0].attributes['quality_category']=='review'
+
+
+def test_personal_names_and_explicitly_confirmed_service_identities_keep_their_status():
+    from icarus_memory.people_quality import annotate_people
+    nodes=[person('a','Jay Pay <jay.pay@people.example>'),
+        person('b','Alex Winter <alex@campaign.example>'),
+        person('c','Orion.example <pay@checkout.example>',True)]
+    assert all(n.attributes['quality_category']=='person' for n in annotate_people(nodes))

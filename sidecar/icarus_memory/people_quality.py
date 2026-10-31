@@ -15,6 +15,9 @@ GENERIC = {
     'rechnungsstellung', 'rechnungsabteilung', 'customer service', 'customer support', 'update',
 }
 _COMPANY_NAME = re.compile(r'\b(?:gmbh|inc|ltd|llc)\b', re.I)
+_DOMAIN_LABEL = re.compile(r'(?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,24}/?', re.I)
+_SERVICE_LABEL = re.compile(r'\bsite[ _-]+audit\b', re.I)
+_CAMPAIGN_LOCAL = re.compile(r'(?:^|[._-])campaigns?[._-](?:response|updates?|messages?)(?:$|[._-])', re.I)
 _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
     r'auftrags?[-_.]?(?:planung|abwicklung)|'
@@ -70,6 +73,9 @@ def annotate_people(nodes):
             category, reason = 'review', 'Als Integrationstest bezeichnet; Herkunft vor Bereinigung prüfen.'
         elif not explicit and ist_firmenbezeichnung(name or label):
             category, reason = 'review', 'Firmenbezeichnung im Anzeigenamen; eine Personenidentität ist noch nicht bestätigt.'
+        elif not explicit and (local == 'pay' or _CAMPAIGN_LOCAL.search(local)
+                or _DOMAIN_LABEL.fullmatch(name or label) or _SERVICE_LABEL.search(name or label)):
+            category, reason = 'review', 'Firmen- oder Funktionsabsender; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and not address and ist_sammelpostfach(label):
             category, reason = 'review', 'Allgemeine Servicebezeichnung; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and address and ist_sammelpostfach(local):
