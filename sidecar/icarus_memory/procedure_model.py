@@ -32,6 +32,11 @@ def draft(provider, messages, schema):
         if hasattr(provider, 'complete_json'):
             return provider.complete_json(messages, max_tokens=1200, schema=schema)
         return provider.complete(messages, [])
+    from .local_context_profile import selected
+    if selected(provider):
+        # Dasselbe endgültige Nachrichten-/Schemabudget und dieselben
+        # Nicht-Kürzen-Flags wie alle Aufrufe des ausdrücklich gewählten Profils.
+        return provider.complete_json(messages,max_tokens=1200,schema=schema)
     if len(json.dumps(messages, ensure_ascii=False).encode()) > 16000:
         raise ProviderError('Die Lernbitte ist für diesen kleinen Kontext zu lang.')
     identity = verify_local_model(provider)

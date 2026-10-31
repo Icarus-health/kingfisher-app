@@ -56,3 +56,34 @@
 - [ ] Unveränderten vollständigen Katalog nach Offlineprüfungen einmal erneut ausführen, alle Antworten/fehlenden Aufgaben semantisch prüfen.
 - [ ] Frisches unabhängiges Gesamtreview und betroffene Suite; verbleibende Grenzen offen protokollieren.
 - [ ] Erst nach bestandener Qualität veröffentlichen, Mac aktualisieren und gemischte echte Stichprobe prüfen. Alltagswoche bleibt separate Nutzerabnahme.
+
+## Task 4: Normalen lokalen Betrieb begrenzen
+
+Nach vollständigem Lauf E wurde die normale 32K-Verbindung an einer privaten,
+getrennten Sechs-Quellen-Kopie geprüft. Zwei unvollständige Quellen wurden vor
+jedem Modellaufruf gehalten. Der Lastwächter brach später bei 24 Prozent Reserve
+ab; kein vollständiger Aufgaben-/Abrufnachweis. Das ist kein kontrollierter
+Vergleich nur der Kontextgröße, zeigt aber einen ungeeigneten Betriebszustand.
+
+Gezielte Ergänzung: optionales, exakt gewähltes 8K-Profil auf denselben vorhandenen
+Gewichten; altes Profil unverändert. Alle nicht gewählten Anbieter behalten ihren
+Transport. Nur das positiv geprüfte Profil erhält den nativen Ollama-Transport
+mit `truncate:false`, `shift:false` und vollständigem Eingabebudget. Vorwärmen und
+Retention müssen dieselbe Profilvorgabe respektieren. Keine globalen
+Ollama-Einstellungen, kein Dienstneustart, keine neue Modellfamilie.
+
+Die installierte Ollama-Version 0.40.13 unterstützt diese beiden Schalter:
+[versionierter API-Vertrag](https://github.com/ollama/ollama/blob/v0.40.13/api/types.go),
+[versionierte Verarbeitung](https://github.com/ollama/ollama/blob/v0.40.13/server/routes.go).
+Die OpenAI-kompatible Schnittstelle bietet sie nicht an. Daher ist für den
+gewählten kleinen Modus ein eng begrenzter nativer Adapter erforderlich; eine
+Bytegrenze und Usage allein wären kein Nachweis gegen Eingabekürzung.
+
+- [ ] Gegenproben vor Umsetzung: volles Schema/Tools/History, erwartetes Profil,
+  unveränderte Fremdanbieter, gültiger Tool-Rundlauf und Überlauf vor Generierung.
+- [ ] Optionalen Profilmodus und alle modellladenden Lifecycle-Wege absichern;
+  Frist, Proxy-/Redirect-, Gewichts-, Quellen- und Berechtigungsprüfungen erhalten.
+- [ ] Unabhängiges Review und passende Regressionen; anschließend den ganzen
+  unveränderten synthetischen Katalog durch den tatsächlichen Produktanbieter.
+- [ ] Dieselbe private Stichprobe erneut, fehlende Originalteile weiterhin halten;
+  Ergebnisse bleiben privat. Erst dann Veröffentlichung/Mac-Prüfung bewerten.

@@ -211,15 +211,21 @@ class OpenAICompatible:
             payload["tools"] = [
                 {"type": "function", "function": t} for t in tools
             ]
+        from .local_context_profile import prepare,selected
+        if selected(self):payload=self._request_payload(payload)
+        prepared=prepare(self,payload)
         try:
-            with self._ampel(), self._client(timeout) as client:
-                response = client.post(
-                    f"{self._base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._key}"},
-                    json=self._request_payload(payload),
-                )
-                response.raise_for_status()
-                data = response.json()
+            if prepared is not None:
+                with self._ampel():data=prepared.send(self,lambda:timeout)
+            else:
+                with self._ampel(), self._client(timeout) as client:
+                    response = client.post(
+                        f"{self._base}/chat/completions",
+                        headers={"Authorization": f"Bearer {self._key}"},
+                        json=self._request_payload(payload),
+                    )
+                    response.raise_for_status()
+                    data = response.json()
         except httpx.HTTPError as exc:
             raise ProviderError(f"Anfrage an {self._base} fehlgeschlagen: {exc}") from exc
 
@@ -260,18 +266,24 @@ class OpenAICompatible:
             payload["temperature"] = 0
         timeout = 60.0 if max_tokens > 256 or _json_text_input_size(messages) > 12_000 else 30.0
         _json_transport_timeout(timeout)  # An expired worker must not prepare a model.
+        from .local_context_profile import prepare
+        prepared=prepare(self,payload)
+        if prepared is not None:_json_transport_timeout(timeout)
         try:
             with self._ampel():
                 # Time spent waiting for a model or preparing its memory consumes
                 # the same budget; do not start a late request after fallback.
-                with self._client(_json_transport_timeout(timeout)) as client:
-                    response = client.post(
-                        f"{self._base}/chat/completions",
-                        headers={"Authorization": f"Bearer {self._key}"},
-                        json=payload,
-                    )
-                    response.raise_for_status()
-                    data = response.json()
+                if prepared is not None:
+                    data=prepared.send(self,lambda:_json_transport_timeout(timeout))
+                else:
+                    with self._client(_json_transport_timeout(timeout)) as client:
+                        response = client.post(
+                            f"{self._base}/chat/completions",
+                            headers={"Authorization": f"Bearer {self._key}"},
+                            json=payload,
+                        )
+                        response.raise_for_status()
+                        data = response.json()
         except httpx.HTTPError as exc:
             raise ProviderError(f"Anfrage an {self._base} fehlgeschlagen: {exc}") from exc
         choice = (data.get("choices") or [{}])[0]
@@ -290,6 +302,9 @@ class OpenAICompatible:
         timeout: float = 30.0,
     ) -> dict[str, Any]:
         """Ask a local Ollama decision model using its native /v1/systemone API."""
+        from .local_context_profile import selected
+        if selected(self):
+            raise ProviderError('Das gewählte kleine Kontextprofil unterstützt den Entscheidungspfad nicht.')
         if (
             isinstance(timeout, bool)
             or not isinstance(timeout, (int, float))
