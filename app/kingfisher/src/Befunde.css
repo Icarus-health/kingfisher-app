@@ -30,4 +30,7 @@
 #root .befunde .befund-beleg .task-source > .secondary-action { min-height: 32px; padding: 0; background: transparent; color: var(--g-verweis); font: 500 14px/1.3 var(--g-schrift); }
 #root .befunde .befund-aktionen { gap: var(--g-a2); margin-top: var(--g-a1); }
 #root .befunde .befunde-zahl { font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root .befunde .befund-details > summary { min-height: var(--g-ziel); padding: var(--g-a2) 0; box-sizing: border-box; color: var(--g-verweis); font: 500 14px/1.5 var(--g-schrift); cursor: pointer; }
+#root .befunde .befund-pruefung { display: grid; gap: var(--g-a3); padding-bottom: var(--g-a2); }
+#root .befunde .befund-details > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 3px; border-radius: var(--g-radius-bedien); }
 #root .befunde .befunde-ruhend summary { min-height: var(--g-ziel); display: flex; align-items: center; font: 500 15px/1.35 var(--g-schrift); color: var(--g-tinte); }

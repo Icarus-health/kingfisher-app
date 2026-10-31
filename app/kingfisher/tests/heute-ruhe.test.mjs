@@ -16,6 +16,7 @@ const server = await createServer({root: fileURLToPath(new URL('..', import.meta
 after(() => server.close());
 const {TodayOverview} = await server.ssrLoadModule('/src/TodayOverview.tsx');
 const {ProfileSource} = await server.ssrLoadModule('/src/ProfileSource.tsx');
+const {BefundZeile} = await server.ssrLoadModule('/src/BefundeAnsicht.tsx');
 
 function nodes(n, p, out = []) { if (!n || typeof n !== 'object') return out; if (p(n)) out.push(n); [n.props?.children].flat(50).forEach(c => nodes(c, p, out)); return out; }
 function text(n) { return n == null || typeof n === 'boolean' ? '' : typeof n === 'object' ? [n.props?.children].flat(50).map(text).join('') : String(n); }
@@ -123,4 +124,39 @@ test('der nächste Termin wird kurz und in der Zone des Briefings genannt', () =
   assert.equal(naechsterTerminText({title: 'Geburtstag von Anna', start: '2026-10-01T00:00:00+02:00', ganztags: true}, 'Europe/Berlin'), 'Do., 1.10., Geburtstag von Anna');
   assert.equal(naechsterTerminText(null, 'Europe/Berlin'), null);
   assert.equal(naechsterTerminText({title: 'Kaputt', start: 'kein Datum', ganztags: false}, 'Europe/Berlin'), null);
+});
+
+
+test('Eingangszähler führen direkt zu Verarbeitung und Prüfübersicht, unbekannte Arten bleiben neutral', () => {
+  const tree = zeige({...leer, happening_now: [
+    {id:'e',title:'Neue Hinweise',detail:'3 Quellen aufgenommen',source:'episodes'},
+    {id:'p',title:'Gedächtnisvorschläge',detail:'2 warten auf Bestätigung',source:'proposals'},
+    {id:'x',title:'Unbekannter Eingang',detail:'Kein sicheres Ziel',source:'future'},
+  ]});
+  const links=nodes(tree,n=>n.type==='a');
+  assert.equal(links.find(n=>/Neue Hinweise/.test(text(n)))?.props.href,'/memory?view=status');
+  assert.equal(links.find(n=>/Gedächtnisvorschläge/.test(text(n)))?.props.href,'/review');
+  assert.equal(links.some(n=>/Unbekannter Eingang/.test(text(n))),false);
+});
+
+const befundProbe={id:'probe',art:'waise',art_text:'Fehlender Querverweis',text:'Alex ist möglicherweise am Projekt beteiligt. Bitte Quellen prüfen.',
+  werte:{},vorschlaege:[],schwere:'hinweis',gefunden_am:'2026-10-30',sachen:[{sache:'person:alex',name:'Alex'}],
+  belege:[{episode_id:'ep-test',zitat:'Bitte den Projektentwurf prüfen.',datum:'2026-10-29',recorded_at:'2026-10-30'}]};
+
+test('Kompakte Frage klappt Belege und Entscheidung gemeinsam auf, ohne Quellenbehauptungen zu kürzen',()=>{
+  const tree=BefundZeile({befund:befundProbe,compact:true,arbeitet:false,onAktion(){}});
+  assert.match(text(tree),/möglicherweise/,'Unsicherheit bleibt im sichtbaren Fragetext');
+  const disclosure=nodes(tree,n=>n.type==='details'&&n.props.className==='befund-details')[0];
+  assert.ok(disclosure,'ein gemeinsamer Aufklapper');assert.notEqual(disclosure.props.open,true);
+  assert.match(text(disclosure),/Quellen & Entscheidung/);
+  assert.equal(nodes(disclosure,n=>n.type===ProfileSource)[0].props.id,'ep-test');
+  const decisions=nodes(tree,n=>n.type==='button'&&/Erledigt|Ignorieren/.test(text(n)));
+  assert.equal(decisions.length,2);
+  assert.ok(decisions.every(n=>nodes(disclosure,x=>x===n).length===1),'keine Entscheidung außerhalb der zu prüfenden Belege');
+});
+
+test('Vollständige Prüfansicht behält Belege und Entscheidungen ohne zusätzlichen Aufklapper',()=>{
+  const tree=BefundZeile({befund:befundProbe,arbeitet:false,onAktion(){}});
+  assert.equal(nodes(tree,n=>n.type==='details'&&n.props.className==='befund-details').length,0);
+  assert.equal(nodes(tree,n=>n.type===ProfileSource)[0].props.id,'ep-test');
 });

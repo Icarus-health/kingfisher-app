@@ -144,3 +144,25 @@ test('a requested row that was already open rereads detail and blocks acceptance
   assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen')[0].props.disabled,false);
  }finally{row.close();}
 }));
+
+
+test('mitgelieferte Suchtreffer stehen direkt in der Bibliothek ohne falschen Leerhinweis',()=>fixture('',async({d})=>{
+ const search=nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0];
+ search.props.onChange({target:{value:'Quellen prüfen'}});
+ const tree=d.render();
+ const entry=nodes(tree,n=>n.type==='details'&&nodes(n,x=>x.type==='summary'&&/Quellen prüfen/.test(text(x))).length)[0];
+ assert.ok(entry);
+ const parents=nodes(tree,n=>n.type==='details'&&n!==entry&&nodes(n,x=>x===entry).length);
+ assert.equal(parents.length,0,'Suchtreffer darf nicht hinter einem weiteren Aufklapper verschwinden');
+ assert.doesNotMatch(text(tree),/Noch keine eigenen|Keine passenden Abläufe/);
+ assert.doesNotMatch(text(tree),/Bei Bedarf/,'keine leere zweite Gruppe');
+},[],[{id:'source',name:'source',title:'Quellen prüfen',description:'Belege lesen.',category:'essential',purpose:'research'}]));
+
+test('leere Skillsuche lässt sich mit einem Klick zurücksetzen',()=>fixture('',async({d})=>{
+ let tree=d.render();nodes(tree,n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.onChange({target:{value:'nichts passt'}});
+ tree=d.render();const reset=nodes(tree,n=>n.type==='button'&&text(n)==='Filter zurücksetzen')[0];
+ assert.ok(reset);let focused=false;const input=nodes(tree,n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0];
+ assert.ok(input.props.ref,'Suche hat ein Fokusziel');input.props.ref.current={focus(){focused=true;}};reset.props.onClick();assert.ok(focused,'Tastaturfokus geht zur Suche zurück');
+ assert.equal(rows(d).length,3);
+ assert.equal(nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.value,'');
+}));

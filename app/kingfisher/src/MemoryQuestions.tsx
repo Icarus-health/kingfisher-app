@@ -98,7 +98,7 @@ export function MemoryQuestions({ active, compact = false, onOpenAll }: { active
     {fehler ? <p role="alert">{fehler} <button type="button" className="text-action" onClick={() => void neuLaden()}>Erneut laden</button></p> : null}
     {befunde?.length === 0 ? <p role="status">Keine offenen Gedächtnisfragen.</p> : null}
     {auswahl.length > 0 ? <ul className="befunde-liste" aria-label="Offene Gedächtnisfragen">
-      {auswahl.map(befund => <BefundZeile key={befund.id} befund={befund} arbeitet={arbeitet !== ""} onAktion={(punkt, was) => void aktion(punkt, was)} />)}
+      {auswahl.map(befund => <BefundZeile key={befund.id} befund={befund} compact={compact} arbeitet={arbeitet !== ""} onAktion={(punkt, was) => void aktion(punkt, was)} />)}
     </ul> : null}
     {befunde && befunde.length > 5 ? <button type="button" className="text-action" onClick={onOpenAll}>
       Weitere {befunde.length - 5} Gedächtnisfragen öffnen

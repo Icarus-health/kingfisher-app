@@ -1,0 +1,20 @@
+/* Bibliothek: vorhandene Material-/Schriftrollen, Titel vor Metadaten. Kein neues Farbsystem. */
+#root .procedure-library .procedure-counts { display: flex; flex-wrap: wrap; gap: var(--g-a2) var(--g-a5); margin: var(--g-a3) 0 var(--g-a4); color: var(--g-leise); font: var(--g-neben); }
+#root .procedure-library .procedure-counts strong { color: var(--g-tinte); font-variant-numeric: tabular-nums; }
+#root .procedure-library .procedure-filters { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--g-a3); align-items: end; }
+#root .procedure-library .procedure-filters > label { min-width: 0; margin: 0; }
+#root .procedure-library .procedure-filters > button { justify-self: start; grid-column: 1 / -1; }
+#root .procedure-library .procedure-group-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--g-a2); margin: var(--g-a5) 0 var(--g-a2); font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root .procedure-library .procedure-origin { font: var(--g-fussnote); color: var(--g-leise); }
+#root .procedure-library .procedure-row { margin: 0; border-bottom: 1px solid var(--g-linie); }
+#root .procedure-library .procedure-row > summary { min-height: var(--g-zeile); box-sizing: border-box; padding: var(--g-a3) var(--g-a2); cursor: pointer; }
+#root .procedure-library .procedure-row-heading { display: inline-grid; gap: var(--g-a1); vertical-align: middle; max-width: calc(100% - 2em); overflow-wrap: anywhere; }
+#root .procedure-library .procedure-row-title { font: 600 16px/1.45 var(--g-schrift); color: var(--g-tinte); }
+#root .procedure-library .procedure-row-meta { margin-block: var(--g-a2); font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
+#root .procedure-library .procedure-row-heading .procedure-row-meta { margin: 0; font: var(--g-fussnote); }
+#root .procedure-library .procedure-state[data-state="pending"] { color: var(--g-warnung); font-weight: 600; }
+#root .procedure-library .procedure-help { margin-top: var(--g-a5); }
+#root .procedure-library .procedure-row > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; border-radius: var(--g-radius-bedien); }
+@media (max-width: 700px) {
+  #root .procedure-library .procedure-filters { grid-template-columns: minmax(0, 1fr); }
+}
