@@ -306,22 +306,29 @@ class _MailText(HTMLParser):
         super().__init__()
         self.parts: list[str] = []
         self.hidden = 0
+        self.preformatted = 0
 
     def handle_starttag(self, tag: str, attrs: Any) -> None:
         if tag in ("script", "style"):
             self.hidden += 1
+        if tag in ("pre", "textarea"):
+            self.preformatted += 1
         if not self.hidden and tag in ("p", "div", "br", "li", "tr"):
             self.parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
         if tag in ("script", "style") and self.hidden:
             self.hidden -= 1
+        if tag in ("pre", "textarea") and self.preformatted:
+            self.preformatted -= 1
         if not self.hidden and tag in ("p", "div", "li", "tr"):
             self.parts.append("\n")
 
     def handle_data(self, data: str) -> None:
         if not self.hidden:
-            self.parts.append(data)
+            # HTML-Layouteinrückung ist kein sichtbarer Zeilenumbruch. Nur
+            # ASCII-Leerraum falten; Inline-Abstände, NBSP und <br> bleiben.
+            self.parts.append(data if self.preformatted else re.sub(r'[ \t\r\n\f]+', ' ', data))
 
 
 def _body(message: email.message.Message, limit: int = 500) -> str:

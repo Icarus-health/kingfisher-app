@@ -286,6 +286,11 @@ def _beleg_aus(ref: dict[str, Any], rolle: str, nummer: int, store: WorkingMemor
         auszug = absatzauswahl.auszug(episode.body, woerter, ref=(ref['start'], ref['end']), ref_zeigen=True)
         stellen = akten_kontext.stellen_von(ueberholt, [z for z in akten_zeilen if getattr(z, 'ref', None)], episode.id)
         auszug = absatzauswahl.ergaenzen(episode.body, auszug, stellen)
+        atomic = satzpruefung.originalregelabsatz_einheiten(episode.body)
+        originale = [s for s in satzpruefung.originalabschnitt_stellen(episode.body)
+                     if not any(a <= s[0] and s[1] <= b for a, b, _ in atomic)]
+        auszug = absatzauswahl.vervollstaendigen(episode.body, auszug, [*atomic, *originale],
+                                               max_zeichen=MAX_BELEG_ZEICHEN)
         gekuerzt = auszug.gekuerzt
         text, geschwaerzt = _bereinigt(auszug.text)
     if not text:
@@ -544,6 +549,29 @@ def nachrichten(frage: str, belege: Sequence[AntwortBeleg], jetzt: datetime) -> 
     return [{'role': 'system', 'content': ANWEISUNG}, {'role': 'user', 'content': json.dumps(nutzer, ensure_ascii=False)}]
 
 
+def _originalanzeige(text: str) -> str:
+    """Nur überlange Originaleinheiten von horizontalem ASCII-Layoutraum entlasten.
+
+    Erst nach der vollständigen Raw-Sichtbarkeitsprüfung verwenden. Wörter,
+    Satzzeichen, Zeilen-/Absatzgrenzen und Quelle bleiben erhalten; die bereits
+    vorhandene `originaltext`-Bindung prüft diese Darstellungsvariation erneut.
+    """
+    if len(text) <= MAX_SATZ_ZEICHEN:
+        return text
+    # Nur eine schon vorhandene, einzeilige und abgeschlossene Originalaussage
+    # belegt Prosa-Layoutraum. Einrückung innerhalb einer mehrzeiligen Einheit
+    # (z.B. Code nach einem Doppelpunkt) darf keine neue Bedeutung bekommen.
+    einzeilig = {teil for teil in satzpruefung.originalabschnitte(text)
+                 if '\n' not in teil and teil.endswith(('.', '!', '?'))}
+    zeilen = []
+    for zeile in text.split('\n'):
+        anzeige = re.sub(r'[ \t]+', ' ', zeile).strip(' \t')
+        if anzeige != zeile and zeile.strip(' \t') not in einzeilig:
+            return text
+        zeilen.append(anzeige)
+    return '\n'.join(zeilen)
+
+
 def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], str]:
     """Nur vollständige, sichtbare Originalabschnitte; niemals versteckten Volltext anbieten.
 
@@ -551,6 +579,7 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
     eine Bedingung nicht vom vorangehenden Satzteil abtrennen.
     Bei einem gekürzten Auszug beweist der Volltext die Abschnittsgrenzen. Ein
     abgeschnittenes Stück wird weder vervollständigt noch als ganzer Satz angeboten.
+    Erst danach darf horizontaler Layoutraum für die Anzeige entfallen.
     """
     stellen = {}
     for beleg in belege:
@@ -562,19 +591,21 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
         visible = []
         for start, end, paragraph in atomic:
             if (paragraph in beleg.text and '[…]' not in paragraph and '[gekürzt,' not in paragraph):
-                if len(paragraph) > MAX_SATZ_ZEICHEN:
+                anzeige = _originalanzeige(paragraph)
+                if len(anzeige) > MAX_SATZ_ZEICHEN:
                     raise ValueError('Vollständiger Regelabsatz überschreitet das Satzlimit')
-                visible.append((start, end, paragraph))
+                visible.append((start, end, anzeige))
         for start, end, text in satzpruefung.originalabschnitt_stellen(volltext):
             if any(start >= atomic_start and end <= atomic_end for atomic_start, atomic_end, _ in atomic):
                 continue
             if (not text or text not in beleg.text
                     or '[…]' in text or '[gekürzt,' in text):
                 continue
-            if len(text) > MAX_SATZ_ZEICHEN:
+            anzeige = _originalanzeige(text)
+            if len(anzeige) > MAX_SATZ_ZEICHEN:
                 # Ein Angebotslimit ist kein Beleg für fehlende Information.
                 raise ValueError('Sichtbare Originalstelle überschreitet das Satzlimit')
-            visible.append((start, end, text))
+            visible.append((start, end, anzeige))
         for _, _, text in sorted(visible):
             nummer += 1
             stellen[beleg.nummer, nummer] = text

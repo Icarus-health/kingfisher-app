@@ -123,6 +123,16 @@ def test_html_is_readable_text_without_active_content():
     assert 'evil' not in text and '<img' not in text and 'https://' not in text
 
 
+def test_html_layout_spaces_keep_inline_words_preformatted_text_and_br_conditions():
+    message = email.message_from_bytes(('Content-Type: text/html; charset=utf-8\n\n'
+        '<div>  Die <b>Klappe</b>\n    darf geöffnet werden<br>nur wenn die Prüfung läuft.</div>'
+        '<pre> A   B\n  C</pre><textarea> D   E\n  F</textarea><p>A&nbsp;B</p>').encode())
+    text = _body(message)
+    assert 'Die Klappe darf geöffnet werden\nnur wenn die Prüfung läuft.' in text
+    assert ' A   B\n  C' in text and ' D   E\n  F' in text
+    assert 'A\u00a0B' in text
+
+
 class ScanIMAP(FakeIMAP):
     found = b'108 103 105 103'
     def uid(self, operation, *args):

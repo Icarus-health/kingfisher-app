@@ -51,7 +51,7 @@ def docx_text(data: bytes) -> str:
         for child in element:
             walk(child)
         if element.tag == tag('p'):
-            parts.append('\n')
+            parts.append('\n\n')
     try:
         walk(body)
     except RecursionError as exc:

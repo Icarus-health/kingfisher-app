@@ -17,7 +17,7 @@ def packed(xml):
 def test_word_preview_preserves_text_and_does_not_store():
     xml = f'<w:document xmlns:w="{NAMESPACE}"><w:body><w:p><w:r><w:t>Hallo</w:t><w:tab/><w:t>Welt</w:t></w:r><w:del><w:r><w:delText>Entfernt</w:delText></w:r></w:del></w:p><w:p><w:r><w:t>Zweite Zeile</w:t></w:r></w:p></w:body></w:document>'
     data = packed(xml)
-    assert docx_text(data) == 'Hallo\tWelt\nZweite Zeile'
+    assert docx_text(data) == 'Hallo\tWelt\n\nZweite Zeile'
     app = create_app()
     client = TestClient(app)
     response = client.post('/api/v1/sources/documents/preview-docx', json={'content_base64': base64.b64encode(data).decode()})
@@ -26,6 +26,15 @@ def test_word_preview_preserves_text_and_does_not_store():
     saved = client.post('/api/v1/sources/documents', json={'filename':'Notiz.docx', 'body':response.json()['body']})
     assert saved.status_code == 200
     assert len(client.get('/api/v1/sources/documents').json()['items']) == 1
+
+
+def test_word_paragraph_and_wrapped_line_remain_distinct():
+    xml = (f'<w:document xmlns:w="{NAMESPACE}"><w:body>'
+           '<w:p><w:r><w:t>Die Klappe darf geöffnet werden</w:t><w:br/>'
+           '<w:t>nur wenn die Prüfung läuft.</w:t><w:cr/><w:t>Danach schließen.</w:t></w:r></w:p>'
+           '<w:p><w:r><w:t>Ein anderer Absatz.</w:t></w:r></w:p></w:body></w:document>')
+    assert docx_text(packed(xml)) == ('Die Klappe darf geöffnet werden\nnur wenn die Prüfung läuft.'
+                                     '\nDanach schließen.\n\nEin anderer Absatz.')
 
 
 @pytest.mark.parametrize('xml', ['<!DOCTYPE x [<!ENTITY e "boom">]><x/>', '<broken', '<x/>'])
