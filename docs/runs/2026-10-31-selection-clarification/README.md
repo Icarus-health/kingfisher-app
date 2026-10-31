@@ -63,3 +63,19 @@ Quellengrenzen, negative Antworten, Auswahlentscheidungen, Identität, Projekte,
 Eigenzusagen, Auswahlklicks, Original-Flow, Teilantwortverlust, Originalsatzwahl,
 Antwortstatus, Zeitbereich und Quellenreihenfolge. Ein bestehender
 Starlette/httpx-Deprecation-Hinweis blieb bestehen.
+
+## Enge Nachkorrektur aus unabhängigem Review
+
+Der erste Patch markierte nur die Union nach einem Gesamtvergleich. Bei genau
+einer positiven, aber unklaren Seite und einer zweiten irrelevanten Seite fehlte
+die Marke. Ein echter Sechs-Quellen-Gegenfall mit bekannten Quelldaten zeigte,
+dass der Zeithelfer daraus einen Bericht machte. Jetzt trägt auch dieser
+paginiert ermittelte einzelne Unklarheitsbescheid die interne Marke bis nach
+allen WMA-Helfern. Ein klarer einzelner Bericht bleibt unverändert; keine
+zusätzliche Modellrunde entsteht.
+
+Der Gegenfall und vier Unklarheitstypen waren vor dem Fix **5 Fehler**; danach
+bestanden **84 gezielte Tests in 17,96 Sekunden** (Projektion, Auswahlseiten,
+Auswahlentscheidungen, Auswahlklicks und Quellengrenzen). Im echten Gegenfall
+bleibt es bei zwei Auswahlaufrufen und einem sicheren Abbruch ohne Links oder
+erfundene Datumsfrage. Alle vollständigen Quellenauswahlen sind weiterhin gebunden.

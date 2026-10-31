@@ -140,6 +140,23 @@ def test_recovered_time_uncertainty_cannot_become_report_or_invent_a_date_questi
         client.close();_close_app(app)
 
 
+def test_only_unclear_page_with_known_time_cannot_become_report(core,tmp_path,monkeypatch):
+    app,client,_=_api(core,tmp_path,monkeypatch)
+    try:
+        ep,claims=app.state.episodes,app.state.claims
+        seed(ep)  # Six dated sources; the second page finds nothing relevant.
+        provider=Script(monkeypatch,lambda n,page:{
+            'status':'needs_missing_time_reference' if n==1 else 'no_relevant_sources',
+            'ids':[page[-1]['id']] if n==1 else []})
+        answer=wma.prepare(Q,ep,claims,provider,semantic_search=None)
+        text,links,status=wma.render(answer,ep,claims)
+        assert len(provider.calls)==2
+        assert status=='working_selection_failed' and links==[]
+        assert answer['refs']==[] and 'Von wann stammt' not in text
+    finally:
+        client.close();_close_app(app)
+
+
 @pytest.mark.parametrize('change',['drop','add','different_uncertainty'])
 def test_recovered_union_cannot_survive_changed_post_guard_result(core,tmp_path,monkeypatch,change):
     app,client,_=_api(core,tmp_path,monkeypatch)

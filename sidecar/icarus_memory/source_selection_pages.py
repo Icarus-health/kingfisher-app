@@ -92,7 +92,11 @@ def select(provider, question, rows, instruction, schema, decisions, *, fresh):
         if not positive:
             return {'status': 'unknown', 'ids': []}
         if len(positive) == 1:
-            return positive[0]
+            selection = positive[0]
+            if selection['status'] in _UNCLEAR:
+                # Auch ohne Gesamtvergleich bleibt die Seitenunklarheit gebunden.
+                return {**selection, '_page_uncertainty': True}
+            return selection
         chosen = {identifier for selection in positive for identifier in selection['ids']}
         union = [row for row in rows if row['id'] in chosen]
         final_request = _request(question, union, instruction, schema)
