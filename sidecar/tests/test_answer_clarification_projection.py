@@ -12,11 +12,12 @@ from icarus_memory.working_memory_analysis import _blocks
 
 Q='Welche Angaben gelten?'
 
-def seed(ep, participants=None):
+def seed(ep, participants=None, person_assertion=''):
     originals=[]
     for n in range(6):
         body='\n\n'.join(f'Angaben gelten für Kalkulation {n}, Absatz {i}: NICHT erledigt. '
                          +'Unveränderte künstliche Bedingung. '*18 for i in range(2))
+        if person_assertion: body=person_assertion+'\n\n'+body
         episode,_=ep.record(EpisodeKind.MESSAGE,f'Kalkulation {n}',body,
             Provenance(SourceType.EMAIL,source_ref=f'synthetic:{n}'),
             participants=participants if participants is not None else [f'Person {n} <person{n}@example.invalid>'],
@@ -78,7 +79,7 @@ def test_paged_uncertainty_keeps_whole_union_through_saved_api_and_click(core,tm
         client.close();_close_app(app)
 
 @pytest.mark.parametrize('projection',['nichts','zitate'])
-def test_unsuccessful_sentence_attempt_is_compact_but_original_remains_accessible(core,tmp_path,monkeypatch,projection):
+def test_unsuccessful_sentence_attempt_keeps_complete_original_for_progressive_display(core,tmp_path,monkeypatch,projection):
     from tests.test_satzantwort import Skript
     app,client,api_provider=_api(core,tmp_path,monkeypatch)
     try:
@@ -102,12 +103,12 @@ def test_unsuccessful_sentence_attempt_is_compact_but_original_remains_accessibl
         answer=message['metadata']['context']['working_answer']
         text,links,status=wma.render(answer,ep,claims)
         assert answer['satzantwort']['status']==projection
-        assert status=='working_reports' and body not in text and links[0]['episode_id']==source.id
-        assert len(text)<1000 and 'nicht verlässlich beantworten' in text
+        assert status=='working_reports' and body in text and links[0]['episode_id']==source.id
+        assert text.startswith('Quelle berichtet') and message['metadata']['context']['original_fallback'] is True
         assert message['content']==text and message['metadata']['context']['source_links']==links
         saved=client.get(f'/api/v1/conversations/{conversation}').json()['messages'][-1]
-        assert body not in saved['content'] and saved['metadata']['context']['source_links']==links
-        assert len(saved['content'])<1000
+        assert body in saved['content'] and saved['metadata']['context']['source_links']==links
+        assert saved['metadata']['context']['original_fallback'] is True
         original=client.get(f'/api/v1/episodes/{source.id}')
         assert original.status_code==200 and original.json()['body']==body
         assert 'keine Information' not in saved['content']
@@ -115,6 +116,7 @@ def test_unsuccessful_sentence_attempt_is_compact_but_original_remains_accessibl
         withdrawn=client.get(f'/api/v1/conversations/{conversation}').json()['messages'][-1]
         assert withdrawn['metadata']['context']['answer_contract']['status']=='working_unavailable'
         assert withdrawn['metadata']['context']['source_links']==[]
+        assert 'original_fallback' not in withdrawn['metadata']['context']
         assert ep.get(source.id).body==body and claims.revision==revision
         assert (len(provider.auswahlen),len(provider.satzanfragen))==calls
         print(json.dumps({'projection':projection,'body_chars':len(body),'api_chars':len(saved['content']),
@@ -211,12 +213,17 @@ def test_compact_automatic_projection_never_hides_confirmed_claim_basis(core,tmp
         text,links,_=wma.render(answer,app.state.episodes,app.state.claims,conflict_status=lambda _: 'clear')
         assert claim.statement in text and any(link['episode_id']==source.id for link in links)
         assert 'noch nicht verlässlich beantworten' not in text
+        assert not wma.original_fallback(answer, 'working_reports', None, ep)
+        projected=wma.project_message({'role':'assistant','content':'old','metadata':{'context':{
+            'working_answer':answer,'original_fallback':True}}},ep,app.state.claims,conflict_status=lambda _: 'clear')
+        assert 'original_fallback' not in projected['metadata']['context']
+        assert claim.statement in projected['content']
     finally:
         client.close();_close_app(app)
 
 
 @pytest.mark.parametrize('participants', [[], ['Robin <robin@example.invalid>']])
-def test_person_uncertainty_without_distinguishing_choices_stays_compact(core,tmp_path,monkeypatch,participants):
+def test_person_uncertainty_without_distinguishing_choices_keeps_originals_for_disclosure(core,tmp_path,monkeypatch,participants):
     app,client,_=_api(core,tmp_path,monkeypatch)
     try:
         ep,claims=app.state.episodes,app.state.claims
@@ -230,14 +237,15 @@ def test_person_uncertainty_without_distinguishing_choices_stays_compact(core,tm
         text,links,status=wma.render(answer,ep,claims)
         assert status=='working_unclear' and len(links)==2
         assert 'Welche der genannten Personen' not in text
-        assert 'nicht verlässlich beantworten' in text and len(text)<1000
-        assert all(e.body not in text for e in originals)
+        assert 'nicht verlässlich beantworten' in text
+        assert all(ep.get(link['episode_id']).body in text for link in links)
         conversation=_conversation(client)
         turn=app.state.agent._working_turn(Q,answer,model_called=True)
         app.state.conversations.add_message(conversation,'assistant',turn.reply,metadata={'context':turn.context})
         saved=client.get(f'/api/v1/conversations/{conversation}').json()['messages'][-1]
         assert saved['content']==text and saved['metadata']['context']['source_links']==links
         assert 'clarification_choices' not in saved['metadata']['context']
+        assert saved['metadata']['context']['original_fallback'] is True
         for source in originals:
             response=client.get(f'/api/v1/episodes/{source.id}')
             assert response.status_code==200 and response.json()['body']==source.body
@@ -246,5 +254,66 @@ def test_person_uncertainty_without_distinguishing_choices_stays_compact(core,tm
         assert withdrawn['metadata']['context']['answer_contract']['status']=='working_unavailable'
         assert withdrawn['metadata']['context']['source_links']==[]
         assert len(provider.calls)==3
+    finally:
+        client.close();_close_app(app)
+
+
+def test_paged_person_ambiguity_proved_by_original_guard_keeps_its_question(core,tmp_path,monkeypatch):
+    app,client,_=_api(core,tmp_path,monkeypatch)
+    try:
+        ep,claims=app.state.episodes,app.state.claims
+        seed(ep,participants=['Robin <robin@example.invalid>'],person_assertion=
+             'Lea Sommer liefert die Ventile am 14. November. Lea Winter liefert die Ventile am 19. November.')
+        class PersonScript(Script):
+            def complete_json(self,messages,**kwargs):
+                from copy import deepcopy
+                from icarus_memory import absatzauswahl
+                from icarus_memory.providers import Reply
+                data=json.loads(messages[-1]['content'])
+                assert data['question']=='Wann liefert Lea die Ventile?'
+                assert kwargs['schema']['properties']['ids']['items']['enum']==[r['id'] for r in data['sources']]
+                restored=absatzauswahl.modell_zeilen_entpacken(data['sources'])
+                self.calls.append((restored,deepcopy(kwargs)))
+                return Reply(text=json.dumps(self.answers(len(self.calls),restored)))
+        provider=PersonScript(monkeypatch,lambda n,page:{
+            'status':'needs_person_choice' if n==2 else 'source_reports',
+            'ids':[page[-1]['id']] if n<3 else [page[0]['id']]})
+        answer=wma.prepare('Wann liefert Lea die Ventile?',ep,claims,provider,semantic_search=None)
+        text,links,status=wma.render(answer,ep,claims)
+        assert status=='working_unclear' and answer['uncertainty']=='person' and len(links)==2
+        assert wma.choices(answer,ep)==[]
+        assert 'Welche der genannten Personen meinst du?' in text
+        assert 'Lea Sommer' in text and 'Lea Winter' in text
+        assert answer.get('person_question_optional') is not True
+        assert not wma.original_fallback(answer,status,None,ep)
+        assert len(provider.calls)==3
+    finally:
+        client.close();_close_app(app)
+
+
+def test_verified_sentence_is_never_replaced_by_original_disclosure(core,tmp_path,monkeypatch):
+    from tests.test_satzantwort import Skript
+    app,client,provider=_api(core,tmp_path,monkeypatch)
+    try:
+        ep,claims=app.state.episodes,app.state.claims
+        body='Die Zugangskarte liegt im Schrank.'
+        source,_=ep.record(EpisodeKind.MESSAGE,'Zugangskarte',body,Provenance(SourceType.EMAIL,source_ref='synthetic:verified'))
+        assert WorkingMemoryStore(ep).commit(ep.support_snapshot(source.id),
+            [{'start':0,'end':len(body),'kind':'fact'}],model='synthetic')
+        script=Skript(lambda payload:{'status':'antwort','saetze':[{'text':body,'belege':[payload['belege'][0]['nr']]}]})
+        provider.complete_json=script.complete_json
+        app.state.agent._working_memory_search=None;app.state.agent._saetze=True
+        message=_ask(client,_conversation(client),'Wo ist die Zugangskarte?')
+        assert message['metadata']['context']['satzantwort']['saetze']
+        assert 'original_fallback' not in message['metadata']['context']
+        message['metadata']['context']['original_fallback']=True
+        projected=wma.project_message(message,ep,claims)
+        assert 'original_fallback' not in projected['metadata']['context']
+        assert projected['metadata']['context']['satzantwort']['saetze']
+        ep.ignore(source.id)
+        withdrawn=wma.project_message(message,ep,claims)
+        assert withdrawn['metadata']['context']['answer_contract']['status']=='working_unavailable'
+        assert 'original_fallback' not in withdrawn['metadata']['context']
+        assert 'satzantwort' not in withdrawn['metadata']['context']
     finally:
         client.close();_close_app(app)

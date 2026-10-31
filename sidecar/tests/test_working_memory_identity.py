@@ -435,7 +435,7 @@ def test_explicit_document_person_guard_reopens_legacy_and_preserves_specific_an
         assert specific['status'] == 'reports'
         assert [ref['episode_id'] for ref in specific['refs']] == [ids[0]]
         compact, linked, status = answers.render(specific, episodes, claims)
-        assert status == 'working_reports' and 'nicht verlässlich beantworten' in compact
+        assert status == 'working_reports' and DOC_EINKAUF in compact
         assert [link['episode_id'] for link in linked] == [ids[0]]
         assert episodes.get(linked[0]['episode_id']).body == DOC_EINKAUF
         episodes.ignore(ids[1])

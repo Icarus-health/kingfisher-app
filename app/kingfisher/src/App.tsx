@@ -481,7 +481,11 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 : "Derzeit nicht als Wissen verwendbar.";
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
                 <span className="message-wer">{message.role === "user" ? "Du" : "Kingfisher"}</span>
-                {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <MessageText content={message.content} />}
+                {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} />
+                  : message.role === "assistant" && message.metadata?.context?.original_fallback === true
+                    ? <div className="antwort-originale"><p>Die Quellen sind gefunden. Eine geprüfte Zusammenfassung fehlt noch.</p>
+                      <details className="antwort-arbeitsweise"><summary>Originalangaben lesen</summary><MessageText content={message.content} /></details></div>
+                    : <MessageText content={message.content} />}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
                 {message.role === "assistant" ? <CloudVermerk kontext={message.metadata?.context} /> : null}

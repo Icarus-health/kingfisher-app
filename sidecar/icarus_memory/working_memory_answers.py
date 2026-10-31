@@ -826,6 +826,11 @@ Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Proj
         uncertain = selection['status'] in {'person', 'scope', 'time', 'conflict'}
         answer.update(refs=selected, status='unclear' if uncertain else selection['status'],
                       uncertainty=selection['status'] if uncertain else 'none')
+        if (page_uncertainty is not None and selection['status'] == 'person' and forced != 'person'
+                and working_memory_focus.adjust(question, volltext, selection['ids'], 'reports')[1] != 'person'):
+            # Nur eine Modellseite verlangt die Personenwahl; bestehende
+            # Original-Personenwächter haben keine solche Mehrdeutigkeit belegt.
+            answer['person_question_optional'] = True
         if saetze and answer['status'] == 'reports' and selected and not lineage:
             # Der Teil, der das Modell ein zweites Mal fragt: lokal oder mit Einwilligung in der Cloud, nur mit den
             # gewählten Quellen und der Akte.
@@ -1336,13 +1341,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
     # E3: eine belegte Antwort in Sätzen, sofern sie sich beim Lesen erneut bestätigt; sonst der Zitatmodus.
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
-    versuch = answer.get('satzantwort')
-    person_ohne_auswahl = (answer.get('status') == 'unclear' and answer.get('uncertainty') == 'person'
-                          and not choices(answer, episodes))
-    kompakt = person_ohne_auswahl or (answer.get('status') == 'reports' and not claim_basis
-               and isinstance(versuch, dict) and versuch.get('version') == satzantwort.SATZ_VERSION
-               and ((satz is not None and satz.status == 'nichts')
-                    or (satz is None and versuch.get('status') == 'zitate')))
+    person_ohne_auswahl = person_question_unavailable(answer, episodes)
     if satz is not None and satz.status == 'nichts':
         # Eine leere Formulierung beweist nicht, dass die bereits ausgewählten
         # Originale keine Antwort enthalten. Sie bleiben über Quellenlinks zugänglich;
@@ -1351,7 +1350,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
     lines = ([] if satz is not None else
              ['Die automatische Quellenauswahl ist noch unklar. Diese bestätigten Angaben liegen vor.']
              if fallback else ['Ich kann die Frage aus den ausgewählten Quellen noch nicht verlässlich beantworten.']
-             if kompakt else ['Quelle berichtet · automatisch eingeordnet'])
+             if person_ohne_auswahl else ['Quelle berichtet · automatisch eingeordnet'])
     if isinstance(answer.get('choice'), str):
         lines.append(f"Deine Auswahl: {answer['choice'][:200]}")
         if answer.get('choice_kind') == 'conflict':
@@ -1377,7 +1376,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
         texte, links = satzantwort.text_und_links(satz, episodes, claims)
         lines.extend(([''] if lines else []) + texte)
     else:
-        gezeigt = _zitate(answer, episodes, fallback, originaltext=not kompakt)
+        gezeigt = _zitate(answer, episodes, fallback)
         if gezeigt is None:
             return UNAVAILABLE, [], 'working_unavailable'
         lines.extend(gezeigt[0])
@@ -1411,6 +1410,21 @@ def satz_struktur(answer, episodes, claims):
     return {**satzantwort.struktur(satz, episodes, claims), 'hinweise': _search_notices(answer)}
 
 
+def person_question_unavailable(answer, episodes):
+    return (answer.get('status') == 'unclear' and answer.get('uncertainty') == 'person'
+            and answer.get('person_question_optional') is True and not choices(answer, episodes))
+
+
+def original_fallback(answer, status, structured, episodes):
+    """Nach frischer Projektion: Originalbericht ohne geprüfte Satzantwort, niemals bestätigtes Wissen.
+
+    Der vollständige Text bleibt erhalten; die Oberfläche darf ihn aufklappbar zeigen.
+    """
+    return (not structured and not answer.get('claim_basis') and bool(answer.get('refs'))
+            and (status == 'working_reports' or (status == 'working_unclear'
+                and person_question_unavailable(answer, episodes))))
+
+
 def original_question(answer):
     """Die ursprüngliche, eigenständige Frage einer Antwort, sonst None."""
     if (not isinstance(answer, dict) or 'retrieval_query' in answer
@@ -1438,6 +1452,7 @@ def project_message(message, episodes, claims, *, resolve=True, conflict_status=
     current.pop('clarification_choices', None)
     current.pop('clarification_date', None)
     current.pop('satzantwort', None)
+    current.pop('original_fallback', None)
     current.pop('zeiten', None)
     zeiten = zeitmessung.gueltig(context['working_answer'].get('zeiten'))
     if zeiten is not None:
@@ -1445,6 +1460,8 @@ def project_message(message, episodes, claims, *, resolve=True, conflict_status=
     aufbereitet = satz_struktur(context['working_answer'], episodes, claims) if status == 'working_reports' else None
     if aufbereitet is not None:
         current['satzantwort'] = aufbereitet
+    if original_fallback(context['working_answer'], status, aufbereitet, episodes):
+        current['original_fallback'] = True
     current.pop('original_question', None)
     current.pop('refresh_available', None)
     question = original_question(context['working_answer'])
