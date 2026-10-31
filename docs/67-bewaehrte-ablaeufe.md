@@ -11,7 +11,8 @@ Speichern gelesen, statt im Ablauf dupliziert zu werden.
 Im Gespräch ausdrücklich schreiben: „Lerne diesen Ablauf: …“. Anlass, Schritte
 und ein Gegenbeispiel helfen. Das lokale Modell erstellt daraus einen
 Vorschlag; es aktiviert nichts. „Ablauf prüfen“ führt direkt zur Prüfung in
-Einstellungen → Kingfisher und du → Bewährte Abläufe. Dort Schritte und Beispiele
+Einstellungen → Kingfisher und du → Bewährte Abläufe und öffnet den betreffenden
+Vorschlag direkt. Dort Schritte und Beispiele
 ansehen, gegebenenfalls eine neue Fassung vorschlagen, dann „Geprüft übernehmen“.
 Ein übernommener Ablauf wird bei einer passenden Anfrage automatisch ausgewählt.
 „Zurücknehmen“ beendet seine Anwendung; der Verlauf bleibt nachvollziehbar.

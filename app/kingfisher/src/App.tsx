@@ -492,7 +492,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                   {message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet={false} />)}
                 </div> : null}
                 {beleg.art === "ohne" && !procedureProposal ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
-                {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate("/settings#ich-ablaeufe")}>Ablauf prüfen</button> : null}
+                {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate(`/settings?ablauf=${encodeURIComponent(procedureProposal.id)}#ich-ablaeufe`)}>Ablauf prüfen</button> : null}
                 {meldbar(message) ? <div className="antwort-rueckkanal">
                   <StimmtNicht conversationId={data.conversation.id} messageId={message.id} />
                   {uebernehmbar(message) ? <InDieAkte conversationId={data.conversation.id} messageId={message.id} /> : null}

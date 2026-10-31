@@ -108,3 +108,19 @@ test('without a known chat status the start input stays disabled and says why',a
  const d=driver(ConversationHistory,{recentConversation:null,rememberConversation(){},chatAvailable:false,chatPlaceholder:'Kingfisher wird verbunden …'});
  try{const bar=nodes(d.render(),n=>n.type?.name==='CommandBar')[0];assert.equal(bar.props.disabled,true);assert.equal(bar.props.placeholder,'Kingfisher wird verbunden …');}finally{d.close();}
 });
+
+test('review button opens the exact procedure id through an encoded settings link',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation;
+ const pushed=[];globalThis.window={location:{hash:''},history:{pushState(_s,_t,path){pushed.push(path);}},dispatchEvent(){},addEventListener(){},removeEventListener(){}};
+ globalThis.PopStateEvent??=class{constructor(type){this.type=type;}};
+ globalThis.document={getElementById(){return null;}};
+ const id='proc/special?ä&other';
+ api.getConversation=async()=>({conversation:{id:'review',title:'Test'},context:{items:[]},memory_candidates:[],messages:[{
+  id:'m1',role:'assistant',content:'Ein Ablauf liegt zur Prüfung bereit.',status:'complete',
+  metadata:{context:{procedure_proposal:{id,title:'Zielablauf',state:'pending'}}}}]});
+ const d=driver(Conversation,{id:'review',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try{d.render();d.runEffects();await tick();const control=button(d.render(),'Ablauf prüfen');assert.ok(control);
+  control.props.onClick();assert.deepEqual(pushed,['/settings?ablauf=proc%2Fspecial%3F%C3%A4%26other#ich-ablaeufe']);
+ }finally{d.close();api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});

@@ -104,13 +104,16 @@ const ALT: Record<string, string> = {
   rueckmeldungen: "technik-rueckmeldungen", advanced: "technik",
 };
 
-export type Ziel = { bereich: Bereich; technik: string | null; ich?: "ablaeufe" };
+export type Ziel = { bereich: Bereich; technik: string | null; ich?: "ablaeufe"; ablauf?: string };
 
 /** `#darf`, `#technik-akten` oder eine alte Kennung (`#world`) ergibt das Ziel; Unbekanntes führt nach vorn. */
-export function zielAus(kennung: string): Ziel {
+export function zielAus(kennung: string, suche = ""): Ziel {
   const roh = kennung.replace(/^#/, "").trim();
   const neu = ALT[roh] ?? roh;
-  if (neu === "ich-ablaeufe") return { bereich: "ich", technik: null, ich: "ablaeufe" };
+  if (neu === "ich-ablaeufe") {
+    const ablauf = new URLSearchParams(suche).get("ablauf");
+    return { bereich: "ich", technik: null, ich: "ablaeufe", ...(ablauf ? { ablauf } : {}) };
+  }
   if (neu.startsWith("technik")) {
     const rest = neu.slice("technik".length).replace(/^-/, "");
     return { bereich: "technik", technik: TECHNIK.some(t => t.id === rest) ? rest : null };
