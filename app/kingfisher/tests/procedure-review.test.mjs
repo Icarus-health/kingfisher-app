@@ -17,16 +17,52 @@ function driver(Component,props={}){const states=[],refs=[],effects=[],pending=[
  const d={props,state(v){const i=s++;if(!(i in states))states[i]=typeof v==='function'?v():v;return[states[i],n=>states[i]=typeof n==='function'?n(states[i]):n];},ref(v){return refs[r++]??={current:v};},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__procedureDriver=d;return Component(d.props);},run(){pending.splice(0).forEach(fn=>fn());},close(){effects.forEach(x=>x.cleanup?.());delete globalThis.__procedureDriver;}};return d;}
 const item=id=>({id,name:id,title:'Gleicher Titel',description:'Eine künstliche Beschreibung.',area:'mail',version:1,state:'pending',current:true,triggers:['zunft'],positive:'Zunftmail prüfen',negative:'Private Mail',checks:{structure:true,routing_examples:true,human_review_required:true}});
 const detail=id=>({...item(id),steps:[`Nur Schritte von ${id}`],sources:{},markdown:'# Test'});
-async function fixture(search,run){const old={window:globalThis.window,fetch:globalThis.fetch,raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame};
+async function fixture(search,run,suppliedItems=['a','b','c'].map(item)){const old={window:globalThis.window,fetch:globalThis.fetch,raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame};
  const events=new Map(),calls=[];let failDetail=false;
  globalThis.window={location:{search},addEventListener(n,fn){events.set(n,fn);},removeEventListener(n){events.delete(n);}};
  globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
- globalThis.fetch=async(path)=>{calls.push(String(path));return new Response(JSON.stringify(path==='/api/v1/procedures'?{items:['a','b','c'].map(item),core:[]}:failDetail?{detail:'Künstlich nicht erreichbar'}:detail(String(path).split('/').at(-1))),{status:path==='/api/v1/procedures'||!failDetail?200:404});};
+ globalThis.fetch=async(path)=>{calls.push(String(path));return new Response(JSON.stringify(path==='/api/v1/procedures'?{items:suppliedItems,core:[]}:failDetail?{detail:'Künstlich nicht erreichbar'}:detail(String(path).split('/').at(-1))),{status:path==='/api/v1/procedures'||!failDetail?200:404});};
  const d=driver(ProcedureSettings);
  try{d.render();d.run();await tick();d.render();d.run();await run({d,events,calls,fail(v){failDetail=v;}});}
  finally{d.close();globalThis.window=old.window;globalThis.fetch=old.fetch;globalThis.requestAnimationFrame=old.raf;globalThis.cancelAnimationFrame=old.caf;}
 }
 const rows=d=>nodes(d.render(),n=>n.type?.name==='ProcedureRow');
+
+test('category and context search filter metadata without reading any procedure body',()=>fixture('',async({d,calls})=>{
+ let tree=d.render();let category=nodes(tree,n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0];
+ assert.ok(category,'Kategoriefilter vorhanden');category.props.onChange({target:{value:'planning'}});
+ assert.deepEqual(rows(d).map(n=>n.props.item.id),['b']);
+ category=nodes(d.render(),n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0];
+ category.props.onChange({target:{value:''}});
+ const search=nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0];
+ search.props.onChange({target:{value:'ehrenamt'}});
+ assert.deepEqual(rows(d).map(n=>n.props.item.id),['a']);
+ search.props.onChange({target:{value:'nicht vorhanden'}});
+ assert.equal(rows(d).length,0);assert.match(text(d.render()),/Keine passenden Abläufe/);
+ assert.deepEqual(calls,['/api/v1/procedures']);
+},[{...item('a'),contexts:['Ehrenamt'],category:'communication'},
+   {...item('b'),area:'planning',category:'planning'}, {...item('c'),area:'analysis',category:'research'}]));
+
+test('a direct review target remains visible while other categories are filtered',()=>fixture('?ablauf=a',async({d})=>{
+ const filter=nodes(d.render(),n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0];
+ assert.ok(filter);filter.props.onChange({target:{value:'planning'}});
+ assert.deepEqual(rows(d).map(n=>[n.props.item.id,n.props.targeted]),[['a',true],['b',false]]);
+ assert.match(text(d.render()),/Der angeforderte Ablauf bleibt/);
+},[{...item('a'),category:'communication'}, {...item('b'),area:'planning',category:'planning'}]));
+
+test('a new revision keeps its reviewed classification and application contexts',()=>fixture('?ablauf=a',async({d})=>{
+ const list=rows(d),row=driver(list[0].type,list[0].props);
+ const fetch=globalThis.fetch;
+ globalThis.fetch=async(path)=>path==='/api/v1/procedures/a'?new Response(JSON.stringify({...detail('a'),category:'maintenance',contexts:['Zunft']})):fetch(path);
+ try{row.render();row.run();await tick();let tree=row.render();
+  nodes(tree,n=>n.type==='button'&&text(n)==='Neue Fassung')[0].props.onClick();tree=row.render();
+  const formNode=nodes(tree,n=>n.type?.name==='ProcedureForm')[0];const form=driver(formNode.type,formNode.props);
+  try{let saved;form.props={...form.props,onSave:async(spec)=>{saved=spec;return false;}};
+   await form.render().props.onSubmit({preventDefault(){},currentTarget:{elements:{namedItem(){return{setCustomValidity(){}};}},reportValidity(){return true;}}});
+   await tick();assert.equal(saved.category,'maintenance');assert.deepEqual(saved.contexts,['Zunft']);
+  }finally{form.close();}
+ }finally{row.close();}
+}));
 
 test('same titles select only the requested id and read its actual detail',()=>fixture('?ablauf=b',async({d,calls})=>{
  const list=rows(d);assert.deepEqual(list.map(n=>n.props.targeted),[false,true,false]);
