@@ -76,12 +76,12 @@ def test_native_leer_dann_gueltige_id_nutzt_eine_nachpruefung_und_aktive_pruefun
 
 
 @pytest.mark.parametrize('needle', [ROW, 'Rücksendefrist\n18.11.2026', 'Prüfdatum\n20.11.2026'])
-def test_dauerhaft_leere_oder_fehlende_feldauswahl_wird_nie_erzwungen(stores, monkeypatch, needle):
+def test_dauerhaft_leere_auswahl_ergibt_ohne_passendes_pruefurteil_weiter_zitate(stores, monkeypatch, needle):
     intake(stores, monkeypatch)
-    provider, judge = Auswahl(empty=10 if needle == ROW else 0, needle=needle), Pruefer()
+    provider, judge = Auswahl(empty=10 if needle == ROW else 0, needle=needle), Pruefer(standard='{"urteil":"nein"}')
     saved, _, _, _ = answer(stores, provider, judge)
     assert saved['satzantwort']['status'] == 'zitate'
-    assert len(provider.requests) == 2 and judge.anfragen == []
+    assert len(provider.requests) == 2 and len(judge.anfragen) == 1
 
 
 @pytest.mark.parametrize('verdict', ['ja', 'nein', 'unklar'])

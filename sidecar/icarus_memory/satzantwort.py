@@ -729,7 +729,7 @@ def _lesen(antwort: Any) -> tuple[str, list[Satz]]:
 
 def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, jetzt: datetime,
                 zusatz_woerter: Sequence[str] = (), zeiten: Zeiten | None = None,
-                pruefung: Tor | None = None) -> Versuch:
+                pruefung: Tor | None = None, native_kandidaten: bool = False) -> Versuch:
     """Fragt das Modell der Rolle `antwort` und prüft jeden Satz. Wirft nie; jeder Fehler ist ein Rückfall auf die Zitate.
 
     `zeiten` (optional, `zeitmessung.py`) misst den Modellaufruf (`saetze_modell`), die Prüfung (`satzpruefung`) und
@@ -763,6 +763,10 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
             with zeitmessung.messen(zeiten, 'saetze_modell'):
                 antwort = anbieter.complete_json(nachpruefung, max_tokens=700, schema=ORIGINAL_SCHEMA)
             status, saetze = _original_lesen(antwort, stellen)
+            if (status == 'nichts_vorliegend' and not saetze and native_kandidaten is True and tor.aktiv
+                    and 1 <= len(belege) <= 2 and all(len(b.native_rows) == 1 for b in belege)):
+                # Ausschließlich ganze bewiesene Rawrecords kopieren; beide Tore entscheiden.
+                status, saetze = 'antwort', [Satz(b.native_rows[0], (str(b.nummer),)) for b in belege]
         if status == 'nichts_vorliegend' and any(b.native_rows for b in belege):
             return Versuch('zitate', grund='Native Feldzeilen belegen keine globale Abwesenheit', modell=modell, tor=tor)
     except Exception as fehler:  # noqa: BLE001 - jeder Fehler des Modells führt zu den Zitaten, nie zu einer Antwort ohne Beleg
@@ -932,7 +936,8 @@ def erzeugen(frage: str, refs: Sequence[dict[str, Any]], kontext: Kontext, episo
         belege, ausgelassen = belege_sammeln(refs, kontext, episodes, claims, rahmen, woerter)
         zusatz = [name for name in kontext.namen.values() if name]
         versuch = formulieren(frage, belege, anbieter, jetzt=jetzt, zusatz_woerter=zusatz, zeiten=zeiten,
-                              pruefung=pruefung)
+                              pruefung=pruefung, native_kandidaten=not ausgelassen and
+                              {r['episode_id'] for r in refs} == {b.episode_id for b in belege})
     except Exception as fehler:  # noqa: BLE001 - die Antwort im Zitatmodus bleibt in jedem Fall möglich
         return {'version': SATZ_VERSION, 'status': 'zitate', 'grund': f'Fehler beim Formulieren ({type(fehler).__name__})'}
     daten: dict[str, Any] = {

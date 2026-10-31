@@ -315,6 +315,13 @@ def urteilen(auftraege: Sequence[tuple[str, Sequence[Any]]], tor: Tor, *, zeiten
         satz_budget = PROFIL_SATZ_BUDGET_S if profil else SATZ_BUDGET_S
     if gesamt_budget is None:
         gesamt_budget = PROFIL_GESAMT_BUDGET_S if profil else GESAMT_BUDGET_S
+        if (profil and native_fragen is not None and len(native_fragen) == 2
+                and all(type(q) is str and 0 < len(q) <= 2000 for q in native_fragen)):
+            from .providers import ProviderError, _json_transport_timeout
+            try:
+                gesamt_budget = _json_transport_timeout(16.0)
+            except ProviderError:
+                return [Urteil(UNKLAR, 'zeit') for _ in auftraege]
     adapter = adapter_fuer(tor.modell)
     urteile: list[Urteil] = []
     with zeitmessung.messen(zeiten, 'pruefung_modell'):
