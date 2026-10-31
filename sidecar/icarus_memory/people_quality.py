@@ -73,9 +73,6 @@ def annotate_people(nodes):
             category, reason = 'review', 'Als Integrationstest bezeichnet; Herkunft vor Bereinigung prüfen.'
         elif not explicit and ist_firmenbezeichnung(name or label):
             category, reason = 'review', 'Firmenbezeichnung im Anzeigenamen; eine Personenidentität ist noch nicht bestätigt.'
-        elif not explicit and (local == 'pay' or _CAMPAIGN_LOCAL.search(local)
-                or _DOMAIN_LABEL.fullmatch(name or label) or _SERVICE_LABEL.search(name or label)):
-            category, reason = 'review', 'Firmen- oder Funktionsabsender; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and not address and ist_sammelpostfach(label):
             category, reason = 'review', 'Allgemeine Servicebezeichnung; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and address and ist_sammelpostfach(local):
@@ -83,6 +80,9 @@ def annotate_people(nodes):
                 category, reason = 'automated', 'Technische Benachrichtigungsadresse; der Anzeigename belegt keine Personenidentität.'
             else:
                 category, reason = 'review', 'Allgemeines oder zusammengesetztes Servicepostfach; Person oder Organisation noch ungeklärt.'
+        elif not explicit and (local == 'pay' or _CAMPAIGN_LOCAL.search(local)
+                or _DOMAIN_LABEL.fullmatch(name or label) or _SERVICE_LABEL.search(name or label)):
+            category, reason = 'review', 'Firmen- oder Funktionsabsender; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and '@' in label and not address:
             category, reason = 'review', 'Keine eindeutige Mailadresse aus dem Absender lesbar.'
         metadata[node.id] = {

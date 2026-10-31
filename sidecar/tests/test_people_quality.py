@@ -120,3 +120,11 @@ def test_personal_names_and_explicitly_confirmed_service_identities_keep_their_s
         person('b','Alex Winter <alex@campaign.example>'),
         person('c','Orion.example <pay@checkout.example>',True)]
     assert all(n.attributes['quality_category']=='person' for n in annotate_people(nodes))
+
+
+def test_unambiguous_automated_mailbox_keeps_priority_over_ambiguous_display_label():
+    from icarus_memory.people_quality import annotate_people
+    nodes=[person('a','orion.example <noreply@orion.example>'),
+        person('b','Orion Site Audit <notifications@monitor.example>'),
+        person('c','Alex <campaign-response-noreply@sender.example>')]
+    assert all(n.attributes['quality_category']=='automated' for n in annotate_people(nodes))
