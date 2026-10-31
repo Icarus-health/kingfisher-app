@@ -131,6 +131,7 @@ class TaskDetector:
                     continue
             attempted += 1
             result = None
+            manual_review = False
             try:
                 # Den Schreiblock nicht während eines langsamen Modellaufrufs halten.
                 text, end = segment(current.body, job['offset'])
@@ -154,6 +155,7 @@ class TaskDetector:
                                      for contact in current.contacts)
                     items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source,
                                          policy=policy, episode=current)
+                    manual_review = bool(getattr(items, 'requires_review', False))
             except BackgroundInterrupted:
                 self.proposals.memory_analysis.abandon(job, state='cancelled')
                 raise
@@ -177,6 +179,7 @@ class TaskDetector:
                                 job, items, end,
                                 proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}"
                                             + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL
+                                               and not manual_review
                                                and not any(open_time_request(current.body, item['quote'])
                                                            for item in items) else ''),
                             )

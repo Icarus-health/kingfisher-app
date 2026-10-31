@@ -314,3 +314,56 @@ Ein einzelner positiver Entwurf beweist keine allgemeine Lernqualität. Andere
 Lernbitten können weiter zur manuellen Eingrenzung zurückgegeben werden. Die
 Bibliothek bleibt eine ergänzende Sammlung bestätigter Verfahren, kein Ersatz
 für Fakten oder neue Berechtigungen.
+
+
+## I: vollständige Wiederholung, neue wichtige Aufgabenlücke
+
+Der unveränderte Katalog läuft vollständig auf dem sauberen Stand bbb6497.
+Alle 87 tatsächlichen nativen Modellaufrufe sind belegt: 8192 Kontext,
+2943–15749 Byte, keine Abschneidung und reguläres Ende. 572,59 Modellsekunden,
+585 Ressourcenmessungen, minimale freie Reserve 25 Prozent und maximale
+Druckstufe 2; kein technischer Abbruch. Quellcode und Originale bleiben
+unverändert. Die knappe Speicherreserve beweist keine allgemeine Mac-Flüssigkeit.
+
+Die unabhängige Prüfung aller 24 Aufnahme-/Aufgabenentscheidungen, 16 Antworten
+und 87 Rohantworten findet alle finalen Antworten sachlich und quellengebunden
+korrekt. Die reparierten Fragen nach eigener Zusage und negiertem Arbeitsstand
+bleiben richtig. **Trotzdem keine Gesamtfreigabe:** Eine eigene Versandzusage
+fehlt neu in den Aufgabenvorschlägen. Klassifikation und unabhängige
+Aufgabenextraktion erkennen sie korrekt; erst die zusätzliche Modellprüfung
+verwirft sie fälschlich als reine Information. Eine richtige Gedächtnisantwort
+heilt diesen Aufgabenverlust nicht.
+
+151 von 154 dynamisch vorhandenen Vertragsprüfungen bestehen. Neben diesem
+neuen m11-Fehler bleiben der alte m14-Sollkonflikt und die q15-Statusabweichung
+sichtbar. Die Anzahl ist keine Genauigkeitsquote; bei fehlenden Kandidaten
+entfallen mehrere Detailverträge. Der neue Verlust wird gezielt als manueller
+Prüffall geschlossen, ohne eine automatische Übernahme oder neue Frist zu
+behaupten. Großimport und Auslieferung bleiben bis zur Nachprüfung zurückgehalten.
+
+
+## Eng begrenzte Prüfaufbewahrung für den I-Aufgabenverlust
+
+Eine vollständig wörtliche direkte eigene Versandzusage darf bei Widerspruch
+der zusätzlichen Modellprüfung als **manueller** Originalvorschlag erhalten
+bleiben. Dafür müssen der vollständige ungerahmte Text und eindeutige
+strukturierte eigene Absenderrollen zusammenpassen. Metadaten allein, fremde
+Sprecher, unbekannte Rollen, Berichte, Zitate, Weiterleitungen, Bedingungen,
+Verneinungen und ein aufhebender Betreff reichen ausdrücklich nicht. Der
+Kurzname wird nicht als gültig erklärt; Titel und Beleg sind der Originalsatz.
+
+Ein listenkompatibler expliziter Prüfstatus wird an den bestehenden Worker
+weitergegeben. Dieser vergibt dann keine positive Reviewmarke. Die vorhandene
+Autoanlage bleibt mit „ungeprüft“ gesperrt; Annahme und frische Quellenprüfung
+bleiben Nutzerarbeit. Bestehende positive Modellurteile werden nicht verändert.
+Es handelt sich um eine enge Auffangregel für Versandzusagen, keinen allgemeinen
+Grammatik- oder Wahrheitsprüfer.
+
+Die unabhängige Nachprüfung fand zunächst fehlende Negationswörter und einen
+Absage-Betreff als Gegenfälle. Die Korrektur bleibt auf Ausschlüsse im neuen
+manuellen Pfad beschränkt. 161 gezielte Workerprüfungen bestehen; endgültige
+unabhängige Nachkontrolle und erneuter realer Aufgaben-/Abruflauf folgen.
+Dafür dürfen dieselben unveränderten I-Originale und Einordnungen verwendet
+werden. Nur die abgeleiteten Prüfjobs/Vorschläge werden in einer neuen
+künstlichen Kopie frisch angelegt. Dies ist keine erneute Klassifikation der
+Mails und keine Veränderung der ursprünglichen I-Datenbanken.

@@ -25,6 +25,58 @@ _FRAME_NAME = re.compile(r"[A-ZÄÖÜ][a-zäöüß]+(?:[-'][A-ZÄÖÜ]?[a-zäö�
 _FRAME_QUALIFIER = re.compile(r'\b(?:nur|falls|wenn|ohne|nicht|kein\w*|soll\w*|muss\w*|'
                               r'zuständig|vorbehalt\w*|abgesagt|entfällt|freigabe|erledigt|'
                               r'widerrufen|storniert|unverbindlich|bedingt|offen)\b', re.I)
+_OWN_DELIVERY = re.compile(
+    r'Ich[ \t]+werde[ \t]+(?:(?:dir|Ihnen|euch)[ \t]+)?(?:die|den|das)[ \t]+'
+    r'[\w \t-]+[ \t]+(?:senden|schicken|liefern|einreichen|übergeben)\.')
+_OWN_DELIVERY_CONTEXT = re.compile(
+    r'\b(?:nie|niemals|weder|von|laut|dass|daß|ob|weil|als|sofern|und|oder|nach|bei|bevor|nachdem|sobald|solange|während|'
+    r'wird|werden|werde|ich|vielleicht|eventuell|gegebenenfalls|'
+    r'möglicherweise|hoffentlich|wahrscheinlich|könnte\w*|würde\w*|'
+    r'zitiert\w*|gesagt|zugesagt\w*|zusage\w*|versprochen\w*|versprach\w*|'
+    r'schrieb\w*|wrote|bericht\w*|weiterleit\w*|forward\w*|erinner\w*)\b', re.I)
+_FORWARD_SUBJECT = re.compile(r'^\s*(?:fw|fwd|wg)\s*:|\b(?:weitergeleitet\w*|weiterleitung|forwarded)\b', re.I)
+_WITHDRAWING_SUBJECT = re.compile(
+    r'\b(?:Absage|abgesagt|Widerruf|widerrufen|zurückgezogen|storniert|Storno|entfällt|aufgehoben|hinfällig)\b', re.I)
+_CLOCK = re.compile(r'\b(?:[01]?\d|2[0-3]):[0-5]\d\b')
+
+
+class TaskReviewResult(list):
+    """Listenkompatibles Ergebnis; reine Prüfaufbewahrung ist keine positive Freigabe."""
+
+    def __init__(self):
+        super().__init__()
+        self.requires_review = False
+
+
+def _direct_own_delivery(subject, body, quote, episode):
+    """Nur die vollständige, ungerahmte eigene Versandzusage zur Prüfung erhalten.
+
+    Weder Header allein noch eine Textform allein belegt diesen engen Fall.
+    Datum/Uhrzeit werden ausschließlich zur Satzgrenzenprüfung maskiert;
+    Quelltext, Zitat und dessen Zeitangaben bleiben unverändert.
+    """
+    from .episodes import AUSGEBLENDETE_ZUSTAENDE, mail_address
+    from .model import SourceType
+
+    if (episode is None or getattr(episode, 'body', None) != body
+            or getattr(episode, 'title', None) != subject
+            or getattr(getattr(episode, 'provenance', None), 'source_type', None) is not SourceType.EMAIL
+            or getattr(getattr(episode, 'kind', None), 'value', None) != 'message'
+            or getattr(episode, 'state', None) in AUSGEBLENDETE_ZUSTAENDE
+            or _FORWARD_SUBJECT.search(subject) or _WITHDRAWING_SUBJECT.search(subject)):
+        return False
+    senders = [contact for contact in (episode.contacts or []) if contact.get('rolle') == 'von']
+    if (len(senders) != 1 or senders[0].get('ich') is not True
+            or not mail_address(senders[0].get('adresse') or '')):
+        return False
+    text = body.strip()
+    opening = re.match(r'Ich[ \t]+werde[ \t]+', text)
+    if (text != quote.strip() or opening is None or _FRAME_QUALIFIER.search(text)
+            or _OWN_DELIVERY_CONTEXT.search(text[opening.end():])):
+        return False
+    _, sentence = daten_in(text)
+    sentence = _CLOCK.sub(lambda match: ' ' * len(match[0]), sentence)
+    return _OWN_DELIVERY.fullmatch(sentence) is not None
 
 
 def _open_time_body(body, quote):
@@ -163,7 +215,7 @@ def review_tasks(provider, subject, body, items, *, own_source=False, policy=Non
                 or row['id'] in verdicts or row['kind'] not in KINDS or type(row['title_supported']) is not bool):
             raise ProviderError('Die Aufgabenprüfung ist mehrdeutig.')
         verdicts[row['id']] = row
-    result = []
+    result = TaskReviewResult()
     for i, item in enumerate(items):
         verdict = verdicts[i]
         if (verdict['title_supported'] and hard_details_supported(item['title'], item['quote'])
@@ -174,6 +226,11 @@ def review_tasks(provider, subject, body, items, *, own_source=False, policy=Non
             # Wortlaut statt einer scheinbar feststehenden Frist. Der Worker
             # gibt diesem Prüffall ausdrücklich keinen positiven Review-Marker.
             result.append({'title': item['quote'], 'quote': item['quote']})
+        elif own_source and _direct_own_delivery(subject, body, item['quote'], episode):
+            # Widerspruch des Judges bleibt sichtbar prüfpflichtig. Kein
+            # gestützter Kurztitel, keine bestätigte Zuständigkeit/Autoanlage.
+            result.append({'title': item['quote'], 'quote': item['quote']})
+            result.requires_review = True
     return result
 
 
