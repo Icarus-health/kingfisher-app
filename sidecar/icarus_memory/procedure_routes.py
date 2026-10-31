@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from .procedures import CORE, ProcedureError, ProcedureStore, Spec, episode_dependency
+from .procedures import CORE, CORE_CATEGORIES, ProcedureError, ProcedureStore, Spec, episode_dependency
 from .providers import ProviderError
 from .procedure_model import draft as draft_procedure
 
@@ -71,6 +71,10 @@ def learn(app, message, source_episode):
             'Gib ausschließlich JSON nach diesem Schema zurück: ' + json.dumps(Spec.model_json_schema(), ensure_ascii=False)
             + '\nKeine Fakten, Namen, Empfängeradressen oder festen Termine in den Ablauf kopieren. '
             'Keine neuen Werkzeuge, Berechtigungen oder Skripte. Bereich mail, planning oder analysis. '
+            'Kategorie communication, planning, research, maintenance oder other nach dem Zweck wählen. '
+            'contexts enthält höchstens vier ausdrücklich genannte Anwendungskontexte (z.B. Zunft); '
+            'bei allgemeinen Abläufen leer lassen. Keine Personen-/Aktennamen als Kontexte anlegen. '
+            'Das Positivbeispiel muss auch einen angegebenen Kontext enthalten. '
             'Auslöser sind ganze Wörter der ausdrücklichen Aufgabe. Das Positivbeispiel muss einen Auslöser enthalten; '
             'das Gegenbeispiel keinen. Schritte prüfen Eingaben, Vorgehen und Ergebnis. '
             'Bestehende passende Abläufe wiederverwenden; bei einer Korrektur denselben Namen verwenden. '
@@ -104,7 +108,8 @@ def register(app, guard):
     @app.get('/api/v1/procedures', dependencies=guard)
     def list_procedures():
         return {'items':app.state.procedures.items(), 'core':[
-            dict(id=name, name=name, title=value[0], category=value[1], area=value[2], description=value[3])
+            dict(id=name, name=name, title=value[0], category=value[1], purpose=CORE_CATEGORIES[name],
+                 tier=value[1], contexts=[], area=value[2], description=value[3])
             for name, value in CORE.items()]}
 
     @app.post('/api/v1/procedures', dependencies=guard, status_code=201)

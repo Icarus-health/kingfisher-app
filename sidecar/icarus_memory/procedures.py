@@ -12,6 +12,7 @@ import sqlite3
 import threading
 import uuid
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -29,6 +30,8 @@ class Spec(BaseModel):
     title: str = Field(min_length=3, max_length=100)
     description: str = Field(min_length=10, max_length=400)
     area: str = Field(pattern=r'^(mail|planning|analysis)$')
+    category: Literal['communication','planning','research','maintenance','other'] | None = None
+    contexts: list[str] = Field(default_factory=list, max_length=4)
     triggers: list[str] = Field(min_length=1, max_length=8)
     steps: list[str] = Field(min_length=1, max_length=8)
     positive: str = Field(min_length=5, max_length=400)
@@ -51,6 +54,16 @@ def _load_core():
 
 CORE = _load_core()
 
+DEFAULT_CATEGORIES = {'mail':'communication', 'planning':'planning', 'analysis':'research'}
+CORE_CATEGORIES = {'skill-router':'other', 'source-safety':'research', 'memory-recall':'research',
+                   'mail-draft':'communication', 'task-planning':'planning'}
+
+
+def classification(spec):
+    """Alte Fassungen nur beim Lesen einordnen; ihre gespeicherten Bytes bleiben erhalten."""
+    return dict(category=spec.get('category') or DEFAULT_CATEGORIES[spec['area']],
+                contexts=spec.get('contexts', []), tier='contextual')
+
 
 def _hash(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
@@ -60,12 +73,26 @@ def _terms(text):
     return set(re.findall(r'[^\W_]+', text.casefold(), flags=re.UNICODE))
 
 
-def _leading(message):
+def _positive_clauses(message):
     # Zitate/Dokumente nach der eigentlichen Bitte setzen keinen Verfahrensbereich.
     line = message.strip().partition('\n')[0][:600]
-    # Eine verneinte Passage ist kein positiver Anwendungsbeleg. Konservativ:
-    # nach dem ersten Nein keinen späteren Kontext hinzuraten.
-    return re.split(r'\b(?:nicht|ohne|kein(?:e|en|em|er|es)?)\b', line, maxsplit=1, flags=re.I)[0]
+    line = re.split(r'\b(?:zitat|quelltext|mailtext|beispieltext)\s*:', line, maxsplit=1, flags=re.I)[0]
+    line = re.sub(r'"[^"\n]*"|„[^“\n]*“|“[^”\n]*”|‘[^’\n]*’|\'[^\'\n]*\'|`[^`\n]*`', ';', line)
+    # Offene Anführungen sind kein sicherer eigener Kontext. Wortgruppen dürfen
+    # weder über Zitatgrenzen noch über einen negierten Teilsatz hinweg entstehen.
+    line = re.split(r'["„“‘`]', line, maxsplit=1)[0]
+    negative = r'\b(?:nicht|ohne|kein(?:e|en|em|er|es)?|keinesfalls|niemals|nie|weder)\b'
+    return [part for part in re.split(r'[.!?;:,\n]', line) if not re.search(negative, part, flags=re.I)]
+
+
+def _leading(message):
+    return '; '.join(_positive_clauses(message))
+
+
+def _phrase_in(phrase, text):
+    tokens = re.findall(r'[^\W_]+', text.casefold())
+    wanted = re.findall(r'[^\W_]+', phrase.casefold())
+    return any(tokens[i:i+len(wanted)] == wanted for i in range(len(tokens)-len(wanted)+1))
 
 
 _GENERIC_TRIGGERS = frozenset('offiziell offizielle offiziellen formell freundlich kurz knapp '
@@ -74,8 +101,10 @@ _GENERIC_TRIGGERS = frozenset('offiziell offizielle offiziellen formell freundli
 
 
 def _matches(spec, message, area):
-    return spec['area'] == area and any(
-        _terms(trigger) <= _terms(_leading(message)) for trigger in spec['triggers'])
+    words = _terms(_leading(message))
+    return (spec['area'] == area and any(_terms(trigger) <= words for trigger in spec['triggers'])
+            and (not spec.get('contexts') or any(_phrase_in(context, clause)
+                 for context in spec['contexts'] for clause in _positive_clauses(message))))
 
 
 def validate(spec):
@@ -83,6 +112,11 @@ def validate(spec):
         data = Spec.model_validate(spec).model_dump()
     except ValidationError as exc:
         raise ProcedureError('Der Ablauf ist unvollständig oder enthält unbekannte Felder.') from exc
+    data['category'] = data['category'] or DEFAULT_CATEGORIES[data['area']]
+    data['contexts'] = list(dict.fromkeys(value.strip() for value in data['contexts']))
+    if any(not re.fullmatch(r'[\wäöüÄÖÜß -]{2,60}', value)
+           or not (_terms(value) - _GENERIC_TRIGGERS) for value in data['contexts']):
+        raise ProcedureError('Bitte konkrete Kontexte mit je 2 bis 60 Zeichen angeben.')
     if data['name'] in CORE:
         raise ProcedureError('Grundverfahren können nicht durch Lernvorschläge ersetzt werden.')
     # Aufgabenart und Ton stecken bereits im Bereich/Stilprofil. Sie dürfen
@@ -162,6 +196,7 @@ class ProcedureStore:
         result = {**json.loads(row['header']), **{key: row[key] for key in
             ('id', 'name', 'version', 'state', 'base_version', 'created_at', 'request_key')}}
         sources = json.loads(row['sources'])
+        result.update(classification(result))
         result.update(sources=sources, current=self._fresh(sources), local_only=True,
             checks={'structure': True, 'routing_examples': True, 'human_review_required': row['state'] == 'pending'})
         if body:
@@ -169,11 +204,15 @@ class ProcedureStore:
             result['steps'] = parse_markdown(row['body'])['steps']
         return result
 
-    def items(self, *, active_only=False):
+    def items(self, *, active_only=False, area=None):
         with self._lock:
             # Kein Ablauftext im Listenabruf und deshalb auch nicht automatisch im Modellkontext.
+            conditions = (["state='active'"] if active_only else [])
+            if area is not None:
+                conditions.append("json_extract(header, '$.area')=?")
             rows = self._conn.execute('SELECT id,name,version,state,base_version,header,sources,request_key,created_at FROM procedures'
-                + (" WHERE state='active'" if active_only else '') + ' ORDER BY created_at DESC, id').fetchall()
+                + (' WHERE ' + ' AND '.join(conditions) if conditions else '')
+                + ' ORDER BY created_at DESC, id', (area,) if area is not None else ()).fetchall()
             return [self._item(row) for row in rows]
 
     def learning_catalog(self, message):
@@ -200,14 +239,12 @@ class ProcedureStore:
             score = len(words & _terms(' '.join(item['triggers'])))
             if item['current'] and score:
                 ranked.append((score, item))
-        result, size = [], 0
+        result = []
         for _, item in sorted(ranked, key=lambda entry: -entry[0]):
-            header = {key:item[key] for key in ('name','area','triggers','state','version')}
+            header = {key:item[key] for key in ('name','area','category','contexts','triggers','state','version')}
             header['description'] = item['description'][:120]
-            added = len(json.dumps(header, ensure_ascii=False).encode())
-            if size + added <= 2400 and len(result) < 8:
+            if len(json.dumps(result + [header], ensure_ascii=False).encode()) <= 2400 and len(result) < 8:
                 result.append(header)
-                size += added
         return result
 
     def get(self, identifier):
@@ -230,9 +267,10 @@ class ProcedureStore:
             duplicate = next((row for row in duplicates if self._fresh(json.loads(row['sources']))), None)
             if duplicate is not None:
                 return self._item(duplicate, body=True)
-            known = self._conn.execute("SELECT * FROM procedures WHERE name=? AND body=? AND state IN ('pending','active') ORDER BY version DESC",
-                                       (data['name'], markdown(data))).fetchall()
-            reusable = next((row for row in known if self._fresh(json.loads(row['sources']))), None)
+            known = self._conn.execute("SELECT * FROM procedures WHERE name=? AND state IN ('pending','active') ORDER BY version DESC",
+                                       (data['name'],)).fetchall()
+            reusable = next((row for row in known if self._fresh(json.loads(row['sources']))
+                             and parse_markdown(row['body']) == data), None)
             if reusable is not None:
                 return self._item(reusable, body=True)
             rows = self._conn.execute('SELECT version, state FROM procedures WHERE name=?', (data['name'],)).fetchall()
@@ -281,10 +319,11 @@ class ProcedureStore:
         essential, contextual, builtin = [], [], []
         for name, (title, category, task, text) in CORE.items():
             if category == 'essential' or area == task:
-                item = dict(name=name, id=name, title=title, version=1, digest=_hash(text), core=True, text=text)
+                item = dict(name=name, id=name, title=title, version=1, digest=_hash(text), core=True, text=text,
+                            category=CORE_CATEGORIES[name], tier=category, contexts=[])
                 (essential if category == 'essential' else builtin).append(item)
-        candidates = [item for item in self.items(active_only=True) if local
-                      and item['current'] and _matches(item, message, area)]
+        headers = self.items(active_only=True, area=area) if local and area in DEFAULT_CATEGORIES else []
+        candidates = [item for item in headers if item['current'] and _matches(item, message, area)]
         # Überschneidende Anwendungsgebiete sind eine offene Entscheidung, keine Zufallsrangfolge.
         conflicts = sorted(item['name'] for item in candidates) if len(candidates) > 1 else []
         if not conflicts:

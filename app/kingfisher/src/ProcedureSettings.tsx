@@ -2,17 +2,22 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, request } from "./api";
 
 type Area = "mail" | "planning" | "analysis";
+type Category = "communication" | "planning" | "research" | "maintenance" | "other";
 type Procedure = {
   id: string; name: string; title: string; description: string; area: Area; version: number;
   base_version?: number; state: "pending" | "active" | "rejected" | "revoked" | "superseded";
   current: boolean; positive: string; negative: string; triggers: string[];
+  category?: Category; contexts?: string[];
   checks: { structure: boolean; routing_examples: boolean; human_review_required: boolean };
 };
 type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string> };
-type Catalog = { items: Procedure[]; core: { id: string; name: string; title: string; category: string; area: string; description: string }[] };
-type Spec = { name: string; title: string; description: string; area: Area; triggers: string[]; steps: string[]; positive: string; negative: string };
+type Catalog = { items: Procedure[]; core: { id: string; name: string; title: string; category: string; purpose?: Category; area: string; description: string }[] };
+type Spec = { name: string; title: string; description: string; area: Area; category?: Category; contexts: string[]; triggers: string[]; steps: string[]; positive: string; negative: string };
 type Save = (spec: Spec, sources: string[]) => Promise<boolean>;
 const AREAS: Record<Area, string> = { mail: "E-Mails", planning: "Planung", analysis: "Analysen" };
+const CATEGORIES: Record<Category, string> = { research: "Suchen & Prüfen", communication: "Kommunikation", planning: "Planung & Arbeit", maintenance: "Gedächtnispflege", other: "Sonstiges" };
+const DEFAULT_CATEGORY: Record<Area, Category> = { mail: "communication", planning: "planning", analysis: "research" };
+const categoryOf = (item: Procedure) => item.category || DEFAULT_CATEGORY[item.area];
 const STATES: Record<Procedure["state"], string> = { pending: "Vorgeschlagen", active: "Übernommen", rejected: "Nicht übernommen", revoked: "Zurückgenommen", superseded: "Ersetzt" };
 const path = (id: string) => `/api/v1/procedures/${encodeURIComponent(id)}`;
 const lines = (text: string) => text.split("\n").map(value => value.trim()).filter(Boolean);
@@ -23,6 +28,8 @@ function ProcedureForm({ detail, busy, onSave, onCancel }: { detail?: Detail; bu
   const [title, setTitle] = useState(detail?.title || "");
   const [description, setDescription] = useState(detail?.description || "");
   const [area, setArea] = useState<Area>(detail?.area || "mail");
+  const [category, setCategory] = useState<Category | "">(detail?.category || "");
+  const [contexts, setContexts] = useState(detail?.contexts?.join("\n") || "");
   const [triggers, setTriggers] = useState(detail?.triggers.join("\n") || "");
   const [steps, setSteps] = useState(detail?.steps.join("\n") || "");
   const [positive, setPositive] = useState(detail?.positive || "");
@@ -39,10 +46,11 @@ function ProcedureForm({ detail, busy, onSave, onCancel }: { detail?: Detail; bu
       ? "Bitte höchstens 8 Auslöser mit je 2 bis 60 Zeichen angeben." : "");
     if (!event.currentTarget.reportValidity()) return;
     const saved = await onSave({ name: name.trim(), title: title.trim(), description: description.trim(), area,
+      category: category || DEFAULT_CATEGORY[area], contexts: lines(contexts),
       triggers: triggerLines, steps: lines(steps), positive: positive.trim(), negative: negative.trim() }, lines(sources));
     if (saved && mounted.current) {
       if (onCancel) onCancel();
-      else { setName(""); setTitle(""); setDescription(""); setTriggers(""); setSteps(""); setPositive(""); setNegative(""); setSources(""); }
+      else { setName(""); setTitle(""); setDescription(""); setCategory(""); setContexts(""); setTriggers(""); setSteps(""); setPositive(""); setNegative(""); setSources(""); }
     }
   }
   return <form onSubmit={event => void submit(event)}>
@@ -52,6 +60,13 @@ function ProcedureForm({ detail, busy, onSave, onCancel }: { detail?: Detail; bu
       <label>Titel<input required minLength={3} maxLength={100} value={title} onChange={event => setTitle(event.target.value)} /></label>
       <label>Zweck<textarea required minLength={10} maxLength={400} value={description} onChange={event => setDescription(event.target.value)} /></label>
       <label>Bereich<select value={area} onChange={event => setArea(event.target.value as Area)}>{Object.entries(AREAS).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</select></label>
+      <details className="quiet-details"><summary>Einordnung anpassen</summary>
+        <label>Kategorie<select value={category} onChange={event => setCategory(event.target.value as Category | "")}>
+          <option value="">Automatisch nach Aufgabenbereich</option>{Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value}</option>)}
+        </select></label>
+        <label>Besonderer Anwendungskontext (optional, einer je Zeile)<textarea maxLength={243} value={contexts} onChange={event => setContexts(event.target.value)} /></label>
+        <p className="source-hint">Leer gilt allgemein. Bis zu vier konkrete Kontexte, etwa Zunft. Ein Kontext muss ausdrücklich in der Anfrage stehen. Personen und Projekte werden weiterhin über ihre Akten geklärt.</p>
+      </details>
       <label>Wann passt der Ablauf? Bis zu 8 Ausdrücke mit je 2 bis 60 Zeichen, einer je Zeile<textarea name="triggers" required maxLength={487} value={triggers} onChange={event => { event.currentTarget.setCustomValidity(""); setTriggers(event.target.value); }} /></label>
       <label>Schritte, einer je Zeile<textarea required maxLength={12000} value={steps} onChange={event => setSteps(event.target.value)} /></label>
       <label>Passendes Beispiel<textarea required minLength={5} maxLength={400} value={positive} onChange={event => setPositive(event.target.value)} /></label>
@@ -107,6 +122,7 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
       {!detail && !error ? <p role="status">Fassung wird gelesen …</p> : null}
       {detail ? <>
         <p>{AREAS[detail.area]} · Version {detail.version}{detail.base_version !== undefined ? ` · auf Basis von Version ${detail.base_version}` : ""} · {STATES[detail.state]}</p>
+        <p>{CATEGORIES[categoryOf(detail)]} · Bei Bedarf · {detail.contexts?.length ? detail.contexts.join(" / ") : "Allgemeiner Ablauf"}</p>
         {!detail.current ? <p role="status">Die Beleggrundlage hat sich verändert. Diese Fassung kann nicht übernommen werden. Prüfe die Quellen und schlage eine neue Fassung vor.</p> : null}
         <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Ob die Schritte fachlich passen, prüfst du selbst vor dem Übernehmen.</p>
         <p><strong>Passend bei:</strong> {detail.triggers.join("; ")}</p>
@@ -138,6 +154,8 @@ export function ProcedureSettings() {
   const [attempt, setAttempt] = useState(0);
   const [readback, setReadback] = useState(0);
   const [verified, setVerified] = useState(false);
+  const [category, setCategory] = useState("");
+  const [search, setSearch] = useState("");
   const mounted = useRef(false);
   const generation = useRef(0);
   const working = useRef(false);
@@ -194,19 +212,35 @@ export function ProcedureSettings() {
   }
   const active = catalog?.items.filter(item => item.state === "active" && item.current).length || 0;
   const pending = catalog?.items.filter(item => item.state === "pending").length || 0;
+  const matches = (item: Procedure) => (!category || categoryOf(item) === category)
+    && [item.title, item.description, ...item.triggers, ...(item.contexts || [])].join(" ").toLocaleLowerCase("de").includes(search.trim().toLocaleLowerCase("de"));
+  const visible = catalog?.items.filter(item => item.id === target || matches(item)) || [];
+  const outsideFilter = catalog?.items.some(item => item.id === target && !matches(item));
   return <section className="source-section compact-model" aria-label="Bewährte Abläufe">
-    <p className="source-hint">Kingfisher wählt passende übernommene Abläufe selbst aus. Sie ergänzen deine belegten Akten. Eigene Abläufe bleiben beim lokalen Modell. Deine Freigaben gelten weiterhin. Du kannst im Gespräch „Lerne diesen Ablauf: …“ schreiben oder hier einen Vorschlag anlegen.</p>
-    <p className="source-hint">Prüfe Zweck, Schritte und Gegenbeispiel vor dem Übernehmen. Struktur- und Auswahlprüfungen bestätigen die Form und die Beispielauswahl; sie ersetzen deine fachliche Beurteilung nicht.</p>
+    <p className="source-hint">Essenzielle Grundverfahren gelten immer. Passende übernommene Skills lädt Kingfisher bei Bedarf. Eigene Abläufe bleiben lokal und werden erst nach deiner Prüfung verwendet.</p>
     {catalog ? <p>{active} verwendbar · {pending} zur Prüfung</p> : !error ? <p role="status">Abläufe werden gelesen …</p> : null}
     {message ? <p role="status">{message}</p> : null}
     {error ? <p role="alert">{error} <button className="secondary-action" type="button" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Stand erneut laden</button></p> : null}
     {verified && target && !catalog?.items.some(item => item.id === target) ? <p role="alert">Dieser Ablauf ist nicht mehr verfügbar. Du kannst einen anderen Eintrag in der Bibliothek öffnen.</p> : null}
     {catalog ? <>
-      {catalog.items.length ? catalog.items.map(item => <ProcedureRow key={`${item.id}:${readback}`} item={item} targeted={item.id === target} busy={busy || !verified} onAction={act} onSave={save} />) : <p>Noch keine eigenen Abläufe vorgeschlagen.</p>}
+      <div className="source-form">
+        <label>Suche<input type="search" aria-label="Abläufe durchsuchen" value={search} onChange={event => setSearch(event.target.value)} placeholder="Titel, Anlass oder Kontext" /></label>
+        <label>Kategorie<select aria-label="Abläufe nach Kategorie filtern" value={category} onChange={event => setCategory(event.target.value)}>
+          <option value="">Alle Kategorien</option>{Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value}</option>)}
+        </select></label>
+      </div>
+      {outsideFilter ? <p role="status">Der angeforderte Ablauf bleibt unabhängig vom Filter zur Prüfung sichtbar.</p> : null}
+      {visible.map(item => <ProcedureRow key={`${item.id}:${readback}`} item={item} targeted={item.id === target} busy={busy || !verified} onAction={act} onSave={save} />)}
+      {!visible.length ? <p>{catalog.items.length ? "Keine passenden Abläufe. Passe Suche oder Kategorie an." : "Noch keine eigenen Abläufe vorgeschlagen. Im Gespräch kannst du „Lerne diesen Ablauf: …“ schreiben."}</p> : null}
       <details className="quiet-details"><summary>Eigenen Ablauf vorschlagen</summary><ProcedureForm busy={busy || !verified} onSave={save} /></details>
       <details className="quiet-details"><summary>Mitgelieferte Abläufe ({catalog.core.length})</summary>
-        <p className="source-hint">Grundabläufe gelten allgemein; weitere Abläufe werden passend zur Anfrage gewählt.</p>
-        {catalog.core.map(item => <p key={item.id}><strong>{item.title}</strong> · {item.category === "essential" ? "Grundablauf" : "Je nach Anfrage"}<br />{item.description}</p>)}
+        {(["essential", "contextual"] as const).map(tier => <div key={tier}>
+          <h4>{tier === "essential" ? "Essenzielle Grundverfahren" : "Bei Bedarf"}</h4>
+          {catalog.core.filter(item => item.category === tier && (!category || item.purpose === category)
+            && `${item.title} ${item.description}`.toLocaleLowerCase("de").includes(search.trim().toLocaleLowerCase("de"))).map(item => <details className="quiet-details" key={item.id}>
+            <summary>{item.title}{item.purpose ? ` · ${CATEGORIES[item.purpose]}` : ""}</summary><p>{item.description}</p>
+          </details>)}
+        </div>)}
       </details>
     </> : null}
   </section>;

@@ -49,7 +49,7 @@ _OVERRIDE = re.compile(r'^(?:bitte )?(?:heute|diesmal|für diese antwort) (?:bit
 def task_for(message):
     # Only an explicit leading task sets scope; quoted document text cannot.
     text = _OVERRIDE.sub('', message.strip(), count=1).strip().casefold()
-    if re.match(r'(?:bitte )?(?:schreib\w*|entwirf)\b[^.\n]*\b(?:mail|e-mail|antwort)\b', text): return 'mail'
+    if re.match(r'(?:bitte )?(?:schreib\w*|entwirf)\b[^.\n]*\b(?:[\w-]*mails?|antwort)\b', text): return 'mail'
     if re.match(r'(?:bitte )?(?:analysiere|analyse|architektur)\b', text): return 'analysis'
     if re.match(r'(?:bitte )?(?:plane|planung)\b', text): return 'planning'
     return None
