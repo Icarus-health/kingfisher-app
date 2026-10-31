@@ -407,3 +407,36 @@ def test_duplicate_short_context_uses_compact_reference_and_long_excerpt_keeps_i
     packed=absatzauswahl.modell_zeilen(rows)
     assert packed[0]=={**rows[0],'context':'[siehe text]'}
     assert packed[1]==rows[1] and rows==before
+
+
+@pytest.mark.parametrize('repeated', [False, True])
+def test_prepare_explains_copies_only_when_sent_and_keeps_evidence_literal(episodes, claims, monkeypatch, repeated):
+    for n in range(4 if repeated else 1):
+        body = '\n\n'.join(f'Kalkulation {n}, Einzelangabe {i}: nicht erledigt. '
+                           + 'Die Freigabe bleibt weiterhin ausdrücklich bedingt. ' * 2 for i in range(4 if repeated else 1))
+        episode = put(episodes, f'Kalkulation {n}: künstliche Nachricht mit langem Betreff', body, tage=n)
+        episodes.add_contacts(episode.id, [], participants=[
+            'Künstliche Fachstelle für Kalkulation und bedingte Freigaben ' * 3 + '<team@synthetic.example>'])
+    einordnen(episodes)
+    seen = []
+    original = absatzauswahl.modell_zeilen
+
+    def projection(rows):
+        seen.extend(json.loads(json.dumps(rows)))
+        return original(rows)
+
+    monkeypatch.setattr(absatzauswahl, 'modell_zeilen', projection)
+    model = Modell()
+    answer = wma.prepare('Welche Kalkulation ist nicht erledigt?', episodes, claims, model)
+    packed = model.gesehen['quellen']
+    assert absatzauswahl.hat_modellkopien(packed) is repeated
+    assert (absatzauswahl.KOPIERHINWEIS in model.gesehen['anweisung']) is repeated
+    restored = absatzauswahl.modell_zeilen_entpacken(packed)
+    for before, after in zip(seen, restored):
+        expected = dict(before)
+        if before['text'].strip() == before['context'].strip() and len(before['context']) > len(absatzauswahl.FUNDSTELLE):
+            expected['context'] = absatzauswahl.KURZER_VERWEIS
+        assert after == expected
+    assert len(answer['basis']) == len(seen)
+    assert all(ref in answer['basis'] for ref in answer['refs'])
+    assert all(set(ref) == set(wma.REF_KEYS) for ref in answer['refs'])

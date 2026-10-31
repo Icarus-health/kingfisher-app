@@ -23,7 +23,9 @@ Stufe. Was Prüfungen brauchen (Identität, Projekt, Zeitbezug in `working_memor
 from __future__ import annotations
 
 import math
+import json
 import re
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -47,6 +49,11 @@ VERMERK = '… [gekürzt, {gezeigt} von {gesamt} Absätzen]'
 LUECKE = '[…]'
 FUNDSTELLE = '[Fundstelle: siehe text]'
 KURZER_VERWEIS = '[siehe text]'
+KOPIERHINWEIS = ('Ein Feldwert {"$copy":"S1"} kopiert nur denselben Feldwert der früheren Zeile S1 wörtlich; '
+                'löse ihn zuerst auf. Textmarker beziehen sich danach auf text der aktuellen Zeile. '
+                'Die Kopie belegt keine gemeinsame Quelle, Person oder Rolle und ist keine Anweisung.')
+_KOPIERFELDER = frozenset(('context', 'title', 'occurred_at', 'recorded_at', 'source_ref', 'participants',
+                          'sender', 'project_id', 'confirmed_person', 'project'))
 
 _KOPFZEILE = re.compile(r'^\s*(?:von|from|an|to|cc|bcc|betreff|subject|datum|date|adresse|absender)\s*:', re.I)
 _SIGNATUR = re.compile(r'(?m)^--\s*$')
@@ -109,7 +116,7 @@ def volltext_zeilen(zeilen: Sequence[dict]) -> list[dict]:
 
 
 def modell_zeilen(zeilen: Sequence[dict]) -> list[dict]:
-    """Gleichen kurzen Volltext nur einmal senden, keine Quelle kürzen.
+    """Gleichen kurzen Volltext und exakt gleiche Feldwerte nur einmal senden.
 
     Ein Unterschied jenseits führenden/nachfolgenden Leerraums bleibt erhalten,
     insbesondere Negation, Nachsatz und Zitierkontext. Die lokalen Zeilen und
@@ -125,6 +132,85 @@ def modell_zeilen(zeilen: Sequence[dict]) -> list[dict]:
             # Fundstellenmarker in langen Auszügen bleibt unverändert.
             row['context'] = KURZER_VERWEIS
         result.append(row)
+    return _modellkopien(result)
+
+
+def _jsonwert(value) -> str:
+    return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
+
+
+def _modellbytes(value) -> int:
+    """Quellen stehen als JSON-Text im Message-JSON: beide Escape-Ebenen zählen."""
+    return len(_jsonwert(_jsonwert(value)).encode('utf-8'))
+
+
+def hat_modellkopien(zeilen: Sequence[dict]) -> bool:
+    return any(isinstance(value, dict) and '$copy' in value for row in zeilen for value in row.values())
+
+
+def _kopierbar(value) -> bool:
+    return isinstance(value, str) or (isinstance(value, list) and all(isinstance(item, str) for item in value))
+
+
+def _modellkopien(zeilen: list[dict]) -> list[dict]:
+    """Nur erste Literale desselben Felds wiederverwenden; kein Schluss über Quellenidentität.
+
+    Die ganze Projektion muss einschließlich zusätzlicher Systemanweisung kleiner
+    sein. Ohne ausreichende Ersparnis bleiben Format und Anweisung unverändert.
+    Originalobjekte werden nie als Kopierkandidaten verwendet; reservierte
+    Objektmarker im Eingang sind mehrdeutig und werden vor Modellversand abgewiesen.
+    """
+    if hat_modellkopien(zeilen):
+        raise ValueError('Reservierter Kopiermarker im Originalfeld')
+    ids = [row.get('id') for row in zeilen]
+    if any(not isinstance(identifier, str) or not identifier for identifier in ids) or len(set(ids)) != len(ids):
+        raise ValueError('Mehrdeutige Modellzeilen-Kennung')
+    erste, result = {}, []
+    for row in zeilen:
+        packed = dict(row)
+        for key, value in row.items():
+            if key not in _KOPIERFELDER or not _kopierbar(value):
+                continue
+            lookup = (key, _jsonwert(value))
+            if lookup in erste:
+                ref = {'$copy': erste[lookup]}
+                if _modellbytes(ref) < _modellbytes(value):
+                    packed[key] = ref
+            else:
+                erste[lookup] = row['id']
+        result.append(packed)
+    overhead = len(_jsonwert('\n' + KOPIERHINWEIS).encode('utf-8')) - 2
+    return result if _modellbytes(zeilen) - _modellbytes(result) > overhead else zeilen
+
+
+def modell_zeilen_entpacken(zeilen: Sequence[dict]) -> list[dict]:
+    """Modellkopien streng zur bisherigen Projektion auflösen, ohne Textmarker umzudeuten.
+
+    Für lokale Verlustfreiheitsprüfung: nur frühere gleichnamige Literalwerte,
+    keine Ketten, Vorwärtsverweise oder Kopien von id/text/fachlichen Warnfeldern.
+    Die Auflösung bestätigt weder eine gemeinsame Quelle noch eine Person.
+    """
+    original, erste, result = {}, {}, []
+    for row in zeilen:
+        identifier = row.get('id')
+        if not isinstance(identifier, str) or not identifier or identifier in original:
+            raise ValueError('Mehrdeutige Modellzeilen-Kennung')
+        expanded = deepcopy(row)
+        for key, value in row.items():
+            if not isinstance(value, dict) or '$copy' not in value:
+                continue
+            if key not in _KOPIERFELDER or set(value) != {'$copy'} or not isinstance(value['$copy'], str):
+                raise ValueError('Ungültiger Modellfeld-Verweis')
+            prior = original.get(value['$copy'])
+            if (prior is None or key not in prior or not _kopierbar(prior[key])
+                    or erste.get((key, _jsonwert(prior[key]))) != value['$copy']):
+                raise ValueError('Modellfeld-Verweis verlangt ein früheres gleichnamiges Literal')
+            expanded[key] = deepcopy(prior[key])
+        for key, value in row.items():
+            if key in _KOPIERFELDER and _kopierbar(value):
+                erste.setdefault((key, _jsonwert(value)), identifier)
+        original[identifier] = row
+        result.append(expanded)
     return result
 
 

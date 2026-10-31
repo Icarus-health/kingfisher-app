@@ -340,10 +340,11 @@ def test_f_selection_preserves_all_decoded_sources_and_fits_complete_native_budg
     messages[-1]['content']=json.dumps(content,ensure_ascii=False,separators=(',',':'))
     messages[0]['content']=messages[0]['content'].replace('„[Fundstelle: siehe text]“ verweist auf text.',
         '„[siehe text]“ und „[Fundstelle: siehe text]“ verweisen auf text.')
+    if absatzauswahl.hat_modellkopien(packed):messages[0]['content']+='\n'+absatzauswahl.KOPIERHINWEIS
     payload={'model':p.model,'messages':messages,'max_tokens':256,'response_format':{'type':'json_schema',
         'json_schema':{'name':'local_result','strict':True,'schema':call['schema']}},'reasoning_effort':'none','temperature':0}
     ready=context.prepare(p,payload)
-    for before,after in zip(original['sources'],packed):
+    for before,after in zip(original['sources'],absatzauswahl.modell_zeilen_entpacken(packed)):
         assert {key:value for key,value in before.items() if key!='context'}=={
             key:value for key,value in after.items() if key!='context'}
         if before.get('context')!=absatzauswahl.FUNDSTELLE:assert before['context']==after['context']

@@ -32,13 +32,21 @@ Personen-Zuordnungen oder Datumsauflösungen. Bewahre Bedingungen in ihrer urspr
 - status: aktueller Stand, einschließlich ausdrücklicher Absage, Negation oder Ablehnung.
 - fact: konkrete, unbedingte Quellenaussage ohne Auftrag oder Zusage.
 - uncertain: unklare Zuordnung, Gerücht oder unsicherer Sachverhalt.
-- historical: klar als frühere Nachricht erkennbarer oder wörtlich zitierter Inhalt; nicht als neue Bitte oder Zusage behandeln.
+- historical: nachweislich früherer Nachrichteninhalt; nicht als neue Bitte oder Zusage behandeln.
 - irrelevant: ohne verwertbare Aussage für das Arbeitsgedächtnis.
 Beachte diese Abgrenzungen:
 - `request` gilt nur für ein konkretes persönliches Anliegen an den Empfänger, etwa eine Bitte um Antwort,
   Entscheidung, Prüfung, Versand oder Zahlung. Werbung sowie allgemeine Aufforderungen zum Klicken, Anmelden,
   Bewerten, Weiterempfehlen oder zur Bedienung eines Dienstes sind `irrelevant`, auch wenn sie grammatisch
   imperativ sind. Automatische Produkt- und Servicehinweise sind nicht automatisch persönliche Bitten.
+- Enthält derselbe Block Hintergrundfakten oder eine Grußformel UND eine aktuelle unbedingte konkrete persönliche
+  Bitte, bleibt die Bitte maßgeblich: `request`, nicht pauschal `fact` wegen des übrigen Blockinhalts. Bedingungen,
+  nachweislicher Verlauf und unklare Aktualität oder Zuständigkeit bleiben `conditional`, `historical` bzw. `uncertain`.
+- Zitatformat allein belegt keine Vergangenheit: `>`-Zeilen oder ein Blockzitat können den Inhalt einer neu
+  zugestellten Portal- oder Chatnachricht enthalten. Datierten Antwortverlauf und tatsächlich alte Inhalte weiter
+  als `historical` behandeln. Fehlende Verlaufskopfzeilen beweisen für sich ebenfalls keine Aktualität.
+  Das Datum der äußeren Quelle beweist weder das Datum eines inneren Zitats noch dessen Sprecher oder eine eigene
+  Verpflichtung des Nutzers. Aufnahme-/Erfassungszeiten sind keine Ereigniszeiten. Im Zweifel `uncertain`.
 - `commitment` beschreibt ausschließlich, was der Sprecher des Quellenblocks selbst ausdrücklich zusagt.
   In einer Mail ist das grundsätzlich der Absender der Aussage. Schreibe diese Zusage niemals automatisch dem
   Empfänger oder Nutzer zu; die Art `commitment` beweist nicht, wer Kingfisher-Nutzer ist oder wem eine Aufgabe

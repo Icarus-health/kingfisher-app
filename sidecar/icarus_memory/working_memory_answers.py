@@ -748,8 +748,11 @@ Quelle status no_relevant_sources, ids leer. Explizite Negation oder fehlende An
 sind eine relevante Angabe: status source_reports. K-IDs sind menschlich bestätigte Aussagen;
 automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend ersetzen. Einordnung und Quelle beweisen keine Wahrheit.
 Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Projekt oder derselbe Aktenbezug allein machen eine Stelle nicht zu einer Antwort. Prüfe zuerst: Enthält die Quelle eine Angabe zu mindestens einem selbständig erfragten Teil? Angaben zu anderen Gegenständen oder Eigenschaften derselben Person oder desselben Projekts sind KEIN Ersatz für die gesuchte Information. Ist die erfragte Information in keiner Quelle enthalten, wähle no_relevant_sources und ids leer. Sprachlich andere Formulierungen sind zulässig; bloß gemeinsamer Kontext genügt nie. Bei Überblicksfragen dürfen unterschiedliche relevante Angaben zusammenkommen. Eine ausdrücklich berichtete Nichterfüllung beantwortet eine Frage nach diesem Stand, aber nicht nach einem anderen Gegenstand.'''
+    modellzeilen = absatzauswahl.modell_zeilen(rows)
+    if absatzauswahl.hat_modellkopien(modellzeilen):
+        instruction += '\n' + absatzauswahl.KOPIERHINWEIS
     messages = [{'role': 'system', 'content': instruction}, {'role': 'user', 'content': json.dumps(
-        {'question': question, 'sources': absatzauswahl.modell_zeilen(rows)}, ensure_ascii=False, separators=(',', ':'))}]
+        {'question': question, 'sources': modellzeilen}, ensure_ascii=False, separators=(',', ':'))}]
     if not _fresh(answer, episodes, claims):
         answer.update(status='unavailable')
         return answer

@@ -172,6 +172,45 @@ Das bestehende Mac-Fenster ist wieder erreichbar; Heute → Gedächtnis → Heut
 wurde geprüft. Das ist keine Installation der neuen Reparaturen und kein
 Nachweis für flüssige Arbeit bei längerem Modellbetrieb.
 
+## Echte Stichprobe B: noch keine Freigabe
+
+Dieselben sechs bestehenden privaten Quellen wurden ausschließlich lokal als
+Kopie geprüft. Vier vollständige Quellen durchliefen die Einordnung, zwei
+unvollständige Quellen wurden vor dem Modell gehalten. Vierzehn Aufrufe, davon
+zwei vor Versand technisch abgewiesen; keine Aufgabe im persönlichen Bestand
+angelegt und kein Großimport fortgesetzt. Der Lauf blieb innerhalb des Wächters
+(minimale Reserve 26 Prozent, maximal Druckstufe 2).
+
+Zwei Rückfragen überschreiten das vollständige Eingabebudget. Eine weitere
+Quelle enthält eine erkennbare aktuelle Bitte in einer Portalbenachrichtigung,
+doch die Aufgabenerkennung liefert leer. Die echte Stichprobe ist damit **nicht**
+bestanden. Die Quotierung allein ist kein bewiesener deterministischer
+Aussortierungsgrund; die beiden Modellwege entscheiden unabhängig. Inhalte,
+Adressen, Belege und Rohreports bleiben privat.
+
+Die nächste gezielte Reparatur hält Originale und Budget unverändert:
+
+- Ein exakt rückauflösbarer Kopierverweis vermeidet wiederholte Feldwerte im
+  reinen Modelleingang. Alle Kandidaten, IDs, Quelltexte und Reihenfolgen bleiben
+  erhalten; Herkunft und Identität werden dadurch nicht zusammengeführt. Die
+  zusätzliche Erklärung wird nur bezahlt, wenn die gesamte verschachtelte
+  Anfrage tatsächlich kleiner wird. 192 betroffene Prüfungen bestehen.
+- Aufgabenextraktion erhält optional frisch gelesenen, begrenzten Absender-,
+  Beteiligten- und Zeitkontext. Quellendatum, Eingang und Erfassung bleiben
+  getrennt; weder äußeres Datum noch Zitatformat beweisen den Inhalt einer Bitte.
+  Originalbelege und nachgelagerte Zuständigkeits-/Marketingprüfung bleiben
+  unverändert. 103 betroffene Prüfungen bestehen, kein Versionsbump oder
+  pauschaler Wiederanlauf alter Auswertungen.
+- Ein unabhängiges Review führte zehn enge Offline-Gegenproben erfolgreich aus.
+  Umkehrbarkeit ist kein Nachweis des Modellverständnisses. Eine private reine
+  Payloadmessung bestätigt beide Rückauflösungen: Eine Anfrage passt danach,
+  die andere ist weiterhin zu groß. Deshalb ist eine vollständig begrenzte
+  Quellenauswahl in mehreren Paketen erforderlich; keine Quelle wird still
+  entfernt und keine Grenze erhöht.
+
+Die konkrete Aufgabenerkennung und beide Antworten werden mit unveränderten
+Sollwerten erneut geprüft. Keine Reparaturbehauptung allein aus neuen Prompts.
+
 ## Noch erforderliche Abnahme
 
 1. Die beiden belegten Antwortfehler q08/q09 korrigieren und sämtliche 16
