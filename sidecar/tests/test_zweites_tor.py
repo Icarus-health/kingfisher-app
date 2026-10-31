@@ -30,6 +30,11 @@ def beide(nutzer):
     return {'status': 'antwort', 'saetze': [{'text': RICHTIG, 'belege': [nummer]}, {'text': FALSCH, 'belege': [nummer]}]}
 
 
+def nur_richtig(nutzer):
+    nummer = nutzer['belege'][0]['nr']
+    return {'status': 'antwort', 'saetze': [{'text': RICHTIG, 'belege': [nummer]}]}
+
+
 def ideal():
     """Ein Prüfmodell, das den falschen Satz erkennt und den richtigen durchlässt."""
     return Pruefer({FALSCH: '{"urteil":"nein"}', RICHTIG: '{"urteil":"ja"}'})
@@ -61,21 +66,21 @@ def test_ohne_pruefmodell_kommt_der_falsche_satz_durch_die_erste_pruefung(raum):
 
 def test_das_pruefmodell_verwirft_den_falschen_satz_und_die_antwort_sagt_es(raum):
     episodes, claims, _ = raum
-    liefermeldung(episodes)
+    quelle = liefermeldung(episodes)
     pruefer = ideal()
     gespeichert = fragen(raum, spm.tor('an', pruefer))
     daten = gespeichert['satzantwort']
-    assert texte(gespeichert) == [RICHTIG]
+    assert daten['status'] == 'zitate' and texte(gespeichert) == []
     assert daten['verworfen'] == 1 and daten['pruefung'] == {'zustand': 'an', 'modell': 'pruef-1', 'verworfen': 1}
-    assert any('Prüfmodell: nicht gestützt' in g for g in daten['gruende'])
-    assert [s['pruefmodell'] for s in daten['saetze']] == ['ja']
-    text, _, status = wma.render(gespeichert, episodes, claims)
-    assert status == 'working_reports' and FALSCH not in text
-    assert '1 Satz verworfen (Prüfmodell).' in text and 'weil die Belege ihn nicht getragen haben' not in text
-    struktur = wma.satz_struktur(gespeichert, episodes, claims)
-    assert (struktur['verworfen'], struktur['verworfen_pruefmodell']) == (0, 1)
-    assert struktur['saetze'][0]['verlaesslichkeit'] == 'gut' and struktur['saetze'][0]['hinweis'] == ''
+    assert daten['gruende'] == [f'{FALSCH}: Prüfmodell: nicht gestützt']
+    assert 'Vollständigkeit der Teilantwort nicht gesichert' in daten['grund']
+    text, links, status = wma.render(gespeichert, episodes, claims)
+    assert status == 'working_reports' and FALSCH not in text and RICHTIG in text
+    assert text.startswith('Quelle berichtet') and {link['episode_id'] for link in links} == {quelle.id}
+    assert wma.satz_struktur(gespeichert, episodes, claims) is None
+    assert satzantwort.wiederherstellen(daten, episodes, claims) is None
     assert len(pruefer.anfragen) == 2, 'Jeder Satz, der die erste Prüfung bestand, wird genau einmal gefragt'
+    assert [spm.satz_der_anfrage(anfrage) for anfrage in pruefer.anfragen] == [RICHTIG, FALSCH]
 
 
 def test_das_pruefmodell_sieht_nur_den_satz_und_die_textstellen_seiner_belege(raum):
@@ -132,12 +137,14 @@ def test_vom_nutzer_ausgeschaltet_fragt_niemand_und_die_antwort_sagt_es(raum):
 def test_gespeichert_und_beim_anzeigen_neu_geprueft(raum):
     episodes, claims, _ = raum
     liefermeldung(episodes)
-    gespeichert = fragen(raum, spm.tor('an', ideal()))
+    gespeichert = fragen(raum, spm.tor('an', ideal()), saetze=nur_richtig)
     daten = gespeichert['satzantwort']
+    assert daten['status'] == 'saetze' and texte(gespeichert) == [RICHTIG]
+    assert daten['verworfen'] == 0 and daten['pruefung']['verworfen'] == 0
     assert daten['saetze'][0]['verlaesslichkeit'] == 'gut'
     dargestellt = satzantwort.wiederherstellen(daten, episodes, claims)
     assert dargestellt is not None and dargestellt.saetze[0].pruefmodell == 'ja'
-    assert dargestellt.verworfen_pruefmodell == 1
+    assert dargestellt.verworfen_pruefmodell == 0
     # Ein Satz ohne das Ja des Prüfmodells, obwohl das Tor lief: nicht zeigen.
     ohne_ja = copy.deepcopy(daten)
     ohne_ja['saetze'][0]['pruefmodell'] = ''
@@ -159,10 +166,29 @@ def test_gespeichert_und_beim_anzeigen_neu_geprueft(raum):
     assert frueher is not None and frueher.pruefung['zustand'] == 'kein_modell'
 
 
+def test_gespeicherte_teilverwerfung_bleibt_beim_frisch_geprueften_original(raum):
+    episodes, claims, _ = raum
+    quelle = liefermeldung(episodes)
+    pruefer = ideal()
+    gespeichert = json.loads(json.dumps(fragen(raum, spm.tor('an', pruefer))))
+    daten = gespeichert['satzantwort']
+    assert daten['status'] == 'zitate' and daten['verworfen'] == daten['pruefung']['verworfen'] == 1
+    assert satzantwort.wiederherstellen(daten, episodes, claims) is None
+    text, links, status = wma.render(gespeichert, episodes, claims)
+    assert status == 'working_reports' and text.startswith('Quelle berichtet')
+    assert RICHTIG in text and FALSCH not in text and {link['episode_id'] for link in links} == {quelle.id}
+    assert wma.satz_struktur(gespeichert, episodes, claims) is None and len(pruefer.anfragen) == 2
+    episodes.ignore(quelle.id)
+    text, links, status = wma.render(gespeichert, episodes, claims)
+    assert status == 'working_unavailable' and links == [] and RICHTIG not in text and FALSCH not in text
+    assert wma.satz_struktur(gespeichert, episodes, claims) is None and len(pruefer.anfragen) == 2
+
+
 def test_ein_alter_einzelner_beleg_bekommt_den_nebensatz(raum):
     episodes, claims, _ = raum
     liefermeldung(episodes, tage=700)
-    gespeichert = fragen(raum, spm.tor('an', ideal()))
+    gespeichert = fragen(raum, spm.tor('an', ideal()), saetze=nur_richtig)
+    assert gespeichert['satzantwort']['status'] == 'saetze' and gespeichert['satzantwort']['verworfen'] == 0
     text, _, _ = wma.render(gespeichert, episodes, claims)
     assert f'{RICHTIG} [1] (nur eine Quelle, von 2024)' in text
     struktur = wma.satz_struktur(gespeichert, episodes, claims)

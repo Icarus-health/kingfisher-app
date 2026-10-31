@@ -1,10 +1,48 @@
 # Aufnahme und Abruf: belastbarer Zwischenstand am 31.10.2026
 
-Der laufende Backend-/Oberflächenstand bleibt 1.0.35; die native Mac-Hülle
-ist noch 1.0.18 und reicht den neuen Profilschalter nicht weiter. Die folgenden
-Reparaturen sind noch nicht veröffentlicht. Beide persönlichen Postfächer bleiben eingerichtet, der
-Großimport bleibt global pausiert. Keine Cloudaufrufe, neuen Modellgewichte oder
-Änderungen an persönlichen Originalquellen.
+Diese Chronik dokumentiert den geprüften Kandidaten 1.0.36 aus
+[PR #108](https://github.com/Icarus-health/kingfisher-app/pull/108).
+Veröffentlichung und persönliche Installation werden dort gesondert bestätigt.
+Bei den Proben lief der persönliche Backend-/Oberflächenstand noch auf 1.0.35,
+die native Hülle auf 1.0.18. Der Großimport blieb global pausiert. Keine
+Cloudaufrufe, neuen Modellgewichte oder Änderungen an persönlichen Originalen.
+
+## Ergebnisübersicht des eingefrorenen Produktcodes
+
+- **Aufnahme I:** 24 künstliche Originalmails vollständig aufgenommen und
+  klassifiziert; 87 native Aufrufe. Die Einzelprüfung fand eine verlorene eigene
+  Zusage erst im zusätzlichen Aufgabenprüfer. Dieser negative Lauf bleibt belegt.
+- **Nachprüfung J:** dieselben unveränderten Originale und Einordnungen; alle
+  24 Aufgabenentscheidungen und 16 Abrufe erneut durch das echte lokale Modell.
+  Acht Vorschläge, keine Autoaufgabe; die eigene Zusage bleibt jetzt als
+  prüfpflichtiges Original mit korrekter Person und Frist erhalten. 63 native
+  Aufrufe, unveränderte Quellen-/Codehashes. Keine erneute J-Klassifikation.
+- **Inhaltsprüfung:** alle 24 Entscheidungen, 8 Vorschläge, 16 Antworten und
+  63 J-Rohantworten unabhängig geprüft. Keine neue wichtige Abweichung; bekannte
+  m14-/q15-Vertragsabweichungen bleiben ausdrücklich offen. Alle 16 J-Antworten
+  entsprechen den sachlich korrekten I-Antworten. Keine allgemeine Trefferquote.
+- **Skills:** künstliche ausdrückliche Lernbitte, vier echte lokale Aufrufe,
+  drei natürliche positive und fünf negative Auswahlfälle. Bestätigung und
+  Revision sind manuelle Testaktionen; Version/Entzug und Kontextreset wirken.
+  Kein fertiger Mailentwurf wurde gegengelesen.
+- **Echte Quellen:** private Sechs-Quellen-Kopie separat lokal geprüft;
+  unvollständige Quellen und eine nicht prüfbare Angebotserkennung bleiben
+  offen. Mehrdeutige Personenvorbelegung wurde korrigiert und am selben Bestand
+  ohne neue Modellaufrufe nachgeprüft. **Keine Großimportfreigabe.**
+- **Mac:** 18 vorhandene Datenbanken lesend unauffällig; 33 Mac-/Logiktests
+  einschließlich kompiliertem Swift-Prüfprogramm bestanden, ein Nicht-Mac-Test
+  erwartungsgemäß übersprungen. Echtes Fenster und Installation bleiben separate
+  Nachweise. Kein allgemeiner Flüssigkeitsnachweis aus dem Speicherwächter.
+
+Dauerhafter [synthetischer Prüfnachweis](nachweis-1.0.36.json),
+[Inhaltsprüfung I](inhalt-i.md), [Inhaltsprüfung J](inhalt-j.md),
+[Skill-Prüfung](skill-v4.md) und [Review der manuellen Auffangregel](review-auffangregel.md).
+Die vollständige CI prüft Python 3.10/3.12, Container und Oberfläche am PR-Kopf.
+Ihr erster Lauf fand ausschließlich drei ältere Erwartungen an Restprosa;
+die Tests wurden auf den absichtlich eingeführten Originalrückfall abgeglichen.
+Gültige Prosa, Altershinweise und gespeicherte Antworten behalten eigene starke
+Kontrollen. Die nachfolgenden Abschnitte bewahren auch sämtliche früheren
+Fehler- und Zwischenstände.
 
 ## Was repariert ist
 
@@ -367,3 +405,21 @@ Dafür dürfen dieselben unveränderten I-Originale und Einordnungen verwendet
 werden. Nur die abgeleiteten Prüfjobs/Vorschläge werden in einer neuen
 künstlichen Kopie frisch angelegt. Dies ist keine erneute Klassifikation der
 Mails und keine Veränderung der ursprünglichen I-Datenbanken.
+
+
+## Abschließender Testvertragsabgleich
+
+Die erste CI auf d971dc4 hat unter Python 3.10 und 3.12 jeweils 8845 Tests
+bestanden, aber drei ältere Restprosa-Erwartungen verletzt. Diese Fehler sind
+kein Infrastruktur-/Billingproblem. Die abgeglichene Datei prüft nun klar
+getrennt: Teilverwerfung mit Originalrückfall und erhaltenen Gründen; vollständig
+gültige Prosa mit Reliability und Altershinweis; gespeicherter JSON-Roundtrip
+mit anschließendem Quellenentzug. Keine Produktdatei und kein Modellsoll wurden
+für diesen Abgleich verändert. Der falsche Satz bleibt als Gegenprobe im Input.
+
+Die ganze Testdatei besteht mit 13 Fällen; dieselben 13 wurden unabhängig
+nachgeprüft. Gemeinsam mit Satzantwort-, Prüfmodell- und sämtlichen
+Arbeitsgedächtnisgruppen bestehen 575 betroffene Prüfungen. Die finale Vollsuite
+und CI am abschließenden PR-Kopf bleiben als separate Ergebnisse im PR #108
+nachzulesen. Der zuerst lokal begonnene Lauf wurde vor diesem Testabgleich
+bewusst unterbrochen (4112 bestanden, ein Skip), nicht als Gesamtgrün ausgegeben.

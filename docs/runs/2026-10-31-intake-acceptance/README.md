@@ -6,8 +6,10 @@ Die folgenden Abschnitte bewahren den Verlauf früherer Prüfkandidaten.
 ## Verbindlicher Stand
 
 Basis ist die veröffentlichte und auf dem Mac installierte 1.0.35 (`68767ac`).
-Die folgenden Reparaturen sind zunächst lokal auf `fix/intake-acceptance-20261031`;
-Auslieferung, erneuter Modelllauf und echte Quellenprobe sind noch offen.
+Der nachgeprüfte Kandidat 1.0.36 liegt in [PR #108](https://github.com/Icarus-health/kingfisher-app/pull/108).
+Die I-/J-Modellläufe und ihre unabhängige Inhaltsprüfung stehen im
+[Ergebnisüberblick](aktueller-stand.md); ältere Abschnitte unten bewahren die Chronik.
+Auslieferung, persönlicher Fenstertest und Alltagswoche sind getrennte Nachweise.
 Der persönliche Großimport bleibt pausiert. Keine Cloudaufrufe oder neuen Modelle.
 
 ## Erster vollständiger Modelllauf
