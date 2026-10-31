@@ -130,3 +130,33 @@ einer veröffentlichten Fassung aus einem Patchlauf abgeleitet.
 
 Diese Nachkorrekturen sind bis zur erneuten Modellprobe und Gesamtprüfung keine
 Ende-zu-Ende-Abnahme und noch nicht auf dem persönlichen Mac installiert.
+
+
+## Dritter vollständiger Modelllauf: 33946e8
+
+Sauberer, während des Laufs unveränderter Commit; 24 Mails, 16 Fragen, 90
+Sprachmodellaufrufe in 358,219 Modellsekunden. Keine technischen Fehler. 375
+Ressourcenmessungen: mindestens 32 Prozent Reserve, Speicherdruck durchgehend 1.
+Alle Originale erhalten, keine Aufgabe automatisch übernommen. Tatsächliche
+Lesewerkzeugrunde bei q15 vollständig ausgeführt. 24/24 ursprüngliche geeignete
+BGE-Belege indexiert.
+
+Die neu geprüften Fälle sind richtig: q03 bleibt ein Fristdatum statt Beginn;
+m08 ist `fact` statt Sprecherzusage; m20 bleibt als Informationsquelle erhalten
+und wird mit Angebotsliste beantwortet, ohne persönliche Aufgabe. Opt-in ist
+weiterhin nicht Teil dieser Fixture und wird nicht aus deren Text abgeleitet.
+
+155/157 mechanische Einzelchecks bestehen. Offen sind der unveränderte
+Sollwertkonflikt m14 (alter Antrag, später erledigt) und der leere Antwortstatus
+von q15. q15 sagt korrekt, dass nichts gefunden wurde, läuft aber unnötig im
+freien Chat; seine neu aufgenommene Frage bleibt noch unklassifiziert. Deshalb
+wird die globale semantische Abdeckung korrekt als teilweise ausgewiesen und
+`pipeline_complete` bleibt false. Dieser begrenzte Routingfehler wird gesondert
+abgesichert, kein Sollwert und kein Coveragefilter dafür geändert.
+
+Die enge Frageform „Was ist zu/zum/zur/über … bekannt?“ verwendet jetzt auch ohne
+Treffer den beleggebundenen Weg. Allgemeine Erklärungen und zusätzliche Aktionen
+bleiben im Chat. Die echte HTTP-Gegenprobe zeigt, dass eine frei erfundene
+Modellantwort nicht aufgerufen wird und die erhaltene Originalfrage als reine
+Suchfrage weder neu klassifiziert noch indexiert werden muss. Ein letzter
+vollständiger Nachweis und endgültige Backendprüfung stehen für diesen Stand aus.
