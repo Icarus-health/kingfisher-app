@@ -39,19 +39,34 @@ def docx_text(data: bytes) -> str:
         raise ValueError('Kein unterstütztes Word-Dokument.')
     parts = []
     # Ereignisse vermeiden doppelte Texte bei verschachtelten Absätzen.
-    def walk(element):
+    def walk(element, out=parts, in_cell=False):
         if element.tag in (tag('del'), tag('moveFrom')):
             return
+        if element.tag == tag('tr'):
+            cells = []
+            for child in element:
+                if child.tag == tag('tc'):
+                    cell_parts = []
+                    walk(child, cell_parts, True)
+                    cells.append(''.join(cell_parts).strip('\n'))
+                else:
+                    walk(child, out, in_cell)
+            out.append('\t'.join(cells) + '\n\n')
+            return
+        if element.tag == tag('tbl') and in_cell:
+            # Eine verschachtelte Tabelle beginnt eigene Zeilen; ihr Inhalt
+            # darf nicht an ein vorangehendes äußeres Feld angehängt werden.
+            out.append('\n\n')
         if element.tag == tag('t'):
-            parts.append(element.text or '')
+            out.append(element.text or '')
         elif element.tag == tag('tab'):
-            parts.append('\t')
+            out.append('\t')
         elif element.tag in (tag('br'), tag('cr')):
-            parts.append('\n')
+            out.append('\n')
         for child in element:
-            walk(child)
+            walk(child, out, in_cell)
         if element.tag == tag('p'):
-            parts.append('\n\n')
+            out.append('\n' if in_cell else '\n\n')
     try:
         walk(body)
     except RecursionError as exc:

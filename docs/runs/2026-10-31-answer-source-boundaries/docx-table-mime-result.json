@@ -1,0 +1,32 @@
+[
+  {
+    "long_unpunctuated_fields": false,
+    "body_chars": 3240,
+    "generated_quote_chars": 4,
+    "field_value_same_block": true,
+    "field_original_unit_chars": [
+      109
+    ],
+    "sentence_status": "zitate",
+    "sentence_calls": 1,
+    "reason": "kein Satz bestand die Prüfung",
+    "rejected": 1,
+    "render_chars": 3386,
+    "render_contains_whole_body": true
+  },
+  {
+    "long_unpunctuated_fields": true,
+    "body_chars": 2501,
+    "generated_quote_chars": 4,
+    "field_value_same_block": true,
+    "field_original_unit_chars": [
+      539
+    ],
+    "sentence_status": "zitate",
+    "sentence_calls": 0,
+    "reason": "Modell ohne brauchbare Ausgabe (ValueError)",
+    "rejected": 0,
+    "render_chars": 2647,
+    "render_contains_whole_body": true
+  }
+]

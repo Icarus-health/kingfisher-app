@@ -21,7 +21,7 @@ from icarus_memory.source_versions import invalidate_with_corrections
 
 DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 TASK = 'Bitte bis zum 18.11.2026 den Raumplan freigeben.'
-MAIN_TEXT = TASK + '\n\nSeite 7\n\nRaum\n\nNordflügel'
+MAIN_TEXT = TASK + '\n\nSeite 7\n\nRaum\tNordflügel'
 
 
 def word(*, text=None, xml=None, extra=()):
