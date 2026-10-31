@@ -247,8 +247,8 @@ class OpenAICompatible:
             raise ProviderError("Das Modell hat keine sichtbare Antwort geliefert. Bitte erneut versuchen oder ein anderes Modell wählen.")
         return Reply(text=content or "", tool_calls=calls, model=self.model)
 
-    def complete_json(self, messages: list[dict[str, Any]], *, max_tokens: int = 256, schema: dict[str, Any] | None = None) -> Reply:
-        """Bounded JSON-only completion for local screening tasks."""
+    def _json_payload(self, messages, max_tokens, schema):
+        """Gleicher vollständiger JSON-Eingang für Budgetvorschau und Transport."""
         if not self.is_local:
             raise ProviderError("JSON screening requires a local provider")
         if type(max_tokens) is not int or not 64 <= max_tokens <= 1200:
@@ -264,6 +264,24 @@ class OpenAICompatible:
             payload["response_format"] = {"type": "json_schema", "json_schema": {
                 "name": "local_result", "strict": True, "schema": schema}}
             payload["temperature"] = 0
+        return payload
+
+    def can_complete_json(self, messages, *, max_tokens=256, schema=None):
+        """Reine Budgetvorschau nur für das ausdrücklich gewählte kleine Profil.
+
+        None bedeutet unveränderten bisherigen Anbieterpfad. Weder Metadaten
+        noch Modellvorbereitung oder Netzwerk werden hier aufgerufen.
+        """
+        from .local_context_profile import selected, _native_payload, InputTooLarge
+        if not selected(self):return None
+        payload=self._json_payload(messages,max_tokens,schema)
+        try:_native_payload(self,payload)
+        except InputTooLarge:return False
+        return True
+
+    def complete_json(self, messages: list[dict[str, Any]], *, max_tokens: int = 256, schema: dict[str, Any] | None = None) -> Reply:
+        """Bounded JSON-only completion for local screening tasks."""
+        payload=self._json_payload(messages,max_tokens,schema)
         timeout = 60.0 if max_tokens > 256 or _json_text_input_size(messages) > 12_000 else 30.0
         _json_transport_timeout(timeout)  # An expired worker must not prepare a model.
         from .local_context_profile import prepare

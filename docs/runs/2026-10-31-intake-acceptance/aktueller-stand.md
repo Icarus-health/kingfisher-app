@@ -221,3 +221,41 @@ Sollwerten erneut geprüft. Keine Reparaturbehauptung allein aus neuen Prompts.
 4. Geprüfte Veröffentlichung, Sicherung, normaler Mac-Updateweg und Bedienung.
 5. Eine Alltagswoche durch den Nutzer. Erst die bestätigte Stichprobe kann eine
    gesonderte Entscheidung über die Fortsetzung des Großimports tragen.
+
+
+## Begrenzte Reparaturen vor der endgültigen Wiederholungsprobe
+
+Die reine Duplikatpackung reicht nicht für jede Auswahl. Das ausdrücklich
+gewählte kleine lokale Profil plant jetzt höchstens vier vollständige Seiten
+und nötigenfalls einen gemeinsamen Vergleich ihrer ausgewählten Originalzeilen.
+Kein Kandidat oder Quellfeld wird abgeschnitten. Ein gemeinsames Zeitbudget,
+Quellenstandsprüfung vor jeder Runde und das Verwerfen aller Teilresultate bei
+Fehlern bleiben bindend. Ein allein zu großer Kandidat oder ein zu großer
+Gesamtvergleich meldet weiterhin eine verständliche Grenze.
+
+Bei E-Mails darf ein nichtliterales Modellzitat nur über einen eindeutigen,
+positionsgebundenen Darstellungsabgleich auf die exakte Originalstelle zeigen.
+Vollständige HTML-Entities und Leerraum dürfen gleich dargestellt werden;
+Zitatpräfixe nur bei vollständig markierten mehrzeiligen Absätzen. Einzelne
+oder gemischte Größerzeichen und innere Vergleichsoperatoren bleiben erhalten.
+Das unabhängige Review fand zunächst eine Verwechslung von Operator und
+Zitatpräfix; der konkrete Gegenfall und positive mittig beginnende Zitate sind
+nach der strukturellen Korrektur unabhängig nachgeprüft. Die nachfolgende
+Zuständigkeits-/Fristprüfung erhält den unveränderten Originalspan.
+
+Ausdrückliche lokale Lernbitten erhalten klarere Auslöserhinweise und höchstens
+eine zusätzliche strukturgebundene Korrekturrunde. Beide Versuche teilen ihre
+Frist und dieselbe Quellen-/Providerfreigabe. Anbieterfehler werden nicht
+wiederholt, ungültige Modellprosa wird nicht zur neuen Instruktion. Auch ein
+valider Entwurf bleibt bis zur Bestätigung inaktiv.
+
+Root prüfte diese fünf betroffenen Testdateien gemeinsam: 140 bestanden.
+Das unabhängige enge Nachreview ergänzte 30 fokussierte Tests und drei eigene
+Gegenproben; kein verbleibender Blocker im abgegrenzten Scope. Diese Zahlen
+überschneiden sich und werden nicht addiert. Die neue volle Suite sowie echte
+Modell- und Inhaltsprüfungen sind dadurch nicht ersetzt.
+
+Die zweite echte künstliche Lernprobe erzeugte bereits einen strukturell
+validen inaktiven Entwurf, stoppte jedoch an der zu prüfenden Diagnoseforderung
+für den exakten Kontextnamen. Auswahl, Fassungswechsel und Entzug sind in
+diesem Lauf noch nicht durchlaufen. Keine persönliche Skill-Aktivierung.

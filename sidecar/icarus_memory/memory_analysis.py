@@ -166,9 +166,14 @@ Keine weiteren Felder. Leere Liste, wenn nichts belegt ist. Maximal 32 Einträge
             raise ProviderError("Ein Vorschlag enthält unbekannte Felder.")
         title, quote = item["title"], item["quote"]
         if (not isinstance(title, str) or not isinstance(quote, str)
-                or not 1 <= len(title.strip()) <= 4096 or not 8 <= len(quote) <= 4000
-                or quote not in body):
+                or not 1 <= len(title.strip()) <= 4096 or not 8 <= len(quote) <= 4000):
             raise ProviderError("Ein Vorschlag hat keinen gültigen Originalbeleg.")
+        if quote not in body:
+            from .mail_quote_alignment import align
+            matched = align(body, quote) if (source_context or {}).get('source_type') == 'email' else None
+            if matched is None or not 8 <= len(matched[0]) <= 4000:
+                raise ProviderError("Ein Vorschlag hat keinen gültigen Originalbeleg.")
+            quote = matched[0]
         # Ein falscher Titelzusatz entwertet nicht den exakten Originalbeleg.
         # Nichts aus Betreff oder Nachbartext ergänzen; der Wortlaut bleibt zur
         # Prüfung sichtbar, einschließlich aller Bedingungen und Einschränkungen.

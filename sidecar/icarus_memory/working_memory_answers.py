@@ -748,11 +748,6 @@ Quelle status no_relevant_sources, ids leer. Explizite Negation oder fehlende An
 sind eine relevante Angabe: status source_reports. K-IDs sind menschlich bestätigte Aussagen;
 automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend ersetzen. Einordnung und Quelle beweisen keine Wahrheit.
 Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Projekt oder derselbe Aktenbezug allein machen eine Stelle nicht zu einer Antwort. Prüfe zuerst: Enthält die Quelle eine Angabe zu mindestens einem selbständig erfragten Teil? Angaben zu anderen Gegenständen oder Eigenschaften derselben Person oder desselben Projekts sind KEIN Ersatz für die gesuchte Information. Ist die erfragte Information in keiner Quelle enthalten, wähle no_relevant_sources und ids leer. Sprachlich andere Formulierungen sind zulässig; bloß gemeinsamer Kontext genügt nie. Bei Überblicksfragen dürfen unterschiedliche relevante Angaben zusammenkommen. Eine ausdrücklich berichtete Nichterfüllung beantwortet eine Frage nach diesem Stand, aber nicht nach einem anderen Gegenstand.'''
-    modellzeilen = absatzauswahl.modell_zeilen(rows)
-    if absatzauswahl.hat_modellkopien(modellzeilen):
-        instruction += '\n' + absatzauswahl.KOPIERHINWEIS
-    messages = [{'role': 'system', 'content': instruction}, {'role': 'user', 'content': json.dumps(
-        {'question': question, 'sources': modellzeilen}, ensure_ascii=False, separators=(',', ':'))}]
     if not _fresh(answer, episodes, claims):
         answer.update(status='unavailable')
         return answer
@@ -764,23 +759,10 @@ Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Proj
     if suche_zeit is not None:
         suche_zeit.ende()
     try:
-        bounded = getattr(provider, 'complete_json', None)
+        from .source_selection_pages import select
         with zeitmessung.messen(zeiten, 'antwort_modell'):
-            reply = bounded(messages, max_tokens=256, schema=schema) if callable(bounded) else provider.complete(messages, [])
-        if reply.tool_calls or not isinstance(reply.text, str) or len(reply.text) > 8000:
-            raise ValueError('Ungültige Auswahl')
-        selection = json.loads(reply.text)
-        if isinstance(selection, dict) and isinstance(selection.get('status'), str):
-            selection['status'] = MODEL_DECISIONS.get(selection['status'], selection['status'])
-        if (not isinstance(selection, dict) or set(selection) != {'status', 'ids'}
-                or selection['status'] not in {'reports', 'unknown', 'person', 'scope', 'time', 'conflict'}
-                or not isinstance(selection['ids'], list)
-                or any(not isinstance(i, str) for i in selection['ids'])
-                or len(set(selection['ids'])) != len(selection['ids'])):
-            raise ValueError('Ungültige Auswahl')
-        known_ids = {row['id'] for row in rows}
-        if any(identifier not in known_ids for identifier in selection['ids']):
-            raise ValueError('Unbekannte Referenz')
+            selection = select(provider, question, rows, instruction, schema, MODEL_DECISIONS,
+                               fresh=lambda: _fresh(answer, episodes, claims))
         if selection['status'] in {'reports', 'person', 'conflict'}:
             automatic_ids = [identifier for identifier in selection['ids'] if identifier.startswith('S')]
             candidate_ids = [row['id'] for row in rows if row['id'].startswith('S')]

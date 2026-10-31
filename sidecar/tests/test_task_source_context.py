@@ -107,23 +107,32 @@ def test_invalid_or_oversized_metadata_fails_before_model_call(context):
 
 
 @pytest.mark.parametrize('verdict', ['unclear', 'other_person', 'marketing'])
-def test_relay_metadata_does_not_bypass_conservative_task_review(stores, verdict):
+@pytest.mark.parametrize('model_quote', [
+    QUOTE, 'Aufgrund der Nachfrage bitten wir vorab um Übersendung Ihrer Selbstauskunft.',
+])
+def test_relay_metadata_does_not_bypass_conservative_task_review(stores, verdict, model_quote):
     episodes, proposals = stores
     episodes.record(EpisodeKind.MESSAGE, 'Neue Nachricht', BODY, Provenance(SourceType.EMAIL),
                     contacts=CONTACTS, occurred_at=datetime(2026, 10, 31, 9, tzinfo=timezone.utc))
-    reader = Reader(items=[{'title': 'Selbstauskunft übersenden', 'quote': QUOTE}], verdict=verdict)
+    reader = Reader(items=[{'title': 'Selbstauskunft übersenden', 'quote': model_quote}], verdict=verdict)
     result = TaskDetector(episodes, proposals, reader, RLock()).run(with_model=True, limit=1)
     assert result.analyzed == 1 and result.proposed == 0 and result.failed == 0
     assert proposals.pending(ProposalKind.TASK) == []
 
 
-def test_positive_review_keeps_original_relay_evidence(stores):
+@pytest.mark.parametrize('model_quote,raw_quote', [
+    (QUOTE, QUOTE),
+    ('Aufgrund der Nachfrage bitten wir vorab um Übersendung Ihrer Selbstauskunft.', QUOTE[2:]),
+])
+def test_positive_review_keeps_original_relay_evidence(stores, model_quote, raw_quote):
     episodes, proposals = stores
     episode, _ = episodes.record(EpisodeKind.MESSAGE, 'Neue Nachricht', BODY, Provenance(SourceType.EMAIL),
                                  contacts=CONTACTS, occurred_at=datetime(2026, 10, 31, 9, tzinfo=timezone.utc))
-    reader = Reader(items=[{'title': 'Selbstauskunft übersenden', 'quote': QUOTE}])
+    reader = Reader(items=[{'title': 'Selbstauskunft übersenden', 'quote': model_quote}])
     result = TaskDetector(episodes, proposals, reader, RLock()).run(with_model=True, limit=1)
     assert result.proposed == 1 and result.failed == 0
     evidence = proposals.pending(ProposalKind.TASK)[0].evidence[0]
-    assert evidence.quote == QUOTE and evidence.digest == episode.digest
+    assert evidence.quote == raw_quote and evidence.digest == episode.digest
+    assert reader.payloads[1]['candidates'][0]['quote'] == raw_quote
+    assert reader.payloads[1]['body'] == BODY
     assert episodes.get(episode.id).body == BODY

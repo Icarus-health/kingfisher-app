@@ -127,6 +127,58 @@ def test_mail_text_never_starts_learning():
     assert explicit_learning('Bitte lerne diesen Ablauf: Eingaben prüfen, dann entwerfen.')
 
 
+@pytest.mark.parametrize('second_valid', [True, False])
+def test_real_learning_route_repairs_once_and_keeps_result_inactive(tmp_path, monkeypatch, second_valid):
+    from tests.test_procedure_model import BAD_TRIGGER_DRAFT, GOOD_TRIGGER_DRAFT
+    monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
+    p = Local()
+    outputs = iter([BAD_TRIGGER_DRAFT, GOOD_TRIGGER_DRAFT if second_valid else BAD_TRIGGER_DRAFT])
+    def generate(messages, tools):
+        p.seen.append(messages)
+        return Reply(text=json.dumps(next(outputs)))
+    p.complete = generate
+    app = create_app(agent=agent(tmp_path, p)); c = TestClient(app)
+    conversation = c.post('/api/v1/conversations', json={}).json()['conversation']['id']
+    result = c.post(f'/api/v1/conversations/{conversation}/messages', json={'message':
+        'Bei Zunftmails bitte künftig zuerst Anlass prüfen, dann den Entwurf gegenlesen.'})
+    assert result.status_code == 201 and len(p.seen) == 2
+    items = app.state.procedures.items()
+    assert len(items) == int(second_valid)
+    assert all(item['state'] == 'pending' for item in items)
+    assert not app.state.procedures.select('Schreibe eine Zunftmail für die Zunft.', area='mail')['contextual']
+
+
+@pytest.mark.parametrize('change', ['source','provider','role','permission','equivalent_provider'])
+def test_learning_repair_rechecks_source_configuration_and_existing_permission(tmp_path, monkeypatch, change):
+    from copy import copy
+    from tests.test_procedure_model import BAD_TRIGGER_DRAFT, GOOD_TRIGGER_DRAFT
+    monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
+    p = Local(); allowed = [True]
+    p._verified_local_permitted = lambda: allowed[0]
+    app = create_app(agent=agent(tmp_path, p)); c = TestClient(app)
+    def generate(messages, tools):
+        p.seen.append(messages)
+        if len(p.seen) == 1:
+            if change == 'source':
+                source = next(ep for ep in app.state.episodes.all_episodes() if ep.body.startswith('Bei Zunftmails'))
+                app.state.episodes.ignore(source.id)
+            elif change == 'provider':
+                app.state.agent._provider = copy(p); app.state.agent._provider.model = 'different-local'
+            elif change == 'role':
+                app.state.settings.model_roles = {'antwort':{'modell':'different-local'}}
+            elif change == 'permission': allowed[0] = False
+            else: app.state.agent._provider = copy(p)
+            return Reply(text=json.dumps(BAD_TRIGGER_DRAFT))
+        return Reply(text=json.dumps(GOOD_TRIGGER_DRAFT))
+    p.complete = generate
+    conversation = c.post('/api/v1/conversations', json={}).json()['conversation']['id']
+    result = c.post(f'/api/v1/conversations/{conversation}/messages', json={'message':
+        'Bei Zunftmails bitte künftig zuerst Anlass prüfen, dann den Entwurf gegenlesen.'})
+    assert result.status_code == 201
+    assert len(p.seen) == (2 if change == 'equivalent_provider' else 1)
+    assert len(app.state.procedures.items()) == int(change == 'equivalent_provider')
+
+
 @pytest.mark.parametrize('message',[
     'Schreibe eine Zunftmail. Prüfe zuerst den Anlass, dann den Entwurf.',
     'Schreibe Zunftmails künftig kürzer.',

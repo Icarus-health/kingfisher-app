@@ -60,6 +60,15 @@ def learn(app, message, source_episode):
     stamp = episode_dependency(app.state.episodes, source_episode.id)
     if not stamp:
         raise ProcedureError('Die Lernbitte ist nicht mehr verfügbar.')
+    from .local_context_profile import selected
+    def configuration(value):
+        return (type(value), getattr(value, 'model', None), getattr(value, 'base_url', '').rstrip('/'),
+                bool(getattr(value, 'is_local', False)), tuple(getattr(value, '_trusted_local_hosts', ())),
+                selected(value), json.dumps(getattr(getattr(app.state, 'settings', None), 'model_roles', {}), sort_keys=True))
+    initial_configuration = configuration(provider)
+    def permitted():
+        return (configuration(getattr(app.state.agent, 'provider', None)) == initial_configuration
+                and episode_dependency(app.state.episodes, source_episode.id) == stamp)
     # Vor einer weiteren Modellrunde nach demselben Original und Auftrag suchen.
     key = hashlib.sha256(message.strip().encode()).hexdigest()
     prior = next((item for item in app.state.procedures.items()
@@ -82,7 +91,7 @@ def learn(app, message, source_episode):
             dict(role='user', content=message[:6000])]
         try:
             app.state.agent.assert_egress_allowed(messages)
-            response = draft_procedure(provider, messages, Spec.model_json_schema())
+            response = draft_procedure(provider, messages, Spec.model_json_schema(), permitted=permitted)
             if getattr(response, 'tool_calls', None):
                 raise ProcedureError('Werkzeugaufrufe sind keine Ablaufbeschreibung.')
             candidate = app.state.procedures.propose(json.loads(response.text),

@@ -128,12 +128,15 @@ def _messages(messages):
     return result
 
 
-def prepare(provider,payload):
-    """Den endgültigen logischen Eingang prüfen, bevor Ampel/Modellvorbereitung läuft."""
-    if not selected(provider):return None
+class InputTooLarge(ProviderError):
+    """Die vollständige Anfrage passt nicht; reine Budgetvorschau darf dies melden."""
+
+
+def _native_payload(provider,payload):
+    """Reiner gemeinsamer Builder für Vorschau und tatsächlichen Transport."""
     if not isinstance(payload,dict) or payload.get('model')!=provider.model:
         raise ProviderError('Das Anfrageziel entspricht nicht dem geprüften lokalen Kontextprofil.')
-    if len(_encoded(payload))>INPUT_BYTES:raise ProviderError('Eingabe über der lokalen 16.000-Byte-Kontextgrenze; nichts gekürzt.')
+    if len(_encoded(payload))>INPUT_BYTES:raise InputTooLarge('Eingabe über der lokalen 16.000-Byte-Kontextgrenze; nichts gekürzt.')
     if set(payload)-{'model','messages','max_tokens','response_format','reasoning_effort','temperature','tools'}:
         raise ProviderError('Nicht unterstützte Anfrageoption im kleinen Kontextprofil.')
     if payload.get('reasoning_effort','none')!='none':raise ProviderError('Nicht unterstützter Denkmodus.')
@@ -165,7 +168,14 @@ def prepare(provider,payload):
                 raise ProviderError('Nicht unterstütztes JSON-Schemaformat.')
             native['format']=deepcopy(specification['schema'])
         else:raise ProviderError('Nicht unterstütztes Antwortformat.')
-    if len(_encoded(native))>INPUT_BYTES:raise ProviderError('Native Eingabe über der lokalen Kontextgrenze; nichts gekürzt.')
+    if len(_encoded(native))>INPUT_BYTES:raise InputTooLarge('Native Eingabe über der lokalen Kontextgrenze; nichts gekürzt.')
+    return native,tokens
+
+
+def prepare(provider,payload):
+    """Den endgültigen logischen Eingang prüfen, bevor Ampel/Modellvorbereitung läuft."""
+    if not selected(provider):return None
+    native,tokens=_native_payload(provider,payload)
     identity=verify_profile(provider)
     return Request(native,identity,tokens)
 
