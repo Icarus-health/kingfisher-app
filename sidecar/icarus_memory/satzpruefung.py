@@ -56,8 +56,10 @@ des über Inhaltswörter zugeordneten Satzteils erhalten. Das ist keine vollstä
 Prüfung von Ereigniszuordnung, Zeiträumen, Aktualität oder ausgelassenen Bedingungen.
 Bei Belegen mit erkannten Erlaubnissen oder Pflichten („darf“, „erlaubt“, „muss“,
 „soll“ usw.) müssen Antwortsätze vollständig wörtlich in einem zitierten
-Quellkörper stehen. Anführungszeichen im Quellkörper führen konservativ zum
-Zitatmodus. Leerraum, Groß-/Kleinschreibung und ein abschließender Punkt dürfen
+Quellkörper stehen. Zitierte Originaleinheiten und unklare Zitatklammern führen
+konservativ zum Zitatmodus; ein einzelnes einfaches ASCII-Zitat an anderer
+Stelle sperrt eine unabhängig unzitierte Einheit nicht. Leerraum,
+Groß-/Kleinschreibung und ein abschließender Punkt dürfen
 variieren; Fragezeichen und Zitierrahmen bleiben erhalten. Das beweist weder die
 Verbindlichkeit einer Quelle noch Bedingungen in einem Folgesatz. Das ist ein
 begrenzter Zusatzschutz, keine allgemeine Grammatikprüfung. Nur bei
@@ -832,19 +834,48 @@ def originalregeln(text: str) -> tuple[str, ...]:
     return tuple(originaltext(t) for t in originalabschnitte(text) if _originalsignal(t))
 
 
+def _unzitierte_originalabschnitte(text: str) -> tuple[str, ...]:
+    """Nur eindeutig außerhalb eines einfachen, vollständigen Zitatspans liegende Einheiten.
+
+    Ein einziges unescaped ASCII-Doppelquote-Paar wird im gesamten Quelltext
+    geklammert, auch über Satz-/Absatzgrenzen. Andere Zeichen, mehrere Paare,
+    offene oder unklare Klammern bleiben wie bisher vollständig gesperrt.
+    Dies ist bewusst kein allgemeiner Parser für verschachtelte Zitate.
+    """
+    zeichen = list(_ZITATZEICHEN.finditer(text))
+    stellen = originalabschnitt_stellen(text)
+    if not zeichen:
+        return tuple(teil for _, _, teil in stellen)
+    if len(zeichen) != 2 or any(z.group() != '"' for z in zeichen):
+        return ()
+    auf, zu = zeichen[0].start(), zeichen[1].start()
+    # Eine mögliche schließende erste bzw. öffnende letzte Klammer und
+    # Escape-Schreibweisen begründen keinen verlässlich unzitierten Bereich.
+    if (auf and not (text[auf - 1].isspace() or text[auf - 1] in '([{:')
+            or auf + 1 >= zu or text[auf + 1].isspace() or text[zu - 1].isspace()
+            or (zu + 1 < len(text) and not (text[zu + 1].isspace() or text[zu + 1] in '.,;:!?)]}'))
+            or text[auf - 1:auf] == '\\' or text[zu - 1:zu] == '\\'):
+        return ()
+    zitiert = text[auf + 1:zu]
+    # Die bisherige Sichtbarkeitsprüfung vergleicht Wortlaut, keine projizierten
+    # Offsets. Derselbe Wortlaut im Zitat darf daher keine versteckte unzitierte
+    # Fundstelle sichtbar erscheinen lassen; solche Doppelvorkommen bleiben zu.
+    return tuple(teil for start, ende, teil in stellen
+                 if (ende <= auf or start > zu) and teil not in zitiert)
+
+
 def originalbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str] | None = None) -> bool:
     """Bei Regeln oder expliziten Bedingungen braucht jede Klausel ihr volles Original.
 
-    Quote context cannot safely be inferred from an inner sentence, so a source
-    with quotation delimiters cannot establish an affirmative rule here. The
-    caller keeps the full source in the quote fallback instead.
+    Zitatkontext kommt immer aus dem vollständigen Quelltext, niemals nur aus
+    einem Mittelsatz ohne eigene Anführungszeichen.
     """
     if not originalregeln(satz) and not any(originalregeln(t) for t in quellen):
         return True
     if sichtbar is not None and len(sichtbar) != len(quellen):
         return False
-    original = {originaltext(t) for n, quelle in enumerate(quellen) if not _ZITATZEICHEN.search(quelle)
-                for t in originalabschnitte(quelle) if sichtbar is None or t in sichtbar[n]}
+    original = {originaltext(t) for n, quelle in enumerate(quellen)
+                for t in _unzitierte_originalabschnitte(quelle) if sichtbar is None or t in sichtbar[n]}
     return all(originaltext(t) in original for t in originalabschnitte(satz))
 
 
@@ -874,8 +905,7 @@ def rollenbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str],
     if len(sichtbar) != len(quellen):
         return False
     original = {originaltext(t) for i, quelle in enumerate(quellen)
-                if not _ZITATZEICHEN.search(quelle)
-                for t in originalabschnitte(quelle) if t in sichtbar[i]}
+                for t in _unzitierte_originalabschnitte(quelle) if t in sichtbar[i]}
     return bool(original) and all(originaltext(t) in original for t in originalabschnitte(satz))
 
 

@@ -1,0 +1,13 @@
+{
+  "base_commit": "9fd6aefa59467e53bfa65d6c7720311052b8c6ac",
+  "synthetic_only": true,
+  "body_chars": 2885,
+  "source_quote_chars": 2,
+  "sentence_status": "saetze",
+  "sentence_calls": 1,
+  "render_chars": 192,
+  "render_contains_whole_body": false,
+  "target_in_render": true,
+  "quoted_footer_outside_excerpt": true,
+  "source_body_unchanged": true
+}
