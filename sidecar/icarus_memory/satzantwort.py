@@ -193,6 +193,9 @@ class AntwortBeleg:
 
     personen: tuple[str, ...] = ()
     """Potenzielle Personen aus Quellenbeteiligten; ihr Name belegt noch keine Rolle."""
+    native_rows: tuple[str, ...] = ()
+    native_ungueltig: bool = False
+    native_raw: str = ''
 
     def als_beleg(self) -> Beleg:
         # Die Prüfung liest den Volltext der Quelle, nie den Ausschnitt, den das Modell sah.
@@ -297,7 +300,7 @@ def _beleg_aus(ref: dict[str, Any], rolle: str, nummer: int, store: WorkingMemor
         text, geschwaerzt = _bereinigt(auszug.text)
     if not text:
         return None
-    voll = _bereinigt(episode.body)[0]
+    voll, voll_geschwaerzt = _bereinigt(episode.body)
     if not voll:
         return None
     pruef = '' if voll == text else voll
@@ -311,9 +314,14 @@ def _beleg_aus(ref: dict[str, Any], rolle: str, nummer: int, store: WorkingMemor
                           *(anzeigename(p, kopfzeile=True) for p in episode.participants),
                           *(z.name for z in akten_zeilen if z.sache.startswith('person:')),
                           *personennamen] if name))
+    from . import docx_native_rows
+    proof = docx_native_rows.read(store.episodes.support_snapshot(episode.id), ref['fingerprint'], text, personen)
+    native = (proof or ()) if not (voll_geschwaerzt or geschwaerzt) else ()
     return AntwortBeleg(nummer, {k: ref[k] for k in ('episode_id', 'fingerprint', 'start', 'end', 'kind')}, rolle,
                         episode.id, episode.title[:200], kopf, text, moment, ueberholt, geschwaerzt,
-                        kennzeichnung.kennzeichen(episode, rahmen), pruef, gekuerzt, personen)
+                        kennzeichnung.kennzeichen(episode, rahmen), pruef, gekuerzt, personen, native,
+                        any(t.startswith(docx_native_rows.TAG) for t in episode.tags) and proof is None,
+                        episode.body if native else '')
 
 
 _RANG = {'Neuere Quelle': 0, 'Stand': 0, 'Frist': 0, 'Termin': 1, 'Quelle': 1, 'Vermutlich offen': 2}
@@ -397,6 +405,8 @@ class GeprueftSatz:
     """`gut`, `einfach` oder `duenn` (`verlaesslichkeit.py`); nur bei bestandenen Sätzen."""
     hinweis: str = ''
     """Der gedämpfte Nebensatz zur Verlässlichkeit, sonst leer."""
+    native: bool = False
+    native_review: str = ''
 
 
 def _daten_des_satzes(text: str) -> set[tuple[int, int, int | None]]:
@@ -445,11 +455,17 @@ def pruefe_satz(satz: Satz, belege: dict[str, AntwortBeleg], jetzt: datetime, zu
     personen += [m.name for b in zitiert for m in b.kennzeichen if m.art == kennzeichnung.ANDERE_PERSON]
     rollentext = _ohne_identitaetsrahmen(text, zitiert)
     quellen, sichtbar = [b.pruef_text or b.text for b in zitiert], [b.text for b in zitiert]
-    if not (satzpruefung.rollenbindung(text, quellen, sichtbar=sichtbar, personen=personen)
+    native = len(zitiert) == 1 and text in zitiert[0].native_rows and satz.text == text
+    literal = len(text) <= MAX_SATZ_ZEICHEN and all(any(
+        t in satzpruefung.originalabschnitte(q) and t in v for q, v in zip(quellen, sichtbar))
+        for t in satzpruefung.originalabschnitte(text))
+    if any(b.native_rows for b in zitiert) and not native and not literal:
+        gruende.append('Native Felddaten erfordern die ganze unveränderte Raw-Zeile')
+    if not native and not (satzpruefung.rollenbindung(text, quellen, sichtbar=sichtbar, personen=personen)
             or (rollentext != text and satzpruefung.rollenbindung(
                 rollentext, quellen, sichtbar=sichtbar, personen=personen))):
         gruende.append('Personenbezug ist nicht als vollständige sichtbare Originalaussage belegt')
-    if not satzpruefung.originalbindung(text, [b.pruef_text or b.text for b in zitiert],
+    if not native and not satzpruefung.originalbindung(text, [b.pruef_text or b.text for b in zitiert],
                                       sichtbar=[b.text for b in zitiert]):
         gruende.append('Regel steht nicht als vollständige sichtbare Originalstelle im Beleg')
     pruef_text, anzeige, relativ = text, text, False
@@ -463,8 +479,11 @@ def pruefe_satz(satz: Satz, belege: dict[str, AntwortBeleg], jetzt: datetime, zu
                 gruende.append(f'Zeitraum „{a.ausdruck}“ ({a.datum_text()}) ist von den Belegen nicht getragen')
         anzeige = relative_zeit.mit_datum(text, aufgeloest)
         pruef_text = relative_zeit.mit_datum(text, einzel, klein=True)
+    pruefbelege = {k: v.als_beleg() for k, v in belege.items()}
+    if native:
+        pruefbelege[str(zitiert[0].nummer)] = replace(zitiert[0].als_beleg(), text=text, kopf='')
     urteil = satzpruefung.satz_pruefen(
-        Satz(pruef_text, tuple(str(n) for n in satz.belege)), {k: v.als_beleg() for k, v in belege.items()},
+        Satz(pruef_text, tuple(str(n) for n in satz.belege)), pruefbelege,
         zusatz_woerter=zusatz_woerter, relative_zeit_erlaubt=relativ)
     gruende += list(urteil.gruende)
     # Aktualität: Eine überholte Angabe wird nie als Stand genannt, nur zusammen mit der neueren Quelle und dem Wandel.
@@ -481,10 +500,10 @@ def pruefe_satz(satz: Satz, belege: dict[str, AntwortBeleg], jetzt: datetime, zu
     # Trägt der Text der Belege den Satz, oder nur ihre Kopfzeile? (für die Verlässlichkeit, nicht für das Urteil)
     nur_kopf = not gruende and not satzpruefung.satz_pruefen(
         Satz(pruef_text, tuple(str(n) for n in satz.belege)),
-        {k: replace(v.als_beleg(), kopf='') for k, v in belege.items()},
+        {k: replace(v, kopf='') for k, v in pruefbelege.items()},
         zusatz_woerter=zusatz_woerter, relative_zeit_erlaubt=relativ).bestanden
     return GeprueftSatz(text, anzeige if not gruende else text, zahlen, not gruende, tuple(gruende), relativ, vom_programm,
-                        nur_kopf)
+                        nur_kopf, native=native)
 
 
 _FREMD_GRUND = {
@@ -532,6 +551,7 @@ class Versuch:
     modell: str = ''
     tor: Tor = satzpruefung_modell.OHNE
     """Das zweite Tor dieser Antwort (an, aus, ohne Modell)."""
+    native_frage: str = ''
 
     @property
     def verworfen_pruefmodell(self) -> int:
@@ -590,7 +610,7 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
         nummer = 0
         volltext = beleg.pruef_text or beleg.text
         atomic = satzpruefung.originalregelabsatz_einheiten(volltext)
-        visible = []
+        visible = [(volltext.index(row), volltext.index(row) + len(row), row) for row in beleg.native_rows]
         for start, end, paragraph in atomic:
             if (paragraph in beleg.text and '[…]' not in paragraph and '[gekürzt,' not in paragraph):
                 anzeige = _originalanzeige(paragraph)
@@ -598,6 +618,8 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
                     raise ValueError('Vollständiger Regelabsatz überschreitet das Satzlimit')
                 visible.append((start, end, anzeige))
         for start, end, text in satzpruefung.originalabschnitt_stellen(volltext):
+            if any(row in text for row in beleg.native_rows):
+                continue  # Die bewiesene Parserzeile ersetzt nur diese freie Satzkette.
             if any(start >= atomic_start and end <= atomic_end for atomic_start, atomic_end, _ in atomic):
                 continue
             if (not text or text not in beleg.text
@@ -715,7 +737,9 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
         return Versuch('zitate', grund='kein lokales Modell', tor=tor)
     modell = f'{getattr(anbieter, "name", "")} {getattr(anbieter, "model", "")}'.strip()
     try:
-        originalmodus = any(satzpruefung.originalregeln(b.pruef_text or b.text) for b in belege)
+        originalmodus = any(b.native_rows or satzpruefung.originalregeln(b.pruef_text or b.text) for b in belege)
+        if any(b.native_ungueltig for b in belege):
+            return Versuch('zitate', grund='Nativer Feldnachweis fehlt oder ist nicht vollständig sichtbar', modell=modell, tor=tor)
         stellen = _originalstellen(belege) if originalmodus else {}
         if originalmodus and not stellen:
             return Versuch('zitate', grund='Keine vollständige sichtbare Originalstelle', modell=modell, tor=tor)
@@ -724,6 +748,8 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
         with zeitmessung.messen(zeiten, 'saetze_modell'):
             antwort = anbieter.complete_json(messages, max_tokens=700, schema=ORIGINAL_SCHEMA if originalmodus else SCHEMA)
         status, saetze = _original_lesen(antwort, stellen) if originalmodus else _lesen(antwort)
+        if status == 'nichts_vorliegend' and any(b.native_rows for b in belege):
+            return Versuch('zitate', grund='Native Feldzeilen belegen keine globale Abwesenheit', modell=modell, tor=tor)
         if originalmodus and status == 'nichts_vorliegend' and not saetze:
             # Höchstens eine Nachprüfung; dieselben sichtbaren Quellen, IDs,
             # Datenschutzgrenzen und das bestehende Frage-Zeitbudget bleiben.
@@ -734,25 +760,32 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
             status, saetze = _original_lesen(antwort, stellen)
     except Exception as fehler:  # noqa: BLE001 - jeder Fehler des Modells führt zu den Zitaten, nie zu einer Antwort ohne Beleg
         return Versuch('zitate', grund=f'Modell ohne brauchbare Ausgabe ({type(fehler).__name__})', modell=modell, tor=tor)
-    versuch = _urteilen(status, saetze, belege, jetzt, zusatz_woerter, modell, tor, zeiten)
+    versuch = _urteilen(status, saetze, belege, jetzt, zusatz_woerter, modell, tor, zeiten, frage)
+    versuch.native_frage = frage
     versuch.tor = tor
     return versuch
 
 
 def _zweites_tor(saetze: list[GeprueftSatz], nach_nummer: dict[str, AntwortBeleg], tor: Tor,
-                 zeiten: Zeiten | None) -> tuple[list[GeprueftSatz], list[GeprueftSatz]]:
+                 zeiten: Zeiten | None, frage: str = '') -> tuple[list[GeprueftSatz], list[GeprueftSatz]]:
     """Das Prüfmodell urteilt über jeden Satz, der die erste Prüfung bestand: (bleibt, verworfen).
 
     Nur `ja` bleibt. Ein inaktives Tor lässt alles, wie es ist (dann steht die Verlässlichkeit höchstens auf einfach).
     """
     if not tor.aktiv or not saetze:
-        return saetze, []
-    auftraege = [(s.text, [nach_nummer[str(n)] for n in dict.fromkeys(s.belege) if str(n) in nach_nummer]) for s in saetze]
-    urteile = satzpruefung_modell.urteilen(auftraege, tor, zeiten=zeiten)
+        return ([s for s in saetze if not s.native],
+                [replace(s, bestanden=False, gruende=('Native Feldzeile ohne aktive Frageprüfung',)) for s in saetze if s.native])
+    auftraege = [(s.text, [replace(nach_nummer[str(n)], pruef_text=nach_nummer[str(n)].native_raw)
+                          if s.native else nach_nummer[str(n)]
+                          for n in dict.fromkeys(s.belege) if str(n) in nach_nummer]) for s in saetze]
+    urteile = satzpruefung_modell.urteilen(auftraege, tor, zeiten=zeiten,
+        native_fragen=[frage if s.native else None for s in saetze])
     bleibt, verworfen = [], []
-    for satz, urteil in zip(saetze, urteile, strict=True):
+    for index, (satz, urteil) in enumerate(zip(saetze, urteile, strict=True)):
         if urteil.wert == satzpruefung_modell.JA:
-            bleibt.append(replace(satz, pruefmodell=urteil.wert))
+            from .docx_native_rows import review_key
+            proof = review_key(frage, satz.roh, [b.ref for b in auftraege[index][1]], tor.modell[:80]) if satz.native else ''
+            bleibt.append(replace(satz, pruefmodell=urteil.wert, native_review=proof))
         else:
             verworfen.append(replace(satz, bestanden=False, gruende=(urteil.grund,), pruefmodell=urteil.wert))
     return bleibt, verworfen
@@ -819,7 +852,7 @@ def _fehlender_regelabsatzkontext(saetze: Sequence[GeprueftSatz], belege: Sequen
 
 def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], jetzt: datetime,
               zusatz_woerter: Sequence[str], modell: str, tor: Tor = satzpruefung_modell.OHNE,
-              zeiten: Zeiten | None = None) -> Versuch:
+              zeiten: Zeiten | None = None, frage: str = '') -> Versuch:
     """Jeder Satz durch beide Tore; bei Verwerfung bleiben die geprüften Originalstellen.
 
     Reihenfolge: erste Prüfung (ohne Modell), zweites Tor für die Sätze des Modells, dann die Ergänzung des Wandels
@@ -840,7 +873,7 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
     verworfen = [s for s in geprueft if not s.bestanden]
     if len(saetze) > MAX_SAETZE:
         verworfen.append(GeprueftSatz('', '', (), False, (f'{len(saetze) - MAX_SAETZE} Sätze über der Höchstzahl {MAX_SAETZE}',)))
-    durch, am_tor = _zweites_tor(durch, nach_nummer, tor, zeiten)
+    durch, am_tor = _zweites_tor(durch, nach_nummer, tor, zeiten, frage)
     verworfen += am_tor
     if not durch:
         return Versuch('zitate', verworfen=verworfen, grund='kein Satz bestand die Prüfung', modell=modell)
@@ -856,7 +889,7 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
     if nicht is not None:
         return Versuch('zitate', verworfen=verworfen, modell=modell,
                        grund='Wandel einer überholten Quelle nicht belegbar: ' + nicht.gruende[0])
-    ergaenzt, am_tor = _zweites_tor(ergaenzt, nach_nummer, tor, zeiten)
+    ergaenzt, am_tor = _zweites_tor(ergaenzt, nach_nummer, tor, zeiten, frage)
     if am_tor:
         return Versuch('zitate', verworfen=verworfen + am_tor, modell=modell,
                        grund='Wandel einer überholten Quelle nicht belegbar: ' + am_tor[0].gruende[0])
@@ -907,7 +940,10 @@ def erzeugen(frage: str, refs: Sequence[dict[str, Any]], kontext: Kontext, episo
                         'ueberholt': [u.als_dict() for u in b.ueberholt]} for b in belege]
     daten['saetze'] = [{'roh': s.roh, 'text': s.text, 'belege': list(s.belege), 'relativ': s.relativ,
                         'vom_programm': s.vom_programm, 'pruefmodell': s.pruefmodell,
-                        'verlaesslichkeit': s.verlaesslichkeit} for s in versuch.saetze]
+                        'verlaesslichkeit': s.verlaesslichkeit,
+                        **({'native_review': s.native_review} if s.native else {})} for s in versuch.saetze]
+    if any(s.native for s in versuch.saetze):
+        daten['native_frage'] = versuch.native_frage
     daten['rahmen'] = rahmen.als_dict()
     if suche:
         daten['suche'] = suche[:MAX_SUCHE_ZEICHEN]
@@ -1008,6 +1044,14 @@ def wiederherstellen(daten: Any, episodes: Any, claims: Any) -> Dargestellt | No
             if not neu.bestanden or neu.text != eintrag['text']:
                 return None
             urteil = eintrag.get('pruefmodell', '')
+            if neu.native:
+                from .docx_native_rows import review_key
+                frage = daten.get('native_frage')
+                refs = [nach_nummer[str(n)].ref for n in dict.fromkeys(neu.belege)]
+                if (type(frage) is not str or not 0 < len(frage) <= 2000
+                        or pruefung['zustand'] != satzpruefung_modell.AN or urteil != satzpruefung_modell.JA
+                        or eintrag.get('native_review') != review_key(frage, neu.roh, refs, pruefung['modell'])):
+                    return None
             if pruefung['zustand'] == satzpruefung_modell.AN and urteil != satzpruefung_modell.JA:
                 return None  # das zweite Tor lief, aber dieser Satz trägt sein Ja nicht: nicht zeigen
             saetze.append(_eingestuft(replace(neu, pruefmodell=urteil if urteil == satzpruefung_modell.JA else ''),
@@ -1075,7 +1119,7 @@ def text_und_links(dargestellt: Dargestellt, episodes: Any, claims: Any) -> tupl
     """
     belege, neu = _angezeigt(dargestellt)
     nummern = {b.episode_id: neu[b.nummer] for b in belege}
-    zeilen = [f'{anzeige_satz(s.text)} ' + ''.join(f'[{n}]' for n in sorted({neu[n] for n in s.belege if n in neu}))
+    zeilen = [f'{anzeige_satz(s.text, s.native)} ' + ''.join(f'[{n}]' for n in sorted({neu[n] for n in s.belege if n in neu}))
               + (f' ({s.hinweis})' if s.hinweis else '') for s in dargestellt.saetze]
     zeilen.append('')
     zeilen.append('Belege')
@@ -1103,8 +1147,8 @@ def text_und_links(dargestellt: Dargestellt, episodes: Any, claims: Any) -> tupl
     return zeilen, links
 
 
-def anzeige_satz(text: str) -> str:
-    return f'Quelle berichtet: „{text}“' if satzpruefung.braucht_quellenrahmen(text) else text
+def anzeige_satz(text: str, native: bool = False) -> str:
+    return f'Quelle berichtet: „{text}“' if native or satzpruefung.braucht_quellenrahmen(text) else text
 
 
 def verworfen_pruefmodell_text(anzahl: int) -> str:
@@ -1139,7 +1183,7 @@ def struktur(dargestellt: Dargestellt, episodes: Any, claims: Any) -> dict[str, 
             eintrag['kennzeichen'] = [{'art': m.art, 'text': m.text()} for m in b.kennzeichen]
         belege.append(eintrag)
     return {'version': SATZ_VERSION,
-            'saetze': [{'text': anzeige_satz(s.text), 'belege': sorted({neu[n] for n in s.belege if n in neu}), 'vom_programm': s.vom_programm,
+            'saetze': [{'text': anzeige_satz(s.text, s.native), 'belege': sorted({neu[n] for n in s.belege if n in neu}), 'vom_programm': s.vom_programm,
                         'verlaesslichkeit': s.verlaesslichkeit, 'hinweis': s.hinweis}
                        for s in dargestellt.saetze],
             'belege': belege, 'akte': akte_zeilen(dargestellt, episodes, claims),

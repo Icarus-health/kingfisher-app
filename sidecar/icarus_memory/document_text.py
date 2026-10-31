@@ -12,6 +12,11 @@ NAMESPACE = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 
 
 def docx_text(data: bytes) -> str:
+    return docx_struktur(data)[0]
+
+
+def docx_struktur(data: bytes) -> tuple[str, tuple[tuple[int, int], ...]]:
+    """Derselbe Haupttext, optional mit eindeutig abbildbaren einfachen Tabellenzeilen."""
     if len(data) > MAX_FILE:
         raise ValueError('Word-Dateien dürfen höchstens 5 MiB groß sein.')
     try:
@@ -37,7 +42,15 @@ def docx_text(data: bytes) -> str:
     body = root.find(tag('body'))
     if root.tag != tag('document') or body is None:
         raise ValueError('Kein unterstütztes Word-Dokument.')
-    parts = []
+    parts, rows = [], []
+    props = {tag(n) for n in ('trPr', 'tcPr', 'pPr', 'rPr')}
+    plain_tags = {tag(n) for n in ('tr', 'tc', 'p', 'r', 't', 'tab', 'br', 'cr')}
+
+    def plain(element):
+        if element.tag in props:
+            return not any((e.text or '').strip() or (e.tail or '').strip() or e.tag in plain_tags for e in element.iter())
+        return (element.tag in plain_tags and (element.tag == tag('t') or not (element.text or '').strip())
+                and not (element.tail or '').strip() and all(plain(child) for child in element))
     # Ereignisse vermeiden doppelte Texte bei verschachtelten Absätzen.
     def walk(element, out=parts, in_cell=False):
         if element.tag in (tag('del'), tag('moveFrom')):
@@ -51,7 +64,10 @@ def docx_text(data: bytes) -> str:
                     cells.append(''.join(cell_parts).strip('\n'))
                 else:
                     walk(child, out, in_cell)
-            out.append('\t'.join(cells) + '\n\n')
+            row = '\t'.join(cells)
+            if not in_cell and plain(element):
+                rows.append(row)
+            out.append(row + '\n\n')
             return
         if element.tag == tag('tbl') and in_cell:
             # Eine verschachtelte Tabelle beginnt eigene Zeilen; ihr Inhalt
@@ -74,7 +90,11 @@ def docx_text(data: bytes) -> str:
     text = ''.join(parts).strip()
     if not text or '\x00' in text or len(text.encode('utf-8')) > MAX_TEXT:
         raise ValueError('Der Word-Text ist leer oder überschreitet 512 KiB.')
-    return text
+    if len(rows) > 64:
+        return text, ()
+    spans = tuple((text.index(row), text.index(row) + len(row)) for row in rows
+                  if row and row == row.strip() and text.count(row) == 1)
+    return text, spans if len(spans) <= 64 else ()
 
 
 _PDF_SLOT = threading.BoundedSemaphore(1)

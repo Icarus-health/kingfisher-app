@@ -65,13 +65,15 @@ def test_echter_mime_anhang_tabellenfeld_ist_noch_keine_kurze_satzantwort(stores
     assert episode.body in rendered
 
 
-def test_lange_unpunktierte_originaleinheit_im_echten_anhang_bleibt_am_400_guard(stores, monkeypatch):
+def test_lange_originalkette_nur_durch_kurze_native_id_und_nie_ohne_aktives_tor(stores, monkeypatch):
     episode, saved, _, _, provider = mime_antwort(stores, monkeypatch, lange_felder=True)
     units = [t for _, _, t in satzpruefung.originalabschnitt_stellen(episode.body)
              if 'Beschäftigungsbeginn:\n18.11.2026' in t]
     assert len(units) == 1 and len(units[0]) > satzantwort.MAX_SATZ_ZEICHEN
     assert saved['satzantwort']['status'] == 'zitate'
-    assert not provider.satzanfragen
+    offered = [s['text'] for b in provider.satzanfragen[0]['belege'] for s in b['originalsaetze']]
+    assert units[0] not in offered and all(len(t) <= satzantwort.MAX_SATZ_ZEICHEN for t in offered)
+    assert 'Beschäftigungsbeginn:\n18.11.2026\tRücksendedatum:' in offered
 
 
 def test_feldlabel_und_wert_aus_zwei_zellabsaetzen_bleiben_im_selben_quellenblock():

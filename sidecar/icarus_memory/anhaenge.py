@@ -66,6 +66,7 @@ class Anhang:
     leere_seiten: tuple[int, ...] = field(default=())
     haupttext: str = ''
     """Nur DOCX: Word-Haupttext statt erfundener Seiten; `seiten` bleibt leer."""
+    native_rows: tuple[tuple[int, int], ...] = ()
 
     @property
     def gelesen(self) -> bool:
@@ -167,12 +168,12 @@ def _bild(name: str, daten: bytes, ocr: Ocr | None) -> Anhang:
 
 
 def _docx(name: str, daten: bytes) -> Anhang:
-    from .document_text import docx_text
+    from .document_text import docx_struktur
     try:
-        haupttext = docx_text(daten)
+        haupttext, rows = docx_struktur(daten)
     except ValueError as exc:
         return Anhang(name, 'docx', FEHLER, hinweis=f'Anhang „{name}“ konnte nicht gelesen werden: {exc}')
-    return Anhang(name, 'docx', GELESEN, hinweis=_DOCX_UMFANG, haupttext=haupttext)
+    return Anhang(name, 'docx', GELESEN, hinweis=_DOCX_UMFANG, haupttext=haupttext, native_rows=rows)
 
 
 def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, ocr: Ocr | None = None,
@@ -334,13 +335,20 @@ def aufnehmen(episodes: Any, message: Any, *, schluessel: str, herkunft: str, be
     beobachtet: set[str] = set()
     for nummer, anhang in enumerate(getattr(message, 'anhaenge', ()) or (), 1):
         key = f'{schluessel}:anhang:{nummer}'
+        body = text(anhang, message.subject, message.date)
+        proof = []
+        report = getattr(message, 'anhang_bericht', None) or {}
+        if (anhang.art == 'docx' and anhang.vollstaendig
+                and report.get('abruf_vollstaendig') is True and report.get('zuordnung_vollstaendig') is True):
+            from .docx_native_rows import capture
+            proof = capture(body, anhang.haupttext, anhang.native_rows, key, parent_id)
         episode, erstellt = episodes.record(
-            EpisodeKind.DOCUMENT, titel(anhang, message.subject), text(anhang, message.subject, message.date),
+            EpisodeKind.DOCUMENT, titel(anhang, message.subject), body,
             Provenance(source_type=SourceType.EMAIL, source_ref=f'{herkunft}#anhang:{nummer}:{anhang.dateiname}',
                        captured_at=message.date),
             occurred_at=message.date, participants=teilnehmer, contacts=beteiligte,
             tags=[TAG, f'{TAG}:{anhang.status}', f'mail-parent:{parent_id}']
-                 + ([] if anhang.vollstaendig else ['source:truncated']), source_key=key)
+                 + ([] if anhang.vollstaendig else ['source:truncated']) + proof, source_key=key)
         track_source(episodes, claims, key, episode)
         beobachtet.add(episode.id)
         if erstellt:
