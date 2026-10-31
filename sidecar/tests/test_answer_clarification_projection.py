@@ -12,14 +12,14 @@ from icarus_memory.working_memory_analysis import _blocks
 
 Q='Welche Angaben gelten?'
 
-def seed(ep):
+def seed(ep, participants=None):
     originals=[]
     for n in range(6):
         body='\n\n'.join(f'Angaben gelten für Kalkulation {n}, Absatz {i}: NICHT erledigt. '
                          +'Unveränderte künstliche Bedingung. '*18 for i in range(2))
         episode,_=ep.record(EpisodeKind.MESSAGE,f'Kalkulation {n}',body,
             Provenance(SourceType.EMAIL,source_ref=f'synthetic:{n}'),
-            participants=[f'Person {n} <person{n}@example.invalid>'],
+            participants=participants if participants is not None else [f'Person {n} <person{n}@example.invalid>'],
             occurred_at=datetime(2026,10,31,tzinfo=timezone.utc))
         originals.append(episode)
         assert WorkingMemoryStore(ep).commit(ep.support_snapshot(episode.id),
@@ -211,5 +211,40 @@ def test_compact_automatic_projection_never_hides_confirmed_claim_basis(core,tmp
         text,links,_=wma.render(answer,app.state.episodes,app.state.claims,conflict_status=lambda _: 'clear')
         assert claim.statement in text and any(link['episode_id']==source.id for link in links)
         assert 'noch nicht verlässlich beantworten' not in text
+    finally:
+        client.close();_close_app(app)
+
+
+@pytest.mark.parametrize('participants', [[], ['Robin <robin@example.invalid>']])
+def test_person_uncertainty_without_distinguishing_choices_stays_compact(core,tmp_path,monkeypatch,participants):
+    app,client,_=_api(core,tmp_path,monkeypatch)
+    try:
+        ep,claims=app.state.episodes,app.state.claims
+        originals=seed(ep,participants=participants)
+        provider=Script(monkeypatch,lambda n,page:{
+            'status':'needs_person_choice' if n==2 else 'source_reports',
+            'ids':[page[-1]['id']] if n<3 else [page[0]['id']]})
+        answer=wma.prepare(Q,ep,claims,provider,semantic_search=None)
+        assert answer['status']=='unclear' and answer['uncertainty']=='person'
+        assert len(answer['refs'])==2 and wma.choices(answer,ep)==[]
+        text,links,status=wma.render(answer,ep,claims)
+        assert status=='working_unclear' and len(links)==2
+        assert 'Welche der genannten Personen' not in text
+        assert 'nicht verlässlich beantworten' in text and len(text)<1000
+        assert all(e.body not in text for e in originals)
+        conversation=_conversation(client)
+        turn=app.state.agent._working_turn(Q,answer,model_called=True)
+        app.state.conversations.add_message(conversation,'assistant',turn.reply,metadata={'context':turn.context})
+        saved=client.get(f'/api/v1/conversations/{conversation}').json()['messages'][-1]
+        assert saved['content']==text and saved['metadata']['context']['source_links']==links
+        assert 'clarification_choices' not in saved['metadata']['context']
+        for source in originals:
+            response=client.get(f'/api/v1/episodes/{source.id}')
+            assert response.status_code==200 and response.json()['body']==source.body
+        ep.ignore(answer['refs'][-1]['episode_id'])
+        withdrawn=client.get(f'/api/v1/conversations/{conversation}').json()['messages'][-1]
+        assert withdrawn['metadata']['context']['answer_contract']['status']=='working_unavailable'
+        assert withdrawn['metadata']['context']['source_links']==[]
+        assert len(provider.calls)==3
     finally:
         client.close();_close_app(app)

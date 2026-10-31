@@ -1337,7 +1337,9 @@ def render(answer, episodes, claims, *, conflict_status=None):
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
     versuch = answer.get('satzantwort')
-    kompakt = (answer.get('status') == 'reports' and not claim_basis
+    person_ohne_auswahl = (answer.get('status') == 'unclear' and answer.get('uncertainty') == 'person'
+                          and not choices(answer, episodes))
+    kompakt = person_ohne_auswahl or (answer.get('status') == 'reports' and not claim_basis
                and isinstance(versuch, dict) and versuch.get('version') == satzantwort.SATZ_VERSION
                and ((satz is not None and satz.status == 'nichts')
                     or (satz is None and versuch.get('status') == 'zitate')))
@@ -1362,7 +1364,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
                      'Relative Angaben darin beziehen sich auf dieses Datum.')
     if isinstance(answer.get('time_label'), str) and not fallback:
         lines.append(f"Zuerst berücksichtigt: Quellen {answer['time_label'][:40]}.")
-    if answer.get('status') == 'unclear':
+    if answer.get('status') == 'unclear' and not person_ohne_auswahl:
         lines.append({'person': 'Welche der genannten Personen meinst du?',
                       'scope': 'Welches Projekt oder welchen Vorgang meinst du?',
                       'time': ('Der Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, '
