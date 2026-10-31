@@ -90,3 +90,17 @@ pausiert (beide Postfächer eingerichtet); nichts fortgesetzt. Mac-Speicherdruck
 Stufe 2 und 43 Prozent freie Systemreserve genügen noch nicht für den zuvor
 festgelegten sicheren Wiederanlauf (Stufe 1, mindestens 48 Prozent stabile Reserve).
 Die eigenen Browserprüfungen werden beendet; keine fremden Programme schließen.
+
+
+## Kandidatennachweis vom 31.10.2026
+
+[PR #108](https://github.com/Icarus-health/kingfisher-app/pull/108) enthält die
+gezielten Aufnahme-/Abrufkorrekturen und den speicherbegrenzten lokalen
+Produktweg. Der [Ergebnisüberblick](runs/2026-10-31-intake-acceptance/aktueller-stand.md)
+trennt den vollständigen I-Eingang, den frischen J-Aufgaben-/Abruflauf über dieselben
+Originale, das echte künstliche Skill-Lernen und die private Quellenprobe.
+Dauerhafte synthetische Ergebnisse und unabhängige Inhaltsberichte sind dort
+verlinkt. Weder Testzahl noch Kandidatenfassung bedeuten eine persönliche
+Alltagsabnahme. Großimport bleibt pausiert; vollständige offene Quellen,
+Veröffentlichung, persönliche Installation, Fenstertest und Alltagswoche werden
+jeweils gesondert nachgewiesen.

@@ -151,7 +151,7 @@ def fragen_und_antworten(raum, modell, frage, *, namensvettern=(), person_ids=()
     return wma.prepare(frage, episodes, claims, modell, saetze=True, namensvettern=namensvettern, person_ids=person_ids, **weiter)
 
 
-def winter_mails(episodes):
+def winter_mails(episodes, *, feedback=None):
     """Beide Personen mit je zwei Mails, zeitlich überlappend (sonst wirkten die Adressen wie ein Wechsel)."""
     mail(episodes, 'Angebot Verpflegung', [('Der Preis betrug 34 Euro pro Person netto.', 'fact')], tage=60,
          absender=CATERING, weitere=(ICH,))
@@ -160,7 +160,7 @@ def winter_mails(episodes):
     mail(episodes, 'Interview Studie', [('Vielen Dank für das Interview, Alex Winter.', 'fact')], tage=30,
          absender=INSTITUT, weitere=(ICH,))
     institut = mail(episodes, 'Bitte um Feedback zum Fragebogen',
-                    [('Bitte geben Sie mir bis zum 16. Oktober Feedback, Alex Winter.', 'request')], tage=4,
+                    [(feedback or 'Bitte geben Sie mir bis zum 16. Oktober Feedback, Alex Winter.', 'request')], tage=4,
                     absender=INSTITUT, weitere=(ICH,))
     return catering, institut
 

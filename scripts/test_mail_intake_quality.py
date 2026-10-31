@@ -216,7 +216,7 @@ def test_useful_fallback_never_masks_transport_failure(failure):
     assert m.summarize(report,catalog)['pipeline_complete'] is False
 
 
-@pytest.mark.parametrize('refusal', ['weights','input','limit','tools'])
+@pytest.mark.parametrize('refusal', ['weights','input','limit','oversized_tools'])
 def test_all_pretransport_refusals_are_recorded(monkeypatch,refusal):
     import httpx
     from types import SimpleNamespace
@@ -229,7 +229,7 @@ def test_all_pretransport_refusals_are_recorded(monkeypatch,refusal):
     monkeypatch.setattr(m.httpx,'Client',lambda **kw:pytest.fail('refusal must precede source transport'))
     p=m.NativeProbe('synthetic',report,lambda:None,limit=0 if refusal=='limit' else 1)
     with pytest.raises(ProviderError):
-        if refusal=='tools':p.complete([], [{'name':'send_mail'}])
+        if refusal=='oversized_tools':p.complete([], [{'name':'quelle_lesen','description':'x'*17000}])
         else:p.complete_json([{'role':'user','content':'x'*17000 if refusal=='input' else 'synthetic'}])
     assert report.get('provider_refusals') or any(r['status']=='failed' for r in report['model_calls'])
 
@@ -287,6 +287,9 @@ def test_real_sentence_failure_preserves_quote_but_is_not_technical_success(tmp_
     m.run_pipeline(data,Language(),tmp_path,report,lambda:None)
     assert report['model_calls'][-1]['status']=='failed'
     assert all(report['questions'][0]['checks'].values())
+    assert report['questions'][0]['technical_status']=='failed'
+    assert report['questions'][0]['technical_failures']==[{
+        'kind':'model_calls','index':0,'failure_origin':None,'failure_reason':None}]
     assert not runner.summarize(report,data)['pipeline_complete']
 
 
@@ -329,3 +332,275 @@ def test_offline_ollama_leaves_an_explicit_incomplete_report_and_never_overwrite
     assert report['model_calls']==[] and report['bulk_import_authorized'] is False
     with pytest.raises(FileExistsError):m.run(output)
     assert (output/'report.json').read_bytes()==before
+
+
+def native_fixture(monkeypatch, response):
+    import httpx
+    from fastapi.testclient import TestClient  # Vor dem HTTP-Transportpatch laden.
+    from types import SimpleNamespace
+    m=probe_module();requests=[]
+    monkeypatch.setattr(m,'verify_local_model',lambda p:SimpleNamespace(name=p.model,digest='fixture'))
+    original=httpx.Client
+    def handler(request):
+        requests.append(json.loads(request.content))
+        return httpx.Response(200,json=response)
+    monkeypatch.setattr(m.httpx,'Client',lambda **kw:original(transport=httpx.MockTransport(handler),**kw))
+    return m,requests
+
+
+def test_native_tool_definitions_are_transmitted_without_executing_tools(monkeypatch):
+    m,requests=native_fixture(monkeypatch,{'message':{'content':'Nur Text'},'done':True,
+        'done_reason':'stop','prompt_eval_count':100,'eval_count':10})
+    tools=[{'name':'quelle_lesen','description':'Liest Quelle','parameters':{'type':'object'}}]
+    report={'model_calls':[],'question_id':'q16'}
+    reply=m.NativeProbe('synthetic',report,lambda:None).complete([{'role':'user','content':'Frage'}],tools)
+    assert reply.text=='Nur Text' and reply.tool_calls==[]
+    assert requests[0]['tools']==[{'type':'function','function':tools[0]}]
+    assert requests[0]['options']['num_ctx']==8192 and requests[0]['options']['num_predict']<=1200
+    row=report['model_calls'][0]
+    assert row['tool_count']==1 and row['question_id']=='q16'
+    assert row['requested_input_bytes']>row['messages_bytes']
+    assert row['tools']==tools
+
+
+def test_native_tool_schema_bytes_cannot_bypass_input_guard(monkeypatch):
+    from icarus_memory.providers import ProviderError
+    m,requests=native_fixture(monkeypatch,{})
+    report={'model_calls':[]}
+    tools=[{'name':'quelle_lesen','description':'ä'*9000,'parameters':{'type':'object'}}]
+    messages=[{'role':'user','content':'kurz'}]
+    with pytest.raises(ProviderError):m.NativeProbe('synthetic',report,lambda:None).complete(messages,tools)
+    assert requests==[]
+    row=report['model_calls'][0]
+    assert row['failure_origin']=='adapter' and row['failure_reason']=='input_limit'
+    assert row['requested_input_bytes']>16000 and row['messages_bytes']<16000 and row['tool_count']==1
+    assert row['messages']==messages and row['tools']==tools
+
+
+def test_native_model_requested_tools_are_a_reported_refusal_not_a_reply(monkeypatch):
+    from icarus_memory.providers import ProviderError
+    m,requests=native_fixture(monkeypatch,{'message':{'content':'','tool_calls':[{
+        'function':{'name':'quelle_lesen','arguments':{}}}]},'done':True,'done_reason':'stop',
+        'prompt_eval_count':100,'eval_count':10})
+    report={'model_calls':[]}
+    with pytest.raises(ProviderError):m.NativeProbe('synthetic',report,lambda:None).complete([],[{'name':'quelle_lesen'}])
+    assert len(requests)==1
+    row=report['model_calls'][0]
+    assert row['failure_origin']=='adapter' and row['failure_reason']=='tool_call_rejected'
+    assert row['response']['message']['tool_calls']
+
+
+def test_newsletter_optin_is_not_inferred_from_mail_claims(tmp_path):
+    from icarus_memory.providers import Reply
+    m=module();data=m.load_catalog()
+    data['mails']=[data['mails'][19]];data['questions']=[]
+    data['people']={'separate':[],'not_people':[]}
+    class Boundary:
+        is_local=True;name=model='synthetic-mechanics-only'
+        def complete_json(self,messages,**kwargs):return Reply(text='{"items":[]}')
+        def complete(self,messages,tools):return self.complete_json(messages)
+    report={};m.run_pipeline(data,Boundary(),tmp_path,report,lambda:None)
+    assert report['newsletter_selection']=={'exercised':False,'trusted_allowed_senders':[],
+        'selected_source_ids':[],'reason':'intake_fixture_does_not_apply_mail_filter'}
+
+
+def test_pipeline_grades_real_people_projection_and_preserves_legacy_diagnostic(tmp_path,monkeypatch):
+    from icarus_memory.providers import Reply
+    from types import SimpleNamespace
+    m=module();data=m.load_catalog();not_people=data['people']['not_people']
+    data['mails']=[s for s in data['mails'] if s['sender']['address'] in not_people or s['id']=='m01']
+    data['questions']=[];data['people']={'separate':[['alex.work@alpha.example']],'not_people':not_people}
+    class Boundary:
+        is_local=True;name=model='synthetic-mechanics-only'
+        def complete_json(self,messages,**kwargs):return Reply(text='{"items":[]}')
+        def complete(self,messages,tools):return self.complete_json(messages)
+    # Ein Fehler der alten Projektion muss im Bericht erhalten bleiben, auch
+    # wenn die echte, frisch gelesene Graphprojektion korrekt ist.
+    monkeypatch.setattr('icarus_memory.personen.alle',lambda **kw:[SimpleNamespace(
+        name='Legacy-Service',adressen=[not_people[0]])])
+    report={};m.run_pipeline(data,Boundary(),tmp_path,report,lambda:None)
+    assert report['people_projection']=={'source':'/api/v1/memory/verzeichnis','filter':'people'}
+    assert all(report['people_checks'].values())
+    assert report['people_legacy_checks']['service_not_person'] is False
+    assert any(set(row['adressen']) & set(not_people) for row in report['people_legacy'])
+    assert not any(set(row['adressen']) & set(not_people) for row in report['people'])
+    assert all(node['attributes']['quality_category']=='review' for node in report['people_graph']
+        if set(node['attributes'].get('addresses',[])) & set(not_people))
+
+
+def native_turn(content='',calls=None):
+    return {'message':{'content':content,**({'tool_calls':calls} if calls is not None else {})},
+        'done':True,'done_reason':'stop','prompt_eval_count':100,'eval_count':10}
+
+
+def test_native_read_tool_runs_through_real_isolated_agent_and_associates_result(monkeypatch,tmp_path):
+    from datetime import datetime,timezone
+    from messlatte import instanz
+    from icarus_memory import EpisodeKind,Provenance,SourceType
+    import httpx
+    from fastapi.testclient import TestClient  # Vor dem HTTP-Transportpatch laden.
+    from types import SimpleNamespace
+    m=probe_module();requests=[]
+    monkeypatch.setattr(m,'verify_local_model',lambda p:SimpleNamespace(name=p.model,digest='fixture'))
+    monkeypatch.setattr('icarus_memory.secrets.Keychain._detect',lambda self:'none')
+    record={'model_calls':[]};provider=m.NativeProbe('synthetic',record,lambda:None)
+    original=httpx.Client
+    def handler(request):
+        payload=json.loads(request.content);requests.append(payload)
+        if len(requests)==1:
+            return httpx.Response(200,json=native_turn(calls=[{'function':{'name':'episode_lesen','arguments':{'id':source.id}}}]))
+        assert payload['messages'][-2]['tool_calls'][0]['function']['arguments']=={'id':source.id}
+        assert payload['messages'][-1]['role']=='tool'
+        assert payload['messages'][-1]['tool_name']=='episode_lesen'
+        assert 'tool_call_id' not in payload['messages'][-1]
+        assert 'SYNTHETIC_READ_SENTINEL' in payload['messages'][-1]['content']
+        return httpx.Response(200,json=native_turn('Die Quelle nennt SYNTHETIC_READ_SENTINEL.'))
+    monkeypatch.setattr(m.httpx,'Client',lambda **kw:original(transport=httpx.MockTransport(handler),**kw))
+    now=datetime(2026,10,30,tzinfo=timezone.utc)
+    with m.read_tool_scope(provider),instanz.instanz_starten(stichtag=now,zeitzone='Europe/Berlin',verzeichnis=tmp_path,
+            provider=provider) as app:
+        app.app.state.scheduler.stop()
+        source,_=app.episodes.record(EpisodeKind.MESSAGE,'Synthetische Quelle','SYNTHETIC_READ_SENTINEL',
+            Provenance(SourceType.EMAIL,'synthetic:read',now))
+        before=app.episodes.get(source.id).to_dict()
+        turn=app.agent.send('Lies die synthetische Quelle.')
+        assert turn.used_tools==['episode_lesen'] and not turn.approvals
+        assert turn.reply=='Die Quelle nennt SYNTHETIC_READ_SENTINEL.'
+        assert app.episodes.get(source.id).to_dict()==before
+        assert app.app.state.tasks.all_tasks()==[]
+    assert len(requests)==2 and all(row['status']=='completed' for row in record['model_calls'])
+    assert record['model_calls'][0]['tool_decisions'][0]['decision']=='allowed_read'
+
+
+@pytest.mark.parametrize('forbidden', ['aufgabe_anlegen','datei_lesen','web_abruf','unknown_tool'])
+def test_native_mixed_batch_never_executes_even_the_allowed_read(monkeypatch,tmp_path,forbidden):
+    from datetime import datetime,timezone
+    from messlatte import instanz
+    from icarus_memory.providers import ProviderError
+    calls=[{'function':{'name':'aktuelle_zeit','arguments':{}}},
+           {'function':{'name':forbidden,'arguments':{}}}]
+    m,requests=native_fixture(monkeypatch,native_turn(calls=calls))
+    monkeypatch.setattr('icarus_memory.secrets.Keychain._detect',lambda self:'none')
+    record={'model_calls':[]};provider=m.NativeProbe('synthetic',record,lambda:None)
+    with m.read_tool_scope(provider),instanz.instanz_starten(stichtag=datetime(2026,10,30,tzinfo=timezone.utc),
+            zeitzone='Europe/Berlin',verzeichnis=tmp_path,provider=provider) as app:
+        app.app.state.scheduler.stop()
+        executed=[]
+        app.agent._tools['aktuelle_zeit'].run=lambda **kw:executed.append('read') or 'Zeit'
+        for name in ('aufgabe_anlegen','datei_lesen','web_abruf'):
+            app.agent._tools[name].run=lambda **kw:pytest.fail('forbidden tool must never execute')
+        turn=app.agent.send('Prüfe synthetisch.')
+        assert turn.used_tools==[] and not turn.approvals and executed==[]
+        assert app.app.state.tasks.all_tasks()==[]
+    assert len(requests)==1 and record['model_calls'][0]['status']=='failed'
+    assert all(row['decision']!='allowed_read' for row in record['model_calls'][0]['tool_decisions'])
+
+
+@pytest.mark.parametrize('arguments', ['{"query":"synthetic"}',[],{'query':7},{},{'query':'x','path':'/private/forbidden'}])
+def test_native_malformed_read_arguments_are_rejected_as_entire_reply(monkeypatch,tmp_path,arguments):
+    from datetime import datetime,timezone
+    from messlatte import instanz
+    from icarus_memory.providers import ProviderError
+    m,requests=native_fixture(monkeypatch,native_turn(calls=[{'function':{'name':'episoden_suchen','arguments':arguments}}]))
+    monkeypatch.setattr('icarus_memory.secrets.Keychain._detect',lambda self:'none')
+    record={'model_calls':[]};provider=m.NativeProbe('synthetic',record,lambda:None)
+    with m.read_tool_scope(provider),instanz.instanz_starten(stichtag=datetime(2026,10,30,tzinfo=timezone.utc),
+            zeitzone='Europe/Berlin',verzeichnis=tmp_path,provider=provider) as app:
+        app.app.state.scheduler.stop()
+        app.agent._tools['episoden_suchen'].run=lambda **kw:pytest.fail('malformed tool must never execute')
+        turn=app.agent.send('Prüfe synthetisch.')
+        assert turn.used_tools==[] and not turn.approvals
+    assert len(requests)==1 and record['model_calls'][0]['failure_reason']=='tool_call_rejected'
+
+
+def test_native_history_never_associates_unknown_tool_result(monkeypatch):
+    from icarus_memory.providers import ProviderError
+    m,requests=native_fixture(monkeypatch,native_turn('ok'))
+    record={'model_calls':[]}
+    with pytest.raises(ProviderError):m.NativeProbe('synthetic',record,lambda:None).complete([
+        {'role':'tool','tool_call_id':'not_from_this_provider','content':'synthetic'}],[])
+    assert requests==[] and record['model_calls'][0]['failure_reason']=='tool_history_invalid'
+
+
+def test_native_read_tool_result_still_obeys_complete_history_budget(monkeypatch,tmp_path):
+    from datetime import datetime,timezone
+    from messlatte import instanz
+    m,requests=native_fixture(monkeypatch,native_turn(calls=[{'id':'read_once','function':{
+        'name':'aktuelle_zeit','arguments':{}}}]))
+    monkeypatch.setattr('icarus_memory.secrets.Keychain._detect',lambda self:'none')
+    record={'model_calls':[]};provider=m.NativeProbe('synthetic',record,lambda:None)
+    with m.read_tool_scope(provider),instanz.instanz_starten(stichtag=datetime(2026,10,30,tzinfo=timezone.utc),
+            zeitzone='Europe/Berlin',verzeichnis=tmp_path,provider=provider) as app:
+        app.app.state.scheduler.stop()
+        app.agent._tools['aktuelle_zeit'].run=lambda **kw:'ä'*9000
+        turn=app.agent.send('Prüfe synthetisch.')
+        assert turn.used_tools==['aktuelle_zeit']
+    assert len(requests)==1
+    assert record['model_calls'][0]['status']=='completed'
+    row=record['model_calls'][1]
+    assert row['status']=='failed' and row['failure_reason']=='input_limit'
+    assert row['requested_input_bytes']>16000
+    assert row['native_messages'][-1]['content']=='ä'*9000
+
+
+@pytest.mark.parametrize('mutation',['action_class','dynamic_class','schema','too_many','malformed_type','name_object'])
+def test_native_read_registry_and_batch_contracts_cannot_be_bypassed(monkeypatch,tmp_path,mutation):
+    from datetime import datetime,timezone
+    from messlatte import instanz
+    from icarus_memory.policy import ActionClass
+    from icarus_memory.providers import ProviderError
+    calls=[{'function':{'name':'aktuelle_zeit','arguments':{}}}]
+    if mutation=='too_many':calls=calls*5
+    if mutation=='malformed_type':calls[0]['type']='not_a_function'
+    if mutation=='name_object':calls[0]['function']['name']={'name':'aktuelle_zeit'}
+    m,requests=native_fixture(monkeypatch,native_turn(calls=calls))
+    monkeypatch.setattr('icarus_memory.secrets.Keychain._detect',lambda self:'none')
+    record={'model_calls':[]};provider=m.NativeProbe('synthetic',record,lambda:None)
+    with m.read_tool_scope(provider),instanz.instanz_starten(stichtag=datetime(2026,10,30,tzinfo=timezone.utc),
+            zeitzone='Europe/Berlin',verzeichnis=tmp_path,provider=provider) as app:
+        app.app.state.scheduler.stop()
+        schemas=app.agent.tool_schemas()
+        tool=app.agent._tools['aktuelle_zeit']
+        if mutation=='action_class':tool.action_class=ActionClass.WRITE_LOCAL
+        if mutation=='dynamic_class':tool.class_for=lambda kw:ActionClass.OUTWARD
+        if mutation=='schema':schemas[0]['description']='Changed schema'
+        with pytest.raises(ProviderError):provider.complete([{'role':'user','content':'synthetic'}],schemas)
+    assert record['model_calls'][0]['failure_reason']=='tool_call_rejected'
+    assert record['model_calls'][0]['tool_decisions'][0]['decision']=='rejected'
+
+
+@pytest.mark.parametrize('change',['wrong_name','reordered_results'])
+def test_native_history_rejects_contradictory_or_reordered_association(monkeypatch,change):
+    from icarus_memory.providers import ProviderError,ToolCall
+    m,requests=native_fixture(monkeypatch,native_turn('ok'))
+    record={'model_calls':[]};provider=m.NativeProbe('synthetic',record,lambda:None)
+    provider.prior_calls={'one':ToolCall('one','episode_lesen',{'id':'synthetic-one'}),
+                          'two':ToolCall('two','episode_lesen',{'id':'synthetic-two'})}
+    history=[{'role':'assistant','content':'','tool_calls':[
+        {'id':key,'type':'function','function':{'name':call.name,'arguments':json.dumps(call.arguments)}}
+        for key,call in provider.prior_calls.items()]},
+        {'role':'tool','tool_call_id':'one','content':'First result'},
+        {'role':'tool','tool_call_id':'two','content':'Second result'}]
+    if change=='wrong_name':history[1]['tool_name']='notiz_lesen'
+    if change=='reordered_results':history[1:]=list(reversed(history[1:]))
+    with pytest.raises(ProviderError):provider.complete(history,[])
+    assert requests==[] and record['model_calls'][0]['failure_reason']=='tool_history_invalid'
+
+
+def test_required_answer_content_cannot_be_satisfied_only_by_citation_title():
+    m=module()
+    case={'required':['m12'],'allowed':['m12'],'status':['working_reports'],
+          'contains':['noch nicht fertig']}
+    observed={'sources':['m12'],'status':'working_reports',
+              'text':'Die zugesagte Frist bleibt bestehen. [1]\n\nBelege\n[1] Projekt: noch nicht fertig; 30.10.2026'}
+    assert m.grade_question(case,observed)['required_text'] is False
+    observed['text']='Die Kalkulation ist noch nicht fertig. [1]\n\nBelege\n[1] Projekt; 30.10.2026'
+    assert m.grade_question(case,observed)['required_text'] is True
+
+
+def test_required_answer_content_keeps_ordinary_source_text_about_belege():
+    m=module()
+    case={'required':[],'allowed':[],'status':['working_reports'],'contains':['noch nicht fertig']}
+    for text in ['Quelle berichtet: Die Belege sind noch nicht fertig.',
+                 'Quelle berichtet:\n\nBelege\nDie Belege sind noch nicht fertig.']:
+        assert m.grade_question(case,{'sources':[],'status':'working_reports','text':text})['required_text']

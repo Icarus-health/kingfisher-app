@@ -62,13 +62,23 @@ def omit_dates(mailbox, identifiers):
                 rows[i] = (uid, message.as_bytes())
 
 
+def _required_text_body(text):
+    # Die gerenderte Belegliste enthält auch Quelltitel. Deren Wörter dürfen
+    # eine fehlende eigentliche Antwort nicht als bestanden erscheinen lassen.
+    body, separator, footer = text.partition('\n\nBelege\n')
+    label, closing, _ = footer.partition('] ')
+    citation_footer = separator and closing and label.startswith('[') and label[1:].isdigit()
+    return body if citation_footer else text
+
+
 def grade_question(case, observed):
     selected = set(observed.get('sources', []))
     text = observed.get('text', '').casefold()
+    body = _required_text_body(observed.get('text', '')).casefold()
     return {'required_sources':set(case['required']) <= selected,
             'only_allowed_sources':selected <= set(case['allowed']),
             'status':observed.get('status') in case['status'],
-            'required_text':all(t.casefold() in text for t in case.get('contains',[])),
+            'required_text':all(t.casefold() in body for t in case.get('contains',[])),
             'forbidden_text_absent':all(t.casefold() not in text for t in case.get('excludes',[])),
             'choice_count':len(observed.get('choices',[])) >= case.get('minimum_choices',0)}
 
@@ -120,6 +130,10 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
     report.setdefault('mode','mechanics')
     report.update(finished=False, bulk_import_authorized=False, semantic_grade='requires_review',
                   classification=[], task_rows=[], questions=[])
+    # messlatte.aufnahme ruft Intake.step ohne Relevanzfilter auf. Weder der
+    # Fachbrieftext noch sein Betreff ist eine vertrauenswürdige Auswahl.
+    report['newsletter_selection']={'exercised':False,'trusted_allowed_senders':[],
+        'selected_source_ids':[],'reason':'intake_fixture_does_not_apply_mail_filter'}
     with patch('icarus_memory.secrets.Keychain._detect', return_value='none'):
         with instanz_starten(stichtag=clock, zeitzone=catalog['timezone'], provider=provider,
                 verzeichnis=directory, eigene=(owner,)) as app, ExitStack() as cleanup:
@@ -161,7 +175,21 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
             report['tasks_created_without_confirmation']=len(app.app.state.tasks.all_tasks())
             people=personen.alle(episodes=app.episodes,tasks=app.app.state.tasks,store=app.app.state.store,
                 jetzt=clock,workspace=app.app.state.workspace,eigene=[owner])
-            report['people']=[{'name':p.name,'adressen':p.adressen} for p in people]
+            # Die alte Teilnehmerliste bleibt sichtbar, misst aber weder die
+            # Qualitätskategorie noch den tatsächlich sichtbaren Personenfilter.
+            report['people_legacy']=[{'name':p.name,'adressen':p.adressen} for p in people]
+            report['people_legacy_checks']=grade_people(catalog['people'],report['people_legacy'])
+            graph=app.anfrage('GET','/api/v1/memory/verzeichnis')
+            report['people_graph']=[node for node in graph['nodes'] if node['kind']=='person']
+            report['people_projection']={'source':'/api/v1/memory/verzeichnis','filter':'people'}
+            def visible_person(node):
+                attributes=node['attributes'];category=attributes.get('quality_category')
+                # Entspricht peopleQuality.ts: unbekannte Kategorie nur mit
+                # explizit bestätigter Identität als Mensch behandeln.
+                return category=='person' or category not in {'person','automated','review'} and \
+                    attributes.get('identity_resolution') in {'explicit_registry','confirmed_group'}
+            report['people']=[{'name':node['label'],'adressen':node['attributes'].get('addresses',[]),
+                               'node_id':node['id']} for node in report['people_graph'] if visible_person(node)]
             report['people_checks']=grade_people(catalog['people'],report['people']);save()
             service=None
             if embedding_factory is not None:
@@ -182,6 +210,9 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
             report['stage']='fresh_recall';save()
             report['semantic_observations']=[]
             for case in catalog['questions']:
+                report['question_id']=case['id']
+                tracked=('model_calls','embedding_calls','embedding_sessions','provider_refusals')
+                offsets={key:len(report.get(key,[])) for key in tracked}
                 cid=app.anfrage('POST','/api/v1/conversations',{})['conversation']['id']
                 try:
                     answer=app.anfrage('POST',f'/api/v1/conversations/{cid}/messages',
@@ -194,9 +225,20 @@ def run_pipeline(catalog, provider, directory, report, save, *, embedding_factor
                     report['questions'].append({'id':case['id'],'error':type(error).__name__})
                     save()
                     if getattr(error,'fatal',False):raise
+                finally:
+                    failures=[{'kind':key,'index':i,'failure_origin':row.get('failure_origin'),
+                               'failure_reason':row.get('failure_reason')}
+                              for key in tracked for i,row in enumerate(report.get(key,[]))
+                              if i>=offsets[key] and (key=='provider_refusals' or row.get('status')!='completed')]
+                    # Ein hilfreicher Originalrückfall darf stehen bleiben, ohne
+                    # den technischen Ausfall als Wissenslücke auszugeben.
+                    report['questions'][-1].update(technical_status='failed' if failures or
+                        report['questions'][-1].get('error') else 'no_observed_failure',technical_failures=failures)
+                    save()
                 if service is not None:
                     report['semantic_observations'].append({'id':case['id'],'coverage':service.coverage()})
                 save()
+            report.pop('question_id',None)
             if service is not None:report['semantic_after_recall']=service.coverage()
             report['originals_preserved']=all(app.episodes.get(mapping[s['id']]).body.strip()==s['body'].strip() for s in catalog['mails'])
             report['finished']=True;report['stage']='finished';save()

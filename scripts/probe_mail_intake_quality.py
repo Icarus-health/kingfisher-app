@@ -5,7 +5,8 @@ Native 8K-Diagnose statt unveränderter 32K-App-Transport. Bewertet feste Vertr�
 keine universelle Wahrheit; der Großimport wird niemals freigegeben.
 """
 import argparse
-from contextlib import redirect_stdout, redirect_stderr
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
+import copy
 from dataclasses import asdict
 from datetime import datetime, timezone
 import hashlib
@@ -21,11 +22,16 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT));sys.path.insert(0,str(ROOT/'sidecar'))
 import httpx
 from icarus_memory.local_model_guard import verify_local_model
-from icarus_memory.providers import OpenAICompatible, ProviderError, Reply
+from icarus_memory.providers import OpenAICompatible, ProviderError, Reply, ToolCall
+from icarus_memory.policy import ActionClass
+from unittest.mock import patch
 from mail_intake_quality import CATALOG, load_catalog, run_pipeline
 
 MODEL='kingfisher-qwen3.5:9b-32k'
 BASE='http://127.0.0.1:11434'
+READ_TOOLS=frozenset({'gedaechtnis_suchen','episoden_suchen','episode_lesen','notizen_suchen',
+    'notiz_lesen','aktuelle_zeit','aufgaben','projekte','projekt_stand'})
+MAX_TOOL_CALLS=4
 
 
 class ProbeLimit(ProviderError):
@@ -39,48 +45,171 @@ class NativeProbe:
         self.model=model;self.report=report;self.save=save;self.limit=limit
         self.base=OpenAICompatible(model,base_url=BASE+'/v1')
         self.identity=None
+        self.registry=None;self.prior_calls={}
 
-    def _call(self,messages,*,max_tokens,schema=None):
+    def _native_messages(self,messages):
+        """Nur eigene bekannte Aufrufe in Ollamas Nachrichtenvertrag übersetzen."""
+        if not isinstance(messages,list) or any(not isinstance(message,dict) for message in messages):
+            raise ProviderError('Ungültige Werkzeughistorie.')
+        native=copy.deepcopy(messages);pending={};seen=set()
+        for message in native:
+            if message.get('tool_calls'):
+                if (message.get('role')!='assistant' or pending or not isinstance(message['tool_calls'],list)):
+                    raise ProviderError('Ungültige Werkzeughistorie.')
+                calls=[]
+                for call in message['tool_calls']:
+                    if not isinstance(call,dict) or not isinstance(call.get('id'),str) or not isinstance(call.get('function'),dict):
+                        raise ProviderError('Ungültige historische Werkzeugdefinition.')
+                    identifier=call.get('id');known=self.prior_calls.get(identifier);function=call.get('function',{})
+                    try:arguments=json.loads(function.get('arguments'))
+                    except (TypeError,ValueError):raise ProviderError('Ungültige historische Werkzeugargumente.')
+                    if (known is None or identifier in seen or function.get('name')!=known.name
+                            or arguments!=known.arguments):raise ProviderError('Unbekannte oder veränderte Werkzeughistorie.')
+                    seen.add(identifier);pending[identifier]=known.name
+                    calls.append({'type':'function','function':{'name':known.name,'arguments':arguments}})
+                message['tool_calls']=calls
+            elif message.get('role')=='tool':
+                identifier=message.get('tool_call_id')
+                if (not isinstance(identifier,str) or identifier not in pending or
+                        identifier!=next(iter(pending)) or not isinstance(message.get('content'),str)):
+                    raise ProviderError('Werkzeugergebnis ohne bekannten vorherigen Aufruf.')
+                name=pending.pop(identifier)
+                if 'tool_name' in message and message['tool_name']!=name:
+                    raise ProviderError('Widersprüchlicher Werkzeugname in der Historie.')
+                message.pop('tool_call_id');message['tool_name']=name
+            elif pending:
+                raise ProviderError('Werkzeugergebnis fehlt in der Historie.')
+        if pending:raise ProviderError('Werkzeugergebnis fehlt in der Historie.')
+        return native
+
+    def _read_calls(self,raw,tools,row):
+        """Den ganzen Antrag prüfen; erst danach erreicht etwas die Agent-Policy."""
+        from icarus_memory.agent import _fehlende_pflichtfelder
+        row['tool_requests']=copy.deepcopy(raw);decisions=[];calls=[];error=None
+        if not isinstance(raw,list) or not 1<=len(raw)<=MAX_TOOL_CALLS:
+            row['tool_decisions']=[{'decision':'rejected','reason':'tool_batch_limit_or_shape'}]
+            raise ProviderError('Ungültige oder zu große Werkzeugantwort.')
+        offered={tool.get('name'):tool for tool in tools or []}
+        identifiers=set(self.prior_calls)
+        for i,request in enumerate(raw):
+            function=request.get('function') if isinstance(request,dict) else None
+            name=function.get('name') if isinstance(function,dict) else None
+            arguments=function.get('arguments') if isinstance(function,dict) else None
+            identifier=request.get('id',f'probe_{len(self.report["model_calls"])}_{i}') if isinstance(request,dict) else None
+            reason=None;tool=(self.registry or {}).get(name) if isinstance(name,str) else None
+            if not isinstance(request,dict) or request.get('type','function')!='function':reason='invalid_call_shape'
+            elif not isinstance(name,str) or name not in READ_TOOLS:reason='not_local_read_allowlist'
+            elif tool is None:reason='isolated_registry_not_bound'
+            elif (tool.action_class is not ActionClass.READ or offered.get(name)!=tool.schema()):reason='registry_contract_changed'
+            elif (not isinstance(identifier,str) or not identifier or identifier in identifiers):reason='invalid_call_id'
+            elif not isinstance(arguments,dict):reason='arguments_not_object'
+            elif _fehlende_pflichtfelder(tool,arguments):reason='required_arguments_missing'
+            else:
+                properties=tool.parameters.get('properties',{})
+                types={'string':str,'boolean':bool,'integer':int,'number':(int,float)}
+                if any(key not in properties or type(value) not in (
+                        types.get(properties[key].get('type')) if isinstance(types.get(properties[key].get('type')),tuple)
+                        else (types.get(properties[key].get('type')),)) for key,value in arguments.items()):
+                    reason='argument_type_or_name'
+                elif any(isinstance(value,str) and not value.strip() and key in tool.parameters.get('required',[])
+                         for key,value in arguments.items()):reason='empty_required_argument'
+                elif tool.classify(arguments) is not ActionClass.READ:reason='classified_non_read'
+            decisions.append({'name':name,'id':identifier,'decision':'rejected' if reason else 'validated_read','reason':reason})
+            if reason:error=reason
+            else:
+                identifiers.add(identifier);calls.append(ToolCall(id=identifier,name=name,arguments=copy.deepcopy(arguments)))
+        row['tool_decisions']=decisions
+        if error:
+            for decision in decisions:
+                if decision['decision']=='validated_read':decision['decision']='not_returned_reply_rejected'
+            raise ProviderError('Werkzeugantwort vollständig abgelehnt: '+error)
+        for decision in decisions:decision['decision']='allowed_read'
+        return calls
+
+    def _call(self,messages,*,max_tokens,schema=None,tools=None):
         if len(self.report['model_calls'])>=self.limit:self._refuse(ProbeLimit('Aufrufgrenze erreicht.'))
-        row={'stage':self.report.get('stage'),'messages':messages,'status':'started'}
+        # Definitionen sind noch keine Ausführung. Der vollständige Modelleingang
+        # zählt einschließlich Werkzeug- und Ausgabeschema gegen dieselbe Grenze.
+        model_input={'messages':messages}
+        if schema is not None:model_input['format']=schema
+        if tools:model_input['tools']=[{'type':'function','function':tool} for tool in tools]
+        byte_size=lambda value:len(json.dumps(value,ensure_ascii=False).encode())
+        row={'stage':self.report.get('stage'),'question_id':self.report.get('question_id'),
+             'messages':messages,'tools':tools or [],'tool_count':len(tools or []),
+             'messages_bytes':byte_size(messages),'requested_input_bytes':byte_size(model_input),'status':'started'}
         self.report['model_calls'].append(row);self.save();start=time.monotonic()
+        phase='tool_history_invalid'
         try:
-            if len(json.dumps(messages,ensure_ascii=False).encode())>16000:
+            native=self._native_messages(messages)
+            native_input=dict(model_input,messages=native)
+            row['native_messages']=native;row['native_input_bytes']=byte_size(native_input)
+            row['requested_input_bytes']=max(row['requested_input_bytes'],row['native_input_bytes'])
+            phase='input_limit'
+            if row['requested_input_bytes']>16000:
                 raise ProviderError('Eingabe über der sicheren 8K-Diagnosegrenze; nicht gekürzt.')
+            phase='model_identity'
             identity=verify_local_model(self.base)
             if self.identity is not None and self.identity!=identity:raise ProbeLimit('Modellgewichte geändert.')
             self.identity=identity
-            payload={'model':self.model,'messages':messages,'stream':False,'think':False,'keep_alive':'15s',
+            payload={'model':self.model,'messages':native,'stream':False,'think':False,'keep_alive':'15s',
                      'options':{'num_ctx':8192,'num_predict':min(max_tokens,1200),'temperature':0,'seed':42}}
             if schema is not None:payload['format']=schema
+            if tools:payload['tools']=model_input['tools']
+            phase='transport'
             with httpx.Client(timeout=60,trust_env=False,follow_redirects=False) as client:
                 response=client.post(BASE+'/api/chat',json=payload);response.raise_for_status();data=response.json()
             row['response']=data
             message=data.get('message') or {}
+            phase='response_invalid'
+            raw_calls=message.get('tool_calls')
             if (data.get('done') is not True or data.get('done_reason') not in (None,'stop')
-                    or message.get('tool_calls') or not isinstance(message.get('content'),str) or not message['content'].strip()):
-                raise ProviderError('Leere, abgeschnittene oder werkzeughaltige Antwort.')
+                    or not isinstance(message.get('content'),str) or not (message['content'].strip() or raw_calls)):
+                raise ProviderError('Leere oder abgeschnittene Antwort.')
+            phase='context_reserve'
             if (type(data.get('prompt_eval_count')) is not int or data['prompt_eval_count']<=0
                     or type(data.get('eval_count')) is not int or data['eval_count']<0
                     or data['prompt_eval_count']>=6992):
                 raise ProviderError('Kontextreserve nicht nachgewiesen; Ergebnis nicht vollständig gewertet.')
+            phase='model_identity'
             if verify_local_model(self.base)!=identity:raise ProbeLimit('Modellgewichte geändert.')
-            row['status']='completed';return Reply(text=message['content'],model=self.model)
+            phase='tool_call_rejected'
+            calls=self._read_calls(raw_calls,tools,row) if raw_calls else []
+            for call in calls:self.prior_calls[call.id]=call
+            row['status']='completed';return Reply(text=message['content'],tool_calls=calls,model=self.model)
         except Exception as exc:
-            row['status']='failed';row['error']=type(exc).__name__+': '+str(exc);raise
+            row.update(status='failed',error=type(exc).__name__+': '+str(exc),failure_reason=phase,
+                       failure_origin='adapter' if phase in {'input_limit','tool_history_invalid','tool_call_rejected'} else
+                       'model_response' if phase in {'response_invalid','context_reserve'} else phase)
+            raise
         finally:
             row['seconds']=round(time.monotonic()-start,3);self.save()
 
     def _refuse(self,error):
-        self.report.setdefault('provider_refusals',[]).append({'stage':self.report.get('stage'),'error':str(error)})
+        self.report.setdefault('provider_refusals',[]).append({'stage':self.report.get('stage'),
+            'question_id':self.report.get('question_id'),'failure_origin':'adapter','error':str(error)})
         self.save();raise error
 
     def complete_json(self,messages,*,max_tokens=256,schema=None):
         return self._call(messages,max_tokens=max_tokens,schema=schema or 'json')
 
     def complete(self,messages,tools):
-        if tools:self._refuse(ProviderError('Werkzeugausführung gehört nicht zu dieser Quellenprobe.'))
-        return self._call(messages,max_tokens=1024)
+        # Ausschließlich geprüfte lokale Leseanträge erreichen die normale
+        # Agent-Policy; dieser Adapter führt selbst kein Werkzeug aus.
+        return self._call(messages,max_tokens=1024,tools=tools)
+
+
+@contextmanager
+def read_tool_scope(provider):
+    """Nur die frisch isolierte Messinstanz darf die echte Registry binden."""
+    from messlatte import instanz
+    original=instanz.instanz_starten
+    @contextmanager
+    def launch(*args,**kwargs):
+        with original(*args,**kwargs) as app:
+            provider.registry=app.agent._tools
+            try:yield app
+            finally:provider.registry=None
+    with patch.object(instanz,'instanz_starten',launch):yield
 
 
 class TrackedEmbedding:
@@ -185,7 +314,8 @@ def worker(directory):
             report['embedding_calls']=[]
             def embedding_factory():
                 return TrackedEmbedding(lambda:LocalEmbedder(model='bge-m3:latest',verify_weights=True,keep_alive='15s'),report,save)
-            run_pipeline(catalog,provider,Path(directory)/'runtime',report,save,embedding_factory=embedding_factory)
+            with read_tool_scope(provider):
+                run_pipeline(catalog,provider,Path(directory)/'runtime',report,save,embedding_factory=embedding_factory)
         except Exception as exc:
             report['finished']=False;report['error']=type(exc).__name__+': '+str(exc)
         finally:

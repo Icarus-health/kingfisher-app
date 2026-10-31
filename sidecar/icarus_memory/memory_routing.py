@@ -10,6 +10,7 @@ _MEMORY_QUESTION = re.compile(
     r'|welche (?:adresse|e-mail-adresse|mailadresse|telefonnummer|fristen|frist|entscheidung)\b'
     r'|(?:was|wie) ist (?:der (?:aktuelle )?stand|es um)\b'
     r'|was steht (?:in (?:der|dem|den)|zu|über)\b'
+    r'|was ist (?:zu[mr]?|über)\s+[^.!?\n]{1,200}\s+bekannt\s*\??$'
     r'|wann (?:ist|war|findet|beginnt|endet)\b'
     r'|wurde .+ (?:versendet|verschickt|bestätigt|erledigt|abgesagt)\s*\??$)', re.I)
 # Bounded questions about the existence of a business record. Route even if

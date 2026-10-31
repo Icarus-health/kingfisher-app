@@ -12,9 +12,10 @@ from tests.test_satzantwort import Skript, nr, raum  # noqa: F401 - Fixture und 
 
 
 
-def antwort_mit_saetzen(raum, saetze, *, auswahl=None, **weiter):
+def antwort_mit_saetzen(raum, saetze, *, auswahl=None, literal=False, **weiter):
     episodes, _, _ = raum
-    winter_mails(episodes)
+    winter_mails(episodes, feedback=('Alex Winter bittet bis zum 16. Oktober um Feedback.'
+                                    if literal else None))
     vettern = personenfrage.gemeinte_unter_namensvettern(FRAGE_CATERING, episodes, eigene=[ICH])
     modell = Skript(saetze=saetze, auswahl=auswahl)
     return fragen_und_antworten(raum, modell, FRAGE_CATERING, namensvettern=vettern, **weiter), modell
@@ -39,7 +40,7 @@ def test_ein_satz_nur_aus_der_quelle_des_namensvetters_besteht_nicht(raum):
 
 def test_derselbe_satz_besteht_wenn_er_den_anderen_alex_winter_ausdruecklich_nennt(raum):
     antwort, _ = antwort_mit_saetzen(raum, satz_nur_institut('Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'),
-                                    auswahl=nur_titel('Feedback'))
+                                    auswahl=nur_titel('Feedback'), literal=True)
     assert antwort['satzantwort']['status'] == 'saetze' and antwort['satzantwort']['verworfen'] == 0
 
 
@@ -86,7 +87,7 @@ def test_satz_aus_einer_quelle_ausserhalb_des_zeitraums_besteht_nur_mit_ausdruec
 def test_gespeicherte_satzantwort_traegt_den_rahmen_und_prueft_beim_anzeigen_erneut(raum):
     episodes, claims, _ = raum
     antwort, _ = antwort_mit_saetzen(raum, satz_nur_institut('Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'),
-                                    auswahl=nur_titel('Feedback'))
+                                    auswahl=nur_titel('Feedback'), literal=True)
     assert antwort['satzantwort']['rahmen']['personen'][0]['adresse'] == A_CATERING
     assert satzantwort.wiederherstellen(antwort['satzantwort'], episodes, claims) is not None
     # Derselbe Satz ohne den ausdrücklichen Hinweis besteht nach dem Speichern nicht mehr.
@@ -108,3 +109,39 @@ def test_die_worte_des_hinweises_gelten_der_satzpruefung_nicht_als_erfundene_nam
     assert pruefe_satz(Satz('Das ist ein Namensvetter: Alex Winter bittet um Feedback.', ('1',)), {'1': vetter}, jetzt).bestanden
     assert pruefe_satz(Satz('Außerhalb des Zeitraums kostete das Angebot 35.000 Euro.', ('1',)), {'1': zeit}, jetzt).bestanden
     assert not pruefe_satz(Satz('Das Angebot kostet 35.000 Euro.', ('1',)), {'1': zeit}, jetzt).bestanden
+
+
+def test_namensvetter_hinweis_belegt_keine_akteursrolle_aus_einer_bitte(raum):
+    answer, _ = antwort_mit_saetzen(raum, satz_nur_institut(
+        'Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'),
+        auswahl=nur_titel('Feedback'))
+    episodes, claims, _ = raum
+    assert answer['satzantwort']['status'] == 'zitate'
+    text, links, status = wma.render(answer, episodes, claims)
+    assert status == 'working_reports' and links
+    assert 'Bitte geben Sie mir bis zum 16. Oktober Feedback, Alex Winter.' in text
+    assert 'Ein anderer Alex Winter bittet' not in text
+
+
+def test_fehlender_identitaetshinweis_bleibt_bei_wortlautbeleg_verboten():
+    marke = Kennzeichen(ANDERE_PERSON, A_INSTITUT, 'Alex Winter', A_CATERING)
+    text = 'Alex Winter bittet um Feedback.'
+    beleg = AntwortBeleg(1, {}, 'Quelle', 'e1', '', '', text, None,
+                         kennzeichen=(marke,), personen=('Alex Winter',))
+    jetzt = datetime(2026, 9, 29, tzinfo=timezone.utc)
+    result = pruefe_satz(Satz(text, ('1',)), {'1': beleg}, jetzt)
+    assert not result.bestanden
+    assert any('anderen Person gleichen Namens' in g for g in result.gruende)
+    annotated = 'Ein anderer ' + text
+    assert pruefe_satz(Satz(annotated, ('1',)), {'1': beleg}, jetzt).bestanden
+    swapped = 'Ein anderer Alex Winter gibt Feedback.'
+    assert not pruefe_satz(Satz(swapped, ('1',)), {'1': beleg}, jetzt).bestanden
+
+
+def test_wortgetreue_quelle_mit_eigenem_identitaetsrahmen_bleibt_gueltig():
+    text = 'Ein anderer Alex Winter bittet um Feedback.'
+    beleg = AntwortBeleg(1, {}, 'Quelle', 'e1', '', '', text, None,
+                         kennzeichen=(Kennzeichen(ANDERE_PERSON, A_INSTITUT, 'Alex Winter', A_CATERING),),
+                         personen=('Alex Winter',))
+    jetzt = datetime(2026, 9, 29, tzinfo=timezone.utc)
+    assert pruefe_satz(Satz(text, ('1',)), {'1': beleg}, jetzt).bestanden

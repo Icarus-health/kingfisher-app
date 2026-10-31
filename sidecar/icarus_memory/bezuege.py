@@ -482,9 +482,11 @@ FINGERABDRUCK = ("e.digest || ':' || e.metadata_digest || ':' || e.support_gener
 # Rule changes must also refresh address-only anchors with no register
 # dependency. Version only the derived input; user decisions retain the
 # unchanged source fingerprint above.
-_REGELVERSION = 3
-#: Termine haben eine eigene Regelfassung (Terminort und Organisation): Nur sie werden dafür neu berechnet.
-_REGELVERSION_TERMINE = 4
+# Die zentrale Erkennung von Angebots-, Buchungs- und Redaktionspostfächern
+# betrifft Mails und Termine; beide Ableitungen müssen neu geprüft werden.
+_REGELVERSION = 4
+#: Termine behalten zusätzlich die eigene Terminort-/Organisationsregel.
+_REGELVERSION_TERMINE = 5
 #: Alles, was in die Bezüge einer Quelle eingeht (ohne das Verzeichnis).
 _EINGABE = (FINGERABDRUCK + " || '|' || COALESCE(c.fingerprint,'') || ':' || COALESCE(c.status,'') || ':' "
             "|| COALESCE(c.taxonomy_version,'') || '|' || COALESCE(k.fingerprint,'') || ':' "

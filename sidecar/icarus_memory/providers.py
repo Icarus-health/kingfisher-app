@@ -211,15 +211,21 @@ class OpenAICompatible:
             payload["tools"] = [
                 {"type": "function", "function": t} for t in tools
             ]
+        from .local_context_profile import prepare,selected
+        if selected(self):payload=self._request_payload(payload)
+        prepared=prepare(self,payload)
         try:
-            with self._ampel(), self._client(timeout) as client:
-                response = client.post(
-                    f"{self._base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._key}"},
-                    json=self._request_payload(payload),
-                )
-                response.raise_for_status()
-                data = response.json()
+            if prepared is not None:
+                with self._ampel():data=prepared.send(self,lambda:timeout)
+            else:
+                with self._ampel(), self._client(timeout) as client:
+                    response = client.post(
+                        f"{self._base}/chat/completions",
+                        headers={"Authorization": f"Bearer {self._key}"},
+                        json=self._request_payload(payload),
+                    )
+                    response.raise_for_status()
+                    data = response.json()
         except httpx.HTTPError as exc:
             raise ProviderError(f"Anfrage an {self._base} fehlgeschlagen: {exc}") from exc
 
@@ -241,8 +247,8 @@ class OpenAICompatible:
             raise ProviderError("Das Modell hat keine sichtbare Antwort geliefert. Bitte erneut versuchen oder ein anderes Modell wählen.")
         return Reply(text=content or "", tool_calls=calls, model=self.model)
 
-    def complete_json(self, messages: list[dict[str, Any]], *, max_tokens: int = 256, schema: dict[str, Any] | None = None) -> Reply:
-        """Bounded JSON-only completion for local screening tasks."""
+    def _json_payload(self, messages, max_tokens, schema):
+        """Gleicher vollständiger JSON-Eingang für Budgetvorschau und Transport."""
         if not self.is_local:
             raise ProviderError("JSON screening requires a local provider")
         if type(max_tokens) is not int or not 64 <= max_tokens <= 1200:
@@ -258,20 +264,44 @@ class OpenAICompatible:
             payload["response_format"] = {"type": "json_schema", "json_schema": {
                 "name": "local_result", "strict": True, "schema": schema}}
             payload["temperature"] = 0
+        return payload
+
+    def can_complete_json(self, messages, *, max_tokens=256, schema=None):
+        """Reine Budgetvorschau nur für das ausdrücklich gewählte kleine Profil.
+
+        None bedeutet unveränderten bisherigen Anbieterpfad. Weder Metadaten
+        noch Modellvorbereitung oder Netzwerk werden hier aufgerufen.
+        """
+        from .local_context_profile import selected, _native_payload, InputTooLarge
+        if not selected(self):return None
+        payload=self._json_payload(messages,max_tokens,schema)
+        try:_native_payload(self,payload)
+        except InputTooLarge:return False
+        return True
+
+    def complete_json(self, messages: list[dict[str, Any]], *, max_tokens: int = 256, schema: dict[str, Any] | None = None) -> Reply:
+        """Bounded JSON-only completion for local screening tasks."""
+        payload=self._json_payload(messages,max_tokens,schema)
         timeout = 60.0 if max_tokens > 256 or _json_text_input_size(messages) > 12_000 else 30.0
         _json_transport_timeout(timeout)  # An expired worker must not prepare a model.
+        from .local_context_profile import prepare
+        prepared=prepare(self,payload)
+        if prepared is not None:_json_transport_timeout(timeout)
         try:
             with self._ampel():
                 # Time spent waiting for a model or preparing its memory consumes
                 # the same budget; do not start a late request after fallback.
-                with self._client(_json_transport_timeout(timeout)) as client:
-                    response = client.post(
-                        f"{self._base}/chat/completions",
-                        headers={"Authorization": f"Bearer {self._key}"},
-                        json=payload,
-                    )
-                    response.raise_for_status()
-                    data = response.json()
+                if prepared is not None:
+                    data=prepared.send(self,lambda:_json_transport_timeout(timeout))
+                else:
+                    with self._client(_json_transport_timeout(timeout)) as client:
+                        response = client.post(
+                            f"{self._base}/chat/completions",
+                            headers={"Authorization": f"Bearer {self._key}"},
+                            json=payload,
+                        )
+                        response.raise_for_status()
+                        data = response.json()
         except httpx.HTTPError as exc:
             raise ProviderError(f"Anfrage an {self._base} fehlgeschlagen: {exc}") from exc
         choice = (data.get("choices") or [{}])[0]
@@ -290,6 +320,9 @@ class OpenAICompatible:
         timeout: float = 30.0,
     ) -> dict[str, Any]:
         """Ask a local Ollama decision model using its native /v1/systemone API."""
+        from .local_context_profile import selected
+        if selected(self):
+            raise ProviderError('Das gewählte kleine Kontextprofil unterstützt den Entscheidungspfad nicht.')
         if (
             isinstance(timeout, bool)
             or not isinstance(timeout, (int, float))

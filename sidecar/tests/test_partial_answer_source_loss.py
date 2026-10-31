@@ -112,13 +112,13 @@ def test_complete_comparison_keeps_supported_prose(sources):
     assert answers.satz_struktur(answer, episodes, claims) is not None
 
 
-def test_rejection_without_losing_a_source_keeps_supported_prose(sources):
+def test_rejection_without_losing_a_source_still_uses_complete_originals(sources):
     answer = prepare(sources, scripted(extra='Die Abnahme ist am 24. Dezember 2035.'))
     assert answer['satzantwort']['verworfen'] == 1
-    assert answer['satzantwort']['status'] == 'saetze'
+    assert answer['satzantwort']['status'] == 'zitate'
     episodes, claims, _ = sources
     text, _, _ = answers.render(answer, episodes, claims)
-    assert OLD_SENTENCE in text and NEW_SENTENCE in text and '2035' not in text
+    assert FIRST in text and UPDATE in text and '2035' not in text
 
 
 def test_unmentioned_selected_source_without_rejection_restores_both_originals(sources):

@@ -136,8 +136,10 @@ def test_model_can_select_complete_conditional_original_without_copying(memory, 
     'Die Lieferung Orion erfolgt am 14. Oktober 2026. Das prüfen wir vor allem.',
 ])
 def test_function_words_are_not_nominal_conditions(memory, source):
+    from icarus_memory.satzpruefung import originalbindung
     candidate = 'Die Lieferung Orion erfolgt am 14.10.2026.'
     assert satz_pruefen(Satz(candidate, ('1',)), {'1': Beleg('1', source, NOW)}).bestanden
+    assert originalbindung(candidate, [source]), '„vor allem“ erzeugt keine Bedingungsregel'
     recorded(memory, source)
     answer = prepared(memory, candidate)
     text, _, status = answers.render(answer, *memory)

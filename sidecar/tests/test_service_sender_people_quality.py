@@ -152,3 +152,55 @@ def test_graph_haelt_service_anzeige_aber_keinen_namensalias_oder_quellenverlust
     assert episodes.get(episode.id).to_dict() == original
     assert original["participants"] == [participant]
     assert original["body"] == "Künstlicher Nachrichtentext ohne personenbezogene Daten."
+
+
+@pytest.mark.parametrize('endpoint', ['graph', 'verzeichnis'])
+def test_angebote_buchung_redaktion_in_echten_graph_apis_bleiben_prueffaelle(tmp_path,monkeypatch,endpoint):
+    from messlatte.instanz import instanz_starten
+    monkeypatch.setattr('icarus_memory.secrets.Keychain._detect',lambda self:'none')
+    labels=['Angebotsteam <angebote@shop.example>', 'Buchungsservice <buchung@reisen.example>',
+            'Fachbrief Redaktion <redaktion@fachbrief.example>', 'Anna Service <anna.service@shop.example>']
+    with instanz_starten(stichtag=JETZT,zeitzone='Europe/Berlin',verzeichnis=tmp_path) as app:
+        app.app.state.scheduler.stop()
+        originals=[]
+        for i,label in enumerate(labels):
+            ep,_=app.episodes.record(EpisodeKind.MESSAGE,'Synthetischer Absender',f'Unveränderter Originaltext {i}.',
+                Provenance(SourceType.EMAIL,f'synthetic:sender:{i}',JETZT),participants=[label],occurred_at=JETZT)
+            originals.append((ep.id,ep.to_dict()))
+        graph=app.anfrage('GET',f'/api/v1/memory/{endpoint}')
+        nodes={n['label']:n for n in graph['nodes'] if n['kind']=='person'}
+        assert {label:nodes[label]['attributes']['quality_category'] for label in labels}=={
+            **{label:'review' for label in labels[:3]},labels[3]:'person'}
+        assert all(nodes[label]['attributes']['duplicate_ids']==[] for label in labels[:3])
+        assert all(app.episodes.get(eid).to_dict()==original for eid,original in originals)
+        if endpoint=='graph':
+            for label,(eid,_) in zip(labels,originals):
+                assert any(e['source']==nodes[label]['id'] and e['target']==f'episode:{eid}'
+                    and e['evidence_refs']==[f'episode:{eid}'] for e in graph['edges'])
+
+
+@pytest.mark.parametrize('local', ['angebot','angebote','angebotsteam','angebots-team','angebots_service',
+    'offers','offer','buchung','buchungen','buchungsservice','buchungs.team','booking','bookings',
+    'redaktion','redaktionsteam','redaktions-buero','editorial'])
+def test_angebots_buchungs_und_redaktionspostfach_belegt_keine_person(local):
+    address=f'{local}+probe@firma.example'
+    [node]=annotate_people([_person('sender',f'Anzeigename <{address}>')])
+    assert ist_sammelpostfach(lokalteil(address))
+    assert node.attributes['quality_category']=='review'
+    assert node.attributes['duplicate_ids']==[]
+
+
+@pytest.mark.parametrize('local', ['anna.angebote','angebote.anna','anna.buchung','redaktion.lea',
+    'lea.redaktion','anna.booking','editorial.anna','anna','reda','angelo'])
+def test_persoenliche_adressen_und_vornamen_bleiben_personen(local):
+    [node]=annotate_people([_person('person',f'Anna Beispiel <{local}@firma.example>')])
+    assert not ist_sammelpostfach(local)
+    assert node.attributes['quality_category']=='person'
+
+
+@pytest.mark.parametrize('local', ['angebote','buchung','redaktion','angebots-team','buchungsservice'])
+@pytest.mark.parametrize('resolution', ['explicit_registry','confirmed_group'])
+def test_bestaetigter_mensch_an_angebote_buchung_redaktion_bleibt_person(local,resolution):
+    [node]=annotate_people([_person('confirmed',f'Anna Beispiel <{local}@firma.example>',resolution)])
+    assert node.attributes['quality_category']=='person'
+    assert node.attributes['quality_reason']==''

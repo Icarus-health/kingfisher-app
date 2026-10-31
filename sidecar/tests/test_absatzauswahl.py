@@ -62,6 +62,27 @@ def test_kurze_quellen_bleiben_ganz_und_ohne_vermerk():
     assert ergebnis.text == text and not ergebnis.gekuerzt and 'gekürzt' not in ergebnis.text
 
 
+def test_model_selection_deduplicates_only_identical_complete_context():
+    text = 'Die Druckdaten sind bis zum 12. November 2026 um 16 Uhr fällig.'
+    row = Zeile(id='S1', text=text, context='\n' + text + '\n', sender='Alex <alex@example.test>')
+    row.volltext = row['context']
+    packed = absatzauswahl.modell_zeilen([row])
+    assert packed == [dict(row, context=absatzauswahl.KURZER_VERWEIS)]
+    assert row['context'] == row.volltext
+    assert volltext_zeilen([row])[0]['context'] == row.volltext
+    assert len(json.dumps(packed, ensure_ascii=False).encode()) < len(json.dumps([row], ensure_ascii=False).encode())
+
+
+@pytest.mark.parametrize('context', [
+    'Die Druckdaten sind fällig. Die Bestätigung fehlt noch.',
+    'Die Druckdaten sind NICHT fällig.',
+    'die druckdaten sind fällig.',
+])
+def test_model_selection_keeps_distinct_context_and_negation(context):
+    rows = [{'id': 'S1', 'text': 'Die Druckdaten sind fällig.', 'context': context}]
+    assert absatzauswahl.modell_zeilen(rows) == rows
+
+
 def test_lange_mail_zeigt_die_tragende_stelle_und_nennt_was_fehlt():
     text = mail_text()
     assert len(text) > 2500
@@ -376,3 +397,46 @@ def test_prepare_zeigt_dem_modell_den_auszug_und_prueft_am_volltext(episodes, cl
     assert all(z[0]['context'] == voll for z in gepruefte.values()), 'Prüfungen lesen den Volltext, nie den Ausschnitt'
     assert antwort['search']['kuerzung']['gekuerzt'] == 1 and antwort['search']['abgeschnitten'] == []
     assert antwort['basis'] == antwort['refs'], 'Verweise und Kandidaten bleiben unverändert'
+
+
+def test_duplicate_short_context_uses_compact_reference_and_long_excerpt_keeps_its_marker():
+    text='Ein vollständiger unveränderter Text mit wichtiger Negation: NICHT erledigt.'
+    rows=[{'id':'S1','text':text,'context':text},
+          {'id':'S2','text':'Unveränderte Fundstelle.','context':absatzauswahl.FUNDSTELLE+'\nWeiterer Originalabsatz.'}]
+    before=json.loads(json.dumps(rows))
+    packed=absatzauswahl.modell_zeilen(rows)
+    assert packed[0]=={**rows[0],'context':'[siehe text]'}
+    assert packed[1]==rows[1] and rows==before
+
+
+@pytest.mark.parametrize('repeated', [False, True])
+def test_prepare_explains_copies_only_when_sent_and_keeps_evidence_literal(episodes, claims, monkeypatch, repeated):
+    for n in range(4 if repeated else 1):
+        body = '\n\n'.join(f'Kalkulation {n}, Einzelangabe {i}: nicht erledigt. '
+                           + 'Die Freigabe bleibt weiterhin ausdrücklich bedingt. ' * 2 for i in range(4 if repeated else 1))
+        episode = put(episodes, f'Kalkulation {n}: künstliche Nachricht mit langem Betreff', body, tage=n)
+        episodes.add_contacts(episode.id, [], participants=[
+            'Künstliche Fachstelle für Kalkulation und bedingte Freigaben ' * 3 + '<team@synthetic.example>'])
+    einordnen(episodes)
+    seen = []
+    original = absatzauswahl.modell_zeilen
+
+    def projection(rows):
+        seen.extend(json.loads(json.dumps(rows)))
+        return original(rows)
+
+    monkeypatch.setattr(absatzauswahl, 'modell_zeilen', projection)
+    model = Modell()
+    answer = wma.prepare('Welche Kalkulation ist nicht erledigt?', episodes, claims, model)
+    packed = model.gesehen['quellen']
+    assert absatzauswahl.hat_modellkopien(packed) is repeated
+    assert (absatzauswahl.KOPIERHINWEIS in model.gesehen['anweisung']) is repeated
+    restored = absatzauswahl.modell_zeilen_entpacken(packed)
+    for before, after in zip(seen, restored):
+        expected = dict(before)
+        if before['text'].strip() == before['context'].strip() and len(before['context']) > len(absatzauswahl.FUNDSTELLE):
+            expected['context'] = absatzauswahl.KURZER_VERWEIS
+        assert after == expected
+    assert len(answer['basis']) == len(seen)
+    assert all(ref in answer['basis'] for ref in answer['refs'])
+    assert all(set(ref) == set(wma.REF_KEYS) for ref in answer['refs'])

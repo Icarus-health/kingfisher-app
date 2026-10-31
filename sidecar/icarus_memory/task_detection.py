@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError
-from .memory_analysis import interpret, segment, model_key
+from .memory_analysis import interpret, segment, model_key, source_context_for
 from .proposals import ProposalKind
-from .task_review import REVIEW_MARKER, current_task_context, hard_details_supported, task_context_matches
+from .task_review import REVIEW_MARKER, current_task_context, hard_details_supported, open_time_request, task_context_matches
 from .model import SourceType
 from .hintergrund import BackgroundInterrupted
 
@@ -131,10 +131,12 @@ class TaskDetector:
                     continue
             attempted += 1
             result = None
+            manual_review = False
             try:
                 # Den Schreiblock nicht während eines langsamen Modellaufrufs halten.
                 text, end = segment(current.body, job['offset'])
-                items = interpret(self.provider, current.title, text, policy=policy, episode=current)
+                items = interpret(self.provider, current.title, text, policy=policy, episode=current,
+                                  source_context=source_context_for(current))
                 # Mail tasks need a semantic check with the complete mail,
                 # not only the extraction segment. Foreign promises are
                 # not silently converted into the recipient's own work.
@@ -153,6 +155,7 @@ class TaskDetector:
                                      for contact in current.contacts)
                     items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source,
                                          policy=policy, episode=current)
+                    manual_review = bool(getattr(items, 'requires_review', False))
             except BackgroundInterrupted:
                 self.proposals.memory_analysis.abandon(job, state='cancelled')
                 raise
@@ -175,7 +178,10 @@ class TaskDetector:
                             result = self.proposals.memory_analysis.finish(
                                 job, items, end,
                                 proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}"
-                                            + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL else ''),
+                                            + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL
+                                               and not manual_review
+                                               and not any(open_time_request(current.body, item['quote'])
+                                                           for item in items) else ''),
                             )
                         except Exception:
                             self.proposals.memory_analysis.abandon(job)

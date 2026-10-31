@@ -58,7 +58,7 @@ def _local_row(tags, name):
     return LocalModelIdentity(name, digest)
 
 
-def verify_local_model(provider, *, capability='completion', client=None) -> LocalModelIdentity:
+def verify_local_model(provider, *, capability='completion', client=None, expected_num_ctx=None) -> LocalModelIdentity:
     """Verify exact installed weights/capability; unsupported fails closed.
 
     An embedding adapter can supply its own bounded, local-only client so the
@@ -91,6 +91,13 @@ def verify_local_model(provider, *, capability='completion', client=None) -> Loc
                     or info['general.parameter_count'] <= 0
                     or not isinstance(capabilities, list) or capability not in capabilities):
                 raise ValueError('No verified local text model')
+            if expected_num_ctx is not None:
+                parameters=show.get('parameters')
+                entries=([line.split() for line in parameters.splitlines()
+                          if line.split() and line.split()[0]=='num_ctx']
+                         if isinstance(parameters,str) else [])
+                if type(expected_num_ctx) is not int or entries!=[['num_ctx',str(expected_num_ctx)]]:
+                    raise ValueError('Unexpected or ambiguous local context profile')
             # Catch an ordinary model replacement during the metadata check.
             if _local_row(_json(client, 'GET', origin + '/api/tags'), name) != first:
                 raise ValueError('Model changed during verification')
@@ -107,6 +114,9 @@ class VerifiedLocalProvider:
         self._provider._verified_local_transport = True
         self._identity = None
         self._permitted = permitted
+        # Zusätzliche Profilmetadaten dürfen das Zeitfenster zwischen der
+        # Jobfreigabe und dem tatsächlichen Quellversand nicht offen lassen.
+        self._provider._verified_local_permitted = permitted
         self.name = getattr(provider, 'name', '')
         self.model = getattr(provider, 'model', '')
         self.base_url = getattr(provider, 'base_url', '')

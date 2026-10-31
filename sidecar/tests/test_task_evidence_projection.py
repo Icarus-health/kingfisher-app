@@ -29,7 +29,7 @@ def test_cached_positive_verdict_stays_visible_but_requires_review_without_recor
     assert calls == [] and app.state.tasks.all_tasks() == []
 
 
-def test_non_mail_extraction_also_rejects_an_invented_name():
+def test_non_mail_extraction_replaces_invented_title_with_unchanged_original():
     class Local:
         is_local = True
         def complete(self, messages, tools):
@@ -38,4 +38,5 @@ def test_non_mail_extraction_also_rejects_an_invented_name():
                 {'title': 'Entwurf prüfen', 'quote': 'Bitte prüfe den Entwurf.'},
             ]}))
     assert interpret(Local(), 'Notiz', 'Bitte ruf Anna Kranz an. Bitte prüfe den Entwurf.') == [
+        {'title': 'Bitte ruf Anna Kranz an.', 'quote': 'Bitte ruf Anna Kranz an.'},
         {'title': 'Entwurf prüfen', 'quote': 'Bitte prüfe den Entwurf.'}]

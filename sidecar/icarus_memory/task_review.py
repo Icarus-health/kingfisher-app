@@ -14,6 +14,120 @@ REVIEW_MARKER = '/task-review-v1'
 # this candidate's quotation, never to an unrelated occurrence elsewhere in a mail.
 _ADDRESS = re.compile(r'[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;.]+')
 _RELATIVE = re.compile(r'\b(?:heute|morgen|übermorgen|gestern|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)\b', re.I)
+_TIME_OPTIONS = re.compile(r'\bum\s+(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s+(?:Uhr\s+)?oder\s+'
+                           r'(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s+Uhr\b', re.I)
+_DIRECT_REQUEST = re.compile(r'Bitte\s+(?:reiche|sende|schicke|prüfe|überweise|bezahle|liefere|bestätige)\s+'
+                             r'(?:den|die|das)\s+[^\n;.!?]+[.!]?$', re.I)
+_OPEN_TIME = re.compile(r'Die\s+(?:genaue\s+)?Uhrzeit\s+(?:ist\s+(?:noch\s+)?offen|'
+                        r'steht\s+(?:noch\s+)?nicht\s+fest)\.', re.I)
+_FRAME_NAME = re.compile(r"[A-ZÄÖÜ][a-zäöüß]+(?:[-'][A-ZÄÖÜ]?[a-zäöüß]+)*"
+                         r"(?:[ \t]+[A-ZÄÖÜ][a-zäöüß]+(?:[-'][A-ZÄÖÜ]?[a-zäöüß]+)*){0,3}")
+_FRAME_QUALIFIER = re.compile(r'\b(?:nur|falls|wenn|ohne|nicht|kein\w*|soll\w*|muss\w*|'
+                              r'zuständig|vorbehalt\w*|abgesagt|entfällt|freigabe|erledigt|'
+                              r'widerrufen|storniert|unverbindlich|bedingt|offen)\b', re.I)
+_OWN_DELIVERY = re.compile(
+    r'Ich[ \t]+werde[ \t]+(?:(?:dir|Ihnen|euch)[ \t]+)?(?:die|den|das)[ \t]+'
+    r'[\w \t-]+[ \t]+(?:senden|schicken|liefern|einreichen|übergeben)\.')
+_OWN_DELIVERY_CONTEXT = re.compile(
+    r'\b(?:nie|niemals|weder|von|laut|dass|daß|ob|weil|als|sofern|und|oder|nach|bei|bevor|nachdem|sobald|solange|während|'
+    r'wird|werden|werde|ich|vielleicht|eventuell|gegebenenfalls|'
+    r'möglicherweise|hoffentlich|wahrscheinlich|könnte\w*|würde\w*|'
+    r'zitiert\w*|gesagt|zugesagt\w*|zusage\w*|versprochen\w*|versprach\w*|'
+    r'schrieb\w*|wrote|bericht\w*|weiterleit\w*|forward\w*|erinner\w*)\b', re.I)
+_FORWARD_SUBJECT = re.compile(r'^\s*(?:fw|fwd|wg)\s*:|\b(?:weitergeleitet\w*|weiterleitung|forwarded)\b', re.I)
+_WITHDRAWING_SUBJECT = re.compile(
+    r'\b(?:Absage|abgesagt|Widerruf|widerrufen|zurückgezogen|storniert|Storno|entfällt|aufgehoben|hinfällig)\b', re.I)
+_CLOCK = re.compile(r'\b(?:[01]?\d|2[0-3]):[0-5]\d\b')
+
+
+class TaskReviewResult(list):
+    """Listenkompatibles Ergebnis; reine Prüfaufbewahrung ist keine positive Freigabe."""
+
+    def __init__(self):
+        super().__init__()
+        self.requires_review = False
+
+
+def _direct_own_delivery(subject, body, quote, episode):
+    """Nur die vollständige, ungerahmte eigene Versandzusage zur Prüfung erhalten.
+
+    Weder Header allein noch eine Textform allein belegt diesen engen Fall.
+    Datum/Uhrzeit werden ausschließlich zur Satzgrenzenprüfung maskiert;
+    Quelltext, Zitat und dessen Zeitangaben bleiben unverändert.
+    """
+    from .episodes import AUSGEBLENDETE_ZUSTAENDE, mail_address
+    from .model import SourceType
+
+    if (episode is None or getattr(episode, 'body', None) != body
+            or getattr(episode, 'title', None) != subject
+            or getattr(getattr(episode, 'provenance', None), 'source_type', None) is not SourceType.EMAIL
+            or getattr(getattr(episode, 'kind', None), 'value', None) != 'message'
+            or getattr(episode, 'state', None) in AUSGEBLENDETE_ZUSTAENDE
+            or _FORWARD_SUBJECT.search(subject) or _WITHDRAWING_SUBJECT.search(subject)):
+        return False
+    senders = [contact for contact in (episode.contacts or []) if contact.get('rolle') == 'von']
+    if (len(senders) != 1 or senders[0].get('ich') is not True
+            or not mail_address(senders[0].get('adresse') or '')):
+        return False
+    text = body.strip()
+    opening = re.match(r'Ich[ \t]+werde[ \t]+', text)
+    if (text != quote.strip() or opening is None or _FRAME_QUALIFIER.search(text)
+            or _OWN_DELIVERY_CONTEXT.search(text[opening.end():])):
+        return False
+    _, sentence = daten_in(text)
+    sentence = _CLOCK.sub(lambda match: ' ' * len(match[0]), sentence)
+    return _OWN_DELIVERY.fullmatch(sentence) is not None
+
+
+def _open_time_body(body, quote):
+    """Nur einen vollständig erkannten Mailrahmen erlauben, nie Signaturreste abschneiden."""
+    from .kreis import _VORNAME
+    from .mail_style import _ANREDE_VORNAME, _GRUSS
+
+    source, quoted = body.strip(), quote.strip()
+    if not source.startswith(quoted):
+        greeting, separator, following = source.partition('\n')
+        greeting = greeting.strip().rstrip(',!').strip()
+        if (not separator or _FRAME_QUALIFIER.search(greeting)
+                or not (_ANREDE_VORNAME.fullmatch(greeting) or _VORNAME.fullmatch(greeting))):
+            return False
+        source = following.lstrip()
+    if not source.startswith(quoted):
+        return False
+    remainder = source[len(quoted):].strip()
+    uncertainty = _OPEN_TIME.match(remainder)
+    if uncertainty is None:
+        return False
+    tail = remainder[uncertainty.end():]
+    if not tail.strip():
+        return True
+    # Gruß und Name sind eigene vollständige Zeilen. Alles Weitere, auch ein
+    # Nachsatz hinter dem Namen oder ein PS unter dem Gruß, verhindert die Ausnahme.
+    if not tail.startswith(('\n', '\r')):
+        return False
+    lines = [line.strip() for line in tail.splitlines() if line.strip()]
+    return (1 <= len(lines) <= 2 and _GRUSS.fullmatch(lines[0].rstrip(',!')) is not None
+            and (len(lines) == 1 or (_FRAME_NAME.fullmatch(lines[1]) is not None
+                                    and not _FRAME_QUALIFIER.search(lines[1]))))
+
+
+def open_time_request(body, quote):
+    """Enger Prüffall: eine direkte aktuelle Bitte, ausschließlich die Uhrzeit offen.
+
+    Keine allgemeine Rollenentscheidung und keine Freigabe zur Aufgabenanlage.
+    Nur vollständige Anrede-/Grußzeilen dürfen den Bittsatz umrahmen; Verlauf,
+    weitere Aussagen oder Bedingungen bleiben Modellarbeit.
+    """
+    if not _open_time_body(body, quote):
+        return False
+    options = list(_TIME_OPTIONS.finditer(quote))
+    if len(options) != 1:
+        return False
+    action = _TIME_OPTIONS.sub('', quote)
+    _, action = daten_in(action)
+    if not _DIRECT_REQUEST.fullmatch(action.strip()):
+        return False
+    return not re.search(r'\b(?:oder|nicht|kein\w*|falls|wenn|könnte\w*|soll\w*|zuständig)\b', action, re.I)
 
 
 def hard_details_supported(title, quote):
@@ -101,10 +215,23 @@ def review_tasks(provider, subject, body, items, *, own_source=False, policy=Non
                 or row['id'] in verdicts or row['kind'] not in KINDS or type(row['title_supported']) is not bool):
             raise ProviderError('Die Aufgabenprüfung ist mehrdeutig.')
         verdicts[row['id']] = row
-    return [item for i, item in enumerate(items) if verdicts[i]['title_supported']
-            and hard_details_supported(item['title'], item['quote'])
-            and (verdicts[i]['kind'] == 'request_to_recipient'
-                 or (own_source and verdicts[i]['kind'] == 'own_commitment'))]
+    result = TaskReviewResult()
+    for i, item in enumerate(items):
+        verdict = verdicts[i]
+        if (verdict['title_supported'] and hard_details_supported(item['title'], item['quote'])
+                and (verdict['kind'] == 'request_to_recipient'
+                     or (own_source and verdict['kind'] == 'own_commitment'))):
+            result.append(item)
+        elif not own_source and verdict['kind'] == 'unclear' and open_time_request(body, item['quote']):
+            # Wortlaut statt einer scheinbar feststehenden Frist. Der Worker
+            # gibt diesem Prüffall ausdrücklich keinen positiven Review-Marker.
+            result.append({'title': item['quote'], 'quote': item['quote']})
+        elif own_source and _direct_own_delivery(subject, body, item['quote'], episode):
+            # Widerspruch des Judges bleibt sichtbar prüfpflichtig. Kein
+            # gestützter Kurztitel, keine bestätigte Zuständigkeit/Autoanlage.
+            result.append({'title': item['quote'], 'quote': item['quote']})
+            result.requires_review = True
+    return result
 
 
 def task_context_key(generation, metadata_digest):

@@ -1,12 +1,14 @@
 """Stufe „Antwort“ mit dem zweiten Tor (Prüfmodell): ein falscher Satz ohne Anker wird verworfen und getrennt gezählt.
 
 Die Mini-Welt bekommt dafür (nur in der Kopie) ein Skript für `mainz-03`: Der richtige Satz sagt, dass das Klinikum
-Anfang November entscheidet; der falsche, dass Lea Hartmann entscheidet. Beide bestehen die Satzprüfung ohne Modell
-(Name, Zeitangabe und Wörter stehen im Beleg). Ohne Prüfmodell kommt der falsche durch und die Bewertung sieht die
-falsche Aussage; mit Prüfmodell wird er verworfen und als „vom Prüfmodell verworfen“ gezählt.
+über das Angebot entscheidet; der falsche vertauscht die beiden nichtmenschlichen Rollen. Beide bestehen die
+erste Satzprüfung. Ohne Prüfmodell kommt der falsche durch und die Bewertung sieht die falsche Aussage; mit
+Prüfmodell wird er verworfen und als „vom Prüfmodell verworfen“ gezählt. Die frühere falsche Lea-Zuordnung wird
+gesondert bereits am primären Personenschutz geprüft, ohne diesen für die Kalibrierung abzuschwächen.
 """
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -24,11 +26,12 @@ from messlatte.modell import ModellFehler, lese_modell
 from messlatte.welt import WeltFehler, lade_welt
 
 RICHTIG = 'Das Klinikum entscheidet über das Angebot erst Anfang November.'
-FALSCH = 'Lea Hartmann entscheidet über das Angebot erst Anfang November.'
+FALSCH = 'Das Angebot entscheidet über das Klinikum erst Anfang November.'
+LEA_FALSCH = 'Lea Hartmann entscheidet über das Angebot erst Anfang November.'
 
 
 def mit_skript(frage, **aenderung):
-    frage['verboten'] = {'aussagen': ['Lea Hartmann entscheidet']}
+    frage['verboten'] = {'aussagen': [FALSCH]}
     frage['skript'] = {'auswahl': ['Anfang November'], 'richtig': RICHTIG, 'falsch': FALSCH, **aenderung}
 
 
@@ -71,6 +74,20 @@ def test_sorgfaeltig_mit_pruefmodell_verwirft_keinen_richtigen_satz(welt_mit_skr
     assert 'Keine Antwort mit verworfenen Sätzen.' in bericht.markdown(ergebnis)
 
 
+def test_die_alte_lea_falschaussage_wird_schon_ohne_pruefmodell_primaer_verworfen(welt_kopie):
+    def lea_skript(daten):
+        frage = finde(daten['fragen'], 'mainz-03')
+        mit_skript(frage, falsch=LEA_FALSCH)
+        frage['verboten'] = {'aussagen': [LEA_FALSCH]}
+    welt_kopie('mainz', lea_skript)
+    [fall] = lauf(welt_kopie.pfad, 'skript:unaufmerksam').fragen
+    assert LEA_FALSCH not in fall.antwort.text and RICHTIG in fall.antwort.text
+    assert fall.antwort.text.startswith('Quelle berichtet') and fall.antwort.belege == ('mainz-008',)
+    assert (fall.antwort.verworfen_satzpruefung, fall.antwort.verworfen_pruefmodell,
+            fall.antwort.pruefung) == (1, 0, 'kein_modell')
+    assert not fall.antwort_bewertung.falsche_aussage and fall.antwort_bewertung.klasse == 'richtig'
+
+
 # -- Skriptmodell der Tests: Prüfmodus ------------------------------------------------------------
 
 
@@ -93,13 +110,20 @@ def beide(nutzer):
                                             ('ja', [RICHTIG, FALSCH])])
 def test_der_pruefmodus_des_skriptmodells_ist_skriptbar(stufe, urteil, bleibt):
     stufe.modell.saetze = {'Klinikum über mein Angebot': beide}
-    stufe.modell.pruefung = {'Lea Hartmann': urteil}
+    stufe.modell.pruefung = {FALSCH: urteil}
     stufe.modell.pruefanfragen.clear()
     ergebnis = antworten(stufe.instanz, stufe.frage('mainz-03'), stufe.rueck)
     assert [s for s in (RICHTIG, FALSCH) if s in ergebnis.text] == bleibt
     assert sorted(stufe.modell.pruefanfragen) == sorted([RICHTIG, FALSCH]), 'jeder bestandene Satz wird gefragt'
+    assert ergebnis.verworfen_satzpruefung == 0, 'Diese Richtungsfixture muss das zweite Tor isolieren'
     assert ergebnis.verworfen_pruefmodell == (0 if urteil == 'ja' else 1)
-    assert bewerte_antwort(stufe.frage('mainz-03'), ergebnis).klasse == 'richtig'
+    originalfrage = stufe.frage('mainz-03')
+    bewertungsfrage = replace(originalfrage, verboten=replace(originalfrage.verboten,
+        aussagen=originalfrage.verboten.aussagen + (FALSCH,)))
+    assert FALSCH not in originalfrage.verboten.aussagen, 'Die kanonische Miniwelt bleibt unverändert'
+    bewertung = bewerte_antwort(bewertungsfrage, ergebnis)
+    assert bewertung.klasse == ('falsch' if urteil == 'ja' else 'richtig')
+    assert bewertung.falsche_aussage is (urteil == 'ja')
 
 
 # -- Welt und Modellwahl ----------------------------------------------------------------------------

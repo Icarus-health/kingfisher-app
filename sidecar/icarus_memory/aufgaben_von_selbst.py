@@ -40,7 +40,7 @@ from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError, mail_address
 from .kontakte import anzeigename
 from .model import Provenance, SourceType, user_timezone
 from .neu_eingegangen import aus_bestandsaufnahme, fenster_beginn, ist_neu
-from .people_quality import ist_sammelpostfach, lokalteil
+from .people_quality import ist_sammelpostfach, lokalteil, person_quality
 from .proposals import ProposalError, ProposalKind, ProposalState
 from .task_review import REVIEW_MARKER, hard_details_supported, task_context_matches
 from .tasks import Task, TaskStatus
@@ -138,7 +138,8 @@ def person_der_quelle(episode: Any, eigene: Iterable[str]) -> tuple[str | None, 
     if b.von_mir:
         ziel = next((p for p in b.an if not p['ich']), None) or next((p for p in b.cc if not p['ich']), None)
         return 'zusage', ({'adresse': ziel['adresse'], 'name': ziel['name'] or ziel['adresse']} if ziel else None)
-    if not b.von.get('adresse') or ist_sammelpostfach(lokalteil(b.von['adresse'])):
+    if (not b.von.get('adresse')
+            or person_quality(b.von['name'], b.von['adresse'])[0] != 'person'):
         return 'bitte', None
     return 'bitte', {'adresse': b.von['adresse'], 'name': b.von['name'] or b.von['adresse']}
 
@@ -240,7 +241,7 @@ def pruefen(proposal: Any, episode: Any, *, eigene: Iterable[str], jetzt: dateti
             return nein('absender', 'Die Mail kommt von einem automatischen Absender.')
         if not b.ich_an:
             return nein('kopie', 'Du stehst nur in Kopie.')
-        satz = f'Eine Bitte von {_name(person)} direkt an dich, aus einer neuen Mail.'
+        satz = f'Eine Bitte von {_name(person) or "der Gegenseite"} direkt an dich, aus einer neuen Mail.'
     if dublette:
         return nein('dublette', 'Diese Aufgabe gibt es schon.')
     frist_erkannt, frist = _frist_aufloesen(zitat, episode.occurred_at)

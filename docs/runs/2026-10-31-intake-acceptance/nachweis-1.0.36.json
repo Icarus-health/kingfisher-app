@@ -1,0 +1,1137 @@
+{
+  "version": "1.0.36",
+  "synthetic_only": true,
+  "product_code_commit": "d971dc4cab759948fafe493ebbc15a6f4ce1a687",
+  "catalog_sha256": "ba46791a16c41f45dad04540918cd7f384ae73d85108fe10849050ebe250eeda",
+  "method": "I: fresh intake/task/recall. J: same immutable classified originals; new derived task store and fresh task/recall. No new J classification. Skill: same explicit instruction, natural routing cases; confirmation/revision are manual synthetic test actions.",
+  "intake_I": {
+    "summary": {
+      "pipeline_complete": true,
+      "contract_checks_passed": 151,
+      "contract_checks_total": 154,
+      "failed_contracts": [
+        "task:m11:candidate_present",
+        "task:m14:candidate_present",
+        "question:q15:status"
+      ],
+      "technical_failures": [],
+      "model_calls": 87,
+      "model_seconds": 572.59,
+      "bulk_import_authorized": false,
+      "semantic_grade": "requires_review"
+    },
+    "wire": {
+      "calls": 87,
+      "all_completed": true,
+      "all_no_truncation_or_shift": true,
+      "all_8192": true,
+      "min_bytes": 2943,
+      "max_bytes": 15749,
+      "model_seconds": 572.59
+    },
+    "resources": {
+      "samples": 585,
+      "min_free_percent": 25,
+      "max_pressure": 2,
+      "stop_reason": null
+    },
+    "classification": [
+      {
+        "id": "m01",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m02",
+        "state": "complete",
+        "kinds": [
+          "change"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-30T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m03",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m04",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m05",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m06",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m07",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m08",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m09",
+        "state": "complete",
+        "kinds": [
+          "conditional"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m10",
+        "state": "complete",
+        "kinds": [
+          "commitment"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m11",
+        "state": "complete",
+        "kinds": [
+          "commitment"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m12",
+        "state": "complete",
+        "kinds": [
+          "status"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-30T11:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m13",
+        "state": "complete",
+        "kinds": [
+          "fact",
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m14",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2020-06-29T10:00:00+02:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m15",
+        "state": "complete",
+        "kinds": [
+          "status"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m16",
+        "state": "complete",
+        "kinds": [
+          "fact",
+          "historical"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m17",
+        "state": "empty",
+        "kinds": [],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m18",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m19",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m20",
+        "state": "complete",
+        "kinds": [
+          "fact"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m21",
+        "state": "empty",
+        "kinds": [],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m22",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": null,
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m23",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T09:00:00+01:00",
+        "date_absence_preserved": true
+      },
+      {
+        "id": "m24",
+        "state": "complete",
+        "kinds": [
+          "request"
+        ],
+        "original_body_preserved": true,
+        "occurred_at": "2026-10-29T10:00:00+01:00",
+        "date_absence_preserved": true
+      }
+    ],
+    "semantic_coverage": {
+      "status": "indexed",
+      "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+      "identity_checked_at": 1793463139.237768,
+      "total": 24,
+      "indexed": 24,
+      "pending": 0,
+      "failed": 0,
+      "updated_at": 1793463139.458029,
+      "source_pending": 0
+    }
+  },
+  "tasks_and_recall_J": {
+    "summary": {
+      "recall_complete": true,
+      "failed_question_contracts": [
+        "q15:status"
+      ],
+      "task_scan_complete": true,
+      "failed_task_contracts": [
+        "m14:candidate_present"
+      ],
+      "intake_reexecuted": false,
+      "semantic_grade": "requires_review"
+    },
+    "wire": {
+      "calls": 63,
+      "all_completed": true,
+      "all_no_truncation_or_shift": true,
+      "all_8192": true,
+      "min_bytes": 2943,
+      "max_bytes": 15749,
+      "model_seconds": 415.173
+    },
+    "resources": {
+      "samples": 427,
+      "min_free_percent": 27,
+      "max_pressure": 2,
+      "stop_reason": null
+    },
+    "task_scan": [
+      {
+        "analyzed": 20,
+        "proposed": 8,
+        "failed": 0,
+        "superseded": 0,
+        "available": true,
+        "cancelled": false
+      },
+      {
+        "analyzed": 4,
+        "proposed": 0,
+        "failed": 0,
+        "superseded": 0,
+        "available": true,
+        "cancelled": false
+      }
+    ],
+    "task_rows": [
+      {
+        "source": "m19",
+        "statement": "Bitte überweise die offene Rechnung über 86,40 EUR bis zum 12. November 2026.",
+        "quote": "Bitte überweise die offene Rechnung über 86,40 EUR bis zum 12. November 2026.",
+        "received_at": "2026-10-29T09:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "history",
+        "temporal_reason": "Aus dem importierten Bestand. Ob diese Bitte noch offen ist, muss geprüft werden.",
+        "followup_episode_id": null,
+        "person_vorschlag": null,
+        "frist_vorschlag": "2026-11-12T23:59:00+01:00",
+        "quote_is_exact": true,
+        "positive_review_marker": true
+      },
+      {
+        "source": "m11",
+        "statement": "Ich werde dir die Kalkulation für Projekt Ceder bis zum 3. November 2026 um 15:30 Uhr senden.",
+        "quote": "Ich werde dir die Kalkulation für Projekt Ceder bis zum 3. November 2026 um 15:30 Uhr senden.",
+        "received_at": "2026-10-29T09:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "history",
+        "temporal_reason": "Aus dem importierten Bestand. Ob diese Bitte noch offen ist, muss geprüft werden.",
+        "followup_episode_id": null,
+        "person_vorschlag": {
+          "adresse": "nora@praxis.example",
+          "name": "Nora Berger"
+        },
+        "frist_vorschlag": "2026-11-03T15:30:00+01:00",
+        "quote_is_exact": true,
+        "positive_review_marker": false
+      },
+      {
+        "source": "m24",
+        "statement": "Bitte reiche den Sirius-Antrag bis zum 2. November 2026 um 18 oder 19 Uhr ein.",
+        "quote": "Bitte reiche den Sirius-Antrag bis zum 2. November 2026 um 18 oder 19 Uhr ein.",
+        "received_at": "2026-10-29T09:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "history",
+        "temporal_reason": "Die Frist ist nicht eindeutig auflösbar. Bitte Datum und Uhrzeit an der Quelle prüfen.",
+        "followup_episode_id": null,
+        "person_vorschlag": {
+          "adresse": "mira@planung.example",
+          "name": "Mira Seidel"
+        },
+        "frist_vorschlag": null,
+        "quote_is_exact": true,
+        "positive_review_marker": false
+      },
+      {
+        "source": "m01",
+        "statement": "Druckdaten für Projekt Atlas bis 2. November 2026 um 18 Uhr senden",
+        "quote": "Bitte sende mir die Druckdaten für Projekt Atlas bis zum 2. November 2026 um 18 Uhr.",
+        "received_at": "2026-10-29T09:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "followup",
+        "temporal_reason": "Eine spätere Nachricht nennt eine mögliche Friständerung. Bitte beide Quellen prüfen. Diesen alten Vorschlag nicht übernehmen; die aktuelle Aufgabe bei Bedarf neu festhalten.",
+        "followup_episode_id": "e-268658d623dd",
+        "review_required": true,
+        "person_vorschlag": {
+          "adresse": "alex.work@alpha.example",
+          "name": "Alex Winter"
+        },
+        "frist_vorschlag": null,
+        "quote_is_exact": true,
+        "positive_review_marker": true
+      },
+      {
+        "source": "m23",
+        "statement": "Lumen-Plan bis Freitag senden",
+        "quote": "Bitte sende mir den Lumen-Plan bis Freitag.",
+        "received_at": "2026-10-29T08:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "history",
+        "temporal_reason": "Aus dem importierten Bestand. Ob diese Bitte noch offen ist, muss geprüft werden.",
+        "followup_episode_id": null,
+        "person_vorschlag": {
+          "adresse": "paul@studio.example",
+          "name": "Paul Weber"
+        },
+        "frist_vorschlag": "2026-10-30T23:59:00+01:00",
+        "quote_is_exact": true,
+        "positive_review_marker": true
+      },
+      {
+        "source": "m13",
+        "statement": "Agenda für Orion bis zum 2. November 2026 um 17 Uhr senden",
+        "quote": "Bitte sende mir die Agenda für Orion bis zum 2. November 2026 um 17 Uhr.",
+        "received_at": "2026-10-29T09:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "history",
+        "temporal_reason": "Aus dem importierten Bestand. Ob diese Bitte noch offen ist, muss geprüft werden.",
+        "followup_episode_id": null,
+        "person_vorschlag": {
+          "adresse": "mira@planung.example",
+          "name": "Mira Seidel"
+        },
+        "frist_vorschlag": "2026-11-02T17:00:00+01:00",
+        "quote_is_exact": true,
+        "positive_review_marker": true
+      },
+      {
+        "source": "m22",
+        "statement": "Vega-Entwurf prüfen",
+        "quote": "Bitte prüfe den Vega-Entwurf bis Freitag.",
+        "received_at": null,
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "unknown",
+        "temporal_reason": "Die Frist ist nicht eindeutig auflösbar. Bitte Datum und Uhrzeit an der Quelle prüfen.",
+        "followup_episode_id": null,
+        "person_vorschlag": {
+          "adresse": "emma@labor.example",
+          "name": "Emma Kern"
+        },
+        "frist_vorschlag": null,
+        "quote_is_exact": true,
+        "positive_review_marker": true
+      },
+      {
+        "source": "m04",
+        "statement": "Druckdaten für Projekt Boreal senden",
+        "quote": "Bitte sende mir die Druckdaten für Projekt Boreal bis zum 12. November 2026 um 16 Uhr.",
+        "received_at": "2026-10-29T09:00:00+00:00",
+        "recorded_at": "2026-10-30T14:00:00+00:00",
+        "temporal_status": "history",
+        "temporal_reason": "Aus dem importierten Bestand. Ob diese Bitte noch offen ist, muss geprüft werden.",
+        "followup_episode_id": null,
+        "person_vorschlag": {
+          "adresse": "alex.sommer@beta.example",
+          "name": "Alex Sommer"
+        },
+        "frist_vorschlag": "2026-11-12T16:00:00+01:00",
+        "quote_is_exact": true,
+        "positive_review_marker": true
+      }
+    ],
+    "task_checks": [
+      {
+        "id": "m01",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true,
+          "temporal": true
+        }
+      },
+      {
+        "id": "m02",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m03",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m04",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true
+        }
+      },
+      {
+        "id": "m05",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m06",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m07",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m08",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m09",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m10",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m11",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true
+        }
+      },
+      {
+        "id": "m12",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m13",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true
+        }
+      },
+      {
+        "id": "m14",
+        "checks": {
+          "candidate_present": false,
+          "at_most_one": true
+        }
+      },
+      {
+        "id": "m15",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m16",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m17",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m18",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m19",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "due": true
+        }
+      },
+      {
+        "id": "m20",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m21",
+        "checks": {
+          "no_own_task": true
+        }
+      },
+      {
+        "id": "m22",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true,
+          "not_current": true
+        }
+      },
+      {
+        "id": "m23",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true
+        }
+      },
+      {
+        "id": "m24",
+        "checks": {
+          "candidate_present": true,
+          "at_most_one": true,
+          "action_anchor": true,
+          "person": true,
+          "due": true
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q01",
+        "conversation_id": "c-6b1956d97ea2",
+        "observed": {
+          "text": "„Alex“ kommt in deinem Bestand in mehreren Zusammenhängen vor. Welchen meinst du?\n\n· Mails von Alex Winter (alex.work@alpha.example) — zuletzt: Projekt Atlas: Druckdatenfrist geändert, Projekt Atlas: Druckdaten\n· Mails von Alex Winter (alex.privat@privat.example) — zuletzt: Privater Geschenkplan\n· Mails von Alex Sommer (alex.sommer@beta.example) — zuletzt: Projekt Boreal: Druckdaten\n· Mails von Alex Winter (alex.zweit@alpha.example) — zuletzt: Atlas: Zugang",
+          "status": "meaning_choice",
+          "sources": [],
+          "choices": [
+            "Mails von Alex Winter (alex.work@alpha.example)",
+            "Mails von Alex Winter (alex.privat@privat.example)",
+            "Mails von Alex Sommer (alex.sommer@beta.example)",
+            "Mails von Alex Winter (alex.zweit@alpha.example)"
+          ]
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q02",
+        "conversation_id": "c-8bc20ca34353",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Atlas: Zugang\nDer Zugang für Projekt Atlas steht im grünen Umschlag. Diese Nachricht nennt keinen Adresswechsel und keine Zusammenführung.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr\n\nDie Auswahl ist begrenzt: Es passten mindestens 24 Quellen; geprüft wurden 16. Mit Person, Projekt oder Zeitraum in der Frage wird sie genauer.",
+          "status": "working_reports",
+          "sources": [
+            "m05"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q03",
+        "conversation_id": "c-91884818a0f4",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Projekt Atlas: Druckdatenfrist geändert\nDie Frist für die Druckdaten wurde geändert: Statt dem 2. November gilt jetzt der 4. November 2026 um 18 Uhr.\n\nQuellenzeit: 30.10.2026, 10:00 Uhr\n\nDie Auswahl ist begrenzt: Es passten mindestens 24 Quellen; geprüft wurden 16. Mit Person, Projekt oder Zeitraum in der Frage wird sie genauer.",
+          "status": "working_reports",
+          "sources": [
+            "m02"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q04",
+        "conversation_id": "c-17efa5453ea5",
+        "observed": {
+          "text": "Der Geschenkplan liegt im roten Ordner. [1]\n\nBelege\n[1] Privater Geschenkplan; von Alex Winter <alex.privat@privat.example>; 29.10.2026\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).\n\nDie Auswahl ist begrenzt: Es passten mindestens 24 Quellen; geprüft wurden 16. Mit Person, Projekt oder Zeitraum in der Frage wird sie genauer.",
+          "status": "working_reports",
+          "sources": [
+            "m03"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q05",
+        "conversation_id": "c-99b0a7ee11e8",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nBitte · Projekt Boreal: Druckdaten\nBitte sende mir die Druckdaten für Projekt Boreal bis zum 12. November 2026 um 16 Uhr.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr\n\nZu 1 passenden Originalquelle fehlt ein nutzbarer Belegabschnitt; die Antwort kann unvollständig sein.",
+          "status": "working_reports",
+          "sources": [
+            "m04"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q06",
+        "conversation_id": "c-2b46b7564f20",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Unterschrift Nora\nDer vollständige Name in meiner Signatur lautet Dr. Nora Berger.\n\nDr. Nora Berger\nPraxis am Park\n\nQuellenzeit: 29.10.2026, 10:00 Uhr",
+          "status": "working_reports",
+          "sources": [
+            "m06"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q07",
+        "conversation_id": "c-cf8927a65601",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Versicherungsübersicht\nAnna wird die Versicherungsübersicht bis zum 5. November 2026 fertigstellen. Lea muss dafür nichts erledigen.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr",
+          "status": "working_reports",
+          "sources": [
+            "m08"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q08",
+        "conversation_id": "c-d35d2a5221e5",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nZusage · Urheber in Quelle prüfen · Projekt Ceder: meine Zusage\nIch werde dir die Kalkulation für Projekt Ceder bis zum 3. November 2026 um 15:30 Uhr senden.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr",
+          "status": "working_reports",
+          "sources": [
+            "m11"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q09",
+        "conversation_id": "c-fc1025d0afd1",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Projekt Ceder: noch nicht fertig\nDie Kalkulation ist noch nicht fertig. Ich habe sie bisher nicht gesendet. Die zugesagte Frist bleibt bestehen.\n\nQuellenzeit: 30.10.2026, 11:00 Uhr",
+          "status": "working_reports",
+          "sources": [
+            "m12"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q10",
+        "conversation_id": "c-f20f2447d65b",
+        "observed": {
+          "text": "Die Orion-Besprechung findet am 4. November 2026 um 18 Uhr statt. [1]\n\nBelege\n[1] Orion: Besprechung und Abgabe; von Mira Seidel <mira@planung.example>; 29.10.2026\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).",
+          "status": "working_reports",
+          "sources": [
+            "m13"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q11",
+        "conversation_id": "c-5b00c6bf6bba",
+        "observed": {
+          "text": "Gemeint: Mails mit Jonas Keller (archiv.example)\n\nDie alte Offerte aus 2020 wurde geprüft und versendet. [1]\nDas Thema ist erledigt. [1]\nEs besteht kein neuer Auftrag. [1]\n\nBelege\n[1] Historische Offerte bereits erledigt; von Jonas Keller <jonas@archiv.example>; 29.10.2026\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).",
+          "status": "working_reports",
+          "sources": [
+            "m15"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q12",
+        "conversation_id": "c-146d677b8647",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Reservierung unverbindlich\nIhre Reise ist noch nicht bestätigt. Falls Sie buchen möchten, können Sie ein Angebot anfordern. Ohne Bestätigung besteht keine Buchung.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr\n\nZu 1 passenden Originalquelle fehlt ein nutzbarer Belegabschnitt; die Antwort kann unvollständig sein.",
+          "status": "working_reports",
+          "sources": [
+            "m18"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q13",
+        "conversation_id": "c-4d3a0b60ff87",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nBitte · Rechnung 184\nBitte überweise die offene Rechnung über 86,40 EUR bis zum 12. November 2026. Die Leistung wurde bereits erbracht.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr",
+          "status": "working_reports",
+          "sources": [
+            "m19"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q14",
+        "conversation_id": "c-449c42f378a7",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nBitte · Vega: Bitte ohne Quelldatum\nBitte prüfe den Vega-Entwurf bis Freitag.\n\nQuellenzeit: unbekannt · Erfasst: 30.10.2026, 15:00 Uhr",
+          "status": "working_unclear",
+          "sources": [
+            "m22"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q15",
+        "conversation_id": "c-33ef7a69fcaa",
+        "observed": {
+          "text": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+          "status": "unknown",
+          "sources": [],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": false,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      },
+      {
+        "id": "q16",
+        "conversation_id": "c-8a8bdbcf2729",
+        "observed": {
+          "text": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Ausgewählter Fachbrief: Herbsttermin\nFür den Herbsttermin ist die Angebotsliste vorzubereiten. Dies ist eine allgemeine Information aus dem ausdrücklich ausgewählten Fachbrief, keine persönliche Beauftragung.\n\nQuellenzeit: 29.10.2026, 10:00 Uhr\n\nZu 1 passenden Originalquelle fehlt ein nutzbarer Belegabschnitt; die Antwort kann unvollständig sein.",
+          "status": "working_reports",
+          "sources": [
+            "m20"
+          ],
+          "choices": []
+        },
+        "checks": {
+          "required_sources": true,
+          "only_allowed_sources": true,
+          "status": true,
+          "required_text": true,
+          "forbidden_text_absent": true,
+          "choice_count": true
+        },
+        "technical_status": "no_observed_failure",
+        "technical_failures": []
+      }
+    ],
+    "originals_preserved": true,
+    "source_code_unchanged": true,
+    "original_I_runtime_unchanged": true,
+    "auto_tasks": 0,
+    "coverage": {
+      "status": "indexed",
+      "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+      "identity_checked_at": 1793464928.236764,
+      "total": 24,
+      "indexed": 24,
+      "pending": 0,
+      "failed": 0,
+      "updated_at": 1793463139.458029,
+      "source_pending": 0
+    }
+  },
+  "skill": {
+    "calls": 4,
+    "stages": [
+      "runtime",
+      "live_learning_draft",
+      "actual_model_draft",
+      "inactive_before_confirmation",
+      "synthetic_explicit_confirmation",
+      "predefined_natural_selection_checks",
+      "actual_agent_selected_v1",
+      "manual_synthetic_revision_accepted",
+      "actual_agent_selected_v2",
+      "withdraw_source_and_revoke",
+      "actual_agent_no_withdrawn_procedure"
+    ],
+    "model_draft": {
+      "name": "zunftmail-check",
+      "title": "Zunftmail Anlass prüfen und Entwurf gegenlesen",
+      "description": "Ablauf zur Sicherstellung der Qualität von Zunftmails durch Prüfung des Anlasses und Gegenlesen des Entwurfs.",
+      "area": "mail",
+      "category": "communication",
+      "contexts": [],
+      "triggers": [
+        "Zunftmail",
+        "Zunftmails",
+        "Zunft"
+      ],
+      "positive": "Schreibe eine Zunftmail.",
+      "negative": "Schreibe eine private Mail.",
+      "id": "proc-793a960dd36e",
+      "version": 1,
+      "state": "pending",
+      "base_version": 0,
+      "created_at": "2026-10-31T16:03:17.797112+00:00",
+      "request_key": "4500923cc217df726c09eb3f4c2ff762aee6b3bdaefff5e7787d2a2ffdd71556",
+      "tier": "contextual",
+      "sources": {
+        "e-0c6f9c3409c4": "1a6afaf834ccf7539eeeca12a50906065d29069712a95834ba1b3805f9a6c33f"
+      },
+      "current": true,
+      "local_only": true,
+      "checks": {
+        "structure": true,
+        "routing_examples": true,
+        "human_review_required": true
+      },
+      "markdown": "---\n{\n  \"name\": \"zunftmail-check\",\n  \"title\": \"Zunftmail Anlass prüfen und Entwurf gegenlesen\",\n  \"description\": \"Ablauf zur Sicherstellung der Qualität von Zunftmails durch Prüfung des Anlasses und Gegenlesen des Entwurfs.\",\n  \"area\": \"mail\",\n  \"category\": \"communication\",\n  \"contexts\": [],\n  \"triggers\": [\n    \"Zunftmail\",\n    \"Zunftmails\",\n    \"Zunft\"\n  ],\n  \"steps\": [\n    \"Anlass prüfen\",\n    \"Entwurf gegenlesen\"\n  ],\n  \"positive\": \"Schreibe eine Zunftmail.\",\n  \"negative\": \"Schreibe eine private Mail.\"\n}\n---\n\n# Zunftmail Anlass prüfen und Entwurf gegenlesen\n\nAblauf zur Sicherstellung der Qualität von Zunftmails durch Prüfung des Anlasses und Gegenlesen des Entwurfs.\n\n1. Anlass prüfen\n2. Entwurf gegenlesen\n\n## Ergebnisprüfung\nBelege, aktuelle Nutzeranweisung und bestehende Freigaben bleiben bindend.\n",
+      "steps": [
+        "Anlass prüfen",
+        "Entwurf gegenlesen"
+      ]
+    },
+    "routing_cases": [
+      {
+        "message": "Schreibe eine Zunftmail.",
+        "expected": true,
+        "selected": true
+      },
+      {
+        "message": "Schreibe Zunftmails.",
+        "expected": true,
+        "selected": true
+      },
+      {
+        "message": "Schreibe eine Mail für die Zunft.",
+        "expected": true,
+        "selected": true
+      },
+      {
+        "message": "Schreibe eine private Mail zur Urlaubsplanung.",
+        "expected": false,
+        "selected": false
+      },
+      {
+        "message": "Schreibe eine Mail für Freunde mit dem zitierten Wort „Zunftmail“.",
+        "expected": false,
+        "selected": false
+      },
+      {
+        "message": "Schreibe eine private Mail, keine Zunftmail.",
+        "expected": false,
+        "selected": false
+      },
+      {
+        "message": "Schreibe eine Zukunftsmail.",
+        "expected": false,
+        "selected": false
+      },
+      {
+        "message": "Analysiere den Begriff Zunftmail.",
+        "expected": false,
+        "selected": false
+      }
+    ],
+    "elapsed_seconds": 32.63,
+    "min_free_percent": 35,
+    "max_pressure": 1
+  },
+  "limitations": [
+    "m14 old-request candidate expectation remains unmatched; no later completion was given to the individual task model.",
+    "q15 canonical unknown differs from the working_unknown status oracle; no answer is fabricated.",
+    "Conservative/manual source framing may be verbose.",
+    "A malformed real offer task extraction and incomplete real sources remain held; bulk import is not approved.",
+    "Skill proof does not include proofreading a completed email draft; routing is not proof every instruction will be followed.",
+    "No universal accuracy or whole-Mac fluency claim, no personal daily-week acceptance.",
+    "CI, published release and actual Mac installation require separate readback."
+  ],
+  "independent_semantics": {
+    "scope": "I intake + fresh J task/recall on identical classified originals; narrow skill lifecycle",
+    "result": "No new important J discrepancy observed; m11 retained manually; m14/q15 remain open",
+    "proofreading_completed_email": false,
+    "bulk_import_approved": false,
+    "daily_week_accepted": false
+  }
+}

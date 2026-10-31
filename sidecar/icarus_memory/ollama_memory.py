@@ -100,11 +100,12 @@ def _loaded_models(client: httpx.Client, origin: str) -> list[str]:
     return names
 
 
-def _prepare(origin: str, target: str) -> None:
+def _prepare(origin: str, target: str, ready=None) -> None:
     with _ollama_client(timeout=_TIMEOUT_SECONDS, trust_env=False, follow_redirects=False) as client:
         loaded = _loaded_models(client, origin)
         for name in dict.fromkeys(loaded):
             if name != target and name.startswith(_MANAGED_PREFIX):
+                if ready is not None:ready()
                 _request(client, "POST", origin + "/api/generate",
                          {"model": name, "keep_alive": 0})
 
@@ -130,10 +131,11 @@ def im_gespraech(provider: Any) -> Iterator[None]:
         _GESPRAECH_MODELL.reset(marke)
 
 
-def _shorten_target_retention(origin: str, target: str) -> None:
+def _shorten_target_retention(origin: str, target: str, ready=None) -> None:
     with _ollama_client(timeout=_TIMEOUT_SECONDS, trust_env=False, follow_redirects=False) as client:
         if target not in _loaded_models(client, origin):
             return
+        if ready is not None:ready()
         _request(client, "POST", origin + "/api/generate",
                  {"model": target, "keep_alive": halten_fuer(target)})
 
@@ -152,18 +154,23 @@ def managed_model(provider: Any) -> Iterator[None]:
         return
 
     from .providers import ProviderError
+    from .local_context_profile import selected,verify_lifecycle,check_deadline
 
     origin, target = scope
     with _MANAGED_MODEL_LOCK:
         try:
-            _prepare(origin, target)
+            verify_lifecycle(provider)
+            if selected(provider):_prepare(origin,target,lambda:check_deadline(provider))
+            else:_prepare(origin, target)
         except Exception as exc:  # Fail closed before allowing the model call.
             raise ProviderError("Kingfisher could not prepare Ollama model memory.") from exc
         try:
             yield
         finally:
             try:
-                _shorten_target_retention(origin, target)
+                verify_lifecycle(provider)
+                if selected(provider):_shorten_target_retention(origin,target,lambda:check_deadline(provider))
+                else:_shorten_target_retention(origin, target)
             except Exception:  # Do not replace a valid reply or the original call error.
                 _LOG.warning("Kingfisher could not shorten its Ollama model retention.")
 
@@ -217,8 +224,12 @@ def vorwaermen(provider: Any, *, beschaeftigt: Any = None, uhr: Any = time.monot
         return "beschaeftigt"
     try:
         _VORGEWAERMT[ziel] = jetzt
+        from .local_context_profile import selected,verify_lifecycle,check_deadline
+        verify_lifecycle(provider)
         if _scope(provider) is not None:
-            _prepare(origin, name)
+            if selected(provider):_prepare(origin,name,lambda:check_deadline(provider))
+            else:_prepare(origin, name)
+        verify_lifecycle(provider)
         with _ollama_client(timeout=120.0, trust_env=False, follow_redirects=False) as client:
             _request(client, "POST", origin + "/api/generate", {"model": name, "keep_alive": HALTEN_GESPRAECH})
         return "geladen"

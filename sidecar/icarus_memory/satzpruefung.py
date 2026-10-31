@@ -48,7 +48,10 @@ allgemeine Bedeutungs- oder Satzklammerprüfung. Wenn mehrere Ereignisse dieselb
 Uhrzeit mit verschiedenen Grenzen verbinden, kann der Vergleich eine Aussage
 vorsichtshalber zurückweisen. Was der Beleg selbst behauptet, prüft sie nicht.
 Erkannte explizite Grenzen an einzelnen Kalenderdaten werden ebenfalls auf vertauschte
-Relationen geprüft. Bei ausdrücklich genannter Gültigkeit bleiben die Grenzen
+Relationen geprüft. Sätze mit „Frist“ (auch zusammengesetzt) oder „Deadline“ dürfen
+„ab“, „seit“ oder „nach“ am Datum nur aus dem Quellkörper übernehmen; ein bloß
+genanntes Fristdatum belegt keinen Beginn. Bei ausdrücklich genannter Gültigkeit
+bleiben die Grenzen
 des über Inhaltswörter zugeordneten Satzteils erhalten. Das ist keine vollständige
 Prüfung von Ereigniszuordnung, Zeiträumen, Aktualität oder ausgelassenen Bedingungen.
 Bei Belegen mit erkannten Erlaubnissen oder Pflichten („darf“, „erlaubt“, „muss“,
@@ -206,6 +209,7 @@ _DATUM_GRENZE = re.compile(
     r'(?P<operator>ab|bis|vor|nach|seit|am)\s+(?:(?:dem|zum)\s+)?$', re.I)
 _GELTUNG = re.compile(r'\b(?:gilt|gelten|gültig\w*|gueltig\w*)\b', re.I)
 _GELTUNG_QUELLE = re.compile(r'\b(?:gilt|gelten|galt|galten|gültig\w*|gueltig\w*)\b', re.I)
+_FRIST_AUSSAGE = re.compile(r'\b(?:\w*frist(?:en|ende)?|deadline(?:s)?)\b', re.I)
 
 
 def _datumsgrenzen(text: str) -> list[tuple[Datum, str]]:
@@ -235,6 +239,7 @@ def _pruefe_datumsgrenzen(text: str, belege: Sequence[Beleg]) -> list[str]:
 
     This is not event attribution or general temporal entailment. Only clauses
     explicitly asserting validity must also retain their matching dated bounds.
+    A clause naming a deadline cannot add an unsupported recognized start bound.
     Unrelated clauses and imperative summaries remain independent.
     """
     grenzen = _datumsgrenzen(text)
@@ -245,11 +250,16 @@ def _pruefe_datumsgrenzen(text: str, belege: Sequence[Beleg]) -> list[str]:
         if passend and relation not in passend:
             gruende.append(f'Datumsgrenze an {datum.tag:02d}.{datum.monat:02d}. stimmt nicht mit dem Beleg überein')
     for klausel in _klauseln(text):
+        eigene_grenzen = _datumsgrenzen(klausel)
+        if _FRIST_AUSSAGE.search(klausel):
+            for datum, relation in eigene_grenzen:
+                if relation in {'ab', 'seit', 'nach'} and not any(
+                        _gleicher_tag(datum, d) and relation == r for d, r in beleg_grenzen):
+                    gruende.append('Datumsgrenze einer Fristaussage beginnt ohne Beleg')
         if not _GELTUNG.search(klausel):
             continue
         _, ohne_datum = _datumstellen(klausel)
         anker = _inhaltswoerter(_GELTUNG.sub('', ohne_datum))
-        eigene_grenzen = _datumsgrenzen(klausel)
         kandidaten = []
         for beleg in belege:
             for quelle in _klauseln(beleg.text):
@@ -430,9 +440,10 @@ dokument dokumente anhang anhaenge antwort antworten rueckmeldung rueckmeldungen
 quellen akte akten lage thema themen frage fragen entscheidung entscheidungen aenderung aenderungen verschiebung
 verlauf beleg belege beleg euro prozent kosten preis preise betrag betraege summe zahlung zahlungen anmeldung anmeldungen
 teilnahme teilnehmer teilnehmerin teilnehmerinnen veranstaltung veranstaltungen besprechung besprechungen treffen
-gespraech gespraeche telefonat sitzung meeting workshop seminar tagung konferenz fachtag ergebnis ergebnisse ergebnisse
+gespraech gespraeche telefonat anruf anrufe sitzung meeting workshop seminar tagung konferenz fachtag ergebnis ergebnisse ergebnisse
 entwurf entwuerfe vertrag vertraege antrag antraege abgabe abgaben lieferung lieferungen bestellung bestellungen
-zeitplan planung ablauf einreichung einreichfrist anmeldeschluss beginn ende start schluss mitte anfang
+zeitplan planung ablauf laufzeit einreichung einreichfrist anmeldeschluss beginn ende start schluss mitte anfang
+heute morgen uebermorgen gestern vorgestern
 frau herr firma behoerde amt
 kunde kunden kundin partner partnerin team kollege kollegin
 zusammenfassung hinweis hinweise information informationen inhalt inhalte text texte datei dateien liste
@@ -835,6 +846,42 @@ def originalbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str
     original = {originaltext(t) for n, quelle in enumerate(quellen) if not _ZITATZEICHEN.search(quelle)
                 for t in originalabschnitte(quelle) if sichtbar is None or t in sichtbar[n]}
     return all(originaltext(t) in original for t in originalabschnitte(satz))
+
+
+_PERSONENBEZUG = re.compile(
+    r'\b(?:ich|wir|du|ihr|er|sie|mich|mir|dich|dir|uns|euch|ihm|ihn|ihnen|'
+    r'mein\w*|dein\w*|unser\w*|euer\w*)\b', re.I)
+_PERSONENROLLE = re.compile(
+    r'\b(?:Absender\w*|Empfänger\w*|Empfaenger\w*|Nutzer\w*|Benutzer\w*|'
+    r'Auftraggeber\w*|Auftragnehmer\w*|Anfragende\w*|Verantwortliche\w*)\b', re.I)
+
+
+def rollenbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str],
+                  personen: Sequence[str] = ()) -> bool:
+    """Rollen bekannter Personen brauchen vollständige sichtbare Originalsätze.
+
+    Namen kommen nur aus Quellenbeteiligten/Identitätsmarken, nie aus der
+    Großschreibung eines deutschen Nomens oder eines Projekttitels. Vor- und
+    Vollnamen lösen dieselbe Prüfung aus (kein Identitätszusammenführen).
+    Die Metadaten benennen nur mögliche Akteure, sie belegen keine Handlung.
+    Pronomen und ausdrückliche Rollen bleiben unabhängig davon wortlautgebunden.
+    """
+    namen = {teil for name in personen if isinstance(name, str)
+             for teil in (name.strip(), re.split(r'\s+', name.strip())[0]) if teil}
+    person = any(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', satz, re.I) for name in namen)
+    if not (_PERSONENBEZUG.search(satz) or _PERSONENROLLE.search(satz) or person):
+        return True
+    if len(sichtbar) != len(quellen):
+        return False
+    original = {originaltext(t) for i, quelle in enumerate(quellen)
+                if not _ZITATZEICHEN.search(quelle)
+                for t in originalabschnitte(quelle) if t in sichtbar[i]}
+    return bool(original) and all(originaltext(t) in original for t in originalabschnitte(satz))
+
+
+def braucht_quellenrahmen(text: str) -> bool:
+    """Wörtliches „ich/du/wir“ bleibt die Stimme der Quelle, nie des Assistenten."""
+    return bool(_PERSONENBEZUG.search(text) or re.search(r'\bbitte\b', text, re.I))
 
 
 def bedingte_regeln(text: str) -> tuple[str, ...]:
