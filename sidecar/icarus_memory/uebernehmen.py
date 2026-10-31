@@ -29,7 +29,7 @@ from .akten import stamm_menge
 from .claims import ClaimError
 from .episodes import EpisodeError
 from .proposals import Evidence, ProposalError
-from .satzantwort import AntwortBeleg, Dargestellt
+from .satzantwort import AntwortBeleg, Dargestellt, anzeige_satz
 
 #: Die Beziehung der übernommenen Sätze (mehrwertig, siehe `relations.py`).
 PRAEDIKAT = 'aussage'
@@ -236,7 +236,11 @@ def saetze_info(dargestellt: Dargestellt, sache: str | None, claims: Any) -> lis
     liste = []
     for i, satz in enumerate(dargestellt.saetze, 1):
         belege = [nach_nummer[n] for n in dict.fromkeys(satz.belege) if n in nach_nummer]
-        liste.append(SatzInfo(i, satz.text, hinweise(belege), bool(sache) and schon_aussage(claims, sache, satz.text)))
+        text = anzeige_satz(satz.text)
+        warnungen = hinweise(belege)
+        if text != satz.text:
+            warnungen.append('Wörtlicher Quellenbericht; Sprecher und Empfänger sind damit noch nicht bestätigt.')
+        liste.append(SatzInfo(i, text, warnungen, bool(sache) and schon_aussage(claims, sache, text)))
     return liste
 
 
@@ -264,8 +268,11 @@ def vorschlagen(*, dargestellt: Dargestellt, nummern: Sequence[int], sache: str,
         satz = dargestellt.saetze[nr - 1]
         belege = [nach_nummer[n] for n in dict.fromkeys(satz.belege) if n in nach_nummer]
         warnungen = hinweise(belege)
-        eintrag: dict[str, Any] = {'nr': nr, 'text': satz.text, 'hinweise': warnungen}
-        if schon_aussage(claims, sache, satz.text):
+        text = anzeige_satz(satz.text)
+        if text != satz.text:
+            warnungen.append('Wörtlicher Quellenbericht; Sprecher und Empfänger sind damit noch nicht bestätigt.')
+        eintrag: dict[str, Any] = {'nr': nr, 'text': text, 'hinweise': warnungen}
+        if schon_aussage(claims, sache, text):
             ergebnis.append({**eintrag, 'status': STATUS_STEHT_SCHON, 'grund': 'Steht schon in der Akte.'})
             continue
         gruende = ['Aus einer Antwort von Kingfisher übernommen; der Satz hat die Satzprüfung gegen seine Belege bestanden.']
@@ -280,7 +287,7 @@ def vorschlagen(*, dargestellt: Dargestellt, nummern: Sequence[int], sache: str,
             if not evidenz:
                 raise ClaimError('Der Satz hat keinen Beleg, der sich anführen ließe.')
             vorschlag, neu = service.propose(
-                subject_ref=sache, predicate=PRAEDIKAT, value=satz.text, statement=satz.text,
+                subject_ref=sache, predicate=PRAEDIKAT, value=text, statement=text,
                 rationale='\n'.join(gruende), evidence=evidenz, proposed_by=vorschlag_von(gespraech_id, nachricht_id))
         except (ClaimError, ProposalError, EpisodeError) as fehler:
             ergebnis.append({**eintrag, 'status': STATUS_FEHLER, 'grund': str(fehler)})

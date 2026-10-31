@@ -257,15 +257,16 @@ def test_terminort_neben_nur_erwaehnter_organisation_bleibt_ein_ort(welt):
     assert belegt['ort:hausderverbände'] == ['anker'] and belegt['organisation:hausderverbände'] == ['modell']
 
 
-def test_neue_terminregel_rechnet_nur_termine_neu(welt):
+def test_zentrale_postfachregel_versioniert_mail_und_termine(welt):
     episodes, _, bezuege = welt
     mail = quelle(episodes, 'Mail', 'Hallo', ['Ben <ben@druck.example>'])
     termin = quelle(episodes, 'Termin', 'Termin: Treffen\nOrt: Frankfurt', art=EpisodeKind.EVENT)
     bezuege.aktualisieren()
     with episodes._lock:
         eingabe = dict(episodes._conn.execute('SELECT episode_id, eingabe FROM sach_quellen').fetchall())
-    # Die Regelfassung der Mails bleibt die bisherige: Ein Update rechnet nicht den ganzen Bestand neu.
-    assert eingabe[mail.id].endswith('|regeln:3') and eingabe[termin.id].endswith('|regeln:4')
+    # Die zentrale Postfachregel betrifft beide Quellenarten. Die zusätzliche
+    # Terminortregel behält ihren eigenen Versionsstand.
+    assert eingabe[mail.id].endswith('|regeln:4') and eingabe[termin.id].endswith('|regeln:5')
 
 
 def test_orte_im_termin_regeln():
@@ -592,3 +593,50 @@ def test_migration_mit_vorhandenem_bestand_behaelt_zeilen_und_wertet_neu_aus(tmp
     assert tuple(verbindung.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()) == (versionen_vorher[0] + 1, versionen_vorher[0] + 1)
     memory_categories.verify(verbindung)
     episodes.close()
+
+
+@pytest.mark.parametrize('art,alte_version,neue_version', [
+    (EpisodeKind.MESSAGE,3,4),(EpisodeKind.EVENT,4,5)])
+@pytest.mark.parametrize('person_bestaetigt',[False,True])
+def test_alter_angebote_anker_mit_regelfassung_wird_ohne_quellenaenderung_erneuert(
+        tmp_path,monkeypatch,art,alte_version,neue_version,person_bestaetigt):
+    from icarus_memory import bezuege as module
+    path=tmp_path/'episodes.sqlite3'
+    episodes=EpisodeStore(path)
+    source=quelle(episodes,'Alter Angebotskontakt','Unveränderte synthetische Originalquelle.',
+                  ['angebote@shop.example'],art=art)
+    person='person:a:angebote@shop.example'
+    old=Bezuege(episodes)
+    with monkeypatch.context() as previous:
+        previous.setattr(module,'maschinell',lambda address:False)
+        assert old.aktualisieren()['berechnet']==1
+        assert any(row['sache']==person and row['grundlagen']==['anker']
+                   for row in old.bezuege_der_quelle(source.id)['bezuege'])
+        old.nutzer_setzen(source.id,'thema:work','zu')
+        if person_bestaetigt:old.nutzer_setzen(source.id,person,'zu')
+    # Ein tatsächlich persistierter alter, rein adressbasierter Cacheeintrag.
+    # Sonst identische Eingaben und keine Verzeichnisabhängigkeit erzwingen,
+    # dass allein die neue Regelfassung den begrenzten Abgleich auslöst.
+    cached=episodes._conn.execute('SELECT * FROM sach_quellen WHERE episode_id=?',(source.id,)).fetchone()
+    assert cached['register']==''
+    old_input=cached['eingabe'].rsplit('|regeln:',1)[0]+f'|regeln:{alte_version}'
+    with episodes.transaction():
+        episodes._conn.execute('UPDATE sach_quellen SET eingabe=? WHERE episode_id=?',(old_input,source.id))
+    source_row=tuple(episodes._conn.execute('SELECT * FROM episodes WHERE id=?',(source.id,)).fetchone())
+    source_fingerprint=cached['fingerprint']
+    decisions=[tuple(row) for row in episodes._conn.execute('SELECT * FROM sach_nutzer ORDER BY sache')]
+    episodes.close()
+    episodes=EpisodeStore(path)
+    try:
+        current=Bezuege(episodes)
+        assert current.aktualisieren(max_quellen=1)=={'berechnet':1,'entfernt':0,'offen':0}
+        expected={'organisation:shop':['anker'],'thema:work':['nutzer']}
+        if person_bestaetigt:expected[person]=['nutzer']
+        assert {row['sache']:row['grundlagen'] for row in current.bezuege_der_quelle(source.id)['bezuege']}==expected
+        renewed=episodes._conn.execute('SELECT * FROM sach_quellen WHERE episode_id=?',(source.id,)).fetchone()
+        assert renewed['eingabe'].endswith(f'|regeln:{neue_version}')
+        assert renewed['fingerprint']==source_fingerprint
+        assert tuple(episodes._conn.execute('SELECT * FROM episodes WHERE id=?',(source.id,)).fetchone())==source_row
+        assert [tuple(row) for row in episodes._conn.execute('SELECT * FROM sach_nutzer ORDER BY sache')]==decisions
+        assert current.aktualisieren(max_quellen=1)=={'berechnet':0,'entfernt':0,'offen':0}
+    finally:episodes.close()

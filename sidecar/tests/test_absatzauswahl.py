@@ -62,6 +62,27 @@ def test_kurze_quellen_bleiben_ganz_und_ohne_vermerk():
     assert ergebnis.text == text and not ergebnis.gekuerzt and 'gekürzt' not in ergebnis.text
 
 
+def test_model_selection_deduplicates_only_identical_complete_context():
+    text = 'Die Druckdaten sind bis zum 12. November 2026 um 16 Uhr fällig.'
+    row = Zeile(id='S1', text=text, context='\n' + text + '\n', sender='Alex <alex@example.test>')
+    row.volltext = row['context']
+    packed = absatzauswahl.modell_zeilen([row])
+    assert packed == [dict(row, context=absatzauswahl.FUNDSTELLE)]
+    assert row['context'] == row.volltext
+    assert volltext_zeilen([row])[0]['context'] == row.volltext
+    assert len(json.dumps(packed, ensure_ascii=False).encode()) < len(json.dumps([row], ensure_ascii=False).encode())
+
+
+@pytest.mark.parametrize('context', [
+    'Die Druckdaten sind fällig. Die Bestätigung fehlt noch.',
+    'Die Druckdaten sind NICHT fällig.',
+    'die druckdaten sind fällig.',
+])
+def test_model_selection_keeps_distinct_context_and_negation(context):
+    rows = [{'id': 'S1', 'text': 'Die Druckdaten sind fällig.', 'context': context}]
+    assert absatzauswahl.modell_zeilen(rows) == rows
+
+
 def test_lange_mail_zeigt_die_tragende_stelle_und_nennt_was_fehlt():
     text = mail_text()
     assert len(text) > 2500

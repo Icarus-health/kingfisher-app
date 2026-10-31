@@ -9,7 +9,7 @@ from typing import Any, Callable
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError
 from .memory_analysis import interpret, segment, model_key
 from .proposals import ProposalKind
-from .task_review import REVIEW_MARKER, current_task_context, hard_details_supported, task_context_matches
+from .task_review import REVIEW_MARKER, current_task_context, hard_details_supported, open_time_request, task_context_matches
 from .model import SourceType
 from .hintergrund import BackgroundInterrupted
 
@@ -175,7 +175,9 @@ class TaskDetector:
                             result = self.proposals.memory_analysis.finish(
                                 job, items, end,
                                 proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}"
-                                            + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL else ''),
+                                            + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL
+                                               and not any(open_time_request(current.body, item['quote'])
+                                                           for item in items) else ''),
                             )
                         except Exception:
                             self.proposals.memory_analysis.abandon(job)

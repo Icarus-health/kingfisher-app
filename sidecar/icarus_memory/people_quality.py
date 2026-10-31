@@ -13,6 +13,8 @@ GENERIC = {
     'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello',
     'billing', 'invoice', 'invoices', 'payments', 'accounting', 'rechnung', 'rechnungen', 'message',
     'rechnungsstellung', 'rechnungsabteilung', 'customer service', 'customer support', 'update',
+    'angebot', 'angebote', 'offer', 'offers', 'buchung', 'buchungen', 'booking', 'bookings',
+    'redaktion', 'editorial',
 }
 _COMPANY_NAME = re.compile(r'\b(?:gmbh|inc|ltd|llc)\b', re.I)
 _DOMAIN_LABEL = re.compile(r'(?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,24}/?', re.I)
@@ -21,6 +23,8 @@ _CAMPAIGN_LOCAL = re.compile(r'(?:^|[._-])campaigns?[._-](?:response|updates?|me
 _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
     r'auftrags?[-_.]?(?:planung|abwicklung)|'
+    r'angebots?[-_.]?(?:team|service|abteilung)|buchungs?[-_.]?(?:team|service|stelle)|'
+    r'redaktions?[-_.]?(?:team|b[uü]ro|buero)|'
     r'anbieter-(?=[a-z0-9]{13}$)(?=[a-z0-9]*[a-z])(?=[a-z0-9]*[0-9])[a-z0-9]+|'
     r'rechnungs?[-_.]?(?:stelle|service|team)|zahlungs?[-_.]?(?:stelle|service|update)|'
     r'payments?[-_.]update|orders?[-_.]update|shipments?[-_.]tracking|'

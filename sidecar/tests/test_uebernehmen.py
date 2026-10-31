@@ -129,6 +129,31 @@ def test_vorschlagen_erzeugt_nur_einen_vorschlag_mit_beleg_und_keine_aussage(api
     assert offen.id == vorschlag['id'] and offen.kind is ProposalKind.KNOWLEDGE
 
 
+def test_foreign_first_person_keeps_frame_in_preview_proposal_and_confirmed_record(api):
+    app, client = api
+    source = 'Ich sende die Druckdaten bis zum 12. November 2026.'
+    mail(app.state.episodes, 'Druckdaten-Zusage', [(source, 'commitment')], tage=1)
+    conversation, message, _ = _antwort(app, client, anfrage=False, quellen=False,
+        frage='Welche Zusage zu den Druckdaten liegt vor?',
+        saetze=lambda data: {'status': 'antwort', 'saetze': [{'text': source, 'belege': [1]}]})
+    framed = 'Quelle berichtet: „' + source + '“'
+    preview = client.get('/api/v1/antworten/uebernehmen', params={
+        'conversation_id': conversation, 'message_id': message}).json()
+    [row] = preview['saetze']
+    assert row['text'] == framed and row['vorgabe'] is False and row['hinweise']
+    before = len(app.state.claims.all_claims())
+    first = _vorschlagen(client, conversation, message, [1]).json()['ergebnisse'][0]
+    assert first['text'] == framed
+    assert first['vorschlag']['statement'] == framed and first['vorschlag']['value'] == framed
+    assert first['vorschlag']['evidence'][0]['quote'] == source
+    assert len(app.state.claims.all_claims()) == before
+    again = _vorschlagen(client, conversation, message, [1]).json()['ergebnisse'][0]
+    assert again['status'] == 'liegt_vor' and again['vorschlag']['id'] == first['vorschlag']['id']
+    accepted = client.post('/api/v1/memory/candidates/' + first['vorschlag']['id'] + '/accept',
+                          json={'supersedes': []})
+    assert accepted.status_code == 200 and accepted.json()['statement'] == framed
+
+
 def test_nach_der_annahme_steht_der_satz_als_aussage_mit_beleg_in_der_akte(api):
     app, client = api
     gespraech, nachricht, (alt, neu) = _antwort(app, client)

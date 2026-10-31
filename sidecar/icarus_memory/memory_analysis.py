@@ -13,7 +13,7 @@ from .providers import ProviderError
 from .migrations import IndexContract
 from .task_review import hard_details_supported
 
-VERSION = "requests-v3"
+VERSION = "requests-v4"
 MAX_CHARS = 8000
 MAX_ITEMS = 32
 TABLES = {"memory_analysis_jobs": {
@@ -120,8 +120,12 @@ Keine weiteren Felder. Leere Liste, wenn nichts belegt ist. Maximal 32 Einträge
                 or not 1 <= len(title.strip()) <= 4096 or not 8 <= len(quote) <= 4000
                 or quote not in body):
             raise ProviderError("Ein Vorschlag hat keinen gültigen Originalbeleg.")
-        candidate = {"title": title.strip(), "quote": quote}
-        if hard_details_supported(title, quote) and candidate not in result:
+        # Ein falscher Titelzusatz entwertet nicht den exakten Originalbeleg.
+        # Nichts aus Betreff oder Nachbartext ergänzen; der Wortlaut bleibt zur
+        # Prüfung sichtbar, einschließlich aller Bedingungen und Einschränkungen.
+        candidate = {"title": title.strip() if hard_details_supported(title, quote) else quote,
+                     "quote": quote}
+        if candidate not in result:
             result.append(candidate)
     return result
 

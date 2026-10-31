@@ -60,7 +60,7 @@ from . import (absatzauswahl, akten_kontext, gedaechtnis_cloud, kennzeichnung, m
                satzpruefung_modell, verlaesslichkeit, zeitmessung)
 from .akten_kontext import Kontext, Ueberholt
 from .kennzeichnung import Kennzeichen, Rahmen
-from .kontakte import absender_text
+from .kontakte import absender_text, anzeigename
 from .lage import verdaechtig
 from .satzpruefung import Beleg, Satz
 from .satzpruefung_modell import Tor
@@ -77,6 +77,8 @@ MAX_BELEG_ZEICHEN = 2500
 MAX_ANTWORT_ZEICHEN = 6000
 #: So viel der Suchanfrage wird mit der Satzantwort gespeichert (nur Wörter der Frage und Umschreibungen, kein Quelltext).
 MAX_SUCHE_ZEICHEN = 2000
+MAX_PERSONENNAMEN = akten_kontext.MAX_AKTEN
+MAX_PERSONENNAME_ZEICHEN = 200
 STATI = ('antwort', 'nichts_vorliegend', 'unklar')
 NICHTS = 'Dazu liegt in den bisher eingeordneten Quellen keine Information vor.'
 
@@ -186,6 +188,9 @@ class AntwortBeleg:
     gekuerzt: bool = False
     """`text` ist ein Auszug der passenden Absätze (`absatzauswahl.py`), nicht die ganze Quelle."""
 
+    personen: tuple[str, ...] = ()
+    """Potenzielle Personen aus Quellenbeteiligten; ihr Name belegt noch keine Rolle."""
+
     def als_beleg(self) -> Beleg:
         # Die Prüfung liest den Volltext der Quelle, nie den Ausschnitt, den das Modell sah.
         # Das angehängte Quellen-Datum ist ein Anzeigehinweis und kein Inhalt der Quelle.
@@ -258,7 +263,8 @@ def _tag(moment: datetime | None) -> str:
 def _beleg_aus(ref: dict[str, Any], rolle: str, nummer: int, store: WorkingMemoryStore, claims: Any,
                ueberholt: tuple[Ueberholt, ...], rahmen: Rahmen = kennzeichnung.LEER,
                woerter: absatzauswahl.Suchwoerter | None = None,
-               akten_zeilen: Sequence[Any] = ()) -> AntwortBeleg | None:
+               akten_zeilen: Sequence[Any] = (),
+               personennamen: Sequence[str] = ()) -> AntwortBeleg | None:
     """Liest den Beleg zu einem Verweis neu; None, wenn die Quelle nicht mehr gilt oder nichts übrig bleibt.
 
     Mit `woerter` (Suchwörter der Frage) zeigt der Beleg einer langen Quelle nur die passenden Absätze samt Fundstelle und
@@ -292,9 +298,14 @@ def _beleg_aus(ref: dict[str, Any], rolle: str, nummer: int, store: WorkingMemor
     moment = episode.occurred_at
     absender = absender_text(episode.participants, episode.contacts)
     kopf = '; '.join(t for t in (episode.title[:200], f'von {absender}' if absender else '', _tag(moment)) if t)
+    personen = tuple(dict.fromkeys(
+        name for name in [*(str(k.get('name') or '').strip() for k in episode.contacts),
+                          *(anzeigename(p, kopfzeile=True) for p in episode.participants),
+                          *(z.name for z in akten_zeilen if z.sache.startswith('person:')),
+                          *personennamen] if name))
     return AntwortBeleg(nummer, {k: ref[k] for k in ('episode_id', 'fingerprint', 'start', 'end', 'kind')}, rolle,
                         episode.id, episode.title[:200], kopf, text, moment, ueberholt, geschwaerzt,
-                        kennzeichnung.kennzeichen(episode, rahmen), pruef, gekuerzt)
+                        kennzeichnung.kennzeichen(episode, rahmen), pruef, gekuerzt, personen)
 
 
 _RANG = {'Neuere Quelle': 0, 'Stand': 0, 'Frist': 0, 'Termin': 1, 'Quelle': 1, 'Vermutlich offen': 2}
@@ -331,7 +342,8 @@ def belege_sammeln(refs: Sequence[dict[str, Any]], kontext: Kontext, episodes: A
     for episode_id, eintrag in kandidaten.items():
         markierungen = kontext.ueberholt.get(episode_id, ())
         beleg = _beleg_aus(eintrag['ref'], ' · '.join(eintrag['rollen']), 0, store, claims, markierungen, rahmen,
-                           woerter, kontext.zeilen)
+                           woerter, kontext.zeilen,
+                           [name for sache, name in kontext.namen.items() if sache.startswith('person:')])
         if beleg is not None:
             rang = min(_RANG.get(r, 1) for r in eintrag['rollen'])
             zeit = beleg.zeit.timestamp() if beleg.zeit else 0.0
@@ -396,13 +408,39 @@ def _nennt_alten_wert(satz: str, u: Ueberholt) -> bool:
     return u.alt_wert.casefold() in satz.casefold()
 
 
+def _ohne_identitaetsrahmen(text: str, zitiert: Sequence[AntwortBeleg]) -> str:
+    """Nur eine belegte Namensvetter-Markierung darf einen Originalsatz rahmen.
+
+    Der verbleibende Satz braucht unverändert denselben Rollenbeleg. Eine
+    Kennzeichnung kann weder eine Bitte noch einen Absender zur Handlung machen.
+    """
+    for beleg in zitiert:
+        for marke in beleg.kennzeichen:
+            if marke.art != kennzeichnung.ANDERE_PERSON or not kennzeichnung.benennt(text, marke):
+                continue
+            name = re.escape(marke.name)
+            text = re.sub(r'^Ein(?:e)? ander(?:er|e)\s+(?=' + name + r'\b)', '', text, flags=re.I)
+            text = re.sub(r'^Das ist ein Namensvetter:\s*', '', text, flags=re.I)
+    return text
+
+
 def pruefe_satz(satz: Satz, belege: dict[str, AntwortBeleg], jetzt: datetime, zusatz_woerter: Sequence[str] = (),
                 *, vom_programm: bool = False) -> GeprueftSatz:
     """Prüft einen Satz des Modells: Belege, relative Zeit, Satzprüfung, Aktualität. Bestanden oder mit Gründen verworfen."""
     zahlen = tuple(int(n) for n in satz.belege if str(n).isdigit())
-    gruende: list[str] = []
     zitiert = [belege[str(n)] for n in dict.fromkeys(satz.belege) if str(n) in belege]
     text = satz.text.strip() if isinstance(satz.text, str) else ''
+    gruende = _fremde_quellen(text, zitiert)
+    # Beteiligte und bestätigte Identitätsmarken begrenzen die Personenprüfung.
+    # Betreff/Projektnamen sind keine Personen, Kopfzeilen kein Rollenbeweis.
+    personen = [name for b in zitiert for name in b.personen]
+    personen += [m.name for b in zitiert for m in b.kennzeichen if m.art == kennzeichnung.ANDERE_PERSON]
+    rollentext = _ohne_identitaetsrahmen(text, zitiert)
+    quellen, sichtbar = [b.pruef_text or b.text for b in zitiert], [b.text for b in zitiert]
+    if not (satzpruefung.rollenbindung(text, quellen, sichtbar=sichtbar, personen=personen)
+            or (rollentext != text and satzpruefung.rollenbindung(
+                rollentext, quellen, sichtbar=sichtbar, personen=personen))):
+        gruende.append('Personenbezug ist nicht als vollständige sichtbare Originalaussage belegt')
     if not satzpruefung.originalbindung(text, [b.pruef_text or b.text for b in zitiert],
                                       sichtbar=[b.text for b in zitiert]):
         gruende.append('Regel steht nicht als vollständige sichtbare Originalstelle im Beleg')
@@ -431,7 +469,6 @@ def pruefe_satz(satz: Satz, belege: dict[str, AntwortBeleg], jetzt: datetime, zu
             if neu_nummer is None or neu_nummer not in zahlen or not _WANDEL.search(text):
                 gruende.append(f'Beleg {beleg.nummer} ist überholt: Der Satz nennt ihn ohne die neuere Quelle und den Wandel')
                 break
-    gruende += _fremde_quellen(text, zitiert)
     gruende = list(dict.fromkeys(gruende))
     # Trägt der Text der Belege den Satz, oder nur ihre Kopfzeile? (für die Verlässlichkeit, nicht für das Urteil)
     nur_kopf = not gruende and not satzpruefung.satz_pruefen(
@@ -852,6 +889,9 @@ def erzeugen(frage: str, refs: Sequence[dict[str, Any]], kontext: Kontext, episo
         daten['suche'] = suche[:MAX_SUCHE_ZEICHEN]
     daten['akte'] = [z.als_dict() for z in kontext.zeilen]
     daten['namen'] = list(kontext.namen.values())[:akten_kontext.MAX_SACHEN]
+    # Nur zusätzliche Einschränkung der Rollenprüfung, niemals ein Rollenbeleg.
+    daten['personennamen'] = list(dict.fromkeys(
+        name for sache, name in kontext.namen.items() if sache.startswith('person:') and name))
     return daten
 
 
@@ -913,12 +953,23 @@ def wiederherstellen(daten: Any, episodes: Any, claims: Any) -> Dargestellt | No
         belege: list[AntwortBeleg] = []
         woerter = absatzauswahl.Suchwoerter.aus(daten['suche']) if isinstance(daten.get('suche'), str) else None
         akten_zeilen = [z for z in (akten_kontext.AktenZeile.aus_dict(x) for x in daten.get('akte', ())) if z is not None]
+        if 'personennamen' in daten:
+            personennamen = daten['personennamen']
+            if (not isinstance(personennamen, list) or len(personennamen) > MAX_PERSONENNAMEN
+                    or any(not isinstance(n, str) or not n.strip()
+                           or len(n) > MAX_PERSONENNAME_ZEICHEN for n in personennamen)):
+                return None
+        else:
+            # Alte Antworten speicherten Namen ohne Art. Sie können bestätigte
+            # Personenaliase sein: im Zweifel alle als mögliche Akteure prüfen.
+            # Neue Antworten behalten Projektumschreibungen durch die Typisierung.
+            personennamen = [n for n in daten.get('namen', ()) if isinstance(n, str)]
         for eintrag in daten['belege']:
             markierungen = tuple(u for u in (Ueberholt.aus_dict(x) for x in eintrag['ueberholt']) if u is not None)
             if len(markierungen) != len(eintrag['ueberholt']):
                 return None
             beleg = _beleg_aus(eintrag['ref'], str(eintrag['rolle']), int(eintrag['nummer']), store, claims, markierungen,
-                               rahmen, woerter, akten_zeilen)
+                               rahmen, woerter, akten_zeilen, personennamen)
             if beleg is None:
                 return None
             belege.append(beleg)
@@ -1000,7 +1051,7 @@ def text_und_links(dargestellt: Dargestellt, episodes: Any, claims: Any) -> tupl
     """
     belege, neu = _angezeigt(dargestellt)
     nummern = {b.episode_id: neu[b.nummer] for b in belege}
-    zeilen = [f'{s.text} ' + ''.join(f'[{n}]' for n in sorted({neu[n] for n in s.belege if n in neu}))
+    zeilen = [f'{anzeige_satz(s.text)} ' + ''.join(f'[{n}]' for n in sorted({neu[n] for n in s.belege if n in neu}))
               + (f' ({s.hinweis})' if s.hinweis else '') for s in dargestellt.saetze]
     zeilen.append('')
     zeilen.append('Belege')
@@ -1026,6 +1077,10 @@ def text_und_links(dargestellt: Dargestellt, episodes: Any, claims: Any) -> tupl
         zeilen.append(verworfen_pruefmodell_text(dargestellt.verworfen_pruefmodell) + '.')
     zeilen.append(tor_text(dargestellt.pruefung))
     return zeilen, links
+
+
+def anzeige_satz(text: str) -> str:
+    return f'Quelle berichtet: „{text}“' if satzpruefung.braucht_quellenrahmen(text) else text
 
 
 def verworfen_pruefmodell_text(anzahl: int) -> str:
@@ -1060,7 +1115,7 @@ def struktur(dargestellt: Dargestellt, episodes: Any, claims: Any) -> dict[str, 
             eintrag['kennzeichen'] = [{'art': m.art, 'text': m.text()} for m in b.kennzeichen]
         belege.append(eintrag)
     return {'version': SATZ_VERSION,
-            'saetze': [{'text': s.text, 'belege': sorted({neu[n] for n in s.belege if n in neu}), 'vom_programm': s.vom_programm,
+            'saetze': [{'text': anzeige_satz(s.text), 'belege': sorted({neu[n] for n in s.belege if n in neu}), 'vom_programm': s.vom_programm,
                         'verlaesslichkeit': s.verlaesslichkeit, 'hinweis': s.hinweis}
                        for s in dargestellt.saetze],
             'belege': belege, 'akte': akte_zeilen(dargestellt, episodes, claims),

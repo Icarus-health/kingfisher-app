@@ -430,9 +430,10 @@ dokument dokumente anhang anhaenge antwort antworten rueckmeldung rueckmeldungen
 quellen akte akten lage thema themen frage fragen entscheidung entscheidungen aenderung aenderungen verschiebung
 verlauf beleg belege beleg euro prozent kosten preis preise betrag betraege summe zahlung zahlungen anmeldung anmeldungen
 teilnahme teilnehmer teilnehmerin teilnehmerinnen veranstaltung veranstaltungen besprechung besprechungen treffen
-gespraech gespraeche telefonat sitzung meeting workshop seminar tagung konferenz fachtag ergebnis ergebnisse ergebnisse
+gespraech gespraeche telefonat anruf anrufe sitzung meeting workshop seminar tagung konferenz fachtag ergebnis ergebnisse ergebnisse
 entwurf entwuerfe vertrag vertraege antrag antraege abgabe abgaben lieferung lieferungen bestellung bestellungen
-zeitplan planung ablauf einreichung einreichfrist anmeldeschluss beginn ende start schluss mitte anfang
+zeitplan planung ablauf laufzeit einreichung einreichfrist anmeldeschluss beginn ende start schluss mitte anfang
+heute morgen uebermorgen gestern vorgestern
 frau herr firma behoerde amt
 kunde kunden kundin partner partnerin team kollege kollegin
 zusammenfassung hinweis hinweise information informationen inhalt inhalte text texte datei dateien liste
@@ -835,6 +836,42 @@ def originalbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str
     original = {originaltext(t) for n, quelle in enumerate(quellen) if not _ZITATZEICHEN.search(quelle)
                 for t in originalabschnitte(quelle) if sichtbar is None or t in sichtbar[n]}
     return all(originaltext(t) in original for t in originalabschnitte(satz))
+
+
+_PERSONENBEZUG = re.compile(
+    r'\b(?:ich|wir|du|ihr|er|sie|mich|mir|dich|dir|uns|euch|ihm|ihn|ihnen|'
+    r'mein\w*|dein\w*|unser\w*|euer\w*)\b', re.I)
+_PERSONENROLLE = re.compile(
+    r'\b(?:Absender\w*|Empfänger\w*|Empfaenger\w*|Nutzer\w*|Benutzer\w*|'
+    r'Auftraggeber\w*|Auftragnehmer\w*|Anfragende\w*|Verantwortliche\w*)\b', re.I)
+
+
+def rollenbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str],
+                  personen: Sequence[str] = ()) -> bool:
+    """Rollen bekannter Personen brauchen vollständige sichtbare Originalsätze.
+
+    Namen kommen nur aus Quellenbeteiligten/Identitätsmarken, nie aus der
+    Großschreibung eines deutschen Nomens oder eines Projekttitels. Vor- und
+    Vollnamen lösen dieselbe Prüfung aus (kein Identitätszusammenführen).
+    Die Metadaten benennen nur mögliche Akteure, sie belegen keine Handlung.
+    Pronomen und ausdrückliche Rollen bleiben unabhängig davon wortlautgebunden.
+    """
+    namen = {teil for name in personen if isinstance(name, str)
+             for teil in (name.strip(), re.split(r'\s+', name.strip())[0]) if teil}
+    person = any(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', satz, re.I) for name in namen)
+    if not (_PERSONENBEZUG.search(satz) or _PERSONENROLLE.search(satz) or person):
+        return True
+    if len(sichtbar) != len(quellen):
+        return False
+    original = {originaltext(t) for i, quelle in enumerate(quellen)
+                if not _ZITATZEICHEN.search(quelle)
+                for t in originalabschnitte(quelle) if t in sichtbar[i]}
+    return bool(original) and all(originaltext(t) in original for t in originalabschnitte(satz))
+
+
+def braucht_quellenrahmen(text: str) -> bool:
+    """Wörtliches „ich/du/wir“ bleibt die Stimme der Quelle, nie des Assistenten."""
+    return bool(_PERSONENBEZUG.search(text) or re.search(r'\bbitte\b', text, re.I))
 
 
 def bedingte_regeln(text: str) -> tuple[str, ...]:

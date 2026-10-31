@@ -107,6 +107,24 @@ def volltext_zeilen(zeilen: Sequence[dict]) -> list[dict]:
     return [dict(z, context=z.volltext) if isinstance(z, Zeile) else z for z in zeilen]
 
 
+def modell_zeilen(zeilen: Sequence[dict]) -> list[dict]:
+    """Gleichen kurzen Volltext nur einmal senden, keine Quelle kürzen.
+
+    Ein Unterschied jenseits führenden/nachfolgenden Leerraums bleibt erhalten,
+    insbesondere Negation, Nachsatz und Zitierkontext. Die lokalen Zeilen und
+    ihre Volltexte für Frische-/Belegprüfung werden niemals verändert.
+    """
+    result = []
+    for zeile in zeilen:
+        row = dict(zeile)
+        text, context = row.get('text'), row.get('context')
+        if (isinstance(text, str) and isinstance(context, str)
+                and len(context) > len(FUNDSTELLE) and text.strip() == context.strip()):
+            row['context'] = FUNDSTELLE
+        result.append(row)
+    return result
+
+
 def kuerzung(zeilen: Sequence[dict]) -> dict[str, int]:
     """Zählung für den Ausweis der Suche: wie viele Quellen gekürzt sind und wie viele Absätze davon gezeigt werden."""
     gekuerzt = [z.auszug for z in zeilen if isinstance(z, Zeile) and z.auszug is not None and z.auszug.gekuerzt]
