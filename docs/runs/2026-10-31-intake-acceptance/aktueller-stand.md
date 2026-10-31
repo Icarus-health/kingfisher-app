@@ -1,7 +1,8 @@
 # Aufnahme und Abruf: belastbarer Zwischenstand am 31.10.2026
 
-Die Mac-App bleibt auf 1.0.35. Die folgenden Reparaturen sind noch nicht
-veröffentlicht. Beide persönlichen Postfächer bleiben eingerichtet, der
+Der laufende Backend-/Oberflächenstand bleibt 1.0.35; die native Mac-Hülle
+ist noch 1.0.18 und reicht den neuen Profilschalter nicht weiter. Die folgenden
+Reparaturen sind noch nicht veröffentlicht. Beide persönlichen Postfächer bleiben eingerichtet, der
 Großimport bleibt global pausiert. Keine Cloudaufrufe, neuen Modellgewichte oder
 Änderungen an persönlichen Originalquellen.
 
@@ -33,6 +34,7 @@ Alle Läufe sind erhalten; Sollwerte wurden nicht an Modellergebnisse angepasst.
 | --- | --- | --- |
 | E, `2a0b228` | Begrenzter nativer Diagnoseadapter | Vollständig, 88 Aufrufe, 24/24 BGE-Belege indexiert; alle 24 Aufgabenentscheidungen und 16 Antworten einzeln gegen Originale geprüft. |
 | F, `7d16d27` | Normaler v1-Produkttransport mit demselben Qwen als 8K-Alias | Vollständig und inhaltlich zu E gleich; **kein Nachweis des neuen nativen Produktprofils**. |
+| G, `34e0739` | Tatsächlich gewählter nativer Produktweg mit Einzelrequests/-responses | Transport vollständig nachgewiesen; zwei wichtige Antwortfehler verhindern die fachliche Freigabe. |
 
 F wurde zunächst als nativer Produktlauf bezeichnet. Das unabhängige Review
 fand, dass die abgeschottete Messinstanz den Konfigurationsschalter entfernt
@@ -91,6 +93,73 @@ zunächst; nach der gezielten Ergänzung der Konfigurationsliste bestehen alle
 fünf Sicherungsdownload-Prüfungen. Persönliche Sicherungen wurden dabei nicht
 wiederhergestellt.
 
+## G: Transport bestanden, Antwortabnahme noch blockiert
+
+88/88 tatsächliche native Requests und Responses erfasst: exakt 8192 Kontext,
+`truncate:false`, `shift:false`, begrenzte Ausgabe und unveränderte vollständige
+Nachrichten. 2.332–15.855 gesendete Byte, höchstens 4.183 Prompttoken; alle
+Antworten regulär beendet. Quellstände unverändert. Keine technische Störung,
+alle 24 Originalmails erhalten, keine Aufgabe ohne Bestätigung angelegt.
+25 passende Abschnitte sind indexiert: ein separater Signaturblock wurde dieses
+Mal zusätzlich als Fakt eingeordnet. Das ist kleineres Suchrauschen, kein Beweis
+perfekter Klassifikation und keine zusätzliche Originalquelle.
+
+Die unabhängige Prüfung aller 24 Quellen-/Taskentscheidungen und 16 Antworten
+fand zwei wichtige Antwortfehler:
+
+- q08: Die Frage nach der eigenen Kalkulationszusage zeigt zusätzlich Noras
+  anders gerichtete Unterlagenzusage. Wörtliche Zitate verhindern hier noch
+  keinen falschen Antwortumfang.
+- q09: Die richtigen negierten Statussätze werden von der Belegprüfung verworfen;
+  als Rest bleibt lediglich die fortbestehende Frist. Die Frage nach Fertigstellung
+  bleibt so unbeantwortet. Der alte Worttest zählt „noch nicht fertig“ aus dem
+  Quelltitel im Belegfuß und meldet diesen Fall fälschlich grün.
+
+154/157 mechanische Verträge bestanden; die zwei bekannten m14/q15-Abweichungen
+bleiben, q08 ist zusätzlich rot. Der grüne q09-Wortcheck ersetzt ausdrücklich
+keine vollständige Antwort. Neue Diagnosegegenprobe zuerst rot; der Pflichttext
+wird nun ohne den erkennbaren gerenderten Belegfuß geprüft. 65 Scriptprüfungen
+bestehen. Dieser begrenzte Formatfilter ist kein semantischer Prüfer.
+
+599,344 Modellsekunden und 613 Ressourcenmessungen: mindestens 26 Prozent freie
+Reserve, maximal Druckstufe 2. Dieser Lauf war langsamer als E/F; daraus folgt
+kein kontrollierter Geschwindigkeitsvergleich. Das Mac-Fenster ließ sich während
+der Auswertung bedienen, was keine allgemeine Fluenzgarantie für andere Arbeit
+ist. Die beiden Antwortfehler werden gezielt korrigiert; Eingangsklassifikation
+und Taskerkennung bleiben unverändert. Der nächste Abrufnachweis kann dieselben
+unveränderten frischen G-Originale und gespeicherten Einordnungen verwenden,
+ohne die Mails erneut per Modell zu klassifizieren.
+
+## Gezielte Antwortreparaturen nach G
+
+Nach jeder aufgezeichneten Satzverwerfung verwendet der bestehende Prüfpfad
+jetzt erneut geprüfte Originalstellen statt eines möglicherweise irreführenden
+Satzrests. Das gilt beim Erzeugen und beim Öffnen alter Antworten. Keine
+Belegregel wurde gelockert. Der Schritt ist konservativ und kann auch gültige
+Restprosa durch vollständige Zitate ersetzen. Für Antworten ohne Verwerfung
+wird keine allgemeine Vollständigkeit behauptet.
+
+Eine geschlossene einfache Frage nach der eigenen Zusage schließt nun eine
+belegbar fremde direkte Ich-Zusage aus Auswahl und zusätzlichem Satz-Aktenkontext
+aus. Strukturierte Rollen und vollständiger Originalwortlaut müssen passen;
+Namen oder Betreff reichen nicht. Berichte, Zitate, Weiterleitungen, unbekannte
+Rollen und zusammengesetzte Fragen bleiben beim bisherigen Verfahren. Ein
+unabhängig gefundener Mehrteilfragenfehler wurde vor Freeze geschlossen; die
+drei konkreten Gegenfälle behalten beide Quellen. Alte problematische
+Satzbelege werden beim Öffnen erneut geprüft.
+
+191 Workerprüfungen für Teilantworten und 171 für den engeren Zusagepfad bestehen
+mit Überschneidungen, nicht addiert. Root prüfte 293 betroffene Fälle vor den
+letzten sechs Fragegegenfällen, anschließend die endgültigen 43 Zusagefälle.
+Unabhängige Nachprüfungen schließen beide belegten Fehler ohne verbleibenden
+Befund im engen Scope. Echter erneuter Abruf und endgültige Vollsuite folgen.
+
+Anweisungen im Quelltext bleiben für Modell und Satzprüfung geschwärzt. Der
+Originalmodus zeigt dagegen das eingerahmte unveränderte Original, auch dessen
+Anweisung; daraus entstehen weder Ausführung noch Einwilligung. Eine anders
+lautende erste Workerberichtsaussage wurde nach Review korrigiert. Keine neue
+Anzeige-Schwärzung oder veränderte Quelle eingeführt.
+
 ## Echte Quellen und Mac
 
 Eine kleine lokale echte Stichprobe liegt ausschließlich in getrennten privaten
@@ -105,8 +174,8 @@ Nachweis für flüssige Arbeit bei längerem Modellbetrieb.
 
 ## Noch erforderliche Abnahme
 
-1. Verlustfreie Gesamtpackung unter denselben Eingabegrenzen; tatsächlicher
-   nativer Produktlauf mit Requestnachweis und erneuter Einzelprüfung.
+1. Die beiden belegten Antwortfehler q08/q09 korrigieren und sämtliche 16
+   Rückfragen mit tatsächlichem Profil erneut gegen dieselben Originale prüfen.
 2. Vollständige Backendprüfung des endgültig eingefrorenen Stands.
 3. Dieselbe echte Stichprobe über den begrenzten Produktweg; unvollständige
    Quellen bleiben gehalten, fehlende Abdeckung bleibt sichtbar.

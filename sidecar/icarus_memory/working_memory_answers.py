@@ -1,5 +1,6 @@
 """Quellengebundener Arbeitsstand: Auswahl von Referenzen, niemals Modellprosa als Fakt."""
 import copy
+from dataclasses import replace
 from datetime import datetime
 import hashlib
 import json
@@ -11,7 +12,8 @@ from .providers import ProviderError
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_identity import adjust_selection
 from . import (absatzauswahl, akten_kontext, gedaechtnis_cloud, kennzeichnung, satzantwort, source_candidates, working_memory_projects,
-               working_memory_focus, working_memory_references, working_memory_changes, zeitmessung)
+               working_memory_focus, working_memory_references, working_memory_changes,
+               working_memory_own_commitments, zeitmessung)
 from .knowledge_render import KnowledgeInputBuild
 from . import knowledge_history
 
@@ -815,6 +817,14 @@ Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Proj
             selection['status'] = 'conflict'
             answer['change_review'] = True
         by_id = {f'S{i}': ref for i, ref in enumerate(refs, 1)}
+        # Eine eigene Zusage wird nicht durch die direkte Ich-Zusage eines
+        # belegbar fremden Absenders beantwortet. Nach allen Helfern prüfen,
+        # damit ein wiederhergestellter Peer den Ausschluss nicht umgeht.
+        fremde_zusagen = working_memory_own_commitments.ausgeschlossen(question, refs, episodes)
+        selection['ids'] = [i for i in selection['ids']
+                            if i not in by_id or by_id[i]['episode_id'] not in fremde_zusagen]
+        if not selection['ids']:
+            selection['status'] = 'unknown'
         selected = [by_id[i] for i in selection['ids'] if i in by_id]
         if (selection['status'] == 'unknown') != (not selection['ids']):
             raise ValueError('Inkonsistente Auswahl')
@@ -824,9 +834,19 @@ Entscheidend ist die konkret erfragte Information. Gleiche Person, gleiches Proj
         if saetze and answer['status'] == 'reports' and selected and not lineage:
             # Der Teil, der das Modell ein zweites Mal fragt: lokal oder mit Einwilligung in der Cloud, nur mit den
             # gewählten Quellen und der Akte.
-            answer['satzantwort'] = satzantwort.erzeugen(question, selected, kontext, episodes, claims, provider,
-                                                         jetzt=now(), zeiten=zeiten, rahmen=rahmen, suche=lookup,
-                                                         pruefung=pruefung)
+            # Die Akte kann weitere Belege hinzufügen. Derselbe enge Ausschluss
+            # gilt dort; der gespeicherte vollständige Akten-Fingerabdruck bleibt.
+            akten_refs = [*kontext.oben, *(u.durch_ref for us in kontext.ueberholt.values()
+                                         for u in us if u.durch_ref)]
+            fremde_zusagen |= working_memory_own_commitments.ausgeschlossen(question, akten_refs, episodes)
+            satzkontext = replace(kontext, zeilen=tuple(z for z in kontext.zeilen
+                                                       if z.ref['episode_id'] not in fremde_zusagen))
+            # Eine Überholungsbeziehung niemals durch Wegfiltern abschwächen:
+            # in diesem Fall bleiben nur die frisch geprüften Originalzitate.
+            if not any(u.durch in fremde_zusagen for us in kontext.ueberholt.values() for u in us):
+                answer['satzantwort'] = satzantwort.erzeugen(question, selected, satzkontext, episodes, claims, provider,
+                                                             jetzt=now(), zeiten=zeiten, rahmen=rahmen, suche=lookup,
+                                                             pruefung=pruefung)
     except (ProviderError, ValueError, TypeError, KeyError):
         answer.update(status='selection_failed')
     if cloud and provider.aufrufe:
@@ -1001,6 +1021,14 @@ def _fresh(answer, episodes, claims):
             or not isinstance(answer.get('basis'), list) or not 1 <= len(answer['basis']) <= MAX_REFS
             or not isinstance(answer.get('refs'), list)
             or any(ref not in answer['basis'] for ref in answer['refs'])):
+        return False
+    # Auch alte gespeicherte Auswahlen und zusätzliche Satzbelege aus der Akte
+    # dürfen einen eindeutig fremden Handelnden nicht als eigene Zusage zeigen.
+    satz = answer.get('satzantwort')
+    belege = satz.get('belege') if isinstance(satz, dict) else None
+    satz_refs = ([b['ref'] for b in belege if isinstance(b, dict) and isinstance(b.get('ref'), dict)]
+                 if isinstance(belege, list) else [])
+    if working_memory_own_commitments.ausgeschlossen(answer['query'], [*answer['refs'], *satz_refs], episodes):
         return False
     from .time_scope import has_negated_period, mentioned_period, original_time_reference
     time_question = answer.get('retrieval_query', answer['query'])

@@ -62,13 +62,23 @@ def omit_dates(mailbox, identifiers):
                 rows[i] = (uid, message.as_bytes())
 
 
+def _required_text_body(text):
+    # Die gerenderte Belegliste enthält auch Quelltitel. Deren Wörter dürfen
+    # eine fehlende eigentliche Antwort nicht als bestanden erscheinen lassen.
+    body, separator, footer = text.partition('\n\nBelege\n')
+    label, closing, _ = footer.partition('] ')
+    citation_footer = separator and closing and label.startswith('[') and label[1:].isdigit()
+    return body if citation_footer else text
+
+
 def grade_question(case, observed):
     selected = set(observed.get('sources', []))
     text = observed.get('text', '').casefold()
+    body = _required_text_body(observed.get('text', '')).casefold()
     return {'required_sources':set(case['required']) <= selected,
             'only_allowed_sources':selected <= set(case['allowed']),
             'status':observed.get('status') in case['status'],
-            'required_text':all(t.casefold() in text for t in case.get('contains',[])),
+            'required_text':all(t.casefold() in body for t in case.get('contains',[])),
             'forbidden_text_absent':all(t.casefold() not in text for t in case.get('excludes',[])),
             'choice_count':len(observed.get('choices',[])) >= case.get('minimum_choices',0)}
 

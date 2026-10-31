@@ -87,3 +87,27 @@ Bytegrenze und Usage allein wären kein Nachweis gegen Eingabekürzung.
   unveränderten synthetischen Katalog durch den tatsächlichen Produktanbieter.
 - [ ] Dieselbe private Stichprobe erneut, fehlende Originalteile weiterhin halten;
   Ergebnisse bleiben privat. Erst dann Veröffentlichung/Mac-Prüfung bewerten.
+
+## Task 5: Zwei beobachtete Antwortlücken aus G schließen
+
+Keine neue Funktion und keine erneute Eingangsmodellierung: derselbe frisch
+aufgenommene G-Bestand mit unveränderten Originalen und Einordnungen bleibt die
+Grundlage. G belegt den nativen Transport, aber keine bestandene Antwortabnahme.
+
+- [x] q09-Rohsätze und alte gespeicherte Restantwort zunächst rot reproduzieren.
+- [x] Teilverwerfung führt im bestehenden gemeinsamen Prüfpfad zu frisch
+  geprüften Originalberichten; keine Lockerung der Einzelbelege.
+- [x] q08: bei einfacher eindeutig eigener Zusagefrage fremde direkte Ich-Zusage
+  mit belegten strukturierten Mailrollen aus Auswahl und zusätzlichem
+  Satz-Aktenkontext ausschließen. Keine positive Urheberannahme aus dem Kopf.
+- [x] Berichte, Zitate, Weiterleitungen, unklare Rollen und Mehrteilfragen erhalten;
+  nach unabhängig gefundenem P2 den Frageumfang enger schließen und echte
+  Store-/Render-Gegenfälle erneut prüfen. Alte fehlerhafte Auswahl sperren.
+- [x] Diagnose-Pflichtwörter nicht allein aus dem gerenderten Belegfuß zählen;
+  Gegenprobe vorher rot. Semantische Einzelprüfung bleibt erforderlich.
+- [x] Unabhängiges Review beider Reparaturen und gezielte Gegenprüfungen ohne
+  Modelle/Privatdaten. Originalanzeige ist keine modellseitige Schwärzung.
+- [ ] Alle 16 Fragen über den tatsächlichen nativen Anbieter auf einer Kopie
+  desselben G-Bestands erneut stellen. Eingangsdateihashes und ursprüngliche
+  G-Datenbankdateien nachprüfen; keine Neu-Klassifikation behaupten.
+- [ ] Vollsuite des eingefrorenen Stands, echte Stichprobe, sichere Auslieferung.

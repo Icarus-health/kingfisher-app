@@ -13,8 +13,9 @@ Die Sicherheit liegt nicht im Modell, sondern in dem, was danach kommt:
 * **Jeder Satz läuft durch die Satzprüfung** (`satzpruefung.py`, ohne Modell): Zahlen,
   Daten, Uhrzeiten, Namen, Kennungen und Zusagen des Satzes müssen in den genannten
   Belegen stehen, eine Verneinung darf nicht umgekehrt sein. Ein Satz, der nicht besteht,
-  entfällt; die Zahl der verworfenen Sätze steht in der Antwort. Fehlt eine gewählte
-  Originalquelle ganz in den Sätzen, gilt stattdessen der Zitatmodus, auch ohne Verwerfung.
+  wird verworfen. Nach einer Verwerfung zeigt die Gesamtantwort die erneut geprüften
+  Originalstellen, damit kein irreführendes Restfragment übrig bleibt. Fehlt eine gewählte
+  Originalquelle ganz in den Sätzen, gilt ebenfalls der Zitatmodus, auch ohne Verwerfung.
 * **Überholtes wird nie als Stand genannt.** Trägt ein Beleg die Kennzeichnung „überholt“
   (`akten_kontext.py`), besteht ein Satz mit seiner überholten Angabe nur, wenn er
   zugleich die neuere Quelle nennt und den Wandel benennt („verschoben“, „vorher“,
@@ -737,26 +738,16 @@ def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg]
 
     Mehrere Abschnitte derselben Quelle zählen einmal. Ein geprüfter Wandel-Satz kann beide Quellen tragen.
     Zusätzlich vorgelegter Aktenkontext muss nicht vollständig erzählt werden.
-    Nach Verwerfung bleiben erkannte normative Regeln nur bei vollständiger wörtlicher Wiedergabe;
-    sonst zeigt der Zitatmodus auch die innerhalb derselben Quelle verlorene Bedingung.
-    Das ist keine allgemeine semantische Vollständigkeitsprüfung.
+    Jede Verwerfung kann innerhalb derselben Quelle die entscheidende Negation,
+    Zuständigkeit oder Bedingung entfernt haben. Ohne semantische Vollständigkeits-
+    behauptung bleibt dann nur der erneut quellengeprüfte Originalmodus sicher.
     """
+    if verworfen > 0:
+        return True
     nummern = {n for satz in saetze for n in satz.belege}
     vertreten = {beleg.episode_id for beleg in belege if beleg.nummer in nummern}
     gewaehlt = {beleg.episode_id for beleg in belege if 'Quelle' in beleg.rolle.split(' · ')}
-    if gewaehlt - vertreten:
-        return True
-    if verworfen <= 0:
-        return False
-    if {beleg.episode_id for beleg in belege} - vertreten:
-        return True
-    for beleg in belege:
-        regeln = set(satzpruefung.originalregeln(beleg.pruef_text or beleg.text))
-        erhalten = {regel for satz in saetze if beleg.nummer in satz.belege
-                    for regel in satzpruefung.originalregeln(satz.text)}
-        if regeln - erhalten:
-            return True
-    return False
+    return bool(gewaehlt - vertreten)
 
 
 def _fehlender_regelabsatzkontext(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg]) -> str | None:
@@ -796,7 +787,7 @@ def _fehlender_regelabsatzkontext(saetze: Sequence[GeprueftSatz], belege: Sequen
 def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], jetzt: datetime,
               zusatz_woerter: Sequence[str], modell: str, tor: Tor = satzpruefung_modell.OHNE,
               zeiten: Zeiten | None = None) -> Versuch:
-    """Jeder Satz des Modells gegen seine Belege, dann durch das zweite Tor: was besteht, bleibt; sonst die Zitate.
+    """Jeder Satz durch beide Tore; bei Verwerfung bleiben die geprüften Originalstellen.
 
     Reihenfolge: erste Prüfung (ohne Modell), zweites Tor für die Sätze des Modells, dann die Ergänzung des Wandels
     aus der Akte für das, was übrig ist, auch sie durch beide Tore. Zuletzt die Verlässlichkeit je Satz.
@@ -844,7 +835,7 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
         return Versuch('zitate', verworfen=verworfen + betroffen, grund=kontextfehler, modell=modell)
     if _quelle_fehlt(durch, belege, len(verworfen)):
         return Versuch('zitate', verworfen=verworfen, modell=modell,
-                       grund='Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort')
+                       grund='Nach der Satzprüfung ist die Vollständigkeit der Teilantwort nicht gesichert')
     return Versuch('saetze', [_eingestuft(satz, nach_nummer, jetzt) for satz in durch], verworfen,
                    modell=modell)
 

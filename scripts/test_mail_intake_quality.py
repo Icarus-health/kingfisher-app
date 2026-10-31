@@ -585,3 +585,22 @@ def test_native_history_rejects_contradictory_or_reordered_association(monkeypat
     if change=='reordered_results':history[1:]=list(reversed(history[1:]))
     with pytest.raises(ProviderError):provider.complete(history,[])
     assert requests==[] and record['model_calls'][0]['failure_reason']=='tool_history_invalid'
+
+
+def test_required_answer_content_cannot_be_satisfied_only_by_citation_title():
+    m=module()
+    case={'required':['m12'],'allowed':['m12'],'status':['working_reports'],
+          'contains':['noch nicht fertig']}
+    observed={'sources':['m12'],'status':'working_reports',
+              'text':'Die zugesagte Frist bleibt bestehen. [1]\n\nBelege\n[1] Projekt: noch nicht fertig; 30.10.2026'}
+    assert m.grade_question(case,observed)['required_text'] is False
+    observed['text']='Die Kalkulation ist noch nicht fertig. [1]\n\nBelege\n[1] Projekt; 30.10.2026'
+    assert m.grade_question(case,observed)['required_text'] is True
+
+
+def test_required_answer_content_keeps_ordinary_source_text_about_belege():
+    m=module()
+    case={'required':[],'allowed':[],'status':['working_reports'],'contains':['noch nicht fertig']}
+    for text in ['Quelle berichtet: Die Belege sind noch nicht fertig.',
+                 'Quelle berichtet:\n\nBelege\nDie Belege sind noch nicht fertig.']:
+        assert m.grade_question(case,{'sources':[],'status':'working_reports','text':text})['required_text']
