@@ -394,6 +394,17 @@ class WorkingMemoryStore:
             if (not explicit_recheck and row and row[1] == "complete" and row[0] == fingerprint
                     and row[3] == ANALYSIS_VERSION):
                 return False
+            from . import docx_native_rows, satzpruefung_modell
+            if (len(body) <= satzpruefung_modell.MAX_BELEG_ZEICHEN and len(normalized) < MAX_ITEMS
+                    and any(t.startswith(docx_native_rows.TAG) for t in current.episode.tags)):
+                # Nur bewiesene ganze Originalzeilen erhalten, ohne Modellarten umzudeuten.
+                for native in docx_native_rows.read(current, fingerprint, body) or ():
+                    start = body.index(native)
+                    end = start + len(native)
+                    if not any(a < end and start < b for a, b, _ in normalized):
+                        normalized.append((start, end, 'uncertain'))
+                        if len(normalized) == MAX_ITEMS:
+                            break
             self._delete_items(snapshot.episode.id)
             self._set_status(snapshot.episode.id, fingerprint, "complete", model)
             for start, end, kind in normalized:
