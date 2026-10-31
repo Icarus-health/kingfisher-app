@@ -26,7 +26,7 @@ from typing import Any, Callable, Iterable
 
 from .datumstext import tag_und_monat
 from .episodes import mail_address
-from .kontakte import anzeigename
+from .kontakte import anzeigename, eigene_adresskennung
 from .model import user_timezone
 
 #: Wie weit ins Briefing geschaut wird.
@@ -85,10 +85,10 @@ def richtung(participants: Iterable[str], eigene: Iterable[str]) -> str:
     if not beteiligte:
         return 'unklar'
     absender = mail_address(beteiligte[0])
-    selbst = {mail_address(a) for a in eigene if mail_address(a)}
+    selbst = {eigene_adresskennung(a) for a in eigene if eigene_adresskennung(a)}
     if not absender:
         return 'unklar'
-    return 'von_mir' if absender in selbst else 'an_mich'
+    return 'von_mir' if eigene_adresskennung(absender) in selbst else 'an_mich'
 
 
 def _lokal(wert: Any) -> str | None:

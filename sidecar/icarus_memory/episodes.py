@@ -1226,7 +1226,7 @@ class EpisodeStore:
             return result
 
     def add_contacts(self, episode_id: str, contacts: list[dict[str, Any]],
-                     participants: list[str]) -> Episode:
+                     participants: list[str], *, promote_self: bool = False) -> Episode:
         """Ergänzt Beteiligte einer schon aufgenommenen Quelle (Nachtrag).
 
         Der Originaltext, sein Digest und der Zustand bleiben unberührt. Nur
@@ -1234,19 +1234,24 @@ class EpisodeStore:
         kommen hinzu. Der Metadaten-Fingerabdruck wird nachgeführt, damit ein
         späteres, gleichlautendes Einlesen keine zweite Fassung anlegt, und die
         Stützgeneration steigt, damit die Auswertung die Quelle neu ansieht.
+        Nur ein vollständiger Mail-Neuabruf darf mit `promote_self` eine jetzt
+        belegte eigene Adresse nachtragen; Namen, Adressen und Rollen bleiben.
         """
         with self.transaction():
             episode = self.get(episode_id)
             if episode.state is EpisodeState.IGNORED:
                 raise EpisodeError("Ausgeschlossene Quelle wird nicht ergänzt")
-            bekannt = {(c.get("adresse") or (c.get("name") or "").casefold(), c.get("rolle"))
+            bekannt = {(c.get("adresse") or (c.get("name") or "").casefold(), c.get("rolle")): c
                        for c in episode.contacts}
             for eintrag in contacts:
                 schluessel = (eintrag.get("adresse") or (eintrag.get("name") or "").casefold(),
                               eintrag.get("rolle"))
                 if schluessel not in bekannt:
-                    bekannt.add(schluessel)
-                    episode.contacts.append(dict(eintrag))
+                    neu = dict(eintrag)
+                    bekannt[schluessel] = neu
+                    episode.contacts.append(neu)
+                elif promote_self and eintrag.get("ich") is True and eintrag.get("adresse"):
+                    bekannt[schluessel]["ich"] = True
             for text in participants:
                 if text not in episode.participants:
                     episode.participants.append(text)

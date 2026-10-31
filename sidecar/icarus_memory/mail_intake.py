@@ -56,9 +56,9 @@ ANMELDE_GRUENDE = frozenset({'passwort', 'app_passwort', 'imap_aus', 'abgemeldet
 
 def eigene_mail(message):
     """Vom Nutzer selbst geschrieben: Der Absender ist eine Adresse des Kontos, über das die Mail geholt wurde."""
-    from .episodes import mail_address
-    eigene = {mail_address(a) for a in (getattr(message, 'own_addresses', None) or ()) if mail_address(a)}
-    absender = mail_address(getattr(message, 'sender', '') or '')
+    from .kontakte import eigene_adresskennung
+    eigene = {eigene_adresskennung(a) for a in (getattr(message, 'own_addresses', None) or ()) if eigene_adresskennung(a)}
+    absender = eigene_adresskennung(getattr(message, 'sender', '') or '')
     return bool(absender) and absender in eigene
 
 

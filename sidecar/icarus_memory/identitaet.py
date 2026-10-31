@@ -35,7 +35,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .episodes import mail_address
-from .kontakte import anzeigename
+from .kontakte import anzeigename, eigene_adresskennung
 from .people_quality import ist_sammelpostfach, lokalteil
 
 #: Rolle einer Angabe ohne bekannte Rolle (Notiz, Transkript, ältere Mail).
@@ -143,7 +143,7 @@ def nennungen(episode: Any, eigene: Iterable[str] = ()) -> list[Nennung]:
     Transkripte, ältere Mails — kommt jeder Eintrag aus `participants`; bei einer
     Mail mit genau einem Eintrag ist das der Absender.
     """
-    selbst = {mail_address(a) for a in eigene if mail_address(a)}
+    selbst = {eigene_adresskennung(a) for a in eigene if eigene_adresskennung(a)}
     daten = episode if isinstance(episode, dict) else None
 
     def feld(name: str) -> Any:
@@ -162,7 +162,7 @@ def nennungen(episode: Any, eigene: Iterable[str] = ()) -> list[Nennung]:
                 name = anzeigename(name, kopfzeile=True)
             if adresse or name:
                 ergebnis.append(Nennung(name, adresse, str(eintrag.get("rolle") or BETEILIGT),
-                                        bool(eintrag.get("ich")) or bool(adresse and adresse in selbst)))
+                                        bool(eintrag.get("ich")) or bool(adresse and eigene_adresskennung(adresse) in selbst)))
         return ergebnis
     teilnehmer = [str(t) for t in (feld("participants") or []) if str(t).strip()]
     einziger_absender = art == "email" and len(teilnehmer) == 1
@@ -170,7 +170,7 @@ def nennungen(episode: Any, eigene: Iterable[str] = ()) -> list[Nennung]:
         adresse = mail_address(text)
         name = anzeigename(text, kopfzeile=art == "email") if adresse else text.strip()
         ergebnis.append(Nennung(name, adresse, "von" if einziger_absender else BETEILIGT,
-                                bool(adresse and adresse in selbst)))
+                                bool(adresse and eigene_adresskennung(adresse) in selbst)))
     return ergebnis
 
 

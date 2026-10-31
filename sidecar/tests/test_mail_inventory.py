@@ -293,7 +293,7 @@ def test_malformed_list_fails_without_silently_losing_folders(mailbox):
 
 
 @pytest.mark.parametrize("attachment", [False, True])
-def test_large_body_or_attachment_uses_bounded_wire_fetch_and_explicit_truncation(mailbox, attachment):
+def test_large_body_or_attachment_uses_bounded_sequential_wire_fetch(mailbox, attachment):
     connector, fake = mailbox
     if attachment:
         raw = (b'Subject: Large attachment\r\nContent-Type: multipart/mixed; boundary="bound"\r\n\r\n'
@@ -308,16 +308,16 @@ def test_large_body_or_attachment_uses_bounded_wire_fetch_and_explicit_truncatio
     def uid(operation, number, fields):
         assert operation == "fetch"
         calls.append(fields)
-        partial = re.search(r"BODY\.PEEK\[\]<0\.(\d+)>", fields)
+        partial = re.search(r"BODY\.PEEK\[\]<(\d+)\.(\d+)>", fields)
         assert partial is not None, "No full-message fallback is allowed"
-        requested = int(partial[1])
-        assert requested == MAX_MESSAGE_WIRE_BYTES + 1
-        metadata = f"1 (UID 103 RFC822.SIZE {len(raw)} FLAGS () X-GM-MSGID 123)".encode()
-        return "OK", [(metadata, raw[:requested])]
+        offset, requested = map(int, partial.groups())
+        assert 0 < requested <= MAX_MESSAGE_WIRE_BYTES
+        metadata = f"1 (UID 103 RFC822.SIZE {len(raw)} FLAGS () X-GM-MSGID 123 BODY[]<{offset}>)".encode()
+        return "OK", [(metadata, raw[offset:offset + requested])]
 
     fake.uid = uid
     message = connector.message_in_folder("INBOX", "7.103") if attachment else connector.message("7.103")
-    assert len(calls) == 1 and message.truncated and message.provider_id == "123"
+    assert len(calls) == 2 and message.truncated is (not attachment) and message.provider_id == "123"
     assert len(message.body) <= 20_000
     if attachment:
         assert message.body.strip() == "Short body"

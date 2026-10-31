@@ -66,8 +66,12 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
         from .episodes import digest_of
         if existing.digest == digest_of(text) and source_metadata_digest(old) == source_metadata_digest(incoming):
             if existing.state is not EpisodeState.IGNORED:
-                if not existing.contacts and beteiligte:
-                    existing = episodes.add_contacts(existing.id, beteiligte, teilnehmer)
+                eigene = {(c.get('adresse'), c.get('rolle')) for c in beteiligte if c.get('ich') is True and c.get('adresse')}
+                nachtrag = not incomplete and any(
+                    (c.get('adresse'), c.get('rolle')) in eigene and c.get('ich') is not True
+                    for c in existing.contacts)
+                if beteiligte and (not existing.contacts or nachtrag):
+                    existing = episodes.add_contacts(existing.id, beteiligte, teilnehmer, promote_self=nachtrag)
                 existing = episodes.add_mail_headers(existing.id, headers)
             return _with_attachments(episodes, message, key, beteiligte, teilnehmer, claims,
                                      {'episode': existing.to_dict(), 'new': False, 'changed': False})
