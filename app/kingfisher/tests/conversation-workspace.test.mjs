@@ -34,6 +34,30 @@ test('navigation searches message bodies via server pages, appends pages, and ig
  }finally{d.close();api.conversationPage=oldPage;}
 });
 
+test('selecting the open conversation closes the drawer without navigating or losing keyboard focus',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation;
+ const pushed=[];let reads=0,focused=0;
+ globalThis.window={location:{hash:''},history:{pushState(_s,_t,path){pushed.push(path);}},dispatchEvent(){},addEventListener(){},removeEventListener(){}};
+ globalThis.document={getElementById(){return null;}};
+ globalThis.PopStateEvent??=class{constructor(type){this.type=type;}};
+ api.getConversation=async id=>{reads++;return{conversation:{id,title:'Aktuelles Gespräch'},messages:[],context:{items:[]},memory_candidates:[]};};
+ const d=driver(Conversation,{id:'current',recentConversation:'current',rememberConversation(){},chatAvailable:true});
+ const toggle=tree=>nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Gespräche')[0];
+ try{d.render();d.runEffects();await tick();let tree=d.render();toggle(tree).props.onClick();tree=d.render();
+  assert.equal(toggle(tree).props['aria-expanded'],true);
+  if(toggle(tree).props.ref)toggle(tree).props.ref.current={focus(){focused++;}};
+  const nav=nodes(tree,n=>n.type?.name==='ConversationNavigation')[0];nav.props.onSelect('current');tree=d.render();
+  assert.equal(toggle(tree).props['aria-expanded'],false,'the selected chat must reveal its content even when its id did not change');
+  assert.equal(focused,1,'keyboard focus returns to the visible navigation toggle');
+  assert.deepEqual(pushed,[],'selecting the open chat must not add a duplicate history entry');
+  assert.equal(reads,1,'the existing conversation remains mounted');
+  assert.equal(nodes(tree,n=>n.type?.name==='CommandBar')[0].props.conversationId,'current');
+  toggle(tree).props.onClick();tree=d.render();nodes(tree,n=>n.type?.name==='ConversationNavigation')[0].props.onSelect('other');tree=d.render();
+  assert.equal(toggle(tree).props['aria-expanded'],false);assert.deepEqual(pushed,['/conversations/other']);
+ }finally{d.close();api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
 test('safe message formatting renders paragraphs lists strong and code while escaping raw HTML',async()=>{
  const {MessageText}=await server.ssrLoadModule('/src/MessageText.tsx');
  const html=renderToStaticMarkup(createElement(MessageText,{content:'Erster Absatz\n\n**Wichtig** und `code`\n\n- Eins\n- Zwei\n\n1. Schritt\n2. Weiter\n\n```js\n<script>danger()</script>\n```\n\n<img src=x onerror=alert(1)>'}));
