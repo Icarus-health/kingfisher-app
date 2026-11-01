@@ -630,9 +630,9 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False, vorschlaege=False, automatik=False) -> None:
+                entscheidungen=False, vorschlaege=False, automatik=False, mime_refresh=False) -> None:
     from . import mail_intake
-    extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
+    extra_tables = dict(mail_intake.TABLES_V26 if mime_refresh else mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
     extra_indexes = dict(mail_intake.INDEXES) if intake else {}
     extra_triggers = {}
@@ -849,11 +849,11 @@ def _migrate_v20(connection):
 
 
 def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False,
-               automatik=False):
+               automatik=False, mime_refresh=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
                 task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
-                vorschlaege=vorschlaege, automatik=automatik)
+                vorschlaege=vorschlaege, automatik=automatik, mime_refresh=mime_refresh)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -915,6 +915,16 @@ def _verify_v25(connection):
                 automatik=True)
 
 
+def _migrate_v26(connection):
+    from .mail_intake import migrate_mime_refresh
+    migrate_mime_refresh(connection)
+
+
+def _verify_v26(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True,
+                automatik=True, mime_refresh=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -941,6 +951,7 @@ _MIGRATIONS = (
     Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
     Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
     Migration(25, "projekt_automatik", _migrate_v25, _verify_v25),
+    Migration(26, "mail_mime_refresh", _migrate_v26, _verify_v26),
 )
 
 
@@ -1226,7 +1237,7 @@ class EpisodeStore:
             return result
 
     def add_contacts(self, episode_id: str, contacts: list[dict[str, Any]],
-                     participants: list[str]) -> Episode:
+                     participants: list[str], *, promote_self: bool = False) -> Episode:
         """Ergänzt Beteiligte einer schon aufgenommenen Quelle (Nachtrag).
 
         Der Originaltext, sein Digest und der Zustand bleiben unberührt. Nur
@@ -1234,19 +1245,24 @@ class EpisodeStore:
         kommen hinzu. Der Metadaten-Fingerabdruck wird nachgeführt, damit ein
         späteres, gleichlautendes Einlesen keine zweite Fassung anlegt, und die
         Stützgeneration steigt, damit die Auswertung die Quelle neu ansieht.
+        Nur ein vollständiger Mail-Neuabruf darf mit `promote_self` eine jetzt
+        belegte eigene Adresse nachtragen; Namen, Adressen und Rollen bleiben.
         """
         with self.transaction():
             episode = self.get(episode_id)
             if episode.state is EpisodeState.IGNORED:
                 raise EpisodeError("Ausgeschlossene Quelle wird nicht ergänzt")
-            bekannt = {(c.get("adresse") or (c.get("name") or "").casefold(), c.get("rolle"))
+            bekannt = {(c.get("adresse") or (c.get("name") or "").casefold(), c.get("rolle")): c
                        for c in episode.contacts}
             for eintrag in contacts:
                 schluessel = (eintrag.get("adresse") or (eintrag.get("name") or "").casefold(),
                               eintrag.get("rolle"))
                 if schluessel not in bekannt:
-                    bekannt.add(schluessel)
-                    episode.contacts.append(dict(eintrag))
+                    neu = dict(eintrag)
+                    bekannt[schluessel] = neu
+                    episode.contacts.append(neu)
+                elif promote_self and eintrag.get("ich") is True and eintrag.get("adresse"):
+                    bekannt[schluessel]["ich"] = True
             for text in participants:
                 if text not in episode.participants:
                     episode.participants.append(text)

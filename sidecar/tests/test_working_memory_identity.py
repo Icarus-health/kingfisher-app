@@ -434,7 +434,10 @@ def test_explicit_document_person_guard_reopens_legacy_and_preserves_specific_an
                                    provider, semantic_search=None, saetze=True)
         assert specific['status'] == 'reports'
         assert [ref['episode_id'] for ref in specific['refs']] == [ids[0]]
-        assert DOC_EINKAUF in answers.render(specific, episodes, claims)[0]
+        compact, linked, status = answers.render(specific, episodes, claims)
+        assert status == 'working_reports' and DOC_EINKAUF in compact
+        assert [link['episode_id'] for link in linked] == [ids[0]]
+        assert episodes.get(linked[0]['episode_id']).body == DOC_EINKAUF
         episodes.ignore(ids[1])
         assert answers.render(answer, episodes, claims)[2] == 'working_unavailable'
         assert episodes.get(ids[1]).body == DOC_SCHULE

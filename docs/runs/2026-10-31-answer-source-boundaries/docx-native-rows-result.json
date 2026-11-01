@@ -1,0 +1,45 @@
+{
+  "base_commit": "2cfea10fe0e3f41d87fbf56bc70ad3d5ad2332f1",
+  "synthetic_only": true,
+  "proof_schema": 1,
+  "cases": [
+    {
+      "question_matches_field": true,
+      "body_chars": 958,
+      "free_original_unit_chars": [
+        534
+      ],
+      "native_rows": [
+        "Prüfdatum\n18.11.2026\tfrist der rücksendung:"
+      ],
+      "status": "saetze",
+      "sentence_calls": 1,
+      "judge_calls": 1,
+      "judge_receives_question": true,
+      "judge_receives_full_raw": true,
+      "source_unchanged": true,
+      "render_chars": 267,
+      "source_report": true,
+      "claims_created": 0
+    },
+    {
+      "question_matches_field": false,
+      "body_chars": 958,
+      "free_original_unit_chars": [
+        534
+      ],
+      "native_rows": [
+        "Prüfdatum\n18.11.2026\tfrist der rücksendung:"
+      ],
+      "status": "zitate",
+      "sentence_calls": 1,
+      "judge_calls": 1,
+      "judge_receives_question": true,
+      "judge_receives_full_raw": true,
+      "source_unchanged": true,
+      "render_chars": 1104,
+      "source_report": false,
+      "claims_created": 0
+    }
+  ]
+}

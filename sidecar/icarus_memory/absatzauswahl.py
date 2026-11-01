@@ -447,5 +447,46 @@ def ergaenzen(text: str, bisher: Auszug, stellen: Sequence[tuple[int, int, str]]
     return _bauen(text, bisher.fenster, neu, bisher.kopf, bisher.ref, bisher.ref_zeigen)
 
 
+def vervollstaendigen(text: str, bisher: Auszug, stellen: Sequence[tuple[int, int, str]], *, max_zeichen: int) -> Auszug:
+    """Gewählte Fenster an vorhandenen Originaleinheiten vervollständigen, innerhalb des Auszugsbudgets.
+
+    Text und Stellen stammen aus derselben unveränderten Quelle. Nur überlappende
+    Einheiten kommen hinzu, niemals neue Treffer oder ein abgeschnittenes Stück.
+    Benachbarte sichtbare Fenster werden als ein wörtlicher Quellbereich gelesen;
+    fehlender Inhalt bleibt durch die Lücke erkennbar.
+    """
+    if not bisher.gekuerzt or not bisher.ref_zeigen:
+        return bisher
+
+    def vereinigen(bereiche):
+        ergebnis = []
+        for start, ende in sorted(bereiche):
+            if ergebnis and (start <= ergebnis[-1][1] or not text[ergebnis[-1][1]:start].strip()):
+                ergebnis[-1] = (ergebnis[-1][0], max(ergebnis[-1][1], ende))
+            else:
+                ergebnis.append((start, ende))
+        return ergebnis
+
+    def bauen(bereiche):
+        auswahl = tuple(i for i, f in enumerate(bisher.fenster) if any(_innen(f, b) for b in bereiche))
+        teile = [text[start:ende] for start, ende in bereiche]
+        ausgabe = ('\n' + LUECKE + '\n').join(teile)
+        if len(auswahl) < bisher.gesamt:
+            ausgabe += '\n' + VERMERK.format(gezeigt=len(auswahl), gesamt=bisher.gesamt)
+        return Auszug(ausgabe, len(auswahl), bisher.gesamt, bisher.fenster, auswahl,
+                      bisher.kopf, bisher.ref, bisher.ref_zeigen)
+
+    bereiche = vereinigen([bisher.fenster[i] for i in bisher.auswahl]
+                         + ([bisher.kopf] if bisher.kopf else []))
+    for start, ende, _ in stellen:
+        if any(_ueberlappt(b, (start, ende)) for b in bereiche):
+            neu = vereinigen([*bereiche, (start, ende)])
+            if len(bauen(neu).text) <= max_zeichen:
+                bereiche = neu
+    ergebnis = bauen(bereiche)
+    return ergebnis if len(ergebnis.text) <= max_zeichen else bisher
+
+
 __all__ = ['Auszug', 'FENSTER_MAX', 'FENSTER_MIN', 'GANZ_BIS', 'MAX_FENSTER', 'Suchwoerter', 'Zeile', 'absatzgrenzen',
-           'auszug', 'bewerten', 'ergaenzen', 'fenster', 'ist_zitatzeile', 'kuerzung', 'teilen', 'volltext_zeilen']
+           'auszug', 'bewerten', 'ergaenzen', 'fenster', 'ist_zitatzeile', 'kuerzung', 'teilen',
+           'vervollstaendigen', 'volltext_zeilen']

@@ -36,6 +36,22 @@ ROLLEN = ("von", "an", "cc", "bcc")
 _SPITZE = re.compile(r"\s*<[^<>]*>\s*$")
 
 
+def eigene_adresskennung(wert: Any) -> str:
+    """Vergleich mit eigenen Konten, kein Anker zum Zusammenführen fremder Personen.
+
+    Normalisierte private gmail.com-Adressen behandeln Punkte wie Google selbst.
+    Firmen- und andere Domains sowie Plus-Zusätze werden nicht erweitert. Die
+    bestehende Parser-Normalisierung bleibt; dies validiert keine beliebigen
+    SMTPUTF8-Adressen. Gespeicherte Adressen werden dadurch nicht verändert.
+    https://support.google.com/mail/answer/7436150
+    """
+    adresse = mail_address(str(wert or ""))
+    lokal, _, domain = adresse.rpartition("@")
+    if domain == "gmail.com" and re.fullmatch(r"[a-z0-9]+(?:\.[a-z0-9]+)*", lokal):
+        return lokal.replace(".", "") + "@gmail.com"
+    return adresse
+
+
 def anzeigename(wert: Any, *, kopfzeile: bool = False) -> str:
     """Der Name vor der Adresse: „Keller, Anna“ aus „Keller, Anna <a@x>“.
 
@@ -80,9 +96,9 @@ def kontakt(wert: Any, rolle: str, *, eigene: Iterable[str] = ()) -> dict[str, A
     name = anzeigename(text, kopfzeile=True)
     if not name and not adresse:
         return None
-    selbst = {mail_address(a) for a in eigene if mail_address(a)}
+    selbst = {eigene_adresskennung(a) for a in eigene if eigene_adresskennung(a)}
     return {"name": name, "adresse": adresse, "rolle": rolle,
-            "ich": bool(adresse and adresse in selbst)}
+            "ich": bool(adresse and eigene_adresskennung(adresse) in selbst)}
 
 
 def text_form(eintrag: dict[str, Any]) -> str:

@@ -101,12 +101,24 @@ def test_unknown_pages_do_not_erase_only_positive_page(monkeypatch):
 
 @pytest.mark.parametrize('status', ['needs_person_choice', 'needs_project_choice', 'needs_missing_time_reference',
                                   'unresolved_conflicting_sources'])
+def test_only_unclear_page_keeps_internal_guard_without_final_call(status, monkeypatch):
+    script = Script(monkeypatch, lambda n, page: {
+        'status': status if n == 1 else 'no_relevant_sources',
+        'ids': [page[0]['id'], page[-1]['id']] if n == 1 else []})
+    assert choose(script, rows()) == {
+        'status': wma.MODEL_DECISIONS[status], 'ids': ['S1', 'S3'], '_page_uncertainty': True}
+    assert len(script.calls) == 2
+
+
+@pytest.mark.parametrize('status', ['needs_person_choice', 'needs_project_choice', 'needs_missing_time_reference',
+                                  'unresolved_conflicting_sources'])
 def test_final_cannot_erase_unclear_page(status, monkeypatch):
     def answer(n, page):
         return {'status': status if n == 1 else 'source_reports', 'ids': [page[0]['id']]}
     script = Script(monkeypatch, answer)
-    with pytest.raises(ProviderError):
-        choose(script, rows())
+    result = choose(script, rows())
+    assert result['status'] == wma.MODEL_DECISIONS[status]
+    assert result['ids'] == ['S1', 'S4']
     assert len(script.calls) == 3
 
 

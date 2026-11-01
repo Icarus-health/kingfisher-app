@@ -6,7 +6,7 @@ müssen dieselbe Quelle unabhängig ansehen können. Nur Vorschläge werden gesp
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError
+from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError, EpisodeKind
 from .memory_analysis import interpret, segment, model_key, source_context_for
 from .proposals import ProposalKind
 from .task_review import REVIEW_MARKER, current_task_context, hard_details_supported, open_time_request, task_context_matches
@@ -151,8 +151,11 @@ class TaskDetector:
                             report.cancelled = True
                             return report
                     from .task_review import review_tasks
-                    own_source = any(contact.get('rolle') == 'von' and contact.get('ich') is True
-                                     for contact in current.contacts)
+                    # Kontakte eines Anhangs beschreiben die Transportmail,
+                    # nicht den Urheber des Dokumenttextes.
+                    own_source = current.kind is EpisodeKind.MESSAGE and any(
+                        contact.get('rolle') == 'von' and contact.get('ich') is True
+                        for contact in current.contacts)
                     items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source,
                                          policy=policy, episode=current)
                     manual_review = bool(getattr(items, 'requires_review', False))

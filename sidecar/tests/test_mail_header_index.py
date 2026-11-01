@@ -63,7 +63,7 @@ def test_v21_backfill_preserves_original_rows_and_deduplication(tmp_path):
     before = conn.execute("SELECT * FROM episodes").fetchall()
     conn.close()
     store = EpisodeStore(path)
-    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 25
+    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 26
     assert [tuple(row) for row in store._conn.execute("SELECT * FROM episodes")] == before
     assert [tuple(row) for row in store._conn.execute("SELECT value,episode_id FROM episode_mail_headers")] == [(source.tags[0], source.id)]
     assert record(store, "<old@local>").id == source.id
@@ -118,7 +118,7 @@ def test_missing_header_trigger_is_rejected_without_rewriting_original(tmp_path)
         EpisodeStore(path)
     with sqlite3.connect(path) as conn:
         assert conn.execute("SELECT document FROM episodes WHERE id=?", (source.id,)).fetchone()[0] == before
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == 25
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == 26
 
 
 def test_interrupted_v22_backfill_rolls_back_before_successful_retry(tmp_path, monkeypatch):
@@ -149,7 +149,7 @@ def test_interrupted_v22_backfill_rolls_back_before_successful_retry(tmp_path, m
         assert conn.execute("SELECT name FROM sqlite_schema WHERE name='episode_mail_headers'").fetchall() == []
         assert conn.execute("SELECT * FROM episodes").fetchall() == before
     retried = EpisodeStore(path)
-    assert retried._conn.execute("PRAGMA user_version").fetchone()[0] == 25
+    assert retried._conn.execute("PRAGMA user_version").fetchone()[0] == 26
     assert retried._conn.execute("SELECT episode_id FROM episode_mail_headers").fetchone()[0] == source.id
     assert [tuple(row) for row in retried._conn.execute("SELECT * FROM episodes")] == before
     retried.close()

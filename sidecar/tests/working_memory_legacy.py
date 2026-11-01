@@ -11,6 +11,9 @@ def legacy_hex(key):
 
 
 def drop_task_rechecks(connection):
+    # Vor Migration 26 gab es keinen Marker für einen einmaligen MIME-Wiederabruf.
+    if 'mime_refresh_version' in {row[1] for row in connection.execute('PRAGMA table_info(mail_intake_items)')}:
+        connection.execute('ALTER TABLE mail_intake_items DROP COLUMN mime_refresh_version')
     # v24 and earlier lack what Kingfisher created and assigned by itself (Migration 25, Projekte von selbst).
     from icarus_memory.projekt_automatik import TABLES as AUTOMATIK
     for table in AUTOMATIK:

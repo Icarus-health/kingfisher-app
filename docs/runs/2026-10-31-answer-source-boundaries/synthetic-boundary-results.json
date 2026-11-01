@@ -1,0 +1,196 @@
+{
+  "base_commit": "47b3c1754abaa3fc714762f17ab3c402a0e158a1",
+  "probe_sha256": "a687f7909b026b9a93a77c52944068d0696069bac6af1bc129308d1e407fd570",
+  "scope": "Nur synthetische Parser/Store/prepare/render-Grenzprüfung; kein Realmodell und keine privaten Quellen.",
+  "cases": [
+    {
+      "label": "html-rate-indent-0",
+      "before": {
+        "body_chars": 3128,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 191,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 1
+      },
+      "after": {
+        "body_chars": 3128,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 191,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 1
+      }
+    },
+    {
+      "label": "html-rate-indent-120",
+      "before": {
+        "body_chars": 9608,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 311,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 1
+      },
+      "after": {
+        "body_chars": 3181,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 191,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 1
+      }
+    },
+    {
+      "label": "html-rate-indent-620",
+      "before": {
+        "body_chars": 36608,
+        "selected": 1,
+        "sentence_calls": 0,
+        "render_chars": 36709,
+        "render_contains_whole_body": true,
+        "sentence_status": "zitate",
+        "offered_units": 0
+      },
+      "after": {
+        "body_chars": 3181,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 191,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 1
+      }
+    },
+    {
+      "label": "word-employment-rule-False",
+      "before": {
+        "body_chars": 2788,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 162,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 14
+      },
+      "after": {
+        "body_chars": 2827,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 162,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 14
+      }
+    },
+    {
+      "label": "word-return-rule-False",
+      "before": {
+        "body_chars": 2788,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 2930,
+        "render_contains_whole_body": true,
+        "sentence_status": "nichts",
+        "offered_units": 14
+      },
+      "after": {
+        "body_chars": 2827,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 2969,
+        "render_contains_whole_body": true,
+        "sentence_status": "nichts",
+        "offered_units": 7
+      }
+    },
+    {
+      "label": "word-employment-rule-True",
+      "before": {
+        "body_chars": 2950,
+        "selected": 1,
+        "sentence_calls": 0,
+        "render_chars": 3076,
+        "render_contains_whole_body": true,
+        "sentence_status": "zitate",
+        "offered_units": 0
+      },
+      "after": {
+        "body_chars": 2990,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 250,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 13
+      }
+    },
+    {
+      "label": "word-return-rule-True",
+      "before": {
+        "body_chars": 2950,
+        "selected": 1,
+        "sentence_calls": 0,
+        "render_chars": 3092,
+        "render_contains_whole_body": true,
+        "sentence_status": "zitate",
+        "offered_units": 0
+      },
+      "after": {
+        "body_chars": 2990,
+        "selected": 1,
+        "sentence_calls": 2,
+        "render_chars": 3132,
+        "render_contains_whole_body": true,
+        "sentence_status": "nichts",
+        "offered_units": 6
+      }
+    },
+    {
+      "label": "word-employment-rule-True-paragraph-control",
+      "before": {
+        "body_chars": 2990,
+        "selected": 1,
+        "sentence_calls": 2,
+        "render_chars": 3116,
+        "render_contains_whole_body": true,
+        "sentence_status": "nichts",
+        "offered_units": 12
+      },
+      "after": {
+        "body_chars": 3070,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 250,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 14
+      }
+    },
+    {
+      "label": "word-employment-hidden-rule",
+      "before": {
+        "body_chars": 2950,
+        "selected": 1,
+        "sentence_calls": 0,
+        "render_chars": 3076,
+        "render_contains_whole_body": true,
+        "sentence_status": "zitate",
+        "offered_units": 0
+      },
+      "after": {
+        "body_chars": 2990,
+        "selected": 1,
+        "sentence_calls": 1,
+        "render_chars": 250,
+        "render_contains_whole_body": false,
+        "sentence_status": "saetze",
+        "offered_units": 14
+      }
+    }
+  ]
+}

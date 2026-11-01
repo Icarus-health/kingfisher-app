@@ -222,7 +222,7 @@ export function MailIntake({accounts, active, onChanged}: {
       const filtered = progress.filtered + progress.liveFiltered;
       const retryFailed = progress.retryAvailable;
       const retryCurrentFailure = progress.failed > 0 || progress.liveFailed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
-      const retryLabel = filtered > 0
+      const retryLabel = progress.mimeRefreshable > 0 ? "Unvollständige Mails erneut lesen" : filtered > 0
         ? retryCurrentFailure ? "Ausgefilterte Mails und Fehler erneut prüfen"
           : progress.categoriesUnverified > 0 ? "Ausgefilterte Mails und Einordnungen prüfen" : "Ausgefilterte Mails erneut prüfen"
         : progress.categoriesUnverified > 0 && !retryCurrentFailure ? "Weitere Einordnungen prüfen" : "Fehlgeschlagenes noch einmal versuchen";
@@ -255,6 +255,7 @@ export function MailIntake({accounts, active, onChanged}: {
           {filtered > 0 && <p>Nur auf deinen Klick: {number(filtered)} ausgefilterte Mails werden mit den aktuellen Regeln erneut geprüft. Auch Mails, die wegen voller Prüfliste dort nicht angezeigt werden, sind dabei. Das geschieht nicht automatisch.</p>}
         </>}
         {!account.connected && <p>Für dieses Postfach fehlen gültige Zugangsdaten. Verbinde es unter Zugänge neu.</p>}
+        {progress.mimeIncomplete > 0 && <p role="status">Einige gespeicherte Mails sind noch unvollständig erfasst.</p>}
         {account.error && <p role="alert">{errorLabel(account.error)}</p>}
         {account.started && !account.folders.length && <p>Kingfisher schaut nach, welche Ordner es gibt.</p>}
         {account.folders.map((folder, index) => <FolderProgress key={folder.folder} account={account} index={index} />)}

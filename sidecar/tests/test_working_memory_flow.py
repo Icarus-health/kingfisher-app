@@ -3,9 +3,18 @@ import json
 import pytest
 
 from tests.test_context_identity import core, AT
-from tests.test_source_answers_http import _api, _ask, _conversation, _upload
+from tests.test_source_answers_http import _api as _sentence_api, _ask, _conversation, _upload
 from tests.test_conversation_retraction import _close_app
 from icarus_memory.providers import Reply
+
+
+def _api(core, tmp_path, monkeypatch):
+    # These fixtures exercise selection/original reports, without attempting prose.
+    # Default attempted-prose HTTP/GET behavior lives in test_answer_clarification_projection.
+    app, client, provider = _sentence_api(core, tmp_path, monkeypatch)
+    app.state.agent._saetze = False
+    return app, client, provider
+
 
 TEXT = 'Mainz: Anna liefert den Entwurf am 25. September 2026, wenn die Freigabe vorliegt.'
 QUESTION = 'Bis wann liefert Anna den Entwurf für Mainz?'

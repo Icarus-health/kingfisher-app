@@ -1067,6 +1067,7 @@ class Agent:
             'history_egress': 'local_only', 'working_answer': answer, 'source_links': links,
             'answer_contract': answer_contract,
             **({'satzantwort': satz} if satz is not None else {}),
+            **({'original_fallback': True} if working_memory_answers.original_fallback(answer, status, satz, self._episodes) else {}),
             **({'zeiten': zeiten} if zeiten is not None else {}),
             **({'gedaechtnis_cloud': dict(cloud)} if cloud is not None else {}),
             **knowledge_history.metadata({}), **self_model_history.metadata({})})

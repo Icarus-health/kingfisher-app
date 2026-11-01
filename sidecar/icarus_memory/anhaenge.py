@@ -1,4 +1,4 @@
-"""Anhänge lesen (M4): PDF-Rechnungen und Verträge werden eine Quelle mit Beleg (Seite).
+"""Anhänge lesen: PDF mit Seitenbeleg, DOCX mit begrenztem Word-Haupttext.
 
 Eine Rechnung kommt meist als PDF im Anhang, und die Mail selbst sagt nur „anbei die Rechnung“. Ohne den Anhang fehlt
 die Frist. Deshalb liest die Aufnahme (`mail_intake.py`) die Anhänge einer Mail mit, **lokal und ohne Netz**:
@@ -9,10 +9,13 @@ die Frist. Deshalb liest die Aufnahme (`mail_intake.py`) die Anhänge einer Mail
 * **Gescannt** (keine Textebene) oder ein Foto einer Rechnung: Texterkennung nur, wenn ein lokales OCR-Modell
   eingerichtet ist (`glm-ocr` oder `deepseek-ocr` im lokalen Ollama, `ocr_fuer`); nie über die Cloud. Sonst steht
   ehrlich da: „Gescannte Rechnung „…pdf“, noch nicht gelesen.“
+* **DOCX:** derselbe lokale, begrenzte Haupttext-Leser wie bei Datei- und Dokumentaufnahme (`docx_text`).
+  Absätze und Tabellen werden gelesen; Kopf-/Fußzeilen, Kommentare, Bilder und Layout bleiben ungelesen.
+  Es gibt keine Seitenzuordnung. Alte Word- und Makroformate werden nicht unterstützt.
 * **Zu groß** (über der Grenze der Aufnahme) oder **nicht lesbar** (verschlüsselt, beschädigt): ein Satz, warum.
 
 Jeder Anhang wird eine eigene Quelle (Art `document`) mit denselben Beteiligten wie die Mail, also in derselben Akte
-(Zahnarztpraxis, Versicherung). Ihr Text trägt vor jeder Seite „Seite N“; damit nennt jeder Beleg seine Seite
+(Zahnarztpraxis, Versicherung). PDF-/Bildtext trägt vor jeder Seite „Seite N“; damit nennt jeder Beleg seine Seite
 (`seite_der_stelle`). Die Quelle läuft wie jede andere durch die Einordnung und durch die Fristensuche
 (`akten_arten.fristen_vorlegen`); jede Zahl eines Vorschlags steht wörtlich darin (`zahlen_belegt`).
 """
@@ -38,6 +41,10 @@ OCR_ZEITGRENZE_S = 90.0
 #: Bilder (Fotos einer Rechnung) zählen nur mit einem dieser Wörter im Dateinamen: Ein Urlaubsfoto ist keine Quelle.
 _DOKUMENT_NAME = re.compile(r'rechnung|beleg|quittung|scan|vertrag|police|bescheid|mahnung|invoice|receipt', re.I)
 _BILD = {'image/jpeg', 'image/png'}
+_DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+_DOCX_KOPF = 'Word-Haupttext\n'
+_DOCX_UMFANG = ('Erfasst wird nur der Word-Haupttext (Absätze und Tabellen), ohne Seitenzuordnung. '
+                'Kopf-/Fußzeilen, Kommentare, eingebettete Bilder und Layout werden nicht gelesen.')
 OCR_MODELLE = ('glm-ocr', 'deepseek-ocr')
 TAG = 'anhang'
 BERICHT_TAG = 'mail:attachments:'
@@ -49,7 +56,7 @@ GELESEN, OCR, GESCANNT, ZU_GROSS, FEHLER = 'gelesen', 'ocr', 'gescannt', 'zu_gro
 class Anhang:
     dateiname: str
     art: str
-    """`pdf` oder `bild`."""
+    """`pdf`, `bild` oder `docx`."""
     status: str
     """`gelesen`, `ocr` (über Texterkennung), `gescannt` (noch nicht gelesen), `zu_gross`, `fehler`."""
     seiten: tuple[str, ...] = ()
@@ -57,6 +64,9 @@ class Anhang:
     """Seiten der Datei; gelesen sind höchstens `MAX_SEITEN`."""
     hinweis: str = ''
     leere_seiten: tuple[int, ...] = field(default=())
+    haupttext: str = ''
+    """Nur DOCX: Word-Haupttext statt erfundener Seiten; `seiten` bleibt leer."""
+    native_rows: tuple[tuple[int, int], ...] = ()
 
     @property
     def gelesen(self) -> bool:
@@ -68,6 +78,9 @@ class Anhang:
 
     @property
     def vollstaendig(self) -> bool:
+        # Bei Word bezeichnet vollständig ausschließlich den unterstützten Haupttext.
+        if self.art == 'docx':
+            return self.gelesen and bool(self.haupttext.strip()) and not _inhalt(self)[1]
         return (self.gelesen and bool(self.seiten) and not self.ungelesene_seiten
                 and self.gesamt <= len(self.seiten) and not _inhalt(self)[1])
 
@@ -95,6 +108,14 @@ def _name(part: email.message.Message) -> str:
 
 def _ist_pdf(part: email.message.Message, name: str) -> bool:
     return part.get_content_type() == 'application/pdf' or name.lower().endswith('.pdf')
+
+
+def _ist_docx(part: email.message.Message, name: str) -> bool:
+    """Nur DOCX-MIME/Name, keine alten Word-, Vorlagen- oder Makroformate bei widersprüchlichem Namen."""
+    mime = part.get_content_type()
+    endung = PurePosixPath(name.lower()).suffix
+    return ((endung == '.docx' and mime in (_DOCX_MIME, 'application/octet-stream', 'application/zip'))
+            or (not endung and mime == _DOCX_MIME))
 
 
 def gescannt_satz(name: str, seiten: int) -> str:
@@ -146,9 +167,18 @@ def _bild(name: str, daten: bytes, ocr: Ocr | None) -> Anhang:
     return Anhang(name, 'bild', OCR, (text,), 1)
 
 
+def _docx(name: str, daten: bytes) -> Anhang:
+    from .document_text import docx_struktur
+    try:
+        haupttext, rows = docx_struktur(daten)
+    except ValueError as exc:
+        return Anhang(name, 'docx', FEHLER, hinweis=f'Anhang „{name}“ konnte nicht gelesen werden: {exc}')
+    return Anhang(name, 'docx', GELESEN, hinweis=_DOCX_UMFANG, haupttext=haupttext, native_rows=rows)
+
+
 def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, ocr: Ocr | None = None,
              bericht: dict[str, Any] | None = None) -> tuple[Anhang, ...]:
-    """Die Anhänge einer Mail: PDFs immer, Bilder nur mit Dokumentnamen („Rechnung.jpg“). Höchstens `MAX_ANHAENGE`.
+    """Die Anhänge einer Mail: PDF, DOCX-Haupttext, Bilder mit Dokumentnamen. Höchstens `MAX_ANHAENGE`.
 
     `abgeschnitten`: Die Mail kam über der Größengrenze der Aufnahme; ihre Anhänge sind unvollständig und werden nicht
     gelesen (ein Satz sagt das).
@@ -167,7 +197,7 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
                 zuordnung_vollstaendig = False
             continue
         if not name:
-            if attachment or part.get_content_type() == 'application/pdf':
+            if attachment or part.get_content_type() in ('application/pdf', _DOCX_MIME):
                 gefunden += 1
                 unbenannt += 1
                 zuordnung_vollstaendig = False
@@ -175,14 +205,16 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
         gefunden += 1
         pdf = _ist_pdf(part, name)
         bild = part.get_content_type() in _BILD and bool(_DOKUMENT_NAME.search(name))
-        if not (pdf or bild):
+        docx = _ist_docx(part, name)
+        if not (pdf or bild or docx):
             nicht_unterstuetzt += 1
             continue
         if len(ergebnis) >= MAX_ANHAENGE:
             ausgelassen += 1
             continue
+        art = 'pdf' if pdf else 'docx' if docx else 'bild'
         if abgeschnitten:
-            ergebnis.append(Anhang(name, 'pdf' if pdf else 'bild', ZU_GROSS,
+            ergebnis.append(Anhang(name, art, ZU_GROSS,
                                    hinweis=f'Anhang „{name}“ ist zu groß für die Aufnahme und wurde nicht gelesen.'))
             continue
         daten = part.get_payload(decode=True) or b''
@@ -191,15 +223,15 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
             doppelt += 1
             continue
         if not daten:
-            ergebnis.append(Anhang(name, 'pdf' if pdf else 'bild', FEHLER,
+            ergebnis.append(Anhang(name, art, FEHLER,
                                    hinweis=f'Anhang „{name}“ enthält keine lesbaren Dateidaten.'))
             continue
         gesehen.add(fingerabdruck)
         if len(daten) > MAX_BYTES:
-            ergebnis.append(Anhang(name, 'pdf' if pdf else 'bild', ZU_GROSS,
+            ergebnis.append(Anhang(name, art, ZU_GROSS,
                                    hinweis=f'Anhang „{name}“ ist größer als 5 MiB und wurde nicht gelesen.'))
             continue
-        ergebnis.append(_pdf(name, daten, ocr) if pdf else _bild(name, daten, ocr))
+        ergebnis.append(_pdf(name, daten, ocr) if pdf else _docx(name, daten) if docx else _bild(name, daten, ocr))
     if bericht is not None:
         mime_fehler = sum(len(part.defects) for part in nachricht.walk())
         if mime_fehler:
@@ -228,6 +260,8 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
                        dateien=[als_dict(item) for item in ergebnis],
                        hinweis=('Anlagen nicht vollständig erfasst. ' + ' '.join(hinweise)) if not komplett
                        else 'Text der erkannten unterstützten Anlagen erfasst. Texterkennung und eingebettete Bilder können Informationen auslassen.' if gefunden else 'Keine benannten Anlagen gefunden.')
+        if any(item.art == 'docx' for item in ergebnis):
+            bericht['hinweis'] += ' ' + _DOCX_UMFANG
     return tuple(ergebnis)
 
 
@@ -236,6 +270,9 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
 
 def _inhalt(anhang: Anhang) -> tuple[list[str], bool]:
     """One shared, nonnegative character budget including page separators."""
+    if anhang.art == 'docx':
+        stueck = _DOCX_KOPF + anhang.haupttext.strip()
+        return [stueck[:MAX_ZEICHEN]], len(stueck) > MAX_ZEICHEN
     teile, rest = [], MAX_ZEICHEN
     for nummer, seite in enumerate(anhang.seiten, 1):
         if not seite.strip():
@@ -257,7 +294,7 @@ def text(anhang: Anhang, betreff: str, datum: datetime | None) -> str:
     wann = f' vom {datum:%d.%m.%Y}' if datum else ''
     kopf = f'Anhang „{anhang.dateiname}“ der Mail „{betreff or "(kein Betreff)"}“{wann}.'
     if not anhang.gelesen:
-        return f'{kopf}\n\n{anhang.hinweis}'
+        return f'{kopf}\n\n{anhang.hinweis}' + (f'\n\n{_DOCX_UMFANG}' if anhang.art == 'docx' else '')
     teile, gekuerzt = _inhalt(anhang)
     if gekuerzt:
         teile.append('(Gekürzt: Der Anhang ist länger, als Kingfisher je Anhang liest.)')
@@ -275,6 +312,8 @@ _SEITE = re.compile(r'^Seite (\d+)(?: \(Texterkennung\))?$', re.M)
 
 def seite_der_stelle(text_: str, stelle: str) -> int | None:
     """Die Seite, auf der eine wörtliche Stelle steht („Seite N“ davor), sonst None."""
+    if text_.partition('\n\n')[2].startswith(_DOCX_KOPF):
+        return None  # Auch ein „Seite N“ im Word-Original liefert keine Seitenzuordnung.
     position = text_.find(stelle)
     if position < 0:
         return None
@@ -296,13 +335,20 @@ def aufnehmen(episodes: Any, message: Any, *, schluessel: str, herkunft: str, be
     beobachtet: set[str] = set()
     for nummer, anhang in enumerate(getattr(message, 'anhaenge', ()) or (), 1):
         key = f'{schluessel}:anhang:{nummer}'
+        body = text(anhang, message.subject, message.date)
+        proof = []
+        report = getattr(message, 'anhang_bericht', None) or {}
+        if (anhang.art == 'docx' and anhang.vollstaendig
+                and report.get('abruf_vollstaendig') is True and report.get('zuordnung_vollstaendig') is True):
+            from .docx_native_rows import capture
+            proof = capture(body, anhang.haupttext, anhang.native_rows, key, parent_id)
         episode, erstellt = episodes.record(
-            EpisodeKind.DOCUMENT, titel(anhang, message.subject), text(anhang, message.subject, message.date),
+            EpisodeKind.DOCUMENT, titel(anhang, message.subject), body,
             Provenance(source_type=SourceType.EMAIL, source_ref=f'{herkunft}#anhang:{nummer}:{anhang.dateiname}',
                        captured_at=message.date),
             occurred_at=message.date, participants=teilnehmer, contacts=beteiligte,
             tags=[TAG, f'{TAG}:{anhang.status}', f'mail-parent:{parent_id}']
-                 + ([] if anhang.vollstaendig else ['source:truncated']), source_key=key)
+                 + ([] if anhang.vollstaendig else ['source:truncated']) + proof, source_key=key)
         track_source(episodes, claims, key, episode)
         beobachtet.add(episode.id)
         if erstellt:
@@ -363,9 +409,12 @@ def ocr_fuer(app: Any) -> Ocr | None:
 
 
 def als_dict(anhang: Anhang) -> dict[str, Any]:
-    return {'dateiname': anhang.dateiname, 'art': anhang.art, 'status': anhang.status, 'seiten': len(anhang.seiten),
+    result = {'dateiname': anhang.dateiname, 'art': anhang.art, 'status': anhang.status, 'seiten': len(anhang.seiten),
             'gesamt': anhang.gesamt, 'hinweis': anhang.hinweis, 'vollstaendig': anhang.vollstaendig,
             'ungelesene_seiten': anhang.ungelesene_seiten}
+    if anhang.art == 'docx':
+        result.update(seiten=None, gesamt=None, textumfang='Word-Haupttext')
+    return result
 
 
 def gespeicherter_bericht(episode: Any) -> dict[str, Any] | None:

@@ -124,3 +124,21 @@ test('review button opens the exact procedure id through an encoded settings lin
   control.props.onClick();assert.deepEqual(pushed,['/settings?ablauf=proc%2Fspecial%3F%C3%A4%26other#ich-ablaeufe']);
  }finally{d.close();api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
 });
+
+test('unverified original fallback keeps the whole source behind a closed accessible disclosure',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation;
+ globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};
+ globalThis.document={getElementById(){return null;}};
+ const original='Die Lieferung erfolgt am 14. November nur nach schriftlicher Freigabe. Kein verbindlicher Termin ohne Bestätigung.';
+ try{for(const flag of [true,false,undefined]){
+  api.getConversation=async()=>({conversation:{id:'original',title:'Test'},context:{items:[]},memory_candidates:[],messages:[{
+   id:'m-original',role:'assistant',content:original,status:'complete',metadata:{context:{original_fallback:flag,source_links:[{episode_id:'e-original',label:'Original öffnen'}]}}}]});
+  const d=driver(Conversation,{id:'original',recentConversation:null,rememberConversation(){},chatAvailable:true});
+  try{d.render();d.runEffects();await tick();const tree=d.render();
+   const disclosure=nodes(tree,n=>n.type==='details'&&nodes(n,c=>c.type==='summary'&&text(c)==='Originalangaben lesen').length)[0];
+   if(flag===true){assert.ok(disclosure);assert.notEqual(disclosure.props.open,true);assert.equal(nodes(disclosure,n=>n.type?.name==='MessageText')[0].props.content,original);assert.match(text(tree),/geprüfte Zusammenfassung fehlt/);}
+   else{assert.equal(disclosure,undefined);assert.equal(nodes(tree,n=>n.type?.name==='MessageText')[0].props.content,original);}
+  }finally{d.close();}
+ }}finally{api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});

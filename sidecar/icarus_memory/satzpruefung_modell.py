@@ -201,6 +201,19 @@ ADAPTER: tuple[Adapter, ...] = (
 STANDARD = Adapter('json', (), _json_fragen, _json_lesen)
 
 
+def _native_fragen(anbieter, satz, belege, frage):
+    anweisung = (ANWEISUNG + ' Dies ist ein wörtlicher unbestätigter Felddatensatz. '
+        'JA gilt nur, wenn die ganze Raw-Zeile quellentreu UND eine passende Antwort auf die getrennte Frage ist. '
+        'Kein tragender Vorbehalt aus der vollen Rawquelle darf entfallen: Bei bedingtem Terminkopf außerhalb der Row, '
+        'den die Row nicht wiedergibt, ist das Urteil nein oder unklar. '
+        'Keine Feld-/Datumsrolle oder Person aus einem anderen Label herleiten; ein leeres Rücksendefeld '
+        'wird nicht durch ein gefülltes Prüfdatum beantwortet. Transportkopf und Absender sind keine Personen-/Datumsbeweise. '
+        'Bei unklarem Fragebezug: unklar.')
+    return anbieter.complete_json([{'role': 'system', 'content': anweisung}, {'role': 'user',
+        'content': json.dumps({'frage': frage, 'satz': satz, 'belege': belege}, ensure_ascii=False)}],
+        max_tokens=64, schema=SCHEMA)
+
+
 def adapter_fuer(modell: str) -> Adapter:
     name = str(modell or '').strip().rsplit('/', 1)[-1].casefold()
     return next((a for a in ADAPTER if any(name.startswith(p) for p in a.praefixe)), STANDARD)
@@ -287,7 +300,7 @@ def _ein_urteil(adapter: Adapter, anbieter: Any, satz: str, belege: str, frist: 
 
 def urteilen(auftraege: Sequence[tuple[str, Sequence[Any]]], tor: Tor, *, zeiten: Zeiten | None = None,
              satz_budget: float | None = None, gesamt_budget: float | None = None,
-             uhr: Callable[[], float] = time.monotonic) -> list[Urteil]:
+             uhr: Callable[[], float] = time.monotonic, native_fragen: list[str | None] | None = None) -> list[Urteil]:
     """Je Auftrag (Satz, seine Belege) ein Urteil, in derselben Reihenfolge. Wirft nie.
 
     Ein inaktives Tor urteilt nicht (leere Liste): Der Aufrufer weiß dann, dass keine zweite Prüfung lief.
@@ -295,21 +308,43 @@ def urteilen(auftraege: Sequence[tuple[str, Sequence[Any]]], tor: Tor, *, zeiten
     """
     if not tor.aktiv or not auftraege:
         return []
+    if native_fragen is not None and (type(native_fragen) is not list or len(native_fragen) != len(auftraege)):
+        return [Urteil(UNKLAR, 'fehler') for _ in auftraege]
     profil = tor.modell.rsplit('/', 1)[-1].startswith('kingfisher-')
+    native_standard = (satz_budget is None and gesamt_budget is None and profil
+        and native_fragen is not None and 1 <= len(native_fragen) <= 2
+        and all(type(q) is str and q.strip() and len(q) <= 2000 for q in native_fragen)
+        and all(belege and all(0 < len(getattr(b, 'pruef_text', '') or b.text) <= MAX_BELEG_ZEICHEN
+                              for b in belege) for _, belege in auftraege))
     if satz_budget is None:
-        satz_budget = PROFIL_SATZ_BUDGET_S if profil else SATZ_BUDGET_S
+        satz_budget = 12.0 if native_standard else PROFIL_SATZ_BUDGET_S if profil else SATZ_BUDGET_S
     if gesamt_budget is None:
         gesamt_budget = PROFIL_GESAMT_BUDGET_S if profil else GESAMT_BUDGET_S
+        if native_standard or (profil and native_fragen is not None and len(native_fragen) == 2
+                and all(type(q) is str and 0 < len(q) <= 2000 for q in native_fragen)):
+            from .providers import ProviderError, _json_transport_timeout
+            try:
+                gesamt_budget = _json_transport_timeout(12.0 * len(native_fragen) if native_standard else 16.0)
+            except ProviderError:
+                return [Urteil(UNKLAR, 'zeit') for _ in auftraege]
     adapter = adapter_fuer(tor.modell)
     urteile: list[Urteil] = []
     with zeitmessung.messen(zeiten, 'pruefung_modell'):
         start = uhr()
-        for satz, belege in auftraege:
+        for index, (satz, belege) in enumerate(auftraege):
+            native = native_fragen[index] if native_fragen is not None else None
+            selected = adapter
+            if native is not None:
+                if (adapter.familie != 'json' or type(native) is not str or not 0 < len(native) <= 2000
+                        or any(len(getattr(b, 'pruef_text', '') or b.text) > MAX_BELEG_ZEICHEN for b in belege)):
+                    urteile.append(Urteil(UNKLAR, 'fehler'))
+                    continue
+                selected = Adapter('json-native', (), lambda a, s, b, q=native: _native_fragen(a, s, b, q), _json_lesen)
             rest = gesamt_budget - (uhr() - start)
             if rest <= 0:
                 urteile.append(Urteil(UNKLAR, 'zeit'))
                 continue
-            urteile.append(_ein_urteil(adapter, tor.anbieter, satz, belegtext(belege), min(satz_budget, rest)))
+            urteile.append(_ein_urteil(selected, tor.anbieter, satz, belegtext(belege), min(satz_budget, rest)))
     return urteile
 
 

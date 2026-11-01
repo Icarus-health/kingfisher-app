@@ -46,15 +46,17 @@ export function deriveIntakeProgress(account: MailIntakeAccount) {
   const analysisUnfinished = sums.deferred > 0 || sums.analysisFailed > 0 || sums.analyzed < analysisSources ||
     !categoriesKnown || sums.categoriesPending > 0 || sums.categoriesFailed > 0 || sums.categoriesDeferred > 0 ||
     sums.categoriesUnverified > 0 || sums.categorized < analysisSources;
-  const retryAvailable = sums.failed > 0 || sums.liveFailed > 0 || sums.analysisFailed > 0 ||
+  const mimeRefreshable = count(account.mime_refreshable);
+  const mimeIncomplete = count(account.mime_incomplete);
+  const retryAvailable = mimeRefreshable > 0 || sums.failed > 0 || sums.liveFailed > 0 || sums.analysisFailed > 0 ||
     sums.categoriesFailed > 0 || sums.categoriesUnverified > 0 || Boolean(account.error);
   const complete = account.started && account.connected && !account.error && inventoryComplete &&
-    !captureUnfinished && !analysisUnfinished && sums.livePending === 0;
+    !captureUnfinished && !analysisUnfinished && sums.livePending === 0 && mimeRefreshable === 0 && mimeIncomplete === 0;
   const stage = !account.connected ? "disconnected" : !account.started ? "ready" : account.paused ? "paused"
-    : account.error ? "error" : !inventoryComplete ? "inventory" : account.history_waiting_for_analysis ? "waiting_analysis"
+    : account.error || mimeRefreshable > 0 || mimeIncomplete > 0 ? "error" : !inventoryComplete ? "inventory" : account.history_waiting_for_analysis ? "waiting_analysis"
     : captureUnfinished || sums.livePending > 0 ? "capture"
     : analysisUnfinished ? "analysis" : "current";
-  return {...sums, total, sources, analysisSources, categoriesKnown, processed, inventoryComplete, complete, stage, retryAvailable,
+  return {...sums, total, sources, analysisSources, categoriesKnown, processed, inventoryComplete, complete, stage, retryAvailable, mimeRefreshable, mimeIncomplete,
     capturePercent: total === null ? null : percentage(processed, total, captureUnfinished),
     analysisPercent: total === null || !categoriesKnown ? null
       : percentage(sums.analyzed + sums.categorized, 2 * analysisSources, analysisUnfinished),

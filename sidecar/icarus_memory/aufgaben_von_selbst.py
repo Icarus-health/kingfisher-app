@@ -36,8 +36,8 @@ from typing import Any, Callable, Iterable
 
 from . import logbuch
 from .datumstext import tag_und_monat
-from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError, mail_address
-from .kontakte import anzeigename
+from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError, EpisodeKind, mail_address
+from .kontakte import anzeigename, eigene_adresskennung
 from .model import Provenance, SourceType, user_timezone
 from .neu_eingegangen import aus_bestandsaufnahme, fenster_beginn, ist_neu
 from .people_quality import ist_sammelpostfach, lokalteil, person_quality
@@ -106,20 +106,21 @@ class Beteiligte:
 
 
 def beteiligte(episode: Any, eigene: Iterable[str]) -> Beteiligte | None:
-    eigene_adressen = {mail_address(a) for a in eigene if mail_address(a)}
+    eigene_adressen = {eigene_adresskennung(a) for a in eigene if eigene_adresskennung(a)}
     kontakte = list(getattr(episode, 'contacts', None) or [])
 
     def eintrag(k: dict[str, Any]) -> dict[str, str]:
         adresse = str(k.get('adresse') or '').casefold()
         return {'adresse': adresse, 'name': str(k.get('name') or ''),
-                'ich': bool(k.get('ich')) or adresse in eigene_adressen}
+                'ich': bool(k.get('ich')) or bool(adresse and eigene_adresskennung(adresse) in eigene_adressen)}
 
     von = next((k for k in kontakte if k.get('rolle') == 'von'), None)
     if von is None:
         if not episode.participants:
             return None
         adresse = mail_address(episode.participants[0])
-        absender = {'adresse': adresse, 'name': anzeigename(episode.participants[0]), 'ich': adresse in eigene_adressen}
+        absender = {'adresse': adresse, 'name': anzeigename(episode.participants[0]),
+                    'ich': bool(adresse and eigene_adresskennung(adresse) in eigene_adressen)}
         return Beteiligte(absender, absender['ich'], [], [], False, rollen_bekannt=False)
     absender = eintrag(von)
     an = [eintrag(k) for k in kontakte if k.get('rolle') == 'an' and k.get('adresse')]
@@ -130,7 +131,8 @@ def beteiligte(episode: Any, eigene: Iterable[str]) -> Beteiligte | None:
 def person_der_quelle(episode: Any, eigene: Iterable[str]) -> tuple[str | None, dict[str, str] | None]:
     """Die Richtung (`bitte`, `zusage`) und die Person: wer bittet, oder wem du zugesagt hast (erster fremder
     Empfänger unter „An“). Ohne Mail oder ohne erkennbare Person: (None, None) bzw. die Richtung ohne Person."""
-    if getattr(episode.provenance, 'source_type', None) is not SourceType.EMAIL:
+    if (getattr(episode.provenance, 'source_type', None) is not SourceType.EMAIL
+            or getattr(episode, 'kind', None) is not EpisodeKind.MESSAGE):
         return None, None
     b = beteiligte(episode, eigene)
     if b is None:
@@ -211,7 +213,8 @@ def pruefen(proposal: Any, episode: Any, *, eigene: Iterable[str], jetzt: dateti
     def nein(kuerzel: str, satz: str) -> Urteil:
         return Urteil(False, kuerzel, satz)
 
-    if getattr(episode.provenance, 'source_type', None) is not SourceType.EMAIL:
+    if (getattr(episode.provenance, 'source_type', None) is not SourceType.EMAIL
+            or getattr(episode, 'kind', None) is not EpisodeKind.MESSAGE):
         return nein('keine_mail', 'Nur Bitten und Zusagen aus Mails legt Kingfisher selbst an.')
     zitat = proposal.evidence[0].quote if proposal.evidence else ''
     if proposal.task_context is None or not str(proposal.proposed_by or '').endswith(REVIEW_MARKER):

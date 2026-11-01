@@ -7,6 +7,8 @@
 Die Sätze stehen in der Welt je Frage unter `skript` (FORMAT.md): `auswahl` (Wörter, an denen das Skript die Quellen
 wählt und seine Belege erkennt), `richtig` und `falsch` (enthält eine verbotene Aussage der Frage). Fragen ohne
 `skript` bekommen keine Auswahl und keine Sätze; sie laufen wie ohne Modell durch den Zitatmodus.
+Im Original-ID-Modus wählt `sorgfaeltig` ausschließlich angebotene vollständige Einheiten.
+`unaufmerksam` behält absichtlich freie Legacy-Fehlkandidaten für die Gatekontrollen.
 
 **Was das misst und was nicht.** Gemessen wird, ob die Sätze durch beide Tore des Produkts gehen, was verworfen und
 wie es gezählt wird, und ob ein durchgelassener falscher Satz in der Bewertung als falsche Aussage auftaucht. Das
@@ -65,12 +67,22 @@ class WeltSkript:
         system = messages[0]['content']
         nutzer = json.loads(messages[-1]['content'])
         if satzantwort.ist_satzanfrage(messages):
+            original = schema == satzantwort.ORIGINAL_SCHEMA or any('originalsaetze' in b for b in nutzer['belege'])
+            feld = 'originalstellen' if original else 'saetze'
             frage = _frage_zu(nutzer['anliegen'], self.fragen)
             if frage is None or self.art == 'pruefung':
-                return Reply(text=json.dumps({'status': 'unklar', 'saetze': []}), model=self.model)
-            belege = [b['nr'] for b in nutzer['belege'] if _enthaelt(f"{b['quelle']} {b['text']}", frage.skript.auswahl)]
+                return Reply(text=json.dumps({'status': 'unklar', feld: []}), model=self.model)
+            gewaehlt = [b for b in nutzer['belege'] if _enthaelt(
+                f"{b['quelle']} " + b.get('text', '\n'.join(s['text'] for s in b.get('originalsaetze', ()))),
+                frage.skript.auswahl)]
+            belege = [b['nr'] for b in gewaehlt]
             if not belege:
-                return Reply(text=json.dumps({'status': 'nichts_vorliegend', 'saetze': []}), model=self.model)
+                return Reply(text=json.dumps({'status': 'nichts_vorliegend', feld: []}), model=self.model)
+            if original and self.art == 'sorgfaeltig':
+                stellen = [{'beleg': b['nr'], 'satz': s['nr']} for b in gewaehlt for s in b.get('originalsaetze', ())]
+                return Reply(text=json.dumps({'status': 'antwort' if stellen else 'nichts_vorliegend',
+                    'originalstellen': stellen[:satzantwort.MAX_SAETZE]}), model=self.model)
+            # Absichtlich freie Legacy-Fehlkandidaten bleiben negative Gateproben.
             saetze = [{'text': frage.skript.richtig, 'belege': belege[:1]}]
             if self.art == 'unaufmerksam':
                 saetze.append({'text': frage.skript.falsch, 'belege': belege[:1]})

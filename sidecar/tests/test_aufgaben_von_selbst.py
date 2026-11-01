@@ -191,7 +191,7 @@ def test_viele_altbestandsvorschlaege_beim_ersten_einlesen_ergeben_keine_aufgabe
 
 def test_antwort_im_verlauf_haelt_es_beim_vorschlag():
     from types import SimpleNamespace
-    episode = SimpleNamespace(provenance=SimpleNamespace(source_type=SourceType.EMAIL), occurred_at=JETZT, recorded_at=JETZT,
+    episode = SimpleNamespace(kind=EpisodeKind.MESSAGE, provenance=SimpleNamespace(source_type=SourceType.EMAIL), occurred_at=JETZT, recorded_at=JETZT,
                               contacts=[], participants=[ANNA, LENA], body=BITTE)
     proposal = SimpleNamespace(statement='Druckdaten schicken', evidence=[SimpleNamespace(quote=BITTE)],
                                task_context='k', proposed_by='x/task-review-v1')

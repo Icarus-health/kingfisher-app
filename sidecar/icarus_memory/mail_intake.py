@@ -7,8 +7,8 @@ from collections import Counter
 
 from . import logbuch
 from .mail_filter import Decision, excluded_folder, intake_screen
-from .episodes import sql_nicht_ignoriert
-from .mail_ingestion import remember
+from .episodes import sql_nicht_ignoriert, sql_aktuell
+from .mail_ingestion import remember, source_key_for_message
 from .connectors.mail import MailboxGenerationChanged, MailError
 from .mail_intake_grund import einordnen as grund_einordnen
 from .migrations import IndexContract
@@ -24,6 +24,9 @@ TABLES_V11 = {
 #: Seit Migration 17 trägt ein gescheiterter Eintrag seinen Grund (`grund`, ein Kürzel aus `mail_intake_grund`) und die
 #: technische Angabe dazu (`technik`, nur Fehlerklassen und eigene Meldungen, nie Text vom Server oder aus der Mail).
 TABLES = {**TABLES_V11, 'mail_intake_items': TABLES_V11['mail_intake_items'] | {'grund','technik'}}
+TABLES_V26 = {**TABLES, 'mail_intake_items': TABLES['mail_intake_items'] | {'mime_refresh_version'}}
+# Ein ausdrücklicher Wiederabruf je Quelle und MIME-Abrufvertrag; keine automatische Altbestandsmigration.
+MIME_REFRESH_VERSION = 1
 #: Vorsilbe des Status ausgefilterter Nachrichten, danach die Kategorie (spam, newsletter, blocked, unclear).
 #: Bewusst im vorhandenen Statusfeld: kein neues Schema, und alle Abfragen nach pending/failed/captured übergehen es.
 FILTERED='filtered:'
@@ -56,9 +59,9 @@ ANMELDE_GRUENDE = frozenset({'passwort', 'app_passwort', 'imap_aus', 'abgemeldet
 
 def eigene_mail(message):
     """Vom Nutzer selbst geschrieben: Der Absender ist eine Adresse des Kontos, über das die Mail geholt wurde."""
-    from .episodes import mail_address
-    eigene = {mail_address(a) for a in (getattr(message, 'own_addresses', None) or ()) if mail_address(a)}
-    absender = mail_address(getattr(message, 'sender', '') or '')
+    from .kontakte import eigene_adresskennung
+    eigene = {eigene_adresskennung(a) for a in (getattr(message, 'own_addresses', None) or ()) if eigene_adresskennung(a)}
+    absender = eigene_adresskennung(getattr(message, 'sender', '') or '')
     return bool(absender) and absender in eigene
 
 
@@ -120,6 +123,23 @@ def migrate_grund(conn):
     conn.execute('ALTER TABLE mail_intake_items ADD COLUMN technik TEXT')
 
 
+def migrate_mime_refresh(conn):
+    conn.execute('ALTER TABLE mail_intake_items ADD COLUMN mime_refresh_version INTEGER NOT NULL DEFAULT 0')
+
+
+def _mime_incomplete(tags, *, include_unsupported=True):
+    from .anhaenge import gespeicherter_bericht
+    from types import SimpleNamespace
+    report = gespeicherter_bericht(SimpleNamespace(tags=tags))
+    if (include_unsupported and report is not None and isinstance(report.get('nicht_unterstuetzt'), int)
+            and report['nicht_unterstuetzt']>0):
+        # Altberichte nennen keine Formate. DOCX und Logos lassen sich erst durch diesen einen Abruf unterscheiden.
+        return True
+    if report is not None and report.get('abruf_vollstaendig') is True:
+        return False  # Eine reine Textgrenze braucht keinen erneuten MIME-Abruf.
+    return 'source:truncated' in tags or (report is not None and report.get('abruf_vollstaendig') is False)
+
+
 class Intake:
     def __init__(self, episodes):
         self.episodes = episodes
@@ -167,12 +187,72 @@ class Intake:
         und scheitern sie wieder, steht der Grund neu da. Die Zahl der Versuche bleibt (sie ordnet die Reihenfolge).
         """
         with self.episodes.transaction():
+            for item in self._mime_refresh_candidates(account):
+                # Alle Label-/Ordnerverweise verbrauchen denselben Versuch, nur einer wird abgeholt.
+                self.db.execute("""UPDATE mail_intake_items SET mime_refresh_version=? WHERE account=? AND episode_id IN
+                    (SELECT id FROM episodes WHERE source_key=?)""", (MIME_REFRESH_VERSION,account,item['source_key']))
+                self.db.execute("""UPDATE mail_intake_items SET status='pending',retry_at=0,grund=NULL,technik=NULL
+                    WHERE account=? AND folder=? AND generation=? AND uid=?""",
+                    (account,item['folder'],item['generation'],item['uid']))
             self.db.execute("UPDATE mail_intake_items SET status='pending',retry_at=0,grund=NULL,technik=NULL WHERE account=? AND status='failed'",(account,))
             # Ausgefilterte werden nach den (vielleicht geänderten) Regeln neu geprüft.
             self.db.execute("UPDATE mail_intake_items SET status='pending',retry_at=0 WHERE account=? AND status>=? AND status<?",(account,FILTERED,FILTERED[:-1]+';'))
             self.db.execute('UPDATE mail_intake_folders SET error=NULL WHERE account=?',(account,))
             for table in ('working_memory_sources','memory_category_sources'):
                 self.db.execute(f"UPDATE {table} SET retry_after=0 WHERE status='failed' AND episode_id IN (SELECT episode_id FROM mail_intake_items WHERE account=?)",(account,))
+
+    def _mime_refresh_candidates(self, account):
+        """Nur Metadaten aktueller, nicht ausgeschlossener Quellen; kein MIME-/Textabruf beim Anzeigen."""
+        rows = self.db.execute(f"""SELECT i.*,e.source_key,json_extract(e.document,'$.tags') AS tags
+            FROM mail_intake_items i JOIN mail_intake_folders f
+              ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation
+            JOIN episodes e ON e.id=i.episode_id
+            WHERE i.account=? AND i.status IN ('captured','duplicate') AND e.kind='message'
+              AND json_extract(e.document,'$.provenance.source_type')='email' AND e.source_key GLOB 'mail:*'
+              AND {sql_aktuell('e')} AND NOT EXISTS (
+                SELECT 1 FROM mail_intake_items done JOIN episodes old ON old.id=done.episode_id
+                WHERE done.account=i.account AND old.source_key=e.source_key AND done.mime_refresh_version>=?)
+              AND EXISTS (SELECT 1 FROM json_each(e.document,'$.tags') tag WHERE tag.value='source:truncated'
+                OR (substr(tag.value,1,17)='mail:attachments:' AND CASE WHEN json_valid(substr(tag.value,18))
+                    THEN (json_extract(substr(tag.value,18),'$.abruf_vollstaendig')=0
+                        OR json_extract(substr(tag.value,18),'$.nicht_unterstuetzt')>0) ELSE 0 END))
+            ORDER BY CASE WHEN upper(i.folder)='INBOX' THEN 0 ELSE 1 END,i.folder,i.uid DESC""",
+            (account,MIME_REFRESH_VERSION)).fetchall()
+        seen=set(); result=[]
+        for row in rows:
+            if row['source_key'] not in seen and _mime_incomplete(json.loads(row['tags'] or '[]')):
+                seen.add(row['source_key']); result.append(dict(row))
+        return result
+
+    def _mime_incomplete_count(self, account):
+        # Eine verbrauchte Abrufmöglichkeit beweist keine Vollständigkeit. Auch
+        # alte Kennungs-Aliasse behalten ihre echte MIME-Lücke sichtbar.
+        rows=self.db.execute(f"""SELECT DISTINCT e.id,json_extract(e.document,'$.tags') AS tags
+            FROM mail_intake_items i JOIN episodes e ON e.id=i.episode_id
+            WHERE i.account=? AND e.kind='message'
+              AND json_extract(e.document,'$.provenance.source_type')='email' AND {sql_aktuell('e')}""",
+            (account,)).fetchall()
+        return sum(_mime_incomplete(json.loads(row['tags'] or '[]'),include_unsupported=False) for row in rows)
+
+    def _refresh_snapshot(self, item):
+        row=self.db.execute("""SELECT i.status,i.episode_id FROM mail_intake_items i JOIN mail_intake_folders f
+            ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation
+            WHERE i.account=? AND i.folder=? AND i.generation=? AND i.uid=? AND f.paused=0""",
+            (item['account'],item['folder'],item['generation'],item['uid'])).fetchone()
+        if row is None or row['status'] not in ('pending','failed') or row['episode_id']!=item['episode_id']:
+            return None
+        try:
+            snapshot=self.episodes.support_snapshot(item['episode_id'])
+        except (ValueError, KeyError):
+            return None
+        return snapshot if snapshot is not None and snapshot.current() and _mime_incomplete(snapshot.episode.tags) else None
+
+    def _refresh_finished(self, item):
+        # Kein neuer Beleg: Das gespeicherte Original und sein Anlagenbericht bleiben unverändert.
+        self.db.execute("""UPDATE mail_intake_items SET status='duplicate',attempts=attempts+1,retry_at=0,
+            grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?
+            AND episode_id=? AND status IN ('pending','failed')""",
+            (item['account'],item['folder'],item['generation'],item['uid'],item['episode_id']))
 
     def anmeldung_erneuert(self, account):
         """Nach einer neuen Anmeldung: Der gemerkte Grund `anmeldung` fällt weg; ob es ihn gab (dann wecken)."""
@@ -341,13 +421,25 @@ class Intake:
                 reihenfolge='i.uid' if lane=='live' else 'i.uid DESC'
                 selected += [dict(r) for r in self.db.execute(f'''SELECT i.* FROM mail_intake_items i
                     JOIN mail_intake_folders f ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation
+                    LEFT JOIN episodes original ON original.id=i.episode_id
                     WHERE i.account=? AND f.paused=0
                       AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
-                    ORDER BY i.attempts,{reihenfolge} LIMIT ?''',(account,lane,time.time(),min(quota,batch-len(selected))))]
+                      AND (?=0 OR i.episode_id IS NULL OR i.mime_refresh_version=0)
+                    ORDER BY CASE WHEN i.mime_refresh_version>0 AND i.episode_id IS NOT NULL AND NOT EXISTS (
+                        SELECT 1 FROM json_each(original.document,'$.tags') tag WHERE tag.value='source:truncated'
+                        OR (substr(tag.value,1,17)='mail:attachments:' AND CASE WHEN json_valid(substr(tag.value,18))
+                            THEN json_extract(substr(tag.value,18),'$.abruf_vollstaendig')=0 ELSE 0 END))
+                        THEN 1 ELSE 0 END,i.attempts,{reihenfolge} LIMIT ?''',
+                    (account,lane,time.time(),int(nur_neu),min(quota,batch-len(selected))))]
         captured=[]; neu=0
         for item in selected:
             with gate:
                 if not self._active(account,permitted):break
+                refreshing=bool(item.get('mime_refresh_version') and item['episode_id'])
+                before=self._refresh_snapshot(item) if refreshing else None
+                if refreshing and before is None:
+                    with self.episodes.transaction():self._refresh_finished(item)
+                    continue
             beim_speichern=False
             try:
                 # Für die Aufnahme mit Anhängen (PDF-Rechnungen, `anhaenge.py`), wo der Leser das kann.
@@ -356,6 +448,16 @@ class Intake:
                 with gate:
                     if not self._active(account,permitted):break
                     if message.uid!=f"{item['generation']}.{item['uid']}":raise MailError('Die gelieferte Mail passt nicht zur angefragten Kennung.')
+                    if refreshing:
+                        latest=self._refresh_snapshot(item)
+                        if latest is None or latest.support_fingerprint()!=before.support_fingerprint():
+                            with self.episodes.transaction():self._refresh_finished(item)
+                            continue
+                        report=getattr(message,'anhang_bericht',None)
+                        if (getattr(message,'entwurf',False) or report is None
+                                or report.get('abruf_vollstaendig') is not True or report.get('zuordnung_vollstaendig') is not True):
+                            with self.episodes.transaction():self._refresh_finished(item)
+                            continue
                 if zurueckstellen is not None and zurueckstellen(message):
                     with self.episodes.transaction():
                         self.db.execute("UPDATE mail_intake_items SET retry_at=?,grund='zurueckgestellt' WHERE account=? AND folder=? AND generation=? AND uid=?",
@@ -374,7 +476,7 @@ class Intake:
                 # sonst hielte ein KI-Filter ohne lokale KI die eigenen Zusagen als „unklar“ zurück. Nur der
                 # Spam-Kopf des eigenen Servers gilt weiter: Ein gefälschter eigener Absender ist das klassische
                 # Spam-Muster im Posteingang, und den Kopf setzt nicht die Mail, sondern der Anbieter.
-                if screen is None:
+                if refreshing or screen is None:
                     decision=None
                 elif eigene_mail(message):
                     decision=Decision(False,'spam','spam_header') if getattr(message,'spam_flag',False) else None
@@ -391,6 +493,12 @@ class Intake:
                     # Cross-folder identity only comes from the provider, never a foreign Message-ID header.
                     identity = 'gmail:'+provider_id if provider_id else (message.uid if item['folder'].upper()=='INBOX' else json.dumps([item['folder'],message.uid]))
                     qualified=replace(message,account_id=account,uid=f'{account}:{message.uid}')
+                    if refreshing:
+                        latest=self._refresh_snapshot(item)
+                        if (latest is None or latest.support_fingerprint()!=before.support_fingerprint()
+                                or source_key_for_message(qualified,identity)!=before.source_key):
+                            with self.episodes.transaction():self._refresh_finished(item)
+                            continue
                     beim_speichern=True
                     with self.episodes.transaction():
                         result=remember(self.episodes,qualified,claims=claims,source_identity=identity,
@@ -565,5 +673,10 @@ class Intake:
         step='paused' if paused else 'inventory' if any(not f['inventory_complete'] for f in folders) else 'waiting_analysis' if history_waiting else 'capture' if any(f['pending'] or f['live_pending'] for f in folders) else 'analysis'
         # Wann das Einlesen zuletzt im Postfach war (für „abgerufen um 14:43“, mail_stand.py).
         aktualisiert=max((r['updated'] for r in rows if r.get('updated')),default=None)
+        with self.episodes._lock:
+            mime_refreshable=len(self._mime_refresh_candidates(account))
+            mime_incomplete=self._mime_incomplete_count(account)
         return dict(account_id=account,started=bool(rows),paused=paused,folders=folders,step=step,error=error,
+                    mime_refreshable=mime_refreshable,
+                    mime_incomplete=mime_incomplete,
                     scope=', '.join(r['folder'] for r in rows),aktualisiert=aktualisiert,history_waiting_for_analysis=history_waiting)

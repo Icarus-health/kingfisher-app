@@ -371,17 +371,18 @@ def test_personen_sehen_das_projekt_ohne_gespeicherte_aussage(api):
 def test_migration_25_legt_die_tabellen_an_und_laesst_den_bestand(tmp_path):
     pfad = tmp_path / 'episodes.sqlite3'
     store = EpisodeStore(pfad)
-    assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 25
+    assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 26
     Entscheidungen(store).merken('0123456789abcdef', 'abgelehnt')
     store.close()
     verbindung = sqlite3.connect(pfad)
     for tabelle in automatik.TABLES:
         verbindung.execute(f'DROP TABLE {tabelle}')
+    verbindung.execute('ALTER TABLE mail_intake_items DROP COLUMN mime_refresh_version')
     verbindung.execute('PRAGMA user_version = 24')
     verbindung.commit()
     verbindung.close()
     wieder = EpisodeStore(pfad)
-    assert wieder._conn.execute('PRAGMA user_version').fetchone()[0] == 25
+    assert wieder._conn.execute('PRAGMA user_version').fetchone()[0] == 26
     assert Entscheidungen(wieder).zu('0123456789abcdef')['entscheidung'] == 'abgelehnt'
     ablage = automatik.Ablage(wieder)
     ablage.sperren('akte:0123456789abcdef', 1.0)

@@ -9,7 +9,7 @@ from icarus_memory.claims import ClaimStore
 from icarus_memory.episodes import EpisodeKind, EpisodeStore
 from icarus_memory.model import Provenance, SourceType
 from icarus_memory.working_memory_store import WorkingMemoryStore
-from tests.test_satzantwort import Skript, nr
+from tests.test_satzantwort import Skript, assert_original_report, nr, verlinkte_originale
 from tests.test_satzpruefung_modell import Pruefer
 
 FIRST = 'Die Vor-Ort-Abnahme in Werkhalle Epsilon ist für den 12. Mai um 09:00 Uhr eingeplant.'
@@ -55,9 +55,12 @@ def assert_originals(answer, sources):
     episodes, claims, ids = sources
     text, links, status = answers.render(answer, episodes, claims)
     assert status == 'working_reports'
+    original = verlinkte_originale(answer, episodes, links)
+    assert FIRST in original and UPDATE in original
     assert FIRST in text and UPDATE in text
     assert set(ids) <= {link['episode_id'] for link in links}
     assert answers.satz_struktur(answer, episodes, claims) is None
+    assert_original_report(answer, episodes, claims)
 
 
 def test_lexical_rejection_cannot_leave_only_old_planning_visible(sources):
@@ -100,6 +103,11 @@ def test_source_withdrawal_still_blocks_saved_partial_comparison(sources, reject
     assert status == 'working_unavailable' and links == []
     assert FIRST not in text and UPDATE not in text
     assert answers.satz_struktur(answer, episodes, claims) is None
+    projected = answers.project_message({'role': 'assistant', 'content': 'stale',
+        'metadata': {'context': {'working_answer': answer, 'original_fallback': True}}}, episodes, claims)
+    assert 'original_fallback' not in projected['metadata']['context']
+    assert 'satzantwort' not in projected['metadata']['context']
+    assert FIRST not in projected['content'] and UPDATE not in projected['content']
 
 
 def test_complete_comparison_keeps_supported_prose(sources):
@@ -110,6 +118,10 @@ def test_complete_comparison_keeps_supported_prose(sources):
     assert OLD_SENTENCE in text and NEW_SENTENCE in text
     assert set(ids) <= {link['episode_id'] for link in links}
     assert answers.satz_struktur(answer, episodes, claims) is not None
+    projected = answers.project_message({'role': 'assistant', 'content': 'stale',
+        'metadata': {'context': {'working_answer': answer, 'original_fallback': True}}}, episodes, claims)
+    assert 'original_fallback' not in projected['metadata']['context']
+    assert projected['metadata']['context']['satzantwort']['saetze']
 
 
 def test_rejection_without_losing_a_source_still_uses_complete_originals(sources):
@@ -117,8 +129,10 @@ def test_rejection_without_losing_a_source_still_uses_complete_originals(sources
     assert answer['satzantwort']['verworfen'] == 1
     assert answer['satzantwort']['status'] == 'zitate'
     episodes, claims, _ = sources
-    text, _, _ = answers.render(answer, episodes, claims)
-    assert FIRST in text and UPDATE in text and '2035' not in text
+    text, links, _ = answers.render(answer, episodes, claims)
+    original = verlinkte_originale(answer, episodes, links)
+    assert FIRST in original and UPDATE in original and '2035' not in text
+    assert_originals(answer, sources)
 
 
 def test_unmentioned_selected_source_without_rejection_restores_both_originals(sources):
@@ -145,7 +159,11 @@ def test_saved_sentence_abstention_keeps_originals_without_a_model_call(sources)
     before = len(provider.auswahlen) + len(provider.satzanfragen)
     reopened = answers.project_message({'role': 'assistant', 'content': 'old empty display',
         'metadata': {'context': {'working_answer': answer}}}, episodes, claims)
+    original = verlinkte_originale(answer, episodes, reopened['metadata']['context']['source_links'])
+    assert FIRST in original and UPDATE in original
     assert FIRST in reopened['content'] and UPDATE in reopened['content']
+    assert reopened['metadata']['context']['original_fallback'] is True
+    assert 'satzantwort' not in reopened['metadata']['context']
     assert set(ids) <= {ref['episode_id'] for ref in reopened['metadata']['context']['source_links']}
     assert len(provider.auswahlen) + len(provider.satzanfragen) == before
 

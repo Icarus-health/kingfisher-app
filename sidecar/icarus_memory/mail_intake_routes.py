@@ -286,7 +286,9 @@ def register(app, guard, data_dir, wire):
     @app.post('/api/v1/mail/intake/{account_id}/retry',dependencies=guard)
     def retry(account_id:str):
         account(account_id)
-        Intake(app.state.episodes).retry(account_id)
+        with app.state.conversation_lock:
+            account(account_id)
+            Intake(app.state.episodes).retry(account_id)
         # Gleich wieder versuchen, nicht erst beim nächsten Takt: Wer den Knopf drückt, will es jetzt wissen.
         scheduler=getattr(app.state,'scheduler',None)
         if scheduler is not None and hasattr(scheduler,'aufnahme_wecken'):scheduler.aufnahme_wecken()

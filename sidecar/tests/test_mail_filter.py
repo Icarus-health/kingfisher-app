@@ -162,10 +162,12 @@ def test_spam_header_and_newsletter_are_parsed_from_wire(monkeypatch):
         def login(self,*args):pass
         def select(self,*args,**kwargs):return 'OK',[]
         def response(self,*args):return 'UIDVALIDITY',[b'1']
-        def uid(self,*args):return 'OK',[(b'FLAGS ()',raw)]
+        def uid(self,*args):
+            return 'OK',[(f'1 (UID 1 RFC822.SIZE {len(raw)} FLAGS () BODY[]<0> {{{len(raw)}}}'.encode(),raw),b')']
     monkeypatch.setattr(imaplib,'IMAP4_SSL',IMAP)
     m=MailConnector(MailConfig('host','user','pass')).message('1.1')
     assert m.spam_flag and m.list_mail
+    assert not m.truncated
 
 
 def test_review_endpoints_are_protected(monkeypatch):

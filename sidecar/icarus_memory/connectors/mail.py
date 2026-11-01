@@ -39,9 +39,11 @@ DEFAULT_SMTP_PORT = 587
 #: aber begrenzt — eine Mail mit einem eingebetteten Bild als Base64 hat
 #: Megabyte, und die will niemand im Browser stehen haben.
 FULL_BODY_LIMIT = 20_000
-# Bound bytes received and parsed, including attachments. Text truncation alone
-# cannot protect the background worker from a single very large MIME message.
+# Je Teilabruf höchstens 2 MiB; die ganze MIME bleibt ebenfalls begrenzt.
 MAX_MESSAGE_WIRE_BYTES = 2 * 1024 * 1024
+# Fünf unterstützte Anlagen zu je 5 MiB benötigen mit Base64/CRLF etwa 35 MiB.
+# 40 MiB lassen Platz für MIME-Köpfe/Text, bei höchstens 20 seriellen Abrufen.
+MAX_MESSAGE_MIME_BYTES = 40 * 1024 * 1024
 # Die Liste braucht nur eine Vorschau. Ganze MIME-Anlagen verzögern sonst
 # einen kleinen Posteingangsabruf bis über dessen feste Zeitgrenze hinaus.
 MAX_INBOX_PREVIEW_BYTES = 64 * 1024
@@ -304,22 +306,29 @@ class _MailText(HTMLParser):
         super().__init__()
         self.parts: list[str] = []
         self.hidden = 0
+        self.preformatted = 0
 
     def handle_starttag(self, tag: str, attrs: Any) -> None:
         if tag in ("script", "style"):
             self.hidden += 1
+        if tag in ("pre", "textarea"):
+            self.preformatted += 1
         if not self.hidden and tag in ("p", "div", "br", "li", "tr"):
             self.parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
         if tag in ("script", "style") and self.hidden:
             self.hidden -= 1
+        if tag in ("pre", "textarea") and self.preformatted:
+            self.preformatted -= 1
         if not self.hidden and tag in ("p", "div", "li", "tr"):
             self.parts.append("\n")
 
     def handle_data(self, data: str) -> None:
         if not self.hidden:
-            self.parts.append(data)
+            # HTML-Layouteinrückung ist kein sichtbarer Zeilenumbruch. Nur
+            # ASCII-Leerraum falten; Inline-Abstände, NBSP und <br> bleiben.
+            self.parts.append(data if self.preformatted else re.sub(r'[ \t\r\n\f]+', ' ', data))
 
 
 def _body(message: email.message.Message, limit: int = 500) -> str:
@@ -349,14 +358,25 @@ def _mailbox_validity(imap: Any) -> str:
 
 def _mailbox_number(imap: Any, name: str, maximum: int) -> int:
     response = imap.response(name)[1]
-    raw = response[0] if response and response[0] else b""
-    try:
-        value = raw.decode("ascii") if isinstance(raw, bytes) else str(raw)
-    except UnicodeDecodeError as exc:
-        raise MailError("Das Postfach liefert keine stabile Nachrichtenkennung.") from exc
-    if not value.isascii() or not value.isdigit() or not 0 < int(value) <= maximum:
+    return _mailbox_response_number(response, maximum)
+
+
+def _mailbox_response_number(response: Any, maximum: int) -> int:
+    if not isinstance(response, (list, tuple)) or not response:
         raise MailError("Das Postfach liefert keine stabile Nachrichtenkennung.")
-    return int(value)
+    numbers = set()
+    for raw in response:
+        try:
+            value = raw.decode("ascii") if isinstance(raw, bytes) else str(raw)
+        except UnicodeDecodeError as exc:
+            raise MailError("Das Postfach liefert keine stabile Nachrichtenkennung.") from exc
+        if (len(value) > len(str(maximum)) or not value.isascii() or not value.isdigit()
+                or not 0 < int(value) <= maximum):
+            raise MailError("Das Postfach liefert keine stabile Nachrichtenkennung.")
+        numbers.add(int(value))
+    if len(numbers) != 1:
+        raise MailError("Das Postfach liefert keine stabile Nachrichtenkennung.")
+    return numbers.pop()
 
 
 def ist_gesendet_ordner(name: str, attributes: Any = ()) -> bool:
@@ -455,6 +475,62 @@ def _fetch_number(fetched: list[Any], name: str, maximum: int, *, minimum: int =
                     raise MailError("Ungültige Nachrichtenmetadaten vom Mailserver.")
                 return str(int(raw))
     return ""
+
+
+def _message_number(metadata: bytes, name: str, maximum: int, *, minimum: int = 1) -> str:
+    """Nur eindeutige Metadaten einer einzelnen FETCH-Antwort annehmen."""
+    matches = re.findall(rb"(?:^|[\s(])" + re.escape(name.encode("ascii")) + rb"\s+([^\s()]+)",
+                         metadata, re.IGNORECASE)
+    if not matches:
+        return ""
+    raw = matches[0]
+    if (len(matches) != 1 or len(raw) > len(str(maximum)) or not raw.isdigit()
+            or not minimum <= int(raw) <= maximum):
+        raise MailError("Ungültige Nachrichtenmetadaten vom Mailserver.")
+    return str(int(raw))
+
+
+def _message_literal(fetched: list[Any]) -> tuple[bytes, bytes, bytes]:
+    """Eine MIME-Literale mit Metadaten aus genau ihrem zusammenhängenden FETCH-Datensatz."""
+    literals = [part for part in fetched if isinstance(part, tuple)]
+    if (len(literals) != 1 or not isinstance(fetched[0], tuple) or len(literals[0]) != 2
+            or not all(isinstance(value, bytes) for value in literals[0])):
+        raise MailError("Die gelieferte Mail ist nicht eindeutig lesbar.")
+    metadata = []
+    for part in fetched:
+        value = part[0] if isinstance(part, tuple) else part
+        if not isinstance(value, bytes):
+            raise MailError("Ungültige Nachrichtenmetadaten vom Mailserver.")
+        metadata.append(value)
+    header, raw = literals[0]
+    record = b" ".join(metadata)
+    start = re.match(rb"\s*(?:\*\s+)?[1-9][0-9]*\s+(?:FETCH\s+)?\(", record, re.IGNORECASE)
+    if start is None:
+        raise MailError("Die gelieferte Mail ist nicht eindeutig lesbar.")
+    # Nur der Nachlauf innerhalb derselben äußeren FETCH-Klammer gehört zur
+    # Literale. Ein folgender Datensatz darf weder UID noch Größe beisteuern.
+    depth, quoted, escaped, closed = 0, False, False, False
+    for char in record[start.end() - 1:]:
+        if closed:
+            if char not in b" \t\r\n":
+                raise MailError("Die gelieferte Mail enthält mehrere FETCH-Datensätze.")
+        elif quoted:
+            if escaped:
+                escaped = False
+            elif char == ord('\\'):
+                escaped = True
+            elif char == ord('"'):
+                quoted = False
+        elif char == ord('"'):
+            quoted = True
+        elif char == ord('('):
+            depth += 1
+        elif char == ord(')'):
+            depth -= 1
+            closed = depth == 0
+    if not closed or quoted:
+        raise MailError("Die gelieferte Mail ist nicht eindeutig lesbar.")
+    return raw, record, header
 
 
 class _Sitzung:
@@ -948,27 +1024,71 @@ class MailConnector:
             if validity != _mailbox_validity(imap):
                 raise MailboxGenerationChanged("Die Nachrichtenkennung ist veraltet. Bitte den Posteingang neu laden.")
             gmail = _gmail_extension(imap)
-            partial = f"BODY.PEEK[]<0.{MAX_MESSAGE_WIRE_BYTES + 1}>"
-            fields = f"(UID FLAGS RFC822.SIZE {partial}{' X-GM-MSGID' if gmail else ''})"
-            status, fetched = imap.uid("fetch", remote_uid.encode(), fields)
-            if status != "OK" or not fetched or fetched[0] is None:
-                raise MailError(f"Nachricht {uid} nicht gefunden.")
-            raw = next(
-                (part[1] for part in fetched
-                 if isinstance(part, tuple) and isinstance(part[1], bytes)),
-                None,
-            )
-            if raw is None:
-                raise MailError(f"Nachricht {uid} nicht lesbar.")
-            received_uid = _fetch_number(fetched, "UID", MAX_UID)
-            if received_uid and int(received_uid) != int(remote_uid):
-                raise MailError("Die gelieferte Mail passt nicht zur angefragten Kennung.")
-            reported_size = _fetch_number(fetched, "RFC822.SIZE", 2**63 - 1, minimum=0)
-            wire_truncated = len(raw) > MAX_MESSAGE_WIRE_BYTES or bool(
-                reported_size and int(reported_size) > len(raw))
-            parsed = email.message_from_bytes(raw[:MAX_MESSAGE_WIRE_BYTES])
+            chunks: list[bytes] = []
+            offset, size = 0, None
+            wire_truncated = True
+            first_metadata = b""
+            provider_id = ""
+            while offset < MAX_MESSAGE_MIME_BYTES:
+                if offset:
+                    # Frisch EXAMINE: Niemals Teile verschiedener Postfachgenerationen verbinden.
+                    if waehle(selected_folder) != "OK":
+                        raise MailError("Mailordner konnte nicht geöffnet werden.")
+                    if validity != _mailbox_validity(imap):
+                        raise MailboxGenerationChanged("Die Nachrichtenkennung ist veraltet. Bitte den Posteingang neu laden.")
+                count = min(MAX_MESSAGE_WIRE_BYTES, MAX_MESSAGE_MIME_BYTES - offset)
+                if size is not None:
+                    count = min(count, size - offset)
+                partial = f"BODY.PEEK[]<{offset}.{count}>"
+                fields = f"(UID FLAGS RFC822.SIZE {partial}{' X-GM-MSGID' if gmail else ''})"
+                status, fetched = imap.uid("fetch", remote_uid.encode(), fields)
+                if status != "OK" or not fetched or fetched[0] is None:
+                    raise MailError(f"Nachricht {uid} nicht gefunden.")
+                # UIDVALIDITY kommt normalerweise nur bei EXAMINE. Eine neue Angabe
+                # während FETCH (auch beim letzten Teil) darf dennoch nicht übersehen werden.
+                generation = imap.response("UIDVALIDITY")[1]
+                if generation and not (len(generation) == 1 and generation[0] is None):
+                    if validity != str(_mailbox_response_number(generation, MAX_UID)):
+                        raise MailboxGenerationChanged("Die Nachrichtenkennung ist veraltet. Bitte den Posteingang neu laden.")
+                raw, metadata, header = _message_literal(fetched)
+                received_uid = _message_number(metadata, "UID", MAX_UID)
+                if not received_uid or int(received_uid) != int(remote_uid):
+                    raise MailError("Die gelieferte Mail passt nicht zur angefragten Kennung.")
+                reported_size = _message_number(metadata, "RFC822.SIZE", 2**63 - 1, minimum=0)
+                returned_size = int(reported_size) if reported_size else None
+                sections = re.findall(rb"\bBODY\[([^]]*)\]([^\s{}()]*)", metadata, re.IGNORECASE)
+                explicit_sections = re.findall(rb"\bBODY\[", metadata, re.IGNORECASE)
+                origin = re.fullmatch(rb"<([0-9]{1,20})>", sections[0][1]) if sections else None
+                if (len(explicit_sections) != len(sections) or len(sections) > 1 or (sections and (sections[0][0] or (
+                        sections[0][1] and (origin is None or int(origin[1]) != offset))))):
+                    raise MailError("Der gelieferte Mailabschnitt passt nicht zum angefragten Bereich.")
+                has_origin = origin is not None
+                current_provider_id = _message_number(metadata, "X-GM-MSGID", 2**64 - 1) if gmail else ""
+                if offset:
+                    if returned_size != size or not has_origin or current_provider_id != provider_id:
+                        raise MailError("Die Metadaten der Mail haben sich während des Abrufs geändert.")
+                else:
+                    size, first_metadata, provider_id = returned_size, metadata, current_provider_id
+                # Auch bei einem Server, der die Bereichsgrenze ignoriert, nur einen
+                # begrenzten Präfix übernehmen. imaplib selbst puffert die Serverliterale.
+                chunk = raw[:count]
+                chunks.append(chunk)
+                expected = min(count, size - offset) if size is not None else None
+                offset += len(chunk)
+                literal_lengths = re.findall(rb"\{([0-9]+)\}\s*$", header)
+                length_ok = not literal_lengths or literal_lengths == [str(len(raw)).encode()]
+                if len(raw) > count or not length_ok or size is None or len(raw) != expected:
+                    break
+                if offset == size:
+                    wire_truncated = False
+                    break
+                # Ein vollständiger erster kleiner Abruf braucht keinen Ursprung;
+                # für eine Fortsetzung ist der vom Server bestätigte Bereich Pflicht.
+                if not has_origin:
+                    break
+            parsed = email.message_from_bytes(b"".join(chunks))
             roh.update(parsed=parsed, abgeschnitten=wire_truncated)
-            flags = str(fetched[0][0]) if isinstance(fetched[0], tuple) else ""
+            flags = str(first_metadata)
             text = _body(parsed, limit=FULL_BODY_LIMIT + 1)
             return Message(
                 uid=str(uid),
@@ -986,7 +1106,7 @@ class MailConnector:
                 reply_to=_decode(parsed.get("Reply-To")),
                 in_reply_to=(parsed.get("In-Reply-To") or "")[:16000],
                 references=tuple(re.findall(r"<[^<>\s]{1,500}>", (parsed.get("References") or "")[:16000])[:64]),
-                provider_id=_fetch_number(fetched, "X-GM-MSGID", 2**64 - 1) if gmail else "",
+                provider_id=provider_id,
                 recipients=_empfaenger(parsed),
                 own_addresses=self._own_addresses(),
             )
