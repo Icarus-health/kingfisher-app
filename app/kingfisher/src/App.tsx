@@ -269,6 +269,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   const followBottom = useRef(true);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [navigationOpen, setNavigationOpen] = useState(false);
+  const navigationToggle = useRef<HTMLButtonElement | null>(null);
   function setData(value: ConversationPayload) { if (live.current) updateData(value); }
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
   const [error, setError] = useState(false);
@@ -317,6 +318,15 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   // Ein neues Gespräch entsteht erst mit der ersten Frage: „Neues Gespräch“ führt zum leeren Eingabefeld.
   async function create() {
     navigate("/conversations");
+  }
+
+  function selectConversation(selected: string) {
+    setNavigationOpen(false);
+    if (selected === id) {
+      navigationToggle.current?.focus();
+      return;
+    }
+    navigate(`/conversations/${selected}`);
   }
 
   const contextLines = useMemo(
@@ -454,9 +464,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     <div className="shell conversation-shell">
       <Sidebar active="Gespräche" recentConversation={recentConversation} />
       <main className={`conversation-page workspace-chat ${navigationOpen ? 'navigation-open' : ''}`}>
-        <ConversationNavigation activeId={id} revision={data?.conversation.updated_at} onCreate={create} onSelect={selected => navigate(`/conversations/${selected}`)} />
+        <ConversationNavigation activeId={id} revision={data?.conversation.updated_at} onCreate={create} onSelect={selectConversation} />
         <section className="thread">
-          <header className="thread-header"><button className="conversation-navigation-toggle" aria-label="Gespräche" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}><span className="nur-breit">Gespräche</span></button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}><span className="nur-breit">Verwendete </span>Quellen</button></header>
+          <header className="thread-header"><button ref={navigationToggle} className="conversation-navigation-toggle" aria-label="Gespräche" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}><span className="nur-breit">Gespräche</span></button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}><span className="nur-breit">Verwendete </span>Quellen</button></header>
           {sourcesOpen && <aside className="conversation-sources" id="conversation-sources" aria-label="Verwendete Quellen">
             {contextLines.length ? contextLines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>) : data?.context.source_links?.length ? <p>{data.context.source_links.length} Originalquelle(n) zur Prüfung. Keine bestätigte Aussage.</p> : <p>{kontextLeerSatz(data?.messages ?? [])}</p>}
           </aside>}
