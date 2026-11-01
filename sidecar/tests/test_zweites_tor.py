@@ -13,7 +13,7 @@ import pytest
 from icarus_memory import satzantwort, satzpruefung_modell as spm, working_memory_answers as wma, zeitmessung
 from tests.test_akten import mail
 from tests.test_bezuege import welt  # noqa: F401 - Fixture
-from tests.test_satzantwort import Skript, raum, verlinkte_originale  # noqa: F401 - Fixture und Skriptmodell
+from tests.test_satzantwort import Skript, assert_original_report, raum, verlinkte_originale  # noqa: F401
 from tests.test_satzpruefung_modell import Pruefer
 
 FRAGE = 'Wer liefert Ersatzteile an den Verein?'
@@ -75,10 +75,11 @@ def test_das_pruefmodell_verwirft_den_falschen_satz_und_die_antwort_sagt_es(raum
     assert daten['gruende'] == [f'{FALSCH}: Prüfmodell: nicht gestützt']
     assert 'Vollständigkeit der Teilantwort nicht gesichert' in daten['grund']
     text, links, status = wma.render(gespeichert, episodes, claims)
-    assert status == 'working_reports' and FALSCH not in text and RICHTIG not in text
+    assert status == 'working_reports' and FALSCH not in text and RICHTIG in text
     assert RICHTIG in verlinkte_originale(gespeichert, episodes, links)
     assert 'nicht verlässlich beantworten' in text and {link['episode_id'] for link in links} == {quelle.id}
     assert wma.satz_struktur(gespeichert, episodes, claims) is None
+    assert_original_report(gespeichert, episodes, claims)
     assert satzantwort.wiederherstellen(daten, episodes, claims) is None
     assert len(pruefer.anfragen) == 2, 'Jeder Satz, der die erste Prüfung bestand, wird genau einmal gefragt'
     assert [spm.satz_der_anfrage(anfrage) for anfrage in pruefer.anfragen] == [RICHTIG, FALSCH]
@@ -178,7 +179,8 @@ def test_gespeicherte_teilverwerfung_bleibt_beim_frisch_geprueften_original(raum
     text, links, status = wma.render(gespeichert, episodes, claims)
     assert status == 'working_reports' and 'nicht verlässlich beantworten' in text
     assert RICHTIG in verlinkte_originale(gespeichert, episodes, links)
-    assert RICHTIG not in text and FALSCH not in text and {link['episode_id'] for link in links} == {quelle.id}
+    assert RICHTIG in text and FALSCH not in text and {link['episode_id'] for link in links} == {quelle.id}
+    assert_original_report(gespeichert, episodes, claims)
     assert wma.satz_struktur(gespeichert, episodes, claims) is None and len(pruefer.anfragen) == 2
     episodes.ignore(quelle.id)
     text, links, status = wma.render(gespeichert, episodes, claims)
