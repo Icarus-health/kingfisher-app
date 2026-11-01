@@ -1363,6 +1363,11 @@ def render(answer, episodes, claims, *, conflict_status=None):
                      'Relative Angaben darin beziehen sich auf dieses Datum.')
     if isinstance(answer.get('time_label'), str) and not fallback:
         lines.append(f"Zuerst berücksichtigt: Quellen {answer['time_label'][:40]}.")
+    versuch = answer.get('satzantwort')
+    if (answer.get('status') == 'reports' and not claim_basis and satz is None
+            and isinstance(versuch, dict) and versuch.get('status') in {'nichts', 'zitate'}):
+        lines.append('Ich kann die Frage aus den ausgewählten Quellen noch nicht verlässlich beantworten. '
+                     'Die folgenden Originalangaben sind keine geprüfte Zusammenfassung.')
     if answer.get('status') == 'unclear' and not person_ohne_auswahl:
         lines.append({'person': 'Welche der genannten Personen meinst du?',
                       'scope': 'Welches Projekt oder welchen Vorgang meinst du?',

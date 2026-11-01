@@ -105,6 +105,7 @@ def test_unsuccessful_sentence_attempt_keeps_complete_original_for_progressive_d
         assert answer['satzantwort']['status']==projection
         assert status=='working_reports' and body in text and links[0]['episode_id']==source.id
         assert text.startswith('Quelle berichtet') and message['metadata']['context']['original_fallback'] is True
+        assert 'nicht verlässlich beantworten' in text
         assert message['content']==text and message['metadata']['context']['source_links']==links
         saved=client.get(f'/api/v1/conversations/{conversation}').json()['messages'][-1]
         assert body in saved['content'] and saved['metadata']['context']['source_links']==links
