@@ -40,7 +40,7 @@ jobs:
         run: python -m pytest sidecar/tests -q -n auto
 
       - name: Synthetische Gedächtnisdiagnostik ohne Modell
-        run: python -m pytest scripts/test_memory_probe_support.py scripts/test_memory_probe_agent.py scripts/test_probe_memory_pipeline.py scripts/test_probe_hybrid_memory.py scripts/test_memory_probe_catalog.py scripts/test_memory_answer_comparison.py scripts/test_probe_everyday_memory.py scripts/test_probe_working_memory_paraphrase.py scripts/test_probe_working_memory_scale.py scripts/test_probe_working_memory_models.py scripts/test_probe_intake_precision.py -q
+        run: python -m pytest scripts/test_memory_probe_support.py scripts/test_memory_probe_agent.py scripts/test_probe_memory_pipeline.py scripts/test_probe_hybrid_memory.py scripts/test_memory_probe_catalog.py scripts/test_memory_answer_comparison.py scripts/test_probe_everyday_memory.py scripts/test_probe_working_memory_paraphrase.py scripts/test_probe_working_memory_scale.py scripts/test_probe_working_memory_models.py scripts/test_probe_intake_precision.py scripts/test_probe_harness_isolation.py -q
 
       - name: Messlatte, Rahmenwerk auf der Mini-Welt (kein Modell)
         run: python -m pytest messlatte/tests -q
@@ -74,3 +74,5 @@ jobs:
       - run: npm run build
         working-directory: app/kingfisher
       - run: python3 scripts/check_asset_manifest.py
+      - name: Getrennter Harness-Dienst (nur künstliche Daten, kein Modell)
+        run: node --test scripts/test_harness_service.mjs
