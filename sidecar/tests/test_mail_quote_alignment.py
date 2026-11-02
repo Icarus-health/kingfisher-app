@@ -50,6 +50,10 @@ def test_wrapped_entity_in_plain_mail_line_is_one_known_entity_not_fuzzy_word_jo
     'Bitte um &Uu\n> ml;bersendung Ihrer Selbstauskunft.',  # Unproven quote prefix could be an operator.
     'Bitte um &not\n> anentity;bersendung Ihrer Selbstauskunft.',
     'Bitte um &amp;Uu\nml;bersendung Ihrer Selbstauskunft.',  # Never decode twice.
+    'Bitte um &U\nu\nml;bersendung Ihrer Selbstauskunft.',  # At most one physical wrap.
+    'Bitte um &Uu\r\n\rml;bersendung Ihrer Selbstauskunft.',
+    'Bitte um &Uu\r\r\nml;bersendung Ihrer Selbstauskunft.',
+    'Bitte um &#' + '0' * 35 + '2\n20;bersendung Ihrer Selbstauskunft.',  # 41-token-character overflow.
 ])
 def test_ambiguous_or_unknown_wrapped_entity_is_rejected(raw):
     with pytest.raises(ProviderError):

@@ -21,14 +21,14 @@ def _wrapped_entity(text, start, skipped):
     remain meaningful. Both the raw scan and token length are bounded.
     """
     chars, index, wrapped = ['&'], start + 1, False
-    while index < len(text) and index - start < 256 and len(chars) <= 40:
+    while index < len(text) and index - start < 256 and len(chars) < 40:
         if text[index].isspace() or index in skipped:
             lower = index
             while index < len(text) and index - start < 256 and (text[index].isspace() or index in skipped):
                 index += 1
             whitespace = text[lower:index]
             # Whitespace within an entity must represent one actual line wrap.
-            if (whitespace.count('\n') or whitespace.count('\r')) != 1:
+            if wrapped or len(re.findall(r'\r\n|[\r\n]', whitespace)) != 1:
                 return None
             wrapped = True
             continue
