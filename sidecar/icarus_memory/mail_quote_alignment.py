@@ -14,12 +14,46 @@ _LINE_PREFIX = re.compile(r'(?m)^[ \t]*>[ \t]+')
 _CODE_FENCE = re.compile(r'(?m)^[ \t]*(?:>[ \t]*)*(?:```|~~~)')
 
 
-def _decoded(text):
+def _wrapped_entity(text, start, skipped):
+    """Only a known complete entity may cross a single physical line wrap.
+
+    Proved quote prefixes may be skipped; bare operators and paragraph breaks
+    remain meaningful. Both the raw scan and token length are bounded.
+    """
+    chars, index, wrapped = ['&'], start + 1, False
+    while index < len(text) and index - start < 256 and len(chars) <= 40:
+        if text[index].isspace() or index in skipped:
+            lower = index
+            while index < len(text) and index - start < 256 and (text[index].isspace() or index in skipped):
+                index += 1
+            whitespace = text[lower:index]
+            # Whitespace within an entity must represent one actual line wrap.
+            if (whitespace.count('\n') or whitespace.count('\r')) != 1:
+                return None
+            wrapped = True
+            continue
+        char = text[index]
+        if char not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#;':
+            return None
+        chars.append(char)
+        index += 1
+        if char == ';':
+            token = ''.join(chars)
+            return (token, index) if wrapped and _ENTITY.fullmatch(token) else None
+    return None
+
+
+def _decoded(text, skipped=()):
     """Einmalige Entitydarstellung mit Originalspan für jedes Ausgabezeichen."""
     chars, spans, index = [], [], 0
     while index < len(text):
         match = _ENTITY.match(text, index)
         token = match[0] if match else ''
+        upper = match.end() if match else index
+        if not match and text[index] == '&':
+            wrapped = _wrapped_entity(text, index, skipped)
+            if wrapped is not None:
+                token, upper = wrapped
         known = bool(token) and token[1:] in html5
         if token.startswith('&#'):
             digits = token[2:-1]
@@ -29,10 +63,10 @@ def _decoded(text):
             except ValueError:
                 known = False
         decoded = html.unescape(token) if known else ''
-        if match and decoded and decoded != token:
+        if token and decoded and decoded != token:
             chars.extend(decoded)
-            spans.extend([(index, match.end())] * len(decoded))
-            index = match.end()
+            spans.extend([(index, upper)] * len(decoded))
+            index = upper
         else:
             chars.append(text[index])
             spans.append((index, index + 1))
@@ -70,7 +104,7 @@ def _quote_prefix_mask(text):
 
 
 def _canonical(text, skipped=()):
-    decoded, positions = _decoded(text)
+    decoded, positions = _decoded(text, skipped)
     chars, spans = [], []
     for index, char in enumerate(decoded):
         start, end = positions[index]

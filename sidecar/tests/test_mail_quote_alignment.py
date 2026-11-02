@@ -30,6 +30,38 @@ def test_display_quote_maps_uniquely_back_to_raw_mail_span(encoded):
     assert body[body.index(raw):body.index(raw) + len(raw)] == found[0]['quote']
 
 
+@pytest.mark.parametrize('encoded', ['&\r\n> Uuml;', '&U\n> uml;', '&#2\r\n> 20;', '&#xD\n> C;'])
+def test_entity_split_by_a_proven_mail_quote_wrap_keeps_exact_original_span(encoded):
+    raw = 'Bitte um ' + encoded + 'bersendung Ihrer Selbstauskunft.'
+    body = '> Guten Tag,\r\n> ' + raw + '\r\n> Vielen Dank.'
+    result = extract(body, 'Bitte um Übersendung Ihrer Selbstauskunft.', {'source_type': 'email'})
+    assert result == [{'title': 'Selbstauskunft übersenden', 'quote': raw}]
+    assert raw in body
+
+
+def test_wrapped_entity_in_plain_mail_line_is_one_known_entity_not_fuzzy_word_joining():
+    raw = 'Bitte um &Uu\r\nml;bersendung Ihrer Selbstauskunft.'
+    assert extract(raw, 'Bitte um Übersendung Ihrer Selbstauskunft.', {'source_type': 'email'})[0]['quote'] == raw
+
+
+@pytest.mark.parametrize('raw', [
+    'Bitte um &Uu ml;bersendung Ihrer Selbstauskunft.',
+    'Bitte um &Uu\n\nml;bersendung Ihrer Selbstauskunft.',
+    'Bitte um &Uu\n> ml;bersendung Ihrer Selbstauskunft.',  # Unproven quote prefix could be an operator.
+    'Bitte um &not\n> anentity;bersendung Ihrer Selbstauskunft.',
+    'Bitte um &amp;Uu\nml;bersendung Ihrer Selbstauskunft.',  # Never decode twice.
+])
+def test_ambiguous_or_unknown_wrapped_entity_is_rejected(raw):
+    with pytest.raises(ProviderError):
+        extract(raw, 'Bitte um Übersendung Ihrer Selbstauskunft.', {'source_type': 'email'})
+
+
+def test_wrapped_mail_entity_does_not_relax_document_evidence():
+    with pytest.raises(ProviderError):
+        extract('Bitte um &Uu\nml;bersendung Ihrer Selbstauskunft.',
+                'Bitte um Übersendung Ihrer Selbstauskunft.', {'source_type': 'document'})
+
+
 def test_literal_path_is_unchanged_even_when_literal_quote_is_repeated():
     quote = 'Bitte die Selbstauskunft übersenden.'
     assert extract(quote + '\n\n' + quote, quote) == [
