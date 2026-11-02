@@ -112,13 +112,15 @@ def main(argv=None):
                 if not broker.current(grant['token']): raise RuntimeError('StaleResult')
                 unchanged = all(episodes.get(identifier).digest == stamp for identifier,stamp in originals.items())
                 text = result['text']
-                checks = dict(correct_location='A42' in text,source_cited=source.id in text,
+                # Token/source presence is a smoke oracle; inspect the actual sentence
+                # before claiming semantic quality. A negated mention could pass it.
+                checks = dict(location_token_present='A42' in text,source_cited=source.id in text,
                     private_scope_excluded='Z99' not in text and outside.id not in text,
                     actual_search=any(c['name']=='memory_search' for c in report['tool_calls']),
                     skills_automatic=bool(report['calls']) and all(c['skills_automatic'] for c in report['calls']),
                     originals_unchanged=unchanged)
                 report.update(status='passed' if all(checks.values()) else 'failed',checks=checks,
-                              answer=text,live_model_verified=True)
+                              answer=text,live_model_verified=True,semantic_review_required=True)
             finally:
                 if grant: broker.cancel(grant['id'])
                 if server: server.should_exit=True

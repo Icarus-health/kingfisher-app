@@ -44,6 +44,21 @@ def test_unsupported_routes_modalities_and_tools_are_rejected(change):
     with pytest.raises(BridgeError): normalize(payload() | change, MODEL)
 
 
+@pytest.mark.parametrize('messages', [
+    [dict(role=[],content='test')], [dict(role={},content='test')],
+    [dict(role='assistant',content=None,tool_calls=[dict(id='t1',type='function',
+        function=dict(name=[],arguments='{}'))])],
+    [dict(role='assistant',content=None,tool_calls=[dict(id='t1',type='function',
+        function=dict(name={},arguments='{}'))])],
+])
+def test_malformed_nested_types_are_bounded_http_errors(setup,messages):
+    client, _, grant, _, _, calls, _ = setup
+    response = client.post('/worker/v1/chat/completions',headers=auth(grant),
+                           json=payload() | dict(messages=messages))
+    assert response.status_code == 400
+    assert not calls
+
+
 def test_model_tool_definitions_come_from_broker_not_worker():
     data = payload()
     data['tools'] = [dict(type='function',function=dict(name='mcp__kingfisher__memory_search',

@@ -87,6 +87,15 @@ def test_all_scoped_source_changes_invalidate_even_earlier_context(setup):
     with pytest.raises(BridgeError): broker.invoke(grant['token'], 'skills_select', {})
 
 
+def test_current_observation_is_not_released_as_original_evidence(setup):
+    broker, episodes, _, _, _ = setup
+    source = episodes.record(EpisodeKind.OBSERVATION, 'Abgeleitete Notiz', 'Zugangskarte A42',
+                             Provenance(source_type=SourceType.DOCUMENT))[0]
+    assert episodes.support_snapshot(source.id).current()
+    assert episodes.belegbarer_snapshot(source.id) is None
+    with pytest.raises(BridgeError): issue(broker, source)
+
+
 def skill(name='zunftmail'):
     return dict(name=name, title='Offizielle Zunftmail', area='mail',
         description='Offizielle Mail im Zunftkontext vorbereiten.', triggers=['zunftmail'],

@@ -48,7 +48,7 @@ class Broker:
 
     def _snapshot(self, identifier):
         try:
-            snap = self.episodes.support_snapshot(identifier)
+            snap = self.episodes.belegbarer_snapshot(identifier, max_bytes=256*1024)
         except (ValueError, KeyError):
             snap = None
         if (not snap or not snap.current() or snap.episode.state in AUSGEBLENDETE_ZUSTAENDE

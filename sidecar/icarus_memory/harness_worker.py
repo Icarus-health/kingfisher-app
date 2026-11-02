@@ -9,6 +9,7 @@ from pathlib import Path
 import selectors
 import signal
 import subprocess
+import tempfile
 import time
 
 from .harness_broker import BridgeError
@@ -18,6 +19,12 @@ def run_synthetic_worker(*, node, runtime, origin, token, request, scratch, time
     script = Path(__file__).resolve().parents[2] / 'scripts' / 'harness_worker.mjs'
     if not script.is_file():
         raise BridgeError('Der getrennte Prüflauf ist nicht installiert.')
+    # Only this directory belongs to us; parent cleanup also runs after SIGKILL.
+    with tempfile.TemporaryDirectory(prefix='kf-launcher-',dir=scratch) as owned:
+        return _run(node,runtime,origin,token,request,owned,timeout,script)
+
+
+def _run(node,runtime,origin,token,request,scratch,timeout,script):
     config = dict(syntheticOnly=True,runtime=str(Path(runtime).resolve()),origin=origin,
         token=token,request=request,scratch=str(Path(scratch).resolve()),model='kingfisher-qwen3.5:9b-8k')
     env = {'PATH':str(Path(node).resolve().parent)+':/usr/bin:/bin','TMPDIR':config['scratch'],

@@ -44,7 +44,7 @@ def normalize(payload, model):
         raise BridgeError('Ungültige Nachrichtenzahl.')
     result = []
     for original in messages:
-        if not isinstance(original,dict):
+        if not isinstance(original,dict) or not isinstance(original.get('role'),str):
             raise BridgeError('Ungültiges Nachrichtenformat.')
         message = deepcopy(original)
         if isinstance(message.get('content'),list):
@@ -57,7 +57,9 @@ def normalize(payload, model):
                 and isinstance(message.get('tool_calls'),list) and message['tool_calls']):
             message['content'] = ''
         for call in message.get('tool_calls',[]) if isinstance(message.get('tool_calls',[]),list) else []:
-            if not isinstance(call,dict) or not isinstance(call.get('function'),dict) or call['function'].get('name') not in _ALIASES:
+            if (not isinstance(call,dict) or not isinstance(call.get('function'),dict)
+                    or not isinstance(call['function'].get('name'),str)
+                    or call['function']['name'] not in _ALIASES):
                 raise BridgeError('Nicht freigegebener historischer Werkzeugaufruf.')
         result.append(message)
     try:

@@ -37,16 +37,32 @@ print(json.dumps(dict(status='complete',syntheticOnly=True,text='artificial')))
 def test_timeout_stops_entire_owned_process_group(tmp_path):
     node = fake_node(tmp_path,"""import json,subprocess,sys,time
 c=json.load(sys.stdin)
-child="from pathlib import Path;import time; p=Path("+repr(c['scratch'])+")/'heartbeat'; i=0\\nwhile True:\\n i+=1; p.write_text(str(i)); time.sleep(.03)"
+child="from pathlib import Path;import time; p=Path("+repr("HEARTBEAT")+"); i=0\\nwhile True:\\n i+=1; p.write_text(str(i)); time.sleep(.03)"
 subprocess.Popen([sys.executable,'-c',child])
 time.sleep(30)
-""")
+""".replace('HEARTBEAT',str(tmp_path/'heartbeat')))
     with pytest.raises(BridgeError,match='Zeitüberschreitung'): run(node,tmp_path,timeout=.3)
     import time
     heartbeat = tmp_path/'heartbeat'
     before = heartbeat.read_text()
     time.sleep(.15)
     assert heartbeat.read_text() == before
+
+
+def test_timeout_removes_only_parent_owned_token_files(tmp_path):
+    unrelated = tmp_path/'keep.txt'
+    unrelated.write_text('Keep caller files')
+    node = fake_node(tmp_path,"""import json,time
+from pathlib import Path
+c=json.load(sys.stdin)
+home=Path(c['scratch'])/'kf-worker-artificial'
+home.mkdir()
+(home/'profile.patch.json').write_text(c['token'])
+time.sleep(30)
+""")
+    with pytest.raises(BridgeError): run(node,tmp_path,timeout=.3)
+    assert not list(tmp_path.rglob('profile.patch.json'))
+    assert unrelated.read_text() == 'Keep caller files'
 
 
 def test_excessive_child_output_is_bounded(tmp_path):
