@@ -44,12 +44,27 @@ console.log(JSON.stringify(r));
 def isolation_checks(config, negative, image):
     """Missing or malformed receipts never become a green isolation claim."""
     try:
+        tmpfs=config['tmpfs']
+        if not isinstance(tmpfs,dict) or set(tmpfs)!={'/tmp','/data'}:
+            raise ValueError('Incomplete temporary filesystem receipt')
+        def options(text):
+            if not isinstance(text,str): raise ValueError('Invalid mount options')
+            result={}
+            for entry in text.split(','):
+                key,_,value=entry.partition('=')
+                if key in result: raise ValueError('Duplicate mount option')
+                result[key]=value or True
+            return result
+        protected=(options(tmpfs['/tmp'])==dict(rw=True,noexec=True,nosuid=True,size='64m',uid='1000',gid='1000',mode='700')
+            and options(tmpfs['/data'])==dict(rw=True,noexec=True,nosuid=True,size='64k',mode='000'))
         return dict(configured=config['image_id']==image and config['uid']=='1000:1000'
             and config['read_only'] is True and config['public_runtime_only'] is True
             and config['no_host_ports'] is True and config['only_internal_network'] is True
             and config['network_internal'] is True and config['dns']==['127.0.0.1']
-            and config['cap_drop']==['ALL'] and 'no-new-privileges' in config['security']
-            and config['memory']==512*1024**2 and config['nano_cpus']==750000000 and config['pids']==64,
+            and config['cap_drop']==['ALL'] and isinstance(config['security'],list)
+            and 'no-new-privileges' in config['security']
+            and config['memory']==512*1024**2 and config['nano_cpus']==750000000 and config['pids']==64
+            and protected,
             negative=negative['uid']==1000 and negative['external_ip']=='ENETUNREACH'
                 and negative['host_service']=='ENETUNREACH'
                 and negative['external_dns'] in {'ESERVFAIL','ECONNREFUSED','ENOTFOUND'}
@@ -145,10 +160,11 @@ def main(argv=None):
                 cap_drop=worker_info['HostConfig']['CapDrop'],security=worker_info['HostConfig']['SecurityOpt'],
                 memory=worker_info['HostConfig']['Memory'],nano_cpus=worker_info['HostConfig']['NanoCpus'],
                 pids=worker_info['HostConfig']['PidsLimit'],dns=worker_info['HostConfig']['Dns'],
+                tmpfs=worker_info['HostConfig']['Tmpfs'],
                 no_host_ports=not any(worker_info['NetworkSettings']['Ports'].values()),
                 only_internal_network=list(worker_info['NetworkSettings']['Networks'])==[network_info['Name']],
                 network_internal=network_info['Internal'],
-                public_runtime_only=len(mounts)==1 and mounts[0]['Destination']=='/runtime'
+                public_runtime_only=len(mounts)==1 and mounts[0].get('Type')=='bind' and mounts[0]['Destination']=='/runtime'
                     and mounts[0]['Source']==str(runtime) and mounts[0]['RW'] is False)
             report['negative_probes']=json.loads(docker('exec',worker,'/runtime/bin/node','--input-type=module','-e',NETWORK_CHECK))
             negative=report['negative_probes'];config=report['configuration']
@@ -185,10 +201,17 @@ def main(argv=None):
                 details=json.loads(docker('inspect',identifier))[0]
                 if details['Config']['Labels'].get('kingfisher.synthetic')==nonce:
                     docker('rm','-f','-v',identifier)
+                    if docker('ps','-aq','--filter','id='+identifier):
+                        raise RuntimeError('Owned container remains')
+                else: raise RuntimeError('Ownership label changed; do not remove')
             except Exception: report.setdefault('cleanup_pending',[]).append(identifier)
         for identifier in reversed(networks):
-            try: docker('network','rm',identifier)
+            try:
+                docker('network','rm',identifier)
+                if docker('network','ls','-q','--filter','id='+identifier):
+                    raise RuntimeError('Owned network remains')
             except Exception: report.setdefault('cleanup_pending',[]).append(identifier)
+        if report.get('cleanup_pending'): report['status']='failed'
         report['seconds']=round(time.monotonic()-started,3)
         save()
     print(json.dumps({k:report[k] for k in ('status','seconds','error','operation','cleanup_pending') if k in report}))

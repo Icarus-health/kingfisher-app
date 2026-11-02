@@ -100,3 +100,34 @@ test('owned child output is bounded and stderr never escapes',async()=>{
     assert.deepEqual(fs.readdirSync(root),['fake.mjs']);
   }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('readonly child directories are cleaned without following symlinks',{timeout:2000},async()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'kf-service-readonly-'));
+  const outside=path.join(root,'untouched');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'keep'),'Keep');
+  fs.chmodSync(outside,0o500);
+  const entry=path.join(root,'fake.mjs');
+  fs.writeFileSync(entry,`import fs from 'node:fs';import path from 'node:path';
+let text='';for await(const c of process.stdin)text+=c;const c=JSON.parse(text);
+const nested=path.join(c.scratch,'locked');fs.mkdirSync(nested);fs.writeFileSync(path.join(nested,'grant'),c.token);
+fs.symlinkSync(${JSON.stringify(outside)},path.join(c.scratch,'outside-link'));fs.chmodSync(nested,0o500);
+process.stdout.write(JSON.stringify({status:'complete',text:'Done'}));`);
+  try{
+    const result=await runChild({scratch:root,token},undefined,{entry});
+    assert.equal(result.text,'Done');assert.deepEqual(fs.readdirSync(root).sort(),['fake.mjs','untouched']);
+    assert.equal(fs.statSync(outside).mode&0o777,0o500);
+    assert.equal(fs.readFileSync(path.join(outside,'keep'),'utf8'),'Keep');
+  }finally{fs.chmodSync(outside,0o700);fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test('unrecoverable cleanup quarantines the service instead of starting another job',async()=>{
+  let calls=0;const {url,server}=await setup(async()=>{
+    calls++;const error=new Error('private path');error.code='WorkerCleanupRequired';throw error;
+  });
+  try{
+    assert.equal((await fetch(url+'/run',{method:'POST',headers,body:JSON.stringify(data)})).status,502);
+    const blocked=await fetch(url+'/run',{method:'POST',headers,body:JSON.stringify(data)});
+    assert.equal(blocked.status,503);assert.equal(calls,1);
+    assert.equal((await fetch(url+'/health')).status,503);
+    assert.ok(!(await blocked.text()).includes('private path'));
+  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});

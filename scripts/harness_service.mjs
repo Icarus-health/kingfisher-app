@@ -6,6 +6,22 @@ import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
+function removeOwnedTree(owned){
+  // Children have exited. Restore directory traversal only inside this owned
+  // tree; lstat avoids changing permissions through an external symlink.
+  const pending=[owned];let entries=0;
+  while(pending.length){
+    const directory=pending.pop();
+    if(!fs.lstatSync(directory).isDirectory())continue;
+    fs.chmodSync(directory,0o700);
+    for(const item of fs.readdirSync(directory,{withFileTypes:true})){
+      if(++entries>20000)throw new Error('cleanup bound');
+      if(item.isDirectory())pending.push(path.join(directory,item.name));
+    }
+  }
+  fs.rmSync(owned,{recursive:true,force:true});
+}
+
 export function runChild(config,signal,{timeout=110000,entry=fileURLToPath(new URL('./harness_worker.mjs',import.meta.url))}={}){
   if(signal?.aborted) return Promise.reject(new Error('cancelled'));
   const owned=fs.mkdtempSync(path.join(config.scratch,'kf-job-'));fs.chmodSync(owned,0o700);
@@ -20,7 +36,10 @@ export function runChild(config,signal,{timeout=110000,entry=fileURLToPath(new U
     const done=code=>{
       if(finished)return;finished=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);
       stop(error);
-      fs.rmSync(owned,{recursive:true,force:true});
+      try{removeOwnedTree(owned);}catch(_error){
+        const failure=new Error('worker cleanup required');failure.code='WorkerCleanupRequired';
+        reject(failure);return;
+      }
       if(error||code!==0){reject(new Error('worker failed'));return;}
       try{
         const result=JSON.parse(Buffer.concat(output).toString('utf8'));
@@ -44,17 +63,18 @@ export function runChild(config,signal,{timeout=110000,entry=fileURLToPath(new U
 
 export function createService({key,run=runChild,runtime='/runtime',scratch='/tmp'}){
   if(typeof key!=='string'||!/^[-\w]{43}$/.test(key))throw new Error('service credential required');
-  let busy=false;
+  let busy=false,tainted=false;
   return http.createServer({headersTimeout:5000,requestTimeout:10000,keepAliveTimeout:1000,
     connectionsCheckingInterval:1000,maxHeaderSize:8192},async(req,res)=>{
     const reply=(status,value)=>{
       if(!res.destroyed){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(value));}
     };
-    if(req.url==='/health'&&req.method==='GET'){reply(200,{status:'ok'});return;}
+    if(req.url==='/health'&&req.method==='GET'){reply(tainted?503:200,{status:tainted?'restart_required':'ok'});return;}
     const supplied=req.headers.authorization??'',wanted='Bearer '+key;
     if(typeof supplied!=='string'||Buffer.byteLength(supplied)!==Buffer.byteLength(wanted)
         ||!crypto.timingSafeEqual(Buffer.from(supplied),Buffer.from(wanted))){reply(401,{error:'Unauthorized'});return;}
     if(req.url!=='/run'||req.method!=='POST'){reply(404,{error:'UnknownOperation'});return;}
+    if(tainted){reply(503,{error:'WorkerNeedsRestart'});return;}
     if(busy){reply(409,{error:'WorkerBusy'});return;}
     // Reserve before reading: concurrent slow bodies cannot each start a job.
     busy=true;
@@ -76,7 +96,7 @@ export function createService({key,run=runChild,runtime='/runtime',scratch='/tmp
         reply(502,{error:'WorkerFailed'});return;
       }
       reply(200,{status:'complete',text:result.text,syntheticOnly:true});
-    }catch(_error){reply(502,{error:'WorkerFailed'});}
+    }catch(error){if(error?.code==='WorkerCleanupRequired')tainted=true;reply(502,{error:'WorkerFailed'});}
     finally{complete=true;busy=false;}
   });
 }
