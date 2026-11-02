@@ -26,15 +26,24 @@ def _qualified_spans(text):
         if not tail:
             previous = list(_END.finditer(text, 0, cue.start()))
             clause_start = previous[-1].end() if previous else 0
-            prefix = text[clause_start:cue.start()]
-            attribute = _TRAILING_DETAIL.search(prefix)
-            start = clause_start + attribute.start() if attribute else clause_start
+            prefix = text[clause_start:cue.start()].rstrip(' \t\n,(')
+            phrase_start = prefix.rfind(',') + 1
+            phrase = prefix[phrase_start:]
+            attribute = _TRAILING_DETAIL.search(phrase)
+            start = clause_start + phrase_start + (attribute.start() if attribute else 0)
         spans.append((start, end))
     return spans
 
 
 def _inside(position, spans):
     return any(start <= position < end for start, end in spans)
+
+
+def _recognition_text(text):
+    # Recognition only: preserve the actual quotation and all stored offsets.
+    text = html.unescape(text).casefold().replace('\r\n', '\n').replace('\r', '\n')
+    text = re.sub(r'</?(?:b|strong|i|em|span)\b[^<>]*>', '', text)
+    return re.sub(r'(?m)^[ \t]*(?:>[ \t]*)+', '', text)
 
 
 def optional_details_supported(title, quote):
@@ -46,13 +55,15 @@ def optional_details_supported(title, quote):
     fall back to the existing exact original quote at the extraction boundary.
     This complements, and does not replace, whole-source semantic review.
     """
-    source = html.unescape(quote).casefold().replace('\r\n', '\n').replace('\r', '\n')
+    if title.strip() == quote.strip():
+        return True  # exact fallback adds no unconditional attribute
+    source = _recognition_text(quote)
     source_spans = _qualified_spans(source)
     if not source_spans:
         return True
     optional = {word.group() for word in _WORD.finditer(source)
                 if _inside(word.start(), source_spans) and word.group() not in _FUNCTION}
-    summary = html.unescape(title).casefold().replace('\r\n', '\n').replace('\r', '\n')
+    summary = _recognition_text(title)
     title_spans = _qualified_spans(summary)
     return not any(word.group() in optional and not _inside(word.start(), title_spans)
                    for word in _WORD.finditer(summary))

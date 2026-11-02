@@ -484,6 +484,7 @@ def _validate_quote_result(result, body, block_map, taxonomy, local, banned, con
 
 
 _TOPIC_SUBSTANCE = ("Themen richten sich nach dem eigentlichen Sachinhalt, nicht nach dem Transport. "
+    "Prüfe jede Kategorie unabhängig anhand ihrer Beschreibung. Ein Termin verdrängt kein zusätzlich belegtes Sachthema. "
     "Portalname, Zustellhinweis, automatische Absenderadresse, Anrede, Signatur oder allgemeiner Warntext "
     "allein belegen kein Thema. Eine persönliche Unterlagenanfrage bleibt persönlich, auch wenn ein Portal "
     "sie übermittelt; daraus allein entsteht nicht Information/Newsletter. Echte allgemeine Fachinformation "

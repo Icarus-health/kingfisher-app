@@ -74,3 +74,50 @@ def test_fixture_cases_are_fixed_unique_and_have_no_personal_store_parameter():
     assert len(probe.CASES) == 7
     assert len({case['id'] for case in probe.CASES}) == 7
     assert all('example.invalid' in case['source_ref'] for case in probe.CASES)
+
+
+def test_only_communication_rule_cannot_substitute_for_the_missing_real_request():
+    class MissingRequest(Synthetic):
+        def complete_json(self, messages, *, max_tokens, schema):
+            payload = json.loads(messages[-1]['content'])
+            if 'blocks' in payload:
+                return super().complete_json(messages, max_tokens=max_tokens, schema=schema)
+            self.calls += 1
+            if 'candidates' in payload:
+                return Reply(text=json.dumps({'reviews': [{'id': 0, 'kind': 'request_to_recipient', 'title_supported': True}]}))
+            return Reply(text=json.dumps({'items': [{'title': 'Nicht zum Bearbeitungsstand nachfragen', 'quote': 'Bitte stellen Sie keine Rückfragen zum Bearbeitungsstand.'}]}))
+    report = probe.evaluate(MissingRequest(), case_ids=['optional-portal'])
+    assert report['status'] == 'failed'
+    assert report['results'][0]['checks']['tasks'] is False
+
+
+def test_interrupted_preflight_leaves_a_valid_explicit_failed_report(monkeypatch, tmp_path):
+    from icarus_memory import local_model_guard
+    def interrupt(*_args, **_kwargs):
+        raise KeyboardInterrupt()
+    monkeypatch.setattr(local_model_guard, 'verify_local_model', interrupt)
+    output = tmp_path / 'interrupted.json'
+    try:
+        code = probe.main(['--output', str(output)])
+    except KeyboardInterrupt:
+        code = 'uncaught-interrupt'
+    assert code == 1
+    report = json.loads(output.read_text())
+    assert report['status'] == 'interrupted'
+    assert report['live_model_verified'] is False
+
+
+def test_partial_rows_survive_an_interruption_before_the_next_case():
+    snapshots = []
+    class Interrupted(Synthetic):
+        def complete_json(self, messages, *, max_tokens, schema):
+            if self.calls >= 3:
+                raise KeyboardInterrupt()
+            return super().complete_json(messages, max_tokens=max_tokens, schema=schema)
+    try:
+        probe.evaluate(Interrupted(), case_ids=['optional-portal', 'optional-direct'],
+                       on_progress=lambda report: snapshots.append(json.loads(json.dumps(report))))
+    except KeyboardInterrupt:
+        pass
+    assert snapshots[-1]['results'][0]['status'] == 'passed'
+    assert snapshots[-1]['status'] == 'running'

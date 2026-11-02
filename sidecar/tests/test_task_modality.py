@@ -105,3 +105,31 @@ def test_communication_constraint_is_terminal_before_own_promise_retention(tmp_p
     assert review_tasks(constraint, episode.title, quote, [item], own_source=True, episode=episode) == []
     assert store.get(episode.id).body == quote
     store.close()
+
+
+def test_repeated_core_noun_keeps_exact_quote_fallback_through_review():
+    quote = 'Bitte senden Sie die Unterlagen, wenn möglich alle Unterlagen als PDF.'
+    extractor = SemanticReply({'items': [{'title': 'Unterlagen senden', 'quote': quote}]})
+    extracted = interpret(extractor, 'Unterlagen', quote)
+    reviewer = SemanticReply({'reviews': [{'id': 0, 'kind': 'request_to_recipient', 'title_supported': True}]})
+    result = review_tasks(reviewer, 'Unterlagen', quote, extracted)
+    assert len(result) == 1
+    assert result[0]['quote'] == quote
+    assert hard_details_supported(quote, quote)
+
+
+def test_postposed_cue_on_another_object_does_not_qualify_earlier_pdf():
+    quote = 'Bitte senden Sie die Unterlagen, idealerweise als PDF.'
+    assert not hard_details_supported('Unterlagen als PDF senden, den Plan digital wenn möglich.', quote)
+
+
+@pytest.mark.parametrize('cue', ['wenn\n> möglich', 'nach\n> Möglichkeit', 'wenn <b>möglich</b>', 'nach <em>Möglichkeit</em>'])
+def test_optional_cue_recognition_handles_standard_quote_and_inline_markup(cue):
+    quote = 'Bitte senden Sie die Unterlagen, ' + cue + ' als PDF.'
+    assert not hard_details_supported('Unterlagen als PDF senden', quote)
+
+
+def test_mandatory_format_for_another_object_does_not_license_optional_format():
+    quote = 'Bitte den Bericht als PDF senden und die Unterlagen idealerweise als PDF.'
+    assert not hard_details_supported('Unterlagen als PDF senden', quote)
+    assert hard_details_supported(quote, quote)

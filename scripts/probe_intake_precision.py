@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -26,7 +27,9 @@ _NEWS = 'Fachnewsletter: Die neue Studie beschreibt den Einfluss von Bewegung au
 def _case(identifier, body, persons=(), tasks=0, deadlines=(), required=(), forbidden=()):
     return dict(id=identifier, body=body, source_ref='synthetic-' + identifier + '@example.invalid',
                 persons=sorted(persons), task_count=tasks, deadlines=list(deadlines),
-                required_topics=list(required), forbidden_topics=list(forbidden))
+                required_topics=list(required), forbidden_topics=list(forbidden),
+                required_task_evidence=['Bitte senden Sie die Unterlagen'] if tasks else [],
+                forbidden_task_evidence=[_RESTRICTION])
 
 
 CASES = (
@@ -67,7 +70,7 @@ class _Counted:
             return self.provider.complete_json(messages, max_tokens=max_tokens, schema=schema)
 
 
-def evaluate(provider, *, case_ids=None, max_calls=28, seconds=600, _before_send=None):
+def evaluate(provider, *, case_ids=None, max_calls=28, seconds=600, _before_send=None, on_progress=None):
     """Real store/category/extraction/review code, with synthetic originals only.
 
     Injected replies can exercise the pipeline but never set live_model_verified.
@@ -84,52 +87,64 @@ def evaluate(provider, *, case_ids=None, max_calls=28, seconds=600, _before_send
     report = dict(status='running', live_model_verified=False, synthetic_only=True,
                   original_store='temporary', model=getattr(provider, 'model', ''), results=[])
     started = time.monotonic()
-    with tempfile.TemporaryDirectory(prefix='kf-intake-synthetic-') as temporary:
-        for index, case in enumerate(case for case in CASES if case['id'] in chosen):
-            store = EpisodeStore(Path(temporary) / (str(index) + '.sqlite3'))
-            row = dict(id=case['id'], status='failed', checks={}, original_unchanged=False)
-            tick = time.monotonic()
-            source = None
-            try:
-                source, _ = store.record(EpisodeKind.MESSAGE, 'Künstliche Gedächtnisprüfung', case['body'],
-                    Provenance(SourceType.EMAIL, source_ref=case['source_ref']),
-                    occurred_at=datetime(2026, 11, 2, 12, tzinfo=timezone.utc))
-                original = source.to_dict()
-                if not store._conn.execute("SELECT 1 FROM sqlite_master WHERE name='memory_category_scan'").fetchone():
-                    with store.transaction():
-                        migrate(store._conn)
-                categories = Categories(store)
-                outcome = categories.run(counted, limit=1)
-                if not outcome.ok:
-                    # Surface the original local failure (including budget exhaustion)
-                    # rather than call another model after a failed classification.
-                    if counted.calls >= max_calls or time.monotonic() >= counted.deadline:
-                        raise ProbeBudgetExceeded()
-                    raise RuntimeError('CategoryAnalysisFailed')
-                classified = categories.list_for(source.id)
-                items = interpret(counted, source.title, source.body, source_context={'occurred_at': '2026-11-02T12:00:00Z'})
-                tasks = review_tasks(counted, source.title, source.body, items)
-                names = sorted({entry['name'] for entry in classified['entities'] if entry['kind'] == 'person'})
-                topics = {entry['id'] for entry in classified['categories']}
-                dates = [frist_aus(item['quote'], source.occurred_at) for item in tasks]
-                dates = [value.date().isoformat() if value else None for value in dates]
-                row.update(person_names=names, topics=sorted(topics), task_titles=[item['title'] for item in tasks],
-                           deadlines=dates,
-                           checks=dict(persons=names == case['persons'],
-                                       tasks=len(tasks) == case['task_count'] and not any('rückfragen' in item['title'].casefold() for item in tasks),
-                                       deadlines=dates == case['deadlines'],
-                                       categories=set(case['required_topics']).issubset(topics) and not set(case['forbidden_topics']) & topics))
-                row['status'] = 'passed' if all(row['checks'].values()) else 'failed'
-            except Exception as exc:
-                row['error'] = type(exc).__name__
-            finally:
-                if source is not None:
-                    row['original_unchanged'] = store.get(source.id).to_dict() == original
-                row['seconds'] = round(time.monotonic() - tick, 3)
-                store.close()
-            report['results'].append(row)
-    report.update(calls=counted.calls, seconds=round(time.monotonic() - started, 3),
-                  dataset_sha256=hashlib.sha256(json.dumps(CASES, sort_keys=True).encode()).hexdigest())
+    if on_progress:
+        on_progress(report)
+    try:
+        with tempfile.TemporaryDirectory(prefix='kf-intake-synthetic-') as temporary:
+            for index, case in enumerate(case for case in CASES if case['id'] in chosen):
+                store = EpisodeStore(Path(temporary) / (str(index) + '.sqlite3'))
+                row = dict(id=case['id'], status='failed', checks={}, original_unchanged=False)
+                tick = time.monotonic()
+                source = None
+                try:
+                    source, _ = store.record(EpisodeKind.MESSAGE, 'Künstliche Gedächtnisprüfung', case['body'],
+                        Provenance(SourceType.EMAIL, source_ref=case['source_ref']),
+                        occurred_at=datetime(2026, 11, 2, 12, tzinfo=timezone.utc))
+                    original = source.to_dict()
+                    if not store._conn.execute("SELECT 1 FROM sqlite_master WHERE name='memory_category_scan'").fetchone():
+                        with store.transaction():
+                            migrate(store._conn)
+                    categories = Categories(store)
+                    outcome = categories.run(counted, limit=1)
+                    if not outcome.ok:
+                        # Surface the original local failure (including budget exhaustion)
+                        # rather than call another model after a failed classification.
+                        if counted.calls >= max_calls or time.monotonic() >= counted.deadline:
+                            raise ProbeBudgetExceeded()
+                        raise RuntimeError('CategoryAnalysisFailed')
+                    classified = categories.list_for(source.id)
+                    items = interpret(counted, source.title, source.body, source_context={'occurred_at': '2026-11-02T12:00:00Z'})
+                    tasks = review_tasks(counted, source.title, source.body, items)
+                    names = sorted({entry['name'] for entry in classified['entities'] if entry['kind'] == 'person'})
+                    topics = {entry['id'] for entry in classified['categories']}
+                    dates = [frist_aus(item['quote'], source.occurred_at) for item in tasks]
+                    dates = [value.date().isoformat() if value else None for value in dates]
+                    row.update(person_names=names, topics=sorted(topics), task_titles=[item['title'] for item in tasks],
+                               deadlines=dates,
+                               checks=dict(persons=names == case['persons'],
+                                           tasks=(len(tasks) == case['task_count']
+                                               and all(any(phrase in item['quote'] for item in tasks) for phrase in case['required_task_evidence'])
+                                               and not any(phrase in item['quote'] for item in tasks for phrase in case['forbidden_task_evidence'])),
+                                           deadlines=dates == case['deadlines'],
+                                           categories=set(case['required_topics']).issubset(topics) and not set(case['forbidden_topics']) & topics))
+                    row['status'] = 'passed' if all(row['checks'].values()) else 'failed'
+                except Exception as exc:
+                    row['error'] = type(exc).__name__
+                finally:
+                    if source is not None:
+                        row['original_unchanged'] = store.get(source.id).to_dict() == original
+                    row['seconds'] = round(time.monotonic() - tick, 3)
+                    store.close()
+                report['results'].append(row)
+                report.update(calls=counted.calls, seconds=round(time.monotonic() - started, 3))
+                if on_progress:
+                    on_progress(report)
+        report.update(calls=counted.calls, seconds=round(time.monotonic() - started, 3),
+                      dataset_sha256=hashlib.sha256(json.dumps(CASES, sort_keys=True).encode()).hexdigest())
+    finally:
+        report.update(calls=counted.calls, seconds=round(time.monotonic() - started, 3))
+        if on_progress:
+            on_progress(report)
     report['status'] = 'passed' if all(row['status'] == 'passed' and row['original_unchanged'] for row in report['results']) else 'failed'
     return report
 
@@ -153,21 +168,39 @@ def main(argv=None):
     args = parser.parse_args(argv)
     from icarus_memory.local_model_guard import verify_local_model
     provider = OpenAICompatible(args.model, 'synthetic-local', 'http://127.0.0.1:11434/v1')
-    # Create the report before preflight; resource/model failure is a visible result.
-    with Path(args.output).open('x') as output:
+    target = Path(args.output)
+    report = dict(status='started', synthetic_only=True, live_model_verified=False, results=[])
+    with target.open('x') as initial:
+        json.dump(report, initial)
+    def checkpoint(value):
+        nonlocal report
+        report = value
+        temporary = None
         try:
-            identity = verify_local_model(provider, expected_num_ctx=8192)
-            def before_send():
-                _mac_resource_check(args.model)
-                if verify_local_model(provider, expected_num_ctx=8192) != identity:
-                    raise RuntimeError('LocalModelChanged')
-            before_send()
-            report = evaluate(provider, case_ids=args.case, _before_send=before_send)
-            report.update(live_model_verified=True, local_model_digest=identity.digest)
-        except Exception as exc:
-            report = dict(status='failed', synthetic_only=True, live_model_verified=False, error=type(exc).__name__)
-        json.dump(report, output, ensure_ascii=False, indent=2)
-        output.write('\n')
+            with tempfile.NamedTemporaryFile(mode='w', prefix=target.name + '.', dir=target.parent, delete=False) as stream:
+                temporary = Path(stream.name)
+                json.dump(report, stream, ensure_ascii=False, indent=2)
+                stream.write('\n')
+                stream.flush()
+            os.replace(temporary, target)
+        finally:
+            if temporary and temporary.exists():
+                temporary.unlink()
+    try:
+        identity = verify_local_model(provider, expected_num_ctx=8192)
+        def before_send():
+            _mac_resource_check(args.model)
+            if verify_local_model(provider, expected_num_ctx=8192) != identity:
+                raise RuntimeError('LocalModelChanged')
+        before_send()
+        report = evaluate(provider, case_ids=args.case, _before_send=before_send, on_progress=checkpoint)
+        report.update(live_model_verified=True, local_model_digest=identity.digest)
+    except KeyboardInterrupt:
+        report.update(status='interrupted', error='KeyboardInterrupt', live_model_verified=False)
+    except Exception as exc:
+        report.update(status='failed', error=type(exc).__name__, live_model_verified=False)
+    checkpoint(report)
+
     print(json.dumps({key:report[key] for key in ('status', 'live_model_verified', 'calls', 'seconds', 'error') if key in report}))
     return 0 if report['status'] == 'passed' else 1
 
