@@ -109,6 +109,14 @@ class Broker:
                 raise BridgeError('Die Anfragegrenze dieses Arbeitslaufs ist erreicht.')
             grant.requests += 1
 
+    def current(self, token):
+        with self._lock:
+            try:
+                self._grant(token)
+                return True
+            except BridgeError:
+                return False
+
     def cancel(self, identifier):
         with self._lock:
             for grant in self._grants.values():
