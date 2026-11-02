@@ -15,8 +15,10 @@ import time
 from .harness_broker import BridgeError
 
 
-def run_synthetic_worker(*, node, runtime, origin, token, request, scratch, timeout=110):
-    script = Path(__file__).resolve().parents[2] / 'scripts' / 'harness_worker.mjs'
+def run_synthetic_worker(*, node, runtime, origin, token, request, scratch, timeout=110, entry_script=None):
+    # A trusted controller may supply its packaged entry. Workers cannot choose it.
+    script = (Path(entry_script) if entry_script is not None else
+              Path(__file__).resolve().parents[2] / 'scripts' / 'harness_worker.mjs')
     if not script.is_file():
         raise BridgeError('Der getrennte Prüflauf ist nicht installiert.')
     # Only this directory belongs to us; parent cleanup also runs after SIGKILL.

@@ -18,7 +18,8 @@ def fake_node(tmp_path, body):
 
 def run(node, tmp_path, **kw):
     return run_synthetic_worker(node=node,runtime=tmp_path,origin='http://127.0.0.1:12345',
-        token='a'*43,request='Künstliche Frage',scratch=tmp_path,**kw)
+        token='a'*43,request='Künstliche Frage',scratch=tmp_path,
+        entry_script=Path(__file__).resolve().parents[2]/'scripts/harness_worker.mjs',**kw)
 
 
 def test_child_environment_is_replaced_and_configuration_is_only_stdin(tmp_path, monkeypatch):
