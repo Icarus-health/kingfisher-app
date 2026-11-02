@@ -28,6 +28,7 @@ def test_text_blocks_and_null_assistant_calls_are_lossless():
     data['messages'] = messages
     normalized, _ = normalize(data, MODEL)
     assert [m['content'] for m in normalized] == ['α\nβ', '', 'Originaltext']
+    assert normalized[1]['tool_calls'][0]['function']['arguments'] == '{"query":"Karte"}'
     assert messages[1]['content'] is None
 
 

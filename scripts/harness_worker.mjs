@@ -52,7 +52,7 @@ try {
   const result=await Promise.race([harness.run(c.request),new Promise((_,reject)=>{
     timer=setTimeout(()=>reject(new Error('worker deadline')),100000);
   })]);
-  if(typeof result.finalResponse!=='string'||result.finalResponse.length>32000) throw new Error('output bound');
+  if(typeof result.finalResponse!=='string'||!result.finalResponse.trim()||result.finalResponse.length>32000) throw new Error('output bound');
   process.stdout.write(JSON.stringify({status:'complete',text:result.finalResponse,syntheticOnly:true,
     osIsolationVerified:false}));
 } catch (_error) {

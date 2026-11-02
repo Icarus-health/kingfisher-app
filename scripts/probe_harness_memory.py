@@ -86,11 +86,16 @@ def main(argv=None):
                                tools=[t['name'] for t in tools])
                     report['calls'].append(row)
                     save()
-                    reply = local.complete(messages,tools)
-                    if verify_lifecycle(local) != identity: raise RuntimeError('LocalModelChanged')
-                    row['status']='complete'
-                    save()
-                    return reply
+                    try:
+                        reply = local.complete(messages,tools)
+                        if verify_lifecycle(local) != identity: raise RuntimeError('LocalModelChanged')
+                        row['status']='complete'
+                        return reply
+                    except Exception as exc:
+                        # Artificial input only; diagnostic stays in the explicitly requested local report.
+                        row.update(status='failed',error=type(exc).__name__,detail=str(exc)[:500])
+                        raise
+                    finally: save()
                 app = FastAPI()
                 register(app,broker,model=model,infer=infer)
                 listener = socket.socket()

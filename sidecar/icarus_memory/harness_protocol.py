@@ -61,7 +61,7 @@ def normalize(payload, model):
                 raise BridgeError('Nicht freigegebener historischer Werkzeugaufruf.')
         result.append(message)
     try:
-        result = _messages(result)  # Existing role, JSON argument and tool-result association checks.
+        _messages(result)  # Validate; keep JSON text for the provider's own one-time conversion.
     except ProviderError as exc:
         raise BridgeError('Unvollständiger oder nicht unterstützter Gesprächsverlauf.') from exc
     raw_tools = payload.get('tools',[])
