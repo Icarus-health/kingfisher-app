@@ -695,6 +695,7 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
 Prüfe text UND context; Auszüge beweisen nichts über Fehlendes. „[…]“ trennt Stellen, „… [gekürzt, …]“ nennt den Umfang; „[siehe text]“ und „[Fundstelle: siehe text]“ verweisen auf text dieser Zeile.
 Relevanz: Wähle alle passenden Stellen für JEDE unabhängige Teilfrage oder Bedingung, auch wenn sie nur einen Teil beantwortet. Gleiche Person, Projekt oder Akte allein genügt nicht; Angaben zu anderen Gegenständen/Eigenschaften sind kein Ersatz. Sprachlich andere Formulierungen sind erlaubt. Verschiedene Teilthemen sind kein Widerspruch; für Übersichten sind mehrere Personen zulässig. Keine relevante Angabe: no_relevant_sources, ids leer. Eine berichtete Nichterfüllung beantwortet nur den erfragten Stand desselben Gegenstands.
 source_reports: passende eindeutige Quellenangabe, auch Negation, fehlende Annahme/Bestätigung oder bedingte Aussage. Bitte ist keine Zusage; bedingte Aussagen bleiben bedingt; alte Zitate sind keine neue Zusage. Gesendet bedeutet nicht angenommen; Schweigen ist keine Zustimmung. Einordnung und Original beweisen keine Wahrheit. K-IDs sind menschlich bestätigt; automatische S-Berichte dürfen widersprechende K-Angaben nicht still ersetzen.
+Fristfragen: Eine passende Zeitregel oder Bedingung für die erfragte Handlung bleibt relevant (source_reports), auch ohne Kalendertag. Wähle ihren Beleg; mache daraus kein konkretes Datum. Ein Beschäftigungsbeginn, Termin oder anderes Datumsfeld ersetzt keine Rücksende- oder Abgabefrist. Fehlt eine passende Angabe, no_relevant_sources; das beweist keine Fristlosigkeit im gesamten Archiv.
 Personen: Gleiche Namen beweisen keine Identität. Gleicher confirmed_person bestätigt Identität trotz anderer Namen/Adressen, niemals Inhalte. Ohne gemeinsamen confirmed_person bei gleichem Namen und unterschiedlichen Absenderadressen/Identitätsmerkmalen: needs_person_choice vor Sachwiderspruch. Trägt eine Quelle das Feld andere_person, kennzeichnet es den anderen Namensvetter (adresse_dieser_person statt gemeinte_adresse); nicht als Angabe der gemeinten Person wählen.
 Projekte: Betrifft der erfragte Name verschiedene Projekte/Vorgänge ohne gewählten Vorgang, needs_project_choice mit ALLEN passenden Angaben. project ist die Nutzerzuordnung; fehlendes project bedeutet keine Zuordnung, keinen anderen Vorgang. Verschiedene Projekte beweisen keine Personenidentität oder -verschiedenheit. Eine explizite Projektangabe in der Frage begrenzt die Auswahl auf diesen Vorgang.
 Wandel: ueberholt ist nur eine automatische Vermutung. Originale unabhängig prüfen, passenden Beleg deswegen nicht weglassen. Gleiche Person/Kategorie/Veranstaltung beweist nicht dieselbe Aufgabe. Bei ungeklärter Zugehörigkeit beide Originale mit unresolved_conflicting_sources wählen; keine sichere Absage/Erledigung behaupten. Nur eine belegte explizite Änderung im eindeutig selben Vorgang erlaubt für die aktuelle Frage, die bisherige Angabe durch die geänderte zu ersetzen; bloßes Neuestsein genügt nicht. Relevante widersprechende Angaben zum eindeutig selben Personen-/Vorgangsbezug: unresolved_conflicting_sources mit allen betroffenen Stellen.
@@ -1275,6 +1276,11 @@ def _search_notices(answer):
     return notices
 
 
+_DEADLINE_QUESTION = re.compile(
+    r'\b(?:bis\s+wann|(?:rücksende|abgabe|einsende)(?:datum|frist)|fristdatum|'
+    r'welche\s+frist(?:en)?|deadlines?|due\s+date|return\s+date)\b', re.I)
+
+
 def render(answer, episodes, claims, *, conflict_status=None):
     if not _fresh(answer, episodes, claims) or answer.get('status') == 'unavailable':
         return UNAVAILABLE, [], 'working_unavailable'
@@ -1283,6 +1289,11 @@ def render(answer, episodes, claims, *, conflict_status=None):
         return 'Die passenden Quellen konnten gerade nicht zuverlässig ausgewählt werden. Bitte erneut fragen.', [], 'working_selection_failed'
     if answer.get('status') == 'unknown' and not fallback:
         coverage = ' '.join(_search_notices(answer))
+        query = answer.get('query', '')
+        if (_DEADLINE_QUESTION.search(query)
+                and not re.match(r'^\s*(?:wer|who|von wem|an wen)\b', query, re.I)):
+            text = 'Ein konkretes Fristdatum konnte ich in den geprüften Quellen nicht belegen.'
+            return text + (' ' + coverage if coverage else ''), [], 'working_unknown'
         if coverage:
             return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
         return 'Dazu liegt in den bisher eingeordneten Quellen keine Information vor.', [], 'working_unknown'
