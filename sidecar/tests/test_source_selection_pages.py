@@ -375,3 +375,42 @@ def test_preselection_freshness_is_neutral_until_global_selection_policies(tmp_p
     finally:
         claims.close()
         episodes.close()
+
+
+def test_full_sixteen_source_multilingual_context_fits_bounded_local_selection(tmp_path, monkeypatch):
+    """Repeated instructions must not crowd valid originals out of four native requests."""
+    from datetime import datetime, timezone
+    from icarus_memory import EpisodeKind, EpisodeStore, Provenance, SourceType
+    from icarus_memory.claims import ClaimStore
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+
+    episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    claims = ClaimStore(tmp_path / 'claims.sqlite3')
+    try:
+        originals = []
+        for n in range(16):
+            body = f'Angaben gelten für Kalkulation {n}: NICHT erledigt. ' + '測定' * 340
+            episode, _ = episodes.record(EpisodeKind.MESSAGE, f'Kalkulation {n}', body,
+                Provenance(SourceType.DOCUMENT, source_ref=f'synthetic:{n}'),
+                occurred_at=datetime(2026, 10, 31, tzinfo=timezone.utc))
+            originals.append(episode)
+        store = WorkingMemoryStore(episodes)
+        for snapshot in store.pending(limit=20):
+            assert store.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}],
+                                model='synthetic')
+        script = Script(monkeypatch, lambda n, page: {
+            'status': 'source_reports' if n == 1 else 'no_relevant_sources',
+            'ids': [page[0]['id']] if n == 1 else []})
+        result = wma.prepare('Welche Angaben gelten?', episodes, claims, script,
+                             semantic_search=None)
+        assert result['status'] == 'reports'
+        assert len(result['basis']) == 16 and len(result['refs']) == 1
+        seen = [row for page, _ in script.calls for row in page]
+        assert len({row['id'] for row in seen}) == len(seen) == 16
+        assert {row['text'] if row['context'] == '[siehe text]' else row['context']
+                for row in seen} == {ep.body for ep in originals}
+        assert 1 <= len(script.calls) <= 4
+        assert wma._fresh(result, episodes, claims) is True
+    finally:
+        claims.close()
+        episodes.close()

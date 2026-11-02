@@ -19,9 +19,10 @@ def synthetic_rows():
     rows = []
     for i in range(16):
         mail = i // 4
+        # Keep the unpacked request above the native boundary with shorter instructions.
         body = (f'Von: Person {mail} <person{mail}@synthetic.example>\n'
                 'Die Kalkulation ist NICHT fertig. Die Frist bleibt bedingt. '
-                + 'Weitere künstliche Information. ' * 4)
+                + 'Weitere künstliche Information. ' * 9)
         # Zwei verschiedene Kontexte derselben Mail bleiben verschieden.
         if i % 4 == 3:
             body += '\nEine zusätzliche Bedingung bleibt bestehen.'
