@@ -37,7 +37,9 @@ import json
 import os
 import platform
 import shutil
+import stat
 import subprocess
+import threading
 from pathlib import Path
 
 from .cloud_credentials import PREPARED_CLOUD_KEYS
@@ -97,6 +99,10 @@ class Keychain:
     def __init__(self, service: str = SERVICE, data_dir: Path | None = None) -> None:
         self._service = service
         self._data_dir = Path(data_dir) if data_dir else _data_dir()
+        self._file_lock = threading.RLock()
+        # Only a successfully authenticated exact blob/passphrase may reuse its
+        # decoded values. Never expose this private in-memory entry or persist it.
+        self._file_cache = None
         self._backend = self._detect()
 
     def _detect(self) -> str:
@@ -131,30 +137,69 @@ class Keychain:
         erneut ein. Eine Ausnahme beim Start hieße, dass er nicht mehr an sein
         Gedächtnis kommt, und das ist der schlimmere Ausgang.
         """
-        passphrase = os.environ.get(PASSPHRASE_ENV)
-        if not passphrase or not self.secrets_path.is_file():
-            return {}
-        try:
-            document = json.loads(self.secrets_path.read_text(encoding="utf-8"))
-            if document.get("format") != SECRETS_MAGIC:
+        with self._file_lock:
+            passphrase = os.environ.get(PASSPHRASE_ENV)
+            try:
+                # Preserve regular-file symlinks, but reject special files before
+                # reading. Nonblocking open + descriptor check also closes the
+                # regular-path-to-FIFO race between the path check and open.
+                if not self.secrets_path.is_file():
+                    self._file_cache = None
+                    return {}
+                flags = os.O_RDONLY | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0)
+                descriptor = os.open(self.secrets_path, flags)
+                try:
+                    if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                        self._file_cache = None
+                        return {}
+                    # Every check reads the entire opened regular file. Metadata
+                    # such as mtime/size cannot establish unchanged key/salt bytes.
+                    with os.fdopen(descriptor, "rb", closefd=False) as stream:
+                        raw = stream.read()
+                finally:
+                    os.close(descriptor)
+            except OSError:
+                self._file_cache = None
                 return {}
-            werte = unseal_json(self.secrets_path.read_text(encoding="utf-8"), passphrase)
-        except (OSError, ValueError, DecryptionError):
-            return {}
-        return {str(k): str(v) for k, v in werte.items()} if isinstance(werte, dict) else {}
+            cached = self._file_cache
+            if not passphrase:
+                self._file_cache = None
+                return {}
+            if cached is not None and cached[0] == raw and cached[1] == passphrase:
+                return dict(cached[2])
+            self._file_cache = None
+            try:
+                text = raw.decode("utf-8")
+                document = json.loads(text)
+                if not isinstance(document, dict) or document.get("format") != SECRETS_MAGIC:
+                    return {}
+                values = unseal_json(text, passphrase)
+                if not isinstance(values, dict):
+                    return {}
+                values = {str(k): str(v) for k, v in values.items()}
+            except (ValueError, DecryptionError, RecursionError, OverflowError):
+                return {}
+            self._file_cache = (raw, passphrase, values)
+            return dict(values)
 
     def _write_file(self, werte: dict[str, str]) -> None:
-        passphrase = os.environ.get(PASSPHRASE_ENV)
-        if not passphrase:
-            raise KeychainError(
-                f"Ohne {PASSPHRASE_ENV} lässt sich die Schlüsseldatei nicht schreiben."
-            )
-        self._data_dir.mkdir(parents=True, exist_ok=True)
-        target = self.secrets_path
-        # Atomar und von Anfang an 0600: weder ein halb geschriebenes Chiffrat
-        # noch eines unter Standardrechten (ein Angreifer, der es kopiert, kann
-        # die Passphrase später raten).
-        write_text_atomic(target, seal_json(werte, passphrase, SECRETS_MAGIC))
+        with self._file_lock:
+            self._file_cache = None
+            try:
+                passphrase = os.environ.get(PASSPHRASE_ENV)
+                if not passphrase:
+                    raise KeychainError(
+                        f"Ohne {PASSPHRASE_ENV} lässt sich die Schlüsseldatei nicht schreiben."
+                    )
+                self._data_dir.mkdir(parents=True, exist_ok=True)
+                target = self.secrets_path
+                # Atomar und von Anfang an 0600: weder ein halb geschriebenes Chiffrat
+                # noch eines unter Standardrechten (ein Angreifer, der es kopiert, kann
+                # die Passphrase später raten).
+                write_text_atomic(target, seal_json(werte, passphrase, SECRETS_MAGIC))
+            finally:
+                # Even failed writes must force the next read to authenticate.
+                self._file_cache = None
 
     @property
     def backend(self) -> str:
@@ -193,9 +238,13 @@ class Keychain:
             raise KeychainError("Kein Schlüsselspeicher verfügbar.")
 
         if self._backend == "file":
-            werte = self._read_file()
-            werte[name] = value
-            self._write_file(werte)
+            with self._file_lock:
+                try:
+                    werte = self._read_file()
+                    werte[name] = value
+                    self._write_file(werte)
+                finally:
+                    self._file_cache = None
             return
 
         if self._backend == "macos":
@@ -221,9 +270,13 @@ class Keychain:
 
     def delete(self, name: str) -> None:
         if self._backend == "file":
-            werte = self._read_file()
-            if werte.pop(name, None) is not None:
-                self._write_file(werte)
+            with self._file_lock:
+                try:
+                    werte = self._read_file()
+                    if werte.pop(name, None) is not None:
+                        self._write_file(werte)
+                finally:
+                    self._file_cache = None
             return
 
         if self._backend == "macos":

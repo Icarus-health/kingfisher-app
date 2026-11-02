@@ -20,7 +20,17 @@ Der Kostenstand liegt außerhalb der wiederherstellbaren Quelldateien. Eine Wied
 - Vorbereitete künstliche Quellenprobe: **39 Helper-/Diagnostiktests** bestanden. Die vollständig simulierte Route verwendete sieben unveränderte Originale, eine Metadatenabfrage und 14 Einordnungsaufrufe. Der echte lokale Kostenrechner verbuchte **1.204 Mikro-USD** aus simulierten Nutzungszahlen, ohne offene Reservierung. Dies sind keine angefallenen Anbieterkosten.
 - Unabhängige Ergänzungsprüfung des neuen Prüfskripts, der Fokuskorrektur und der UI-Freigaben: **31 Helper-Tests** bestanden, keine zusätzlichen bestätigten Blocker.
 - In einem parallelen betroffenen Testlauf überschritt ein Test seine 10-Sekunden-Wartezeit; die zwei isoliert wiederholten Varianten bestanden. Die Wartezeit wurde nicht erhöht; auch die vollständige integrierte Regression besteht.
-- Vollständige integrierte Backend-Regression: **9.553 bestanden, 1 übersprungen und 26 Unterprüfungen bestanden** in 22:35 Minuten. Die einzige Warnung betrifft die vorhandene Starlette/httpx-Testabhängigkeit. Die gesamte Reihe wurde nach erfolgreichem Abschluss nicht wiederholt.
+- Vollständige integrierte Backend-Regression vor der unten beschriebenen Schlüssel-Leseoptimierung: **9.553 bestanden, 1 übersprungen und 26 Unterprüfungen bestanden** in 22:35 Minuten. Die einzige Warnung betrifft die vorhandene Starlette/httpx-Testabhängigkeit.
+
+### Parallelprüfung: gemessene Schlüssel-Leseoptimierung
+
+Die anschließende GitHub-Parallelprüfung fand vier zu frühe Zehn-Sekunden-Abfragen neuer Routentests. Ein Profil am eingefrorenen Stand zeigte: Der normale künstliche Auftrag entschlüsselte die unveränderte Schlüsseldatei **138-mal**, mit etwa **9,3 Sekunden CPU-Zeit** allein für die 600.000-Runden-Schlüsselableitung. Sperren und simulierte HTTP-Antworten verursachten zusammen weniger als 0,03 Sekunden. Mit nur 20 ms zusätzlicher Verzögerung je Entschlüsselung war der scheinbare Testfehler reproduzierbar; derselbe Auftrag endete anschließend mit richtigen Ergebnissen.
+
+Die Korrektur behält jede echte Dateilesung und jede Zugangs-/Widerrufsprüfung bei. Ein privater, einzelner Cache je Schlüsselspeicher darf nur bereits erfolgreich geprüfte **identische verschlüsselte Bytes unter derselben aktuellen Passphrase** wiederverwenden. Änderungen, fehlende oder unlesbare Dateien, andere Passphrase, ungültige Daten sowie Schreib-/Löschversuche verwerfen den Eintrag. Rückgaben sind Kopien; native Betriebssystem-Schlüsselbunde bleiben unverändert. Die Kryptografie, Dateiformate und 600.000 KDF-Runden sind unverändert. Der zusätzliche Eintrag existiert nur im vertrauenswürdigen Hauptprozess, nicht als Datei, Umgebungsvariable oder Worker-Datum.
+
+Unabhängige Prüfung fand zunächst eine Blockade bei einer als FIFO ausgetauschten Datei. Die korrigierte Fassung verwirft nichtreguläre Pfade und prüft den nichtblockierend geöffneten Dateideskriptor vor dem Lesen; reguläre Symlinks bleiben wie zuvor zulässig. Direkter FIFO, FIFO-Symlink und Austausch während der Prüfung wurden unabhängig erneut geprüft.
+
+**110 fokussierte Tests** bestanden, darunter 29 Fälle mit tatsächlicher Verschlüsselung. Die vier ursprünglichen Routentests behalten ihre Zehn-Sekunden-Grenzen und vollständigen Assertions; sie bestehen in 2,44 Sekunden. Der normale künstliche Auftrag sank auf etwa **0,054 Sekunden** bei derselben Anzahl echter Schlüssel-/Salt-Lesungen. Das ist ein Transport-/Berechtigungstest mit simulierten Modellantworten, keine gemessene Mistral-Inferenzlatenz. Die ursprüngliche Sicherheitseinschränkung und der Fix wurden unabhängig nachgeprüft; keine bestätigten Befunde bleiben in diesem Zweidateien-Umfang offen.
 
 ## Reproduzierbare Prüfung ohne Anbieter
 
