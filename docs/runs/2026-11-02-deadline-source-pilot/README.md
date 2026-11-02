@@ -15,6 +15,6 @@ Both category-analysis prompts now distinguish product/app/subscription names fr
 - Final affected tests: **241 passed**.
 - Independent review of deadline handling and selection paging: **51 passed**.
 - Independent final mail-alignment review: **55 passed**, no remaining scoped findings.
-- Complete final sidecar regression is running against product head `edfb4d84cc306655c36fce1eda1f61bdb7e31049`; no completion claim is made here yet.
+- Complete final sidecar regression against product head `edfb4d84cc306655c36fce1eda1f61bdb7e31049`: **9,293 passed, 1 skipped, 26 passing subtests**. Release metadata: **69 passed**. The complete Messlatte suite: **327 passed** after updating its intentionally changed missing-evidence wording assertion; the unknown status and grading expectations remain asserted.
 
 The separate explicitly authorized private pilot is recorded outside the repository. It is not a public fixture, universal extraction benchmark, or authorization to resume a bulk import. Actual source acceptance, private cost receipts, local installation and the native Mac window are tracked separately. No private messages, attachments, identifiers or model responses are included here.

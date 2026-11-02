@@ -76,7 +76,8 @@ def test_belegte_antwort_wird_als_richtig_bewertet(modellbestand):
 
 def test_nichts_vorhanden_wird_ehrlich_gesagt(modellbestand):
     _, ergebnis, bewertung = frage_stellen(modellbestand, 'rechnung-03')
-    assert ergebnis.status == 'working_unknown' and 'keine Information vor' in ergebnis.text
+    assert ergebnis.status == 'working_unknown' and 'nicht belegen' in ergebnis.text
+    assert 'keine Information vor' not in ergebnis.text
     assert bewertung.klasse == 'richtig' and bewertung.erkannt == 'nicht_bekannt'
 
 
