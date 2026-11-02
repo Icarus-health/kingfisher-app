@@ -10,10 +10,12 @@ import httpx
 
 from .providers import ProviderError, Reply
 from .secrets import KeychainError
-from .cloud_credentials import PREPARED_CLOUD_KEYS
+from .cloud_credentials import (PREPARED_CLOUD_KEYS, MISTRAL_IMPORT_MODEL,
+                                MISTRAL_IMPORT_ENDPOINT, MISTRAL_REVISION_KEY)
 
 REVISION_KEY = 'CLOUD_IMPORT_ANTHROPIC_REVISION'
 ENDPOINT = 'https://api.anthropic.com/v1'
+SOURCE_REVISION_KEYS = {'anthropic': REVISION_KEY, 'mistral': MISTRAL_REVISION_KEY}
 
 
 def _strict_schema(schema):
@@ -41,22 +43,23 @@ def _strict_schema(schema):
     return result
 
 
-def credential_status(keychain, settings, environment=None):
+def credential_status(keychain, settings, environment=None, *, provider="anthropic"):
     """Undurchsichtige Freigabefassung; weder Schlüssel noch Schlüsselhash ausgeben."""
     unavailable = {'available': False, 'credential_revision': None, 'model': ''}
-    if keychain is None or not keychain.available:
+    if provider not in SOURCE_REVISION_KEYS or keychain is None or not keychain.available:
         return unavailable
     environment = os.environ if environment is None else environment
     try:
-        stored = keychain.get(PREPARED_CLOUD_KEYS['anthropic'])
-        salt = keychain.get(REVISION_KEY)
+        stored = keychain.get(PREPARED_CLOUD_KEYS[provider])
+        salt = keychain.get(SOURCE_REVISION_KEYS[provider])
     except KeychainError:
         return unavailable
-    active = environment.get(PREPARED_CLOUD_KEYS['anthropic'])
-    model = settings.cloud_models.get('anthropic', '')
+    active = environment.get(PREPARED_CLOUD_KEYS[provider])
+    model = MISTRAL_IMPORT_MODEL if provider == 'mistral' else settings.cloud_models.get('anthropic', '')
     if not stored or not salt or not model or not active or not hmac.compare_digest(stored, active):
         return unavailable
-    revision = hmac.new(salt.encode(), json.dumps([active, model]).encode(), hashlib.sha256).hexdigest()
+    identity = ([provider, MISTRAL_IMPORT_ENDPOINT, model, active] if provider == 'mistral' else [active, model])
+    revision = hmac.new(salt.encode(), json.dumps(identity).encode(), hashlib.sha256).hexdigest()
     return {'available': True, 'credential_revision': revision, 'model': model}
 
 

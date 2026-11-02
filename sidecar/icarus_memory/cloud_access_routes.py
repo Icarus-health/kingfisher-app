@@ -9,15 +9,15 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 
 from . import config
 from .secrets import KeychainError
-from .cloud_import_provider import REVISION_KEY, credential_status
+from .cloud_import_provider import SOURCE_REVISION_KEYS, credential_status
 from .cloud_provider_facts import FACTS
-from .cloud_credentials import PREPARED_CLOUD_KEYS
+from .cloud_credentials import PREPARED_CLOUD_KEYS, MISTRAL_IMPORT_MODEL
 
 
 PROVIDERS = {
     'anthropic': ('Anthropic (Claude API)', PREPARED_CLOUD_KEYS['anthropic'], 'https://api.anthropic.com/v1'),
     'openai': ('OpenAI API', PREPARED_CLOUD_KEYS['openai'], 'https://api.openai.com/v1'),
-    'mistral': ('Mistral', 'MISTRAL_API_KEY', 'https://api.eu.mistral.ai/v1'),
+    'mistral': ('Mistral', PREPARED_CLOUD_KEYS['mistral'], 'https://api.eu.mistral.ai/v1'),
     'openrouter': ('OpenRouter', 'OPENROUTER_API_KEY', 'https://eu.openrouter.ai/api/v1'),
 }
 
@@ -50,8 +50,9 @@ def register(app, guard, data_dir, rebuild):
                                'key_present': bool(os.environ.get(name)),
                                'model': app.state.settings.cloud_models.get(identifier, ''),
                                'privacy': FACTS[identifier],
-                               'import_available': (credential_status(keychain, app.state.settings)['available']
-                                                    if identifier == 'anthropic' else False)}
+                               'import_available': (credential_status(keychain, app.state.settings, provider=identifier)['available']
+                                                    if identifier in SOURCE_REVISION_KEYS else False),
+                               **({'import_model': MISTRAL_IMPORT_MODEL} if identifier == 'mistral' else {})}
                               for identifier, (label, name, endpoint) in PROVIDERS.items()],
                 'notice': 'Speichern bereitet den Zugang vor. Es aktiviert keine Cloud-Nutzung und überträgt keine Quellen. Der Zugang ist noch nicht getestet.'}
 
@@ -74,10 +75,11 @@ def register(app, guard, data_dir, rebuild):
         keychain = store()
         name = PROVIDERS[identifier][1]
         settings = app.state.settings
+        revision_key = SOURCE_REVISION_KEYS.get(identifier)
         with app.state.conversation_lock:
             try:
                 old_key = keychain.get(name)
-                old_revision = keychain.get(REVISION_KEY) if identifier == 'anthropic' else None
+                old_revision = keychain.get(revision_key) if revision_key else None
             except KeychainError:
                 raise HTTPException(409, 'Der Schlüsselspeicher konnte nicht gelesen werden.') from None
             old_env = os.environ.get(name)
@@ -91,13 +93,14 @@ def register(app, guard, data_dir, rebuild):
                 if body:
                     keychain.set(name, new_key)
                     settings.cloud_models[identifier] = body.model
-                    if identifier == 'anthropic' and (changed or not old_revision):
-                        keychain.set(REVISION_KEY, secrets.token_hex(32))
+                    source_changed = (changed if identifier == 'anthropic' else new_key != old_key or new_key != old_env)
+                    if revision_key and (source_changed or not old_revision):
+                        keychain.set(revision_key, secrets.token_hex(32))
                 else:
                     keychain.delete(name)
                     settings.cloud_models.pop(identifier, None)
-                    if identifier == 'anthropic':
-                        keychain.delete(REVISION_KEY)
+                    if revision_key:
+                        keychain.delete(revision_key)
                 if changed:
                     # Changing credentials or the prepared model requires fresh role consent.
                     settings.model_roles = {role: (_zurueckgesetzt(role, value) if value.get('anbieter') == identifier else value)
@@ -106,11 +109,11 @@ def register(app, guard, data_dir, rebuild):
             except (KeychainError, OSError, ValueError):
                 settings.cloud_models, settings.model_roles = old_models, old_roles
                 try:
-                    if identifier == 'anthropic':
+                    if revision_key:
                         if old_revision is None:
-                            keychain.delete(REVISION_KEY)
+                            keychain.delete(revision_key)
                         else:
-                            keychain.set(REVISION_KEY, old_revision)
+                            keychain.set(revision_key, old_revision)
                     if old_key is None:
                         keychain.delete(name)
                     else:

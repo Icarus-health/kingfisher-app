@@ -1,0 +1,16 @@
+.cloud-memory-tools > label { display: grid; gap: 6px; width: fit-content; max-width: 100%; }
+.cloud-memory-tools > label > select,
+.mistral-source-budget input {
+  box-sizing: border-box;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 8px;
+  background: var(--g-flaeche);
+  color: inherit;
+  font: inherit;
+}
+.mistral-source-budget input { width: 15rem; }
+#root .settings-shell .mistral-source-budget .source-form-actions,
+.mistral-source-budget .source-form-actions { flex-wrap: wrap; justify-content: flex-start; }

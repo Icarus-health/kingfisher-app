@@ -117,9 +117,10 @@ struct Docker {
 
     // MARK: Vorhandene Installation
 
-    /// Die Kennung eines Containers aus dem Compose-Projekt `kingfisher`, auch wenn er angehalten ist.
+    /// Die Kennung des Hauptdiensts im Compose-Projekt `kingfisher`, auch wenn er angehalten ist.
     func projectContainer() -> String? {
         let result = run(["ps", "-a", "--filter", "label=com.docker.compose.project=\(Installation.project)",
+                          "--filter", "label=com.docker.compose.service=kingfisher",
                           "--format", "{{.ID}}"])
         guard result.ok else { return nil }
         return result.output.split(whereSeparator: \.isNewline).first.map(String.init)

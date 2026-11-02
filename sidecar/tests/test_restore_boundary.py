@@ -194,3 +194,36 @@ def test_rejected_legacy_snapshot_does_not_stop_current_integrations(tmp_path,mo
         assert app.state.mcp['synthetic'][0] is connection
         assert not(tmp_path/'restore-state.json').exists()
     finally:_close_app(app)
+
+
+def test_allowlisted_restore_preserves_current_mistral_source_budget(tmp_path):
+    """A historical package cannot reset or import current spending authority."""
+    from icarus_memory import EpisodeStore
+    from icarus_memory.backup import BACKUP_DATA_FILES
+    from icarus_memory.cloud_import_budget import MistralSourceBudget, MODEL
+    data = tmp_path / 'data'
+    episodes = EpisodeStore(data / 'episodes.sqlite3')
+    episodes.close()
+    ledger_path = data / 'mistral-source-budget.sqlite3'
+    ledger = MistralSourceBudget(ledger_path)
+    initial = ledger.status()
+    approved = ledger.set_total_cap(1000000, initial['revision'])
+    snapshot = snapshot_all(data, tmp_path / 'snapshots')
+    assert ledger_path.name not in BACKUP_DATA_FILES
+    assert not (snapshot / ledger_path.name).exists()
+    reservation = ledger.reserve('synthetic-restore-job', MODEL, 16000, 100,
+        budget_id=approved['budget_id'], revision=approved['revision'], price_id=approved['price_id'])
+    ledger.dispatch(reservation)
+    ledger.hold(reservation)
+    current = ledger.status()
+    assert current['held_microusd'] > 0 and current['reconciliation_required']
+    before = ledger_path.read_bytes()
+    restore_all(snapshot, data)
+    assert ledger_path.read_bytes() == before
+    assert ledger.status() == current
+    assert MistralSourceBudget(ledger_path).status() == current
+    # Restoring to another directory does not create budget authority there.
+    fresh = tmp_path / 'fresh-restore'
+    restore_all(snapshot, fresh)
+    assert not (fresh / ledger_path.name).exists()
+    assert MistralSourceBudget(fresh / ledger_path.name).status()['cap_microusd'] == 0
