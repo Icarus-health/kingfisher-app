@@ -61,19 +61,46 @@ export function runChild(config,signal,{timeout=110000,entry=fileURLToPath(new U
   });
 }
 
-export function createService({key,run=runChild,runtime='/runtime',scratch='/tmp'}){
-  if(typeof key!=='string'||!/^[-\w]{43}$/.test(key))throw new Error('service credential required');
-  let busy=false,tainted=false;
+export function createService({key,run=runChild,runtime='/runtime',scratch='/tmp'}={}){
+  const validKey=value=>typeof value==='string'&&/^[-\w]{43}$/.test(value);
+  if(key!==undefined&&!validKey(key))throw new Error('service credential invalid');
+  let busy=false,tainted=false,initializing=false;
+  async function readBody(req,limit){
+    let size=0;const chunks=[];
+    for await(const chunk of req){size+=chunk.length;if(size>limit)return {tooLarge:true};chunks.push(chunk);}
+    try{return {data:JSON.parse(Buffer.concat(chunks).toString('utf8'))};}
+    catch(_error){return {};}
+  }
   return http.createServer({headersTimeout:5000,requestTimeout:10000,keepAliveTimeout:1000,
     connectionsCheckingInterval:1000,maxHeaderSize:8192},async(req,res)=>{
     const reply=(status,value)=>{
       if(!res.destroyed){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(value));}
     };
-    if(req.url==='/health'&&req.method==='GET'){reply(tainted?503:200,{status:tainted?'restart_required':'ok'});return;}
+    if(req.url==='/health'&&req.method==='GET'){
+      reply(tainted?503:200,{status:tainted?'restart_required':key===undefined?'awaiting_controller':'ok'});return;
+    }
+    if(req.url==='/init'&&req.method==='POST'){
+      if(key!==undefined||initializing){reply(409,{error:'AlreadyInitialized'});return;}
+      // Reserve before awaiting a body. This port is reachable only by the trusted gateway.
+      initializing=true;
+      try{
+        const body=await readBody(req,128);
+        if(body.tooLarge){reply(413,{error:'InputTooLarge'});return;}
+        const value=body.data;
+        if(!value||Array.isArray(value)||typeof value!=='object'
+            ||Object.keys(value).join()!=='key'||!validKey(value.key)){
+          reply(400,{error:'InvalidRequest'});return;
+        }
+        key=value.key;reply(200,{status:'initialized'});
+      }catch(_error){reply(400,{error:'InvalidRequest'});}
+      finally{initializing=false;}
+      return;
+    }
+    if(req.url!=='/run'||req.method!=='POST'){reply(404,{error:'UnknownOperation'});return;}
+    if(key===undefined){reply(503,{error:'AwaitingController'});return;}
     const supplied=req.headers.authorization??'',wanted='Bearer '+key;
     if(typeof supplied!=='string'||Buffer.byteLength(supplied)!==Buffer.byteLength(wanted)
         ||!crypto.timingSafeEqual(Buffer.from(supplied),Buffer.from(wanted))){reply(401,{error:'Unauthorized'});return;}
-    if(req.url!=='/run'||req.method!=='POST'){reply(404,{error:'UnknownOperation'});return;}
     if(tainted){reply(503,{error:'WorkerNeedsRestart'});return;}
     if(busy){reply(409,{error:'WorkerBusy'});return;}
     // Reserve before reading: concurrent slow bodies cannot each start a job.
@@ -102,6 +129,12 @@ export function createService({key,run=runChild,runtime='/runtime',scratch='/tmp
 }
 
 if(process.argv[1]===fileURLToPath(import.meta.url)){
-  // The container has only an internal network; its gateway owns all authority.
-  createService({key:process.env.KF_WORKER_SERVICE_KEY}).listen(3001,'0.0.0.0');
+  // Never load service authority from initial environment: a same-UID child can
+  // read those original bytes through /proc even after process.env deletion.
+  if(Object.hasOwn(process.env,'KF_WORKER_SERVICE_KEY')){
+    process.stderr.write('initial service credential is forbidden\n');process.exitCode=1;
+  }else{
+    // Internal worker-only network; trusted gateway initializes before any job.
+    createService().listen(3001,'0.0.0.0');
+  }
 }

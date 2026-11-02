@@ -131,3 +131,85 @@ test('unrecoverable cleanup quarantines the service instead of starting another 
     assert.ok(!(await blocked.text()).includes('private path'));
   }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 });
+
+// Removing one-time initialization, or accepting key material in the initial
+// environment again, must fail these observable service/entry checks.
+test('uninitialized service cannot run and initializes exactly once in memory',async()=>{
+  let calls=0;
+  const server=createService({run:async()=>{calls++;return {status:'complete',text:'Done'};}});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const url='http://127.0.0.1:'+server.address().port;
+  try{
+    const health=await fetch(url+'/health');
+    assert.deepEqual(await health.json(),{status:'awaiting_controller'});
+    assert.equal((await fetch(url+'/run',{method:'POST',headers,body:JSON.stringify(data)})).status,503);
+    for(const body of [null,[],{}, {key:'short'}, {key:key+'x'}, {key,token}, {key:'!'.repeat(43)}]){
+      const response=await fetch(url+'/init',{method:'POST',body:JSON.stringify(body)});
+      assert.equal(response.status,400);assert.ok(!(await response.text()).includes(key));
+    }
+    assert.equal((await fetch(url+'/init',{method:'POST',body:'x'.repeat(129)})).status,413);
+    assert.equal((await fetch(url+'/init?key='+key,{method:'POST',body:JSON.stringify({key})})).status,404);
+    assert.equal((await fetch(url+'/init')).status,404);
+    assert.equal(calls,0);
+    const initialized=await fetch(url+'/init',{method:'POST',body:JSON.stringify({key})});
+    assert.equal(initialized.status,200);assert.deepEqual(await initialized.json(),{status:'initialized'});
+    for(const other of [key,'z'.repeat(43)]){
+      const repeated=await fetch(url+'/init',{method:'POST',body:JSON.stringify({key:other})});
+      assert.equal(repeated.status,409);assert.ok(!(await repeated.text()).includes(other));
+    }
+    assert.deepEqual(await (await fetch(url+'/health')).json(),{status:'ok'});
+    assert.equal((await fetch(url+'/run',{method:'POST',headers,body:JSON.stringify(data)})).status,200);
+    assert.equal(calls,1);
+  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});
+
+test('concurrent initialization reserves its one-time slot before body reading',async()=>{
+  const http=await import('node:http');
+  const server=createService({run:async()=>({status:'complete',text:'Done'})});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const url='http://127.0.0.1:'+server.address().port;
+  let first;
+  try{
+    first=http.request(url+'/init',{method:'POST',headers:{'Content-Length':53}});
+    first.on('error',()=>{});first.write('{');
+    // An HTTP response to health means the earlier request headers were handled.
+    await fetch(url+'/health');
+    assert.equal((await fetch(url+'/init',{method:'POST',body:JSON.stringify({key})})).status,409);
+    first.end('"key":"'+key+'"}');
+    const status=await new Promise(resolve=>first.once('response',r=>{r.resume();resolve(r.statusCode);}));
+    assert.equal(status,200);
+  }finally{first?.destroy();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});
+
+test('production entry rejects accidental initial service credential without echoing it',async()=>{
+  const {spawn}=await import('node:child_process');
+  const {fileURLToPath}=await import('node:url');
+  const child=spawn(process.execPath,[fileURLToPath(new URL('./harness_service.mjs',import.meta.url))],
+    {env:{PATH:process.env.PATH,KF_WORKER_SERVICE_KEY:key}});
+  let output='';child.stdout.on('data',c=>output+=c);child.stderr.on('data',c=>output+=c);
+  const result=await Promise.race([new Promise(resolve=>child.once('close',resolve)),
+    new Promise(resolve=>{const timer=setTimeout(()=>{child.kill();resolve('timeout');},2000);timer.unref();})]);
+  assert.notEqual(result,'timeout');assert.notEqual(result,0);
+  assert.ok(output.includes('initial service credential is forbidden'));assert.ok(!output.includes(key));
+});
+
+test('same-UID child cannot find initialized service credential in parent initial environment',
+  {skip:process.platform!=='linux'},async()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'kf-service-initial-env-'));
+  const entry=path.join(root,'fake.mjs');
+  fs.writeFileSync(entry,`import fs from 'node:fs';for await(const c of process.stdin){};
+const initial=fs.readFileSync('/proc/'+process.ppid+'/environ','utf8');
+const uid=fs.statSync('/proc/'+process.ppid).uid;
+process.stdout.write(JSON.stringify({status:'complete',text:JSON.stringify({sameUid:uid===process.getuid(),
+  parentKeyPresent:initial.includes('KF_WORKER_SERVICE_KEY='),ownKeyPresent:'KF_WORKER_SERVICE_KEY' in process.env})}));`);
+  const server=createService({scratch:root,run:(config,signal)=>runChild(config,signal,{entry})});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const url='http://127.0.0.1:'+server.address().port;
+  try{
+    assert.equal((await fetch(url+'/init',{method:'POST',body:JSON.stringify({key})})).status,200);
+    const response=await fetch(url+'/run',{method:'POST',headers,body:JSON.stringify(data)});
+    assert.equal(response.status,200);
+    assert.deepEqual(JSON.parse((await response.json()).text),{sameUid:true,parentKeyPresent:false,ownKeyPresent:false});
+    assert.deepEqual(fs.readdirSync(root),['fake.mjs']);
+  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));fs.rmSync(root,{recursive:true,force:true});}
+});

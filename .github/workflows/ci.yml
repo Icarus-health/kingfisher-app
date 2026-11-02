@@ -42,6 +42,9 @@ jobs:
       - name: Synthetische Gedächtnisdiagnostik ohne Modell
         run: python -m pytest scripts/test_memory_probe_support.py scripts/test_memory_probe_agent.py scripts/test_probe_memory_pipeline.py scripts/test_probe_hybrid_memory.py scripts/test_memory_probe_catalog.py scripts/test_memory_answer_comparison.py scripts/test_probe_everyday_memory.py scripts/test_probe_working_memory_paraphrase.py scripts/test_probe_working_memory_scale.py scripts/test_probe_working_memory_models.py scripts/test_probe_intake_precision.py scripts/test_probe_harness_isolation.py -q
 
+      - name: Begrenztes Modul-Gateway und Prüfbelege (nur künstliche Daten)
+        run: python -m pytest scripts/test_harness_gateway.py scripts/test_probe_harness_production_boundary.py -q
+
       - name: Messlatte, Rahmenwerk auf der Mini-Welt (kein Modell)
         run: python -m pytest messlatte/tests -q
 
