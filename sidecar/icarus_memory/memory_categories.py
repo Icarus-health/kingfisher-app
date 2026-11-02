@@ -483,6 +483,13 @@ def _validate_quote_result(result, body, block_map, taxonomy, local, banned, con
     return all_topics, all_entities
 
 
+_TOPIC_SUBSTANCE = ("Themen richten sich nach dem eigentlichen Sachinhalt, nicht nach dem Transport. "
+    "Portalname, Zustellhinweis, automatische Absenderadresse, Anrede, Signatur oder allgemeiner Warntext "
+    "allein belegen kein Thema. Eine persönliche Unterlagenanfrage bleibt persönlich, auch wenn ein Portal "
+    "sie übermittelt; daraus allein entsteht nicht Information/Newsletter. Echte allgemeine Fachinformation "
+    "oder Newsletter-Inhalte können Information belegen, auch neben einem anderen eigenständig belegten Thema.")
+
+
 def _interpret_quotes(provider, episode, taxonomy, policy):
     body = episode.body
     blocks = _blocks(body)
@@ -512,6 +519,7 @@ getrennt aus dem Mailkopf angezeigt, nicht mit Text-Erwähnungen verschmolzen. A
 bleibt deine Ausgabe mentioned. Allgemeine
 oder automatische Postfächer sind keine Personen. Keine Ergänzung, Normalisierung,
 Namensauflösung oder Identitätsverschmelzung."""
+    instruction += "\n" + _TOPIC_SUBSTANCE
     all_topics, all_entities = [], []
     banned, _senders = _mailbox_names(episode)
     contact_names = _contact_names(episode)
@@ -606,6 +614,7 @@ Allgemeine oder automatische Postfächer (info, support, team, newsletter, no-re
 sind keine Personen; ihr Anzeigename bleibt auch bei Erwähnung im Text keine Person.
 Ein echter anderer Mensch in einer solchen Nachricht kann mentioned sein.
 Bei fehlendem Beleg oder mehreren Vorkommen im Block die Entität weglassen. Keine erfundenen Entitäten oder Zitate."""
+    instruction += "\n" + _TOPIC_SUBSTANCE
     instruction += f"\nHöchstens {MAX_TOPICS} Kategoriebelege und {MAX_ENTITIES} Entitäten liefern."
     block_payload = []
     for i, (start, end) in enumerate(blocks, 1):
