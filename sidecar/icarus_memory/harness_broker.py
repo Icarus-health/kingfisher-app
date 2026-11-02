@@ -117,6 +117,13 @@ class Broker:
             except BridgeError:
                 return False
 
+    def instructions(self, token):
+        with self._lock:
+            grant = self._grant(token)
+            return ('Unveränderter Nutzerauftrag: ' + grant.request + '\n'
+                    + grant.selection['instructions'] + '\nOffene Verfahrenskonflikte: '
+                    + ', '.join(grant.selection['conflicts']))
+
     def cancel(self, identifier):
         with self._lock:
             for grant in self._grants.values():

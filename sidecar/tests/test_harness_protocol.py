@@ -112,6 +112,8 @@ def test_model_uses_current_grant_and_sse_text_response(setup):
     assert 'data: [DONE]' in result.text
     assert 'A42' in result.text
     assert len(calls) == 1
+    assert 'Bestätigte Arbeitsverfahren' in calls[0][0][0]['content']
+    assert 'Wo ist die Zugangskarte?' in calls[0][0][0]['content']
     broker.cancel(grant['id'])
     assert client.post('/worker/v1/chat/completions',headers=auth(grant),json=payload()).status_code == 401
 

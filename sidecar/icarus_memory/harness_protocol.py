@@ -157,6 +157,7 @@ def register(app, broker, *, model, infer):
         try: messages, functions = normalize(body,model)
         except BridgeError as exc: raise HTTPException(400,str(exc)) from None
         try:
+            messages.insert(0,dict(role='system',content=broker.instructions(key)))
             reply = await run_in_threadpool(broker.model,key,
                 lambda:infer(messages,functions,lambda:broker.current(key)))
             if (not isinstance(reply.text,str) or len(reply.text)>32000 or len(reply.tool_calls)>4
