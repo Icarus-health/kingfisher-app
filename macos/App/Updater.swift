@@ -70,7 +70,7 @@ final class Updater {
             snapshotName = Loopback.backupName(token: token)
             return snapshotName != nil
         case .pull:
-            return docker.compose(["pull"], paths: paths, image: request.image, timeout: 3600).ok
+            return docker.compose(["pull", "kingfisher"], paths: paths, image: request.image, timeout: 3600).ok
         case .switchImage:
             blockedIssue = storageIssue(docker, beforeBackup: false)
             guard blockedIssue == nil else { return false }
@@ -78,7 +78,7 @@ final class Updater {
             guard updated.set(EnvKey.image, request.image) else { return false }
             return (try? store.write(updated)) != nil
         case .restart:
-            return docker.compose(["up", "-d"], paths: paths, timeout: 1800).ok
+            return docker.compose(["up", "-d", "--no-deps", "kingfisher"], paths: paths, timeout: 1800).ok
         case .waitForHealth:
             return Loopback.waitForVersion(request.fassung, token: token)
                 && docker.runningImage(paths: paths)?.name == request.image
@@ -95,7 +95,7 @@ final class Updater {
         guard restore.ok else { return false }
         var restored = original
         guard restored.set(EnvKey.image, pinnedTag), (try? store.write(restored)) != nil else { return false }
-        guard docker.compose(["up", "-d"], paths: paths, timeout: 1800).ok else { return false }
+        guard docker.compose(["up", "-d", "--no-deps", "kingfisher"], paths: paths, timeout: 1800).ok else { return false }
         return docker.runningImage(paths: paths)?.id == previous.id && Loopback.inspectionMode(token: token)
     }
 }

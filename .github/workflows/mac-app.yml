@@ -34,6 +34,15 @@ jobs:
           xcrun swiftc macos/App/Logic/*.swift macos/Shared/PowerReporter.swift macos/Shared/Mitteilungen.swift macos/tests/main.swift -o "$RUNNER_TEMP/kingfisher-logic"
           "$RUNNER_TEMP/kingfisher-logic"
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Hauptdienst bei Start, Update und Rückkehr prüfen
+        run: |
+          python -m pip install pytest
+          python -m pytest macos/test_main_service.py -q
+
       - name: Fenster des Bestands übersetzen
         # Teilt Shared/ mit der App; so fällt ein Bruch dort auch hier auf.
         run: |

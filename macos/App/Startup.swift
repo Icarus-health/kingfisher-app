@@ -48,7 +48,7 @@ final class Startup {
                     return .failed(Satz.bestehendeInstallation)
                 }
                 say(Satz.starten)
-                guard docker.compose(["up", "-d"], paths: paths, timeout: 1800).ok else {
+                guard docker.compose(["up", "-d", "--no-deps", "kingfisher"], paths: paths, timeout: 1800).ok else {
                     return .failed(Satz.startGescheitert)
                 }
             }
@@ -63,13 +63,13 @@ final class Startup {
             }
             let image = firstImage(manifest: Loopback.manifest(), appFassung: AppPaths.appFassung)
             say(Satz.laden)
-            guard docker.compose(["pull"], paths: paths, image: image, timeout: 3600).ok else {
+            guard docker.compose(["pull", "kingfisher"], paths: paths, image: image, timeout: 3600).ok else {
                 return .failed(Satz.ladenGescheitert)
             }
             var updated = env
             updated.set(EnvKey.image, image)
             do { try store.write(updated) } catch { return .failed(Satz.schluesselNichtGespeichert) }
-            guard docker.compose(["up", "-d"], paths: paths, timeout: 1800).ok else {
+            guard docker.compose(["up", "-d", "--no-deps", "kingfisher"], paths: paths, timeout: 1800).ok else {
                 return .failed(Satz.startGescheitert)
             }
             guard docker.runningImage(paths: paths)?.name == image else { return .failed(Satz.startGescheitert) }
