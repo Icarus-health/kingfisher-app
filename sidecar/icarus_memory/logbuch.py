@@ -22,6 +22,7 @@ Die Art-spezifischen Nutzdaten (`sorte` ist die Unterart; das Schlüsselwort `ar
 | `quellen` | `sorte` (`mail`, `dokument`, `gespraech`, `termin`, `notiz`, sonst), `anzahl` |
 | `akte_neu`, `akte_aktualisiert` | `sache` (Kennung), `name` (Titel der Sache) |
 | `vorschlag_erzeugt`, `vorschlag_angenommen`, `vorschlag_abgelehnt` | `sorte` (Art des Vorschlags), `id` |
+| `aufgabenvorschlag_titel_korrigiert` | `id`, `nachfolger` (nur Vorschlagskennungen, keine Quellentexte) |
 | `lint` | `befunde`: Anzahl je Art, z. B. `{'widerspruch': 1}` |
 | `fehler` | `was` (Name des Schritts der Hintergrundarbeit, nie der Fehlertext) |
 | `modellwechsel` | `rolle`, `wofuer` (Alltagsname der Rolle), `lokal` |
@@ -70,6 +71,7 @@ logger = logging.getLogger(__name__)
 
 ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorschlag_angenommen',
          'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang',
+         'aufgabenvorschlag_titel_korrigiert',
          'cloud_einordnung',  # Tagesbudget der Cloud-Einordnung erreicht (einmal je Tag)
          'aufgabe_post',  # Aufgabe nach eigener oder fremder Post erledigt bzw. zurückgeholt
          'akte_vorschlag',

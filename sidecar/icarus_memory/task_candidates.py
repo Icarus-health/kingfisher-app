@@ -13,6 +13,61 @@ class TaskCandidates:
         self.workspace = workspace
         self.lock = lock
 
+    def amend_title(self, proposal_id, *, title, expected_statement, expected_episode_id,
+                    expected_digest, expected_task_context):
+        """Korrigiert nur einen offenen, quellgebundenen Titel; legt keine Aufgabe an."""
+        from . import logbuch
+        from .task_review import current_task_context, hard_details_supported
+
+        if not isinstance(title, str) or not 1 <= len(title.strip()) <= 4096:
+            raise ValueError('Der Aufgabentitel darf nicht leer oder zu lang sein.')
+        title = title.strip()
+        # Gleiche Reihenfolge wie die anderen quellgebundenen Schreibpfade:
+        # Anwendung → Quellenreservierung → Vorschlagstransaktion. BEGIN
+        # IMMEDIATE hält auch andere SQLite-Verbindungen bis zum Commit fern.
+        with self.lock, self.episodes.transaction(), self.proposals.transaction():
+            candidate = self.proposals.get(proposal_id)
+            if (candidate.kind is not ProposalKind.TASK or len(candidate.evidence) != 1
+                    or not candidate.task_context or candidate.produced is not None
+                    or candidate.statement != expected_statement
+                    or candidate.task_context != expected_task_context
+                    or candidate.evidence[0].episode_id != expected_episode_id
+                    or candidate.evidence[0].digest != expected_digest):
+                raise ProposalError('Der Aufgabenvorschlag hat sich geändert. Bitte erneut prüfen.')
+            if self.tasks.get(f't-suggestion-{candidate.id}') is not None:
+                raise ProposalError('Diese Aufgabe wurde bereits übernommen. Bitte die Aufgabe öffnen.')
+
+            def source_current():
+                try:
+                    snapshot = self.episodes.belegbarer_snapshot(expected_episode_id)
+                    if snapshot is None:
+                        return False
+                    episode = snapshot.episode
+                    return (episode.state not in AUSGEBLENDETE_ZUSTAENDE
+                        and 'source:truncated' not in episode.tags
+                        and episode.digest == expected_digest
+                        and bool(candidate.evidence[0].quote)
+                        and candidate.evidence[0].quote in episode.body
+                        and current_task_context(self.episodes, episode.id) == expected_task_context)
+                except (ValueError, LookupError):
+                    return False
+
+            if not source_current():
+                raise ProposalError('Die Quelle ist nicht mehr gültig. Bitte erneut prüfen.')
+            if title != candidate.statement and not hard_details_supported(title, candidate.evidence[0].quote):
+                raise ValueError('Der korrigierte Titel enthält nicht belegte Angaben.')
+            result = self.proposals.amend_pending_task_title(proposal_id, title=title,
+                expected_statement=expected_statement, expected_episode_id=expected_episode_id,
+                expected_digest=expected_digest, expected_task_context=expected_task_context)
+            # Unmittelbar vor dem Vorschlags-Commit; Fehler nehmen beide
+            # Vorschlagsänderungen zurück. Die Quellenreservierung bleibt offen.
+            if not source_current():
+                raise ProposalError('Die Quelle hat sich geändert. Bitte erneut prüfen.')
+            changed = candidate.state is ProposalState.PENDING and result.id != candidate.id
+        if changed:
+            logbuch.vermerke('aufgabenvorschlag_titel_korrigiert', id=proposal_id, nachfolger=result.id)
+        return result
+
     def accept(self, proposal_id, *, title, project_id=None, new_project_name=None, due=None, waiting_for=None,
                person=None, angelegt=None, zuordnung_aus_vorschlag=False, eigene=()):
         """Übernimmt einen belegten Vorschlag. Die Person (wer bittet, wem zugesagt wurde) ergibt sich aus der Quelle,

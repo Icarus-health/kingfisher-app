@@ -420,6 +420,15 @@ class TaskCandidateIn(BaseModel):
     zuordnung_aus_vorschlag: bool = False  # Heute: das vorgeschlagene Projekt übernehmen (`aufgaben_von_selbst.py`)
 
 
+class TaskCandidateAmendIn(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    title: str = Field(min_length=1, max_length=4096)
+    expected_statement: str = Field(min_length=1, max_length=4096)
+    expected_episode_id: str = Field(min_length=1, max_length=200)
+    expected_digest: str = Field(pattern='^sha256:[0-9a-f]{64}$')
+    expected_task_context: str = Field(pattern='^[0-9a-f]{64}$')
+
+
 class MailReplyIn(BaseModel):
     body: str = Field(min_length=1, max_length=100000)
     context_token: str | None = Field(default=None, min_length=20, max_length=200)
@@ -5404,6 +5413,15 @@ def create_app(
         cards = ({**p.to_dict(), **timing} for batch in candidate_batches(app.state.proposals, app.state.episodes)
                  for p, _, timing in batch)
         return list(islice(cards, 100))
+
+    @app.post("/api/v1/task-candidates/{proposal_id}/amend", dependencies=guard)
+    def amend_task_candidate(proposal_id: str, body: TaskCandidateAmendIn):
+        try:
+            return task_candidate_service().amend_title(proposal_id, **body.model_dump()).to_dict()
+        except (ProposalError, EpisodeError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.post("/api/v1/task-candidates/{proposal_id}/accept", dependencies=guard)
     def accept_task_candidate(proposal_id: str, body: TaskCandidateIn):

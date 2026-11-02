@@ -44,7 +44,7 @@ from .store_transactions import sqlite_transaction
 import sqlite3
 import threading
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -184,7 +184,15 @@ class Proposal:
     task_context: str | None = None
     """Kontextbindung automatisch erkannter Aufgaben; keine Autorisierung."""
 
+    task_amends: str | None = None
+    """Unveränderlicher Vorgängervorschlag einer ausdrücklichen TASK-Titelkorrektur."""
+
     def to_dict(self) -> dict[str, Any]:
+        if self.task_amends is not None and (self.kind is not ProposalKind.TASK
+                or not isinstance(self.task_amends, str) or not 1 <= len(self.task_amends) <= 200
+                or self.task_amends == self.id):
+            raise ProposalError('Eine Aufgaben-Titelkorrektur braucht einen anderen TASK-Vorgänger.')
+
         def iso(v: datetime | None) -> str | None:
             return v.astimezone().isoformat() if v else None
 
@@ -213,6 +221,7 @@ class Proposal:
             "valid_until": iso(self.valid_until),
             "depends_on": list(self.depends_on),
             **({"task_context": self.task_context} if self.task_context is not None else {}),
+            **({"task_amends": self.task_amends} if self.task_amends is not None else {}),
         }
 
 
@@ -607,6 +616,59 @@ class ProposalStore:
 
     # -- Entscheiden -------------------------------------------------------
 
+    def amend_pending_task_title(self, proposal_id: str, *, title: str,
+                                expected_statement: str, expected_episode_id: str,
+                                expected_digest: str, expected_task_context: str,
+                                at: datetime | None = None) -> Proposal:
+        """Atomarer TASK-Nachfolger; Quellenreservierung und Aufgabenprüfung beim Service.
+
+        Der normale Quellen-/Zitat-/Kontext-Schlüssel bleibt als Grabstein
+        erhalten. Niemals generisches ``propose(TASK)``: gleiche Titel aus
+        verschiedenen Quellen müssen getrennte Vorschläge bleiben.
+        """
+        with self.transaction():
+            original = self.get(proposal_id)
+            if (original.kind is not ProposalKind.TASK or len(original.evidence) != 1
+                    or not original.task_context or original.produced is not None
+                    or original.statement != expected_statement
+                    or original.task_context != expected_task_context
+                    or original.evidence[0].episode_id != expected_episode_id
+                    or original.evidence[0].digest != expected_digest):
+                raise ProposalError('Der Aufgabenvorschlag hat sich geändert. Bitte erneut prüfen.')
+            # Nur äußeren Leerraum normalisieren; die genaue neue Formulierung
+            # und der Vorgänger bestimmen die Revision, auch nach einem Neustart.
+            title = title.strip()
+            if not 1 <= len(title) <= 4096:
+                raise ValueError('Der Aufgabentitel darf nicht leer oder zu lang sein.')
+            revision = hashlib.sha256(json.dumps(
+                ['pending-task-title-amendment-v1', original.id, title],
+                ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+            successor_id = 'v-' + revision[:24]
+            successor = replace(original, id=successor_id, statement=title,
+                rationale=original.rationale + '\nTitel ausdrücklich korrigiert; weiterhin ungeprüfter Vorschlag.',
+                created_at=ensure_aware(at) or now(), state=ProposalState.PENDING,
+                decided_at=None, produced=None,
+                proposed_by='user:pending-task-title-amendment-v1', task_amends=original.id)
+            row = self._conn.execute('SELECT document FROM proposals WHERE id=?', (successor_id,)).fetchone()
+            if row is not None:
+                recorded = self._from_row(row)
+                # Entscheidungen und eine spätere weitere Korrektur bleiben
+                # unangetastet. Nur die unveränderlichen Revisionsdaten zählen.
+                mutable = {'state', 'decided_at', 'produced', 'created_at'}
+                immutable = lambda p: {k: v for k, v in p.to_dict().items() if k not in mutable}
+                if original.state is not ProposalState.SUPERSEDED or immutable(recorded) != immutable(successor):
+                    raise ProposalError('Die Titelkorrektur ist nicht mehr eindeutig. Bitte erneut prüfen.')
+                return recorded
+            if original.state is not ProposalState.PENDING:
+                raise ProposalError('Der Vorschlag ist nicht mehr offen.')
+            if title == original.statement:
+                return original
+            original.state = ProposalState.SUPERSEDED
+            original.decided_at = ensure_aware(at) or now()
+            self._put(original)
+            self._put(successor, 'task-amendment|' + revision)
+            return successor
+
     def accept(
         self, proposal_id: str, produced: str | None = None, at: datetime | None = None
     ) -> Proposal:
@@ -869,6 +931,10 @@ class ProposalStore:
         d = json.loads(row["document"])
         if any(key in d for key in ('support_authorization', 'authorization', 'commitment')):
             raise ProposalError('Autorisierungen dürfen nicht aus Vorschlagsdokumenten importiert werden.')
+        if d.get('task_amends') is not None and (d['kind'] != ProposalKind.TASK.value
+                or not isinstance(d['task_amends'], str) or not 1 <= len(d['task_amends']) <= 200
+                or d['task_amends'] == d['id']):
+            raise ProposalError('Eine Aufgaben-Titelkorrektur braucht einen anderen TASK-Vorgänger.')
         return Proposal(
             id=d["id"],
             kind=ProposalKind(d["kind"]),
@@ -901,6 +967,7 @@ class ProposalStore:
             valid_until=_parse(d.get("valid_until")),
             depends_on=list(d.get("depends_on", [])),
             task_context=d.get("task_context"),
+            task_amends=d.get("task_amends"),
         )
 
 
