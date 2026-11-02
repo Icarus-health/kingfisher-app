@@ -59,8 +59,8 @@ def test_explicit_model_decisions_preserve_existing_answer_contract(core, tmp_pa
             assert 'erst nach 11 Uhr' in message['content']
             assert 'Von wann stammt' not in message['content']
         if decision == 'no_relevant_sources':
-            # Keine Scheinmehrdeutigkeit: Es fehlt eine Angabe, nicht eine Auswahl.
-            assert message['content'] == 'Dazu liegt in den bisher eingeordneten Quellen keine Information vor.'
+            # Keine Scheinmehrdeutigkeit und keine Bestandsaussage aus einem fehlenden Beleg.
+            assert message['content'] == 'Die erfragte Angabe konnte ich in den geprüften Quellen nicht belegen.'
     finally:
         client.close()
         _close_app(app)

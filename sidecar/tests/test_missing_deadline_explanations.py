@@ -58,7 +58,7 @@ def test_unknown_deadline_explains_unproven_date_without_claiming_absence(memory
     record(memory, 'Bitte den Erfassungsbogen zurücksenden, sobald er vollständig ausgefüllt ist.')
     result, (text, links, status) = ask(memory, question)
     assert result['status'] == 'unknown' and status == 'working_unknown'
-    assert 'Fristdatum' in text and 'nicht belegen' in text
+    assert 'erfragte Angabe' in text and 'nicht belegen' in text
     assert 'keine Information vor' not in text
     assert result['refs'] == [] and links == []  # Never promote an unselected candidate.
 
@@ -68,7 +68,7 @@ def test_pending_sources_keep_coverage_warning_with_scoped_deadline_explanation(
     source(memory[0], 'Der Erfassungsbogen liegt in einer noch nicht eingeordneten Nachricht.')
     _, (text, _, status) = ask(memory, 'Gibt es ein Rücksendedatum für den Erfassungsbogen?')
     assert status == 'working_unknown'
-    assert 'Fristdatum' in text and 'nicht belegen' in text
+    assert 'erfragte Angabe' in text and 'nicht belegen' in text
     assert 'Belegabschnitt' in text and 'unvollständig' in text
 
 
@@ -97,16 +97,20 @@ def test_source_withdrawal_invalidates_even_a_scoped_unknown_explanation(memory)
     'Welcher Beschäftigungsbeginn steht im Erfassungsbogen?',
     'Wer hat die Frist für den Erfassungsbogen festgelegt?',
     'Who set the deadline for the Erfassungsbogen?',
+    'Warum wurde die Abgabefrist für den Erfassungsbogen verlängert?',
+    'Wie lang ist die Rücksendefrist für den Erfassungsbogen?',
+    'Kannst du sagen, wer die Deadline für den Erfassungsbogen festgelegt hat?',
+    'Bis wann kann ich zum Erfassungsbogen anrufen?',
 ])
 def test_other_missing_fields_do_not_become_deadline_questions(memory, question):
     record(memory, 'Der Erfassungsbogen wird nach Freigabe zurückgegeben.')
     _, (text, _, status) = ask(memory, question)
     assert status == 'working_unknown'
-    assert 'Fristdatum' not in text
+    assert 'Fristdatum' not in text and 'erfragte Angabe' in text
 
 
 def test_other_date_field_does_not_become_an_invented_deadline(memory):
     record(memory, 'Erfassungsbogen: Beschäftigungsbeginn 09.12.2026; Rücksendung nach Freigabe.')
     _, (text, links, status) = ask(memory, 'Gibt es ein Rücksendedatum für den Erfassungsbogen?')
     assert status == 'working_unknown'
-    assert 'Fristdatum' in text and '09.12.2026' not in text and links == []
+    assert 'erfragte Angabe' in text and '09.12.2026' not in text and links == []
