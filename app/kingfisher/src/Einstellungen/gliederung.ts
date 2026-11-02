@@ -79,6 +79,7 @@ export function zugangListe(geladen: boolean, fehler: string): "laedt" | "nicht_
 /** Die Abschnitte hinter „Für Techniker“, in der Reihenfolge, in der sie eingeklappt erscheinen. */
 export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }> = [
   { id: "routing", titel: "Modellauswahl (Routing)", satz: "Automatische Wahl unter den eingerichteten Modellen nach einer Bereitschaftsprüfung." },
+  { id: "werkzeuge", titel: "Lokale Werkzeuge", satz: "Eine ausgewählte Quelle lokal prüfen, mit Originalbelegen und einem ungeprüften Entwurf." },
   { id: "antwortzeiten", titel: "Antwortzeiten, Sätze und Prüfmodell", satz: "Wie lange Antworten dauern und welche zusätzlichen Modellaufrufe dabei mitlaufen." },
   { id: "suchindex", titel: "Suchindex", satz: "Wie genau und wie platzsparend alte Quellen durchsucht werden." },
   { id: "akten", titel: "Akten als Ordner", satz: "Die Akten als lesbare Dateien in einem Ordner, etwa für Obsidian. Nur zum Lesen." },

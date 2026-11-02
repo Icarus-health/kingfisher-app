@@ -22,6 +22,10 @@ TOOLS = [
          'Nutze einen kurzen Begriff aus der Nutzerfrage, keine übersetzte Suchphrase. Nur Quelle berichtet, nicht bestätigt.',
          inputSchema=dict(type='object', properties=dict(query=dict(type='string',minLength=2,maxLength=200)),
                           required=['query'], additionalProperties=False)),
+    dict(name='selected_original', description='Genau das eine ausgewählte Original lesen, auch ohne wörtlichen Suchtreffer. '
+         'Liefert Metadaten und die ersten höchstens 400 Originalzeichen mit Textlänge und Teilabdeckung. '
+         'Leerer Text ist kein positiver Beleg. Nur Quelle berichtet, nicht bestätigt.',
+         inputSchema=dict(type='object', properties={}, additionalProperties=False)),
     dict(name='source_excerpt', description='Ausschnitt eines zuvor gefundenen Originals lesen. Höchstens 400 Zeichen.',
          inputSchema=dict(type='object',properties=dict(id=dict(type='string'),start=dict(type='integer',minimum=0),
                           end=dict(type='integer',minimum=1)),required=['id','start','end'],additionalProperties=False)),
@@ -67,7 +71,7 @@ def normalize(payload, model):
     except ProviderError as exc:
         raise BridgeError('Unvollständiger oder nicht unterstützter Gesprächsverlauf.') from exc
     raw_tools = payload.get('tools',[])
-    if not isinstance(raw_tools,list) or len(raw_tools) > 6:
+    if not isinstance(raw_tools,list) or len(raw_tools) > len(_ALIASES) + len(_RESOURCES):
         raise BridgeError('Nicht unterstützte Werkzeugliste.')
     names, functions = set(), []
     for tool in raw_tools:

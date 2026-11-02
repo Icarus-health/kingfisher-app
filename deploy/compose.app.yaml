@@ -37,6 +37,9 @@ services:
       # Dauerhafte Arbeitsgedächtnissuche getrennt von alten Diagnose-/Wissenspfaden aktivieren.
       - KINGFISHER_DURABLE_MEMORY_SEARCH=${KINGFISHER_DURABLE_MEMORY_SEARCH:-${ICARUS_MEMORY_SEMANTIC:-}}
       - LLM_API_KEY=${LLM_API_KEY:-}
+      # Only fixed native setup enables the separate grant-scoped module broker.
+      - KF_HARNESS_MODE=${KF_HARNESS_MODE:-}
+      - KF_GATEWAY_CONTROL_KEY=${KF_GATEWAY_CONTROL_KEY:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

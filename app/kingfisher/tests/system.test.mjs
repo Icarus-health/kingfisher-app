@@ -39,6 +39,7 @@ function dateien(ordner = SRC, praefix = "") {
 // Ordner (seit dem Zusammenführen mit der Einrichtung ohne Fachwissen).
 const AUSNAHMEN = {
   "system.ts": "die Hilfsfunktion selbst",
+  "LocalModuleSettings.tsx": "diese Einrichtung steuert ausschließlich den Mac-Helfer; fehlt dessen Antwort, fordert sie ausdrücklich das App-Update",
   "MacCalendarSettings.tsx": "erscheint nur auf dem Mac (Zugaenge.tsx)",
   "WegezeitSettings.tsx": "„Apple Karten ist auf diesem Mac bereit“ steht nur, wenn Apple Karten bereit ist, also auf dem Mac",
   "Einrichtung/KalenderSchritt.tsx": "der Knopf „Kalender auf diesem Mac“ erscheint nur mit system.mac_helfer",

@@ -1,4 +1,4 @@
-"""Artificial-only, fixed-route worker gateway; never mount a personal store here.
+"""Fixed-route worker gateway; never mount a personal store here.
 
 The worker listener exposes only two capability POSTs and local health. The
 controller listener owns pairing/run authority with a separate credential.
@@ -13,6 +13,7 @@ import re
 import select
 import secrets
 import socket
+import sys
 from socketserver import ThreadingMixIn
 import threading
 import time
@@ -21,6 +22,8 @@ from urllib.parse import urlsplit
 MAIN_ORIGIN = 'http://kingfisher-controller:8892'
 WORKER_ORIGIN = 'http://kingfisher-worker:3001'
 MODEL = 'kingfisher-qwen3.5:9b-8k'
+CONTROLLED_MODE = 'controlled-local-readonly-v1'
+INSTANCE = re.compile(r'[a-f0-9]{64}\Z')
 KEY = re.compile(r'[A-Za-z0-9_-]{43}\Z')
 MAX_HEADERS = 8192
 MAX_REQUEST = 32768
@@ -81,20 +84,44 @@ def close_socket(connection):
 
 class Gateway:
     def __init__(self, control_key, *, main_origin=MAIN_ORIGIN, worker_origin=WORKER_ORIGIN,
-                 timeout=115, request_timeout=120, max_handlers=8):
+                 timeout=115, request_timeout=120, max_handlers=8, mode=None):
+        if mode not in {None, CONTROLLED_MODE}:
+            raise ValueError('unsupported runtime mode')
         if not isinstance(control_key, str) or not KEY.fullmatch(control_key):
             raise ValueError('controller credential required')
         if not 0 < timeout <= 115 or not 0 < request_timeout <= 120 or not 1 <= max_handlers <= 8:
             raise ValueError('invalid gateway limits')
         self._control_key = control_key
+        self._controlled = mode == CONTROLLED_MODE
+        # A controller-visible generation belongs to this gateway process and
+        # becomes usable only after the exact worker generation is pinned.
+        self._instance = secrets.token_hex(32) if self._controlled else None
         self._main = self._origin(main_origin)
         self._worker = self._origin(worker_origin)
         self.timeout, self.request_timeout = timeout, request_timeout
         self.capacity = threading.BoundedSemaphore(max_handlers)
         self._lock = threading.Lock()
         self._worker_key = None
+        self._worker_instance = None
         self._initializing = False
         self._restart_required = False
+
+    def metadata(self):
+        return dict(mode=CONTROLLED_MODE, model=MODEL, syntheticOnly=False,
+                    osIsolationVerified=False, instance=self._instance)
+
+    @staticmethod
+    def worker_contract(value, status, *, instance=None, result=False):
+        fields = {'status', 'mode', 'model', 'syntheticOnly', 'osIsolationVerified', 'instance'}
+        if result: fields.add('text')
+        return (set(value) == fields and value.get('status') == status
+                and value.get('mode') == CONTROLLED_MODE and value.get('model') == MODEL
+                and value.get('syntheticOnly') is False and value.get('osIsolationVerified') is False
+                and isinstance(value.get('instance'), str) and INSTANCE.fullmatch(value['instance']) is not None
+                and (instance is None or value['instance'] == instance))
+
+    def revoke_pair(self):
+        with self._lock: self._restart_required = True
 
     @staticmethod
     def _origin(origin):
@@ -169,13 +196,23 @@ class Gateway:
             self._initializing = True
         candidate = secrets.token_urlsafe(32)
         try:
-            _, _, content = self.upstream('worker', 'POST', '/init', json.dumps({'key': candidate}).encode(), cancel_socket=cancel_socket)
-            if parse_object(content) != {'status': 'initialized'}: raise Rejected(502, 'UpstreamFailed')
-            with self._lock: self._worker_key = candidate
+            setup = {'key': candidate}
+            if self._controlled: setup['mode'] = CONTROLLED_MODE
+            _, _, content = self.upstream('worker', 'POST', '/init', json.dumps(setup).encode(), cancel_socket=cancel_socket)
+            value = parse_object(content)
+            if self._controlled:
+                if not self.worker_contract(value, 'initialized'): raise Rejected(502, 'UpstreamFailed')
+                _, _, current = self.upstream('worker', 'GET', '/health', cancel_socket=cancel_socket)
+                if not self.worker_contract(parse_object(current), 'ok', instance=value['instance']):
+                    raise Rejected(502, 'UpstreamFailed')
+            elif value != {'status': 'initialized'}: raise Rejected(502, 'UpstreamFailed')
+            with self._lock:
+                self._worker_key = candidate
+                if self._controlled: self._worker_instance = value['instance']
         except Rejected:
             # Even a lost reply may mean the worker accepted the key. Never retry
             # or adopt an existing worker: pair both processes again after restart.
-            with self._lock: self._restart_required = True
+            self.revoke_pair()
             raise
         finally:
             with self._lock: self._initializing = False
@@ -185,10 +222,27 @@ class Gateway:
         with self._lock:
             if self._restart_required: return 503, {'status': 'restart_required'}
             if self._worker_key is None: return 503, {'status': 'awaiting_controller'}
+            instance = self._worker_instance
         try:
             _, _, content = self.upstream('worker', 'GET', '/health', cancel_socket=cancel_socket)
-            status = parse_object(content).get('status')
         except Rejected: return 503, {'status': 'worker_unavailable'}
+        try:
+            value = parse_object(content)
+        except Rejected:
+            # A successful transport with an invalid controlled envelope is a
+            # broken pairing contract, not a transient upstream outage.
+            if self._controlled:
+                self.revoke_pair()
+                return 503, {'status': 'restart_required'}
+            return 503, {'status': 'worker_unavailable'}
+        if self._controlled:
+            if not self.worker_contract(value, 'ok', instance=instance):
+                self.revoke_pair()
+                return 503, {'status': 'restart_required'}
+            with self._lock:
+                if self._restart_required: return 503, {'status': 'restart_required'}
+            return 200, dict(status='ok', **self.metadata())
+        status = value.get('status')
         if status == 'ok': return 200, {'status': 'ok'}
         return 503, {'status': 'restart_required' if status == 'restart_required' else 'worker_unavailable'}
 
@@ -197,14 +251,31 @@ class Gateway:
                 or not value['request'].strip() or len(value['request']) > 1200
                 or not isinstance(value['token'], str) or not KEY.fullmatch(value['token'])):
             raise Rejected(400, 'InvalidRequest')
-        with self._lock: key = self._worker_key
+        with self._lock:
+            key, instance, revoked = self._worker_key, self._worker_instance, self._restart_required
+        if self._controlled and revoked: raise Rejected(503, 'WorkerNeedsRestart')
         if key is None: raise Rejected(503, 'AwaitingController')
+        if self._controlled:
+            code, _ = self.health(cancel_socket)
+            if code != 200: raise Rejected(503, 'WorkerUnavailable')
         _, _, content = self.upstream('worker', 'POST', '/run', raw, key, cancel_socket)
         try: result = parse_object(content)
-        except Rejected: raise Rejected(502, 'WorkerFailed') from None
+        except Rejected:
+            if self._controlled: self.revoke_pair()
+            raise Rejected(502, 'WorkerFailed') from None
         if (result.get('status') != 'complete' or not isinstance(result.get('text'), str)
                 or not result['text'].strip() or len(result['text']) > 32000):
+            if self._controlled: self.revoke_pair()
             raise Rejected(502, 'WorkerFailed')
+        if self._controlled:
+            if not self.worker_contract(result, 'complete', instance=instance, result=True):
+                self.revoke_pair()
+                raise Rejected(502, 'WorkerFailed')
+            # A replacement after completion also withholds old text. Health
+            # never silently adopts a new worker generation under an old grant.
+            code, _ = self.health(cancel_socket)
+            if code != 200: raise Rejected(502, 'WorkerFailed')
+            return dict(status='complete', text=result['text'], **self.metadata())
         return {'status': 'complete', 'text': result['text'], 'syntheticOnly': True}
 
 
@@ -334,8 +405,12 @@ def make_server(address, gateway, *, role):
     return server
 
 
-def main():
-    try: gateway = Gateway(os.environ.get('KF_GATEWAY_CONTROL_KEY', ''))
+def main(argv=None):
+    args = sys.argv[1:] if argv is None else argv
+    if args not in ([], ['--' + CONTROLLED_MODE]):
+        raise SystemExit('unsupported runtime mode')
+    try: gateway = Gateway(os.environ.get('KF_GATEWAY_CONTROL_KEY', ''),
+                           mode=CONTROLLED_MODE if args else None)
     except ValueError:
         raise SystemExit('controller credential required') from None
     worker = make_server(('0.0.0.0', 8890), gateway, role='worker')

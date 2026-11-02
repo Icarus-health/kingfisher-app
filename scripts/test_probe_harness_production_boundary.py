@@ -29,6 +29,39 @@ def test_complete_receipt_passes():
     assert all(boundary_checks(receipt()).values())
 
 
+def controlled_receipt():
+    report=receipt();report['runtime_mode']='controlled-local-readonly-v1'
+    report['controlled_health']=[dict(status='ok',mode='controlled-local-readonly-v1',
+        model='kingfisher-qwen3.5:9b-8k',syntheticOnly=False,osIsolationVerified=False,instance='a'*64)
+        for _ in range(4)]
+    return report
+
+
+def test_controlled_mode_receipt_still_requires_artificial_inference_and_current_pair():
+    assert all(boundary_checks(controlled_receipt()).values())
+    report=controlled_receipt();report['controlled_health'][1]['instance']='b'*64
+    assert not all(boundary_checks(report).values())
+
+
+@pytest.mark.parametrize('change',[
+    lambda r:r.update(runtime_mode='other'),
+    lambda r:r.pop('controlled_health'),
+    lambda r:r['controlled_health'].pop(),
+    lambda r:r['controlled_health'][0].update(syntheticOnly=True),
+    lambda r:r['controlled_health'][0].update(osIsolationVerified=True),
+    lambda r:r['controlled_health'][0].update(model='cloud'),
+    lambda r:r['controlled_health'][0].update(status='awaiting_controller'),
+    lambda r:r['controlled_health'][0].update(instance='not-a-generation'),
+    lambda r:r['controlled_health'][0].update(extra='unexpected'),
+    lambda r:r.update(live_semantic_verified=True),
+    lambda r:r.update(injected_model_only=False),
+    lambda r:r.update(synthetic_only=False),
+])
+def test_unverified_controlled_mode_receipt_fails(change):
+    report=controlled_receipt();change(report)
+    assert not all(boundary_checks(report).values())
+
+
 def test_explicit_dns_refusal_is_still_a_denial_not_an_address():
     report=receipt();report['negatives']['main_dns']='ESERVFAIL'
     assert all(boundary_checks(report).values())

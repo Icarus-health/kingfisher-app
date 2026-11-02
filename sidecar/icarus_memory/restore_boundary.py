@@ -11,6 +11,7 @@ from pathlib import Path
 import asyncio
 import json
 import os
+import re
 import threading
 import time
 import uuid
@@ -106,19 +107,64 @@ def guarded(function):
 
 
 class RecoveryBoundaryMiddleware:
-    def __init__(self, app, boundary, inspection):
+    def __init__(self, app, boundary, inspection, before_exclusive=None, module_authorized=None):
         self.app, self.boundary, self.inspection = app, boundary, inspection
+        self.before_exclusive, self.module_authorized = before_exclusive, module_authorized
 
     async def __call__(self, scope, receive, send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
+        method, path = scope['method'], scope['path']
+        administrative = (method, path) in {
+            ('GET', '/api/v1/modules/local-source/runtime/status'),
+            ('POST', '/api/v1/modules/local-source/runtime/shutdown'),
+        } or (method == 'POST' and re.fullmatch(
+            r'/api/v1/modules/local-source/runs/[a-f0-9]{32}/cancel', path))
+        if administrative:
+            # Only these exact guarded routes bypass an exclusive/inspection
+            # lease. Their own normal authentication and closed JSON remain.
+            return await self.app(scope, receive, send)
         if pending(self.boundary.directory):
             return await self.inspection(scope, receive, send)
         exclusive = scope['path'] == '/backups/restore' and scope['method'] == 'POST'
+        if exclusive and self.before_exclusive is not None:
+            recorded = []
+            recorded_bytes = 0
+            upstream_receive = receive
+            async def record():
+                nonlocal recorded_bytes
+                if len(recorded) >= 256:
+                    raise ValueError('restore preflight frames exceeded')
+                message = await upstream_receive()
+                recorded_bytes += len(message.get('body', b''))
+                # The preflight rejects oversize bodies immediately. Do not
+                # retain an oversized frame just to replay a rejected request.
+                if recorded_bytes <= 8192:
+                    recorded.append(message)
+                return message
+            response = await self.before_exclusive(scope, record)
+            if response is not None:
+                return await response(scope, upstream_receive, send)
+            async def replay():
+                return recorded.pop(0) if recorded else await upstream_receive()
+            receive = replay
         # Do not occupy a worker thread while waiting for requests/jobs to drain.
         while not self.boundary.try_enter(exclusive=exclusive):
             if pending(self.boundary.directory):
                 return await self.inspection(scope, receive, send)
+            module_work = (method, path) in {
+                ('GET', '/api/v1/modules/local-source/status'),
+                ('POST', '/api/v1/modules/local-source/prepare'),
+                ('POST', '/api/v1/modules/local-source/start'),
+                ('POST', '/api/v1/modules/local-source/runtime/initialize'),
+            } or (method == 'GET' and re.fullmatch(r'/api/v1/modules/local-source/runs/[a-f0-9]{32}', path))
+            if module_work and self.module_authorized is not None:
+                from fastapi.responses import JSONResponse
+                allowed = self.module_authorized(scope)
+                response = JSONResponse({'detail': {
+                    'code': 'Unavailable', 'message': 'Die lokale Prüfung ist noch nicht bereit.'}}, status_code=503) if allowed else JSONResponse(
+                        {'detail': 'Ungültiges Token'}, status_code=401)
+                return await response(scope, receive, send)
             await asyncio.sleep(.01)
         token = _active.set(_active.get() | {id(self.boundary)})
         try:

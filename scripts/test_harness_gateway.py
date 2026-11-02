@@ -18,6 +18,7 @@ GRANT = 't' * 43
 RUN = {'request': 'Where is the artificial card?', 'token': GRANT}
 MCP = {'jsonrpc': '2.0', 'id': 1, 'method': 'ping'}
 CHAT = {'model': 'kingfisher-qwen3.5:9b-8k', 'messages': [{'role': 'user', 'content': 'Artificial'}], 'stream': True}
+CONTROLLED = 'controlled-local-readonly-v1'
 
 
 def request(port, path, *, method='POST', value=None, raw=None, headers=None):
@@ -71,6 +72,48 @@ class Upstream:
             if handler.headers.get('Authorization') != 'Bearer ' + str(self.worker_key): return 401, {}, b'{}'
             return 200, {'Set-Cookie': 'master=secret'}, b'{"status":"complete","text":"Artificial done","private":"hidden"}'
         return 200, {'Set-Cookie': 'master=secret', 'X-Private': 'hidden'}, b'{"jsonrpc":"2.0","id":1,"result":{}}'
+
+
+class ControlledUpstream(Upstream):
+    """Artificial inference only; actual gateway transport and binding remain real."""
+    def __init__(self):
+        super().__init__()
+        self.instance = 'a' * 64
+        self.contract = dict(mode=CONTROLLED, model='kingfisher-qwen3.5:9b-8k',
+                             syntheticOnly=False, osIsolationVerified=False)
+        self.run_change = None
+        self.init_change = None
+        self.health_raw = None
+
+    def callback(self, handler, body):
+        if self.mode != 'ok':
+            return super().callback(handler, body)
+        self.calls.append((handler.command, handler.path, dict(handler.headers), body))
+        self.entered.set()
+        if handler.path == '/init':
+            if self.worker_key is not None:
+                return 409, {}, b'{}'
+            value = json.loads(body)
+            if set(value) != {'key', 'mode'} or value['mode'] != CONTROLLED:
+                return 400, {}, b'{}'
+            self.worker_key = value['key']
+            result = dict(status='initialized', instance=self.instance, **self.contract)
+            if self.init_change is not None:
+                self.init_change(result)
+            return 200, {}, json.dumps(result).encode()
+        if handler.path == '/health':
+            if self.health_raw is not None:
+                return 200, {}, self.health_raw
+            return 200, {}, json.dumps(dict(status='ok' if self.worker_key else 'awaiting_controller',
+                                            instance=self.instance, **self.contract)).encode()
+        if handler.path == '/run':
+            if handler.headers.get('Authorization') != 'Bearer ' + str(self.worker_key):
+                return 401, {}, b'{}'
+            value = dict(status='complete', text='Artificial controlled draft', instance=self.instance, **self.contract)
+            if self.run_change is not None:
+                self.run_change(value)
+            return 200, {}, json.dumps(value).encode()
+        return 404, {}, b'{}'
 
 
 @contextlib.contextmanager
@@ -347,6 +390,142 @@ class GatewayTests(unittest.TestCase):
         for key in ['', 'short', '!' * 43]:
             with self.assertRaisesRegex(ValueError, '^controller credential required$'):
                 self.module.Gateway(key)
+
+    def controlled_gateway(self, **kwargs):
+        self.worker = ControlledUpstream()
+        self.worker_origin = self.stack.enter_context(upstream_server(self.worker))
+        self.start_gateway(mode=CONTROLLED, **kwargs)
+
+    def test_controlled_init_health_and_result_bind_one_opaque_current_pair(self):
+        self.controlled_gateway()
+        self.assertEqual(self.control('health', method='GET')[0], 503)
+        self.initialize()
+        code, _, raw = self.control('health', method='GET')
+        health = json.loads(raw)
+        self.assertEqual(code, 200)
+        self.assertEqual(health['status'], 'ok')
+        self.assertRegex(health['instance'], r'^[a-f0-9]{64}$')
+        self.assertNotEqual(health['instance'], self.worker.instance)
+        self.assertEqual({k: health[k] for k in self.worker.contract}, self.worker.contract)
+        code, _, raw = self.control('run', value=RUN)
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(raw), {**health, 'status': 'complete', 'text': 'Artificial controlled draft'})
+        self.assertEqual(json.loads(self.worker.calls[0][3]), {'key': self.worker.worker_key, 'mode': CONTROLLED})
+        self.assertNotIn(CONTROL.encode(), raw)
+        self.assertNotIn(self.worker.worker_key.encode(), raw)
+        self.assertEqual(self.control('initialize', value={})[0], 409)
+
+    def test_controlled_gateway_will_not_initialize_or_adopt_synthetic_worker(self):
+        self.start_gateway(mode=CONTROLLED)
+        self.assertEqual(self.control('initialize', value={})[0], 502)
+        self.assertEqual(self.control('initialize', value={})[0], 409)
+        self.assertEqual(self.control('health', method='GET')[0], 503)
+        self.assertEqual(self.control('run', value=RUN)[0], 503)
+        self.assertEqual(sum(c[1] == '/init' for c in self.worker.calls), 1)
+
+    def test_synthetic_gateway_cannot_adopt_controlled_worker(self):
+        self.controlled_gateway()
+        self.start_gateway()
+        self.assertEqual(self.control('initialize', value={})[0], 400)
+        self.assertEqual(self.control('initialize', value={})[0], 409)
+        self.assertEqual(sum(c[1] == '/init' for c in self.worker.calls), 1)
+
+    def test_controlled_worker_restart_latches_pair_revocation_without_adoption(self):
+        self.controlled_gateway(); self.initialize()
+        self.worker.instance = 'b' * 64
+        self.worker.worker_key = None
+        code, _, body = self.control('health', method='GET')
+        self.assertEqual(code, 503); self.assertEqual(json.loads(body), {'status': 'restart_required'})
+        self.assertEqual(self.control('run', value=RUN)[0], 503)
+        self.assertEqual(self.control('initialize', value={})[0], 409)
+        self.assertEqual(sum(c[1] == '/run' for c in self.worker.calls), 0)
+        # Even restoring an old health response cannot resurrect a revoked pair.
+        self.worker.instance = 'a' * 64; self.worker.worker_key = 'k' * 43
+        self.assertEqual(self.control('health', method='GET')[0], 503)
+
+    def test_controlled_init_cannot_accept_a_generation_that_already_restarted(self):
+        self.controlled_gateway()
+        self.worker.init_change = lambda _row: setattr(self.worker, 'instance', 'b' * 64)
+        self.assertEqual(self.control('initialize', value={})[0], 502)
+        self.assertEqual(self.control('health', method='GET')[0], 503)
+        self.assertEqual(self.control('initialize', value={})[0], 409)
+        self.assertEqual(self.control('run', value=RUN)[0], 503)
+        self.assertEqual(sum(c[1] == '/init' for c in self.worker.calls), 1)
+
+    def test_controlled_malformed_successful_health_permanently_revokes_pair(self):
+        for raw in [b'not-json', b'{"status":"ok","status":"ok"}', b'[]']:
+            with self.subTest(raw=raw):
+                self.controlled_gateway(); self.initialize()
+                self.assertEqual(self.control('health', method='GET')[0], 200)
+                self.worker.health_raw = raw
+                code, _, body = self.control('health', method='GET')
+                self.assertEqual(code, 503); self.assertEqual(json.loads(body), {'status': 'restart_required'})
+                self.worker.health_raw = None
+                self.assertEqual(self.control('health', method='GET')[0], 503)
+                self.assertEqual(self.control('run', value=RUN)[0], 503)
+                self.assertEqual(self.control('initialize', value={})[0], 409)
+                self.assertEqual(sum(c[1] == '/run' for c in self.worker.calls), 0)
+
+    def test_controlled_transient_transport_unavailability_does_not_change_current_pair(self):
+        self.controlled_gateway(); self.initialize()
+        before = json.loads(self.control('health', method='GET')[2])
+        self.worker.mode = 'failure'
+        self.assertEqual(self.control('health', method='GET')[0], 503)
+        self.worker.mode = 'ok'
+        code, _, body = self.control('health', method='GET')
+        self.assertEqual(code, 200); self.assertEqual(json.loads(body), before)
+
+    def test_controlled_gateway_restart_cannot_reuse_existing_worker_generation(self):
+        self.controlled_gateway(); self.initialize()
+        original = json.loads(self.control('health', method='GET')[2])['instance']
+        self.start_gateway(mode=CONTROLLED)
+        self.assertEqual(self.control('run', value=RUN)[0], 503)
+        self.assertEqual(self.control('initialize', value={})[0], 409)
+        self.worker.worker_key = None; self.worker.instance = 'b' * 64
+        self.start_gateway(mode=CONTROLLED); self.initialize()
+        current = json.loads(self.control('health', method='GET')[2])['instance']
+        self.assertNotEqual(original, current)
+
+    def test_controlled_result_mismatch_or_changed_worker_after_result_withholds_text(self):
+        mutations = [lambda row: row.update(mode='synthetic'), lambda row: row.update(model='cloud'),
+                     lambda row: row.update(syntheticOnly=True), lambda row: row.update(instance='b' * 64),
+                     lambda row: row.update(private='unexpected'), lambda row: row.update(osIsolationVerified=True),
+                     lambda row: setattr(self.worker, 'instance', 'b' * 64)]
+        for change in mutations:
+            with self.subTest(change=change):
+                self.controlled_gateway(); self.initialize(); self.worker.run_change = change
+                code, _, raw = self.control('run', value=RUN)
+                self.assertEqual(code, 502); self.assertNotIn(b'Artificial controlled draft', raw)
+                self.assertEqual(self.control('health', method='GET')[0], 503)
+                self.assertEqual(self.control('run', value=RUN)[0], 503)
+
+    def test_controlled_unknown_request_and_setup_fields_fail_before_worker_call(self):
+        with self.assertRaisesRegex(ValueError, '^unsupported runtime mode$'):
+            self.module.Gateway(CONTROL, mode='other')
+        self.controlled_gateway(); self.initialize(); count = len(self.worker.calls)
+        for extra in [dict(mode=CONTROLLED), dict(instance='a' * 64), dict(syntheticOnly=False), dict(origin=self.worker_origin)]:
+            self.assertEqual(self.control('run', value={**RUN, **extra})[0], 400)
+        self.assertEqual(self.control('initialize', value={'mode': CONTROLLED})[0], 400)
+        self.assertEqual(len(self.worker.calls), count)
+        for args in [['--model', 'cloud'], ['--' + CONTROLLED, '--origin', 'http://other']]:
+            with self.assertRaisesRegex(SystemExit, '^unsupported runtime mode$'):
+                self.module.main(args)
+
+    def test_controlled_disconnect_keeps_existing_captured_socket_cancellation(self):
+        self.controlled_gateway(); self.initialize()
+        self.worker.mode = 'disconnect'; self.worker.entered.clear()
+        # The next transport is preflight health; disconnecting it must still
+        # close the socket captured before HTTPResponse detaches it.
+        connection = socket.create_connection(('127.0.0.1', self.controller_port), timeout=2)
+        raw = json.dumps(RUN).encode()
+        try:
+            connection.sendall(b'POST /controller/run HTTP/1.1\r\nHost: local\r\nAuthorization: Bearer '
+                + CONTROL.encode() + b'\r\nContent-Type: application/json\r\nContent-Length: '
+                + str(len(raw)).encode() + b'\r\n\r\n' + raw)
+            self.assertTrue(self.worker.entered.wait(2))
+        finally:
+            connection.close()
+        self.assertTrue(self.worker.disconnected.wait(.8))
 
 
 if __name__ == '__main__': unittest.main()

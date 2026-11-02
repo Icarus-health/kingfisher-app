@@ -34,7 +34,7 @@ import os
 import sys
 import threading
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -168,6 +168,8 @@ class ModellAmpel:
         self._bedingung = threading.Condition()
         self._vorne = 0
         self._hinten = 0
+        self._reserviert = False
+        self._reservierung = threading.local()
         self.parallel: Callable[[], bool] = lambda: False
 
     def _darf_parallel(self) -> bool:
@@ -180,7 +182,7 @@ class ModellAmpel:
     def vordergrund(self) -> Iterator[None]:
         with self._bedingung:
             self._vorne += 1
-            while self._hinten and not self._darf_parallel():
+            while self._reserviert or (self._hinten and not self._darf_parallel()):
                 self._bedingung.wait(0.25)
         try:
             yield
@@ -199,7 +201,7 @@ class ModellAmpel:
                     raise BackgroundInterrupted('stopped')
                 # Check energy even while another request occupies the model.
                 gesperrt = sperre is not None and _gesperrt(sperre)
-                if not (self._hinten or (self._vorne and not self._darf_parallel()) or gesperrt):
+                if not (self._reserviert or self._hinten or (self._vorne and not self._darf_parallel()) or gesperrt):
                     break
                 self._bedingung.wait(0.25)
             self._hinten += 1
@@ -212,7 +214,33 @@ class ModellAmpel:
 
     def aufruf(self):
         """Der passende Weg für den laufenden Faden."""
+        if getattr(self._reservierung, 'eigen', False):
+            return nullcontext()
         return self.hintergrund() if im_hintergrund() else self.vordergrund()
+
+    @contextmanager
+    def try_vordergrund(self) -> Iterator[bool]:
+        """Reserve one idle gate atomically; module work never queues here.
+
+        Only this owning thread's nested `aufruf()` reuses the permit. Existing
+        foreground/background parallel policy is unchanged without this explicit
+        reservation; while reserved, no other model caller enters alongside it.
+        """
+        with self._bedingung:
+            acquired = not (self._vorne or self._hinten or self._reserviert)
+            if acquired:
+                self._vorne += 1
+                self._reserviert = True
+                self._reservierung.eigen = True
+        try:
+            yield acquired
+        finally:
+            if acquired:
+                with self._bedingung:
+                    self._reservierung.eigen = False
+                    self._reserviert = False
+                    self._vorne -= 1
+                    self._bedingung.notify_all()
 
     def belegt(self) -> dict[str, int]:
         with self._bedingung:

@@ -14,6 +14,8 @@ import time
 
 from probe_harness_isolation import NETWORK_CHECK, isolation_checks
 
+CONTROLLED_MODE='controlled-local-readonly-v1'
+
 
 def boundary_checks(report):
     """Do not trust a producer's status/claim or a missing OS receipt."""
@@ -22,6 +24,18 @@ def boundary_checks(report):
         cases={row['case']:row for row in report['cases']}
         baseline=cases['baseline']
         exact=lambda values:all(value is True for value in values)
+        mode=report.get('runtime_mode','synthetic-only')
+        contract=mode=='synthetic-only'
+        if mode==CONTROLLED_MODE:
+            health=report['controlled_health']
+            fields={'status','mode','model','syntheticOnly','osIsolationVerified','instance'}
+            contract=(isinstance(health,list) and len(health)==4
+                and all(isinstance(row,dict) and set(row)==fields and row['status']=='ok'
+                    and row['mode']==CONTROLLED_MODE and row['model']=='kingfisher-qwen3.5:9b-8k'
+                    and row['syntheticOnly'] is False and row['osIsolationVerified'] is False
+                    and isinstance(row['instance'],str) and re.fullmatch(r'[a-f0-9]{64}',row['instance'])
+                    for row in health)
+                and len({row['instance'] for row in health})==1)
         return dict(synthetic=(report['synthetic_only'] is True
                     and report['personal_store_opened'] is False
                     and type(report['paid_calls']) is int and report['paid_calls']==0
@@ -48,7 +62,8 @@ def boundary_checks(report):
                     for name in ('cancel','source_revoked')),
             memory_reserve=type(report['sampled_max_mac_pressure']) is int
                 and 0<report['sampled_max_mac_pressure']<=2,
-            cleanup=report['cleanup_verified'] is True and not report.get('cleanup_pending'))
+            cleanup=report['cleanup_verified'] is True and not report.get('cleanup_pending'),
+            runtime_contract=contract)
     except (KeyError,TypeError,ValueError,AttributeError):
         return dict(complete=False)
 
@@ -58,6 +73,8 @@ def main(argv=None):
     parser.add_argument('--runtime',required=True,help='Existing public Linux Node/SDK directory shared with Colima')
     parser.add_argument('--image',required=True,help='Existing immutable image; no pull or build')
     parser.add_argument('--output',required=True)
+    parser.add_argument('--controlled',action='store_true',
+        help='Use the fixed controlled daemons with artificial stores and injected inference; no live semantic proof')
     args=parser.parse_args(argv)
     if not re.fullmatch(r'sha256:[0-9a-f]{64}',args.image):raise ValueError('Immutable image required')
     runtime=Path(args.runtime).resolve();root=Path(__file__).resolve().parents[1]
@@ -68,7 +85,10 @@ def main(argv=None):
         raise ValueError('Pinned public runtime missing')
     output=Path(args.output)
     report=dict(status='running',synthetic_only=True,personal_store_opened=False,paid_calls=0,
-                injected_model_only=True,live_semantic_verified=False,cases=[])
+                injected_model_only=True,live_semantic_verified=False,cases=[],
+                runtime_mode=CONTROLLED_MODE if args.controlled else 'synthetic-only')
+    mode_args=['--'+CONTROLLED_MODE] if args.controlled else []
+    if args.controlled:report['controlled_health']=[]
     with output.open('x') as stream:json.dump(report,stream)
     def save():
         partial=output.with_suffix(output.suffix+'.partial')
@@ -105,7 +125,7 @@ with httpx.Client(timeout=120,trust_env=False,follow_redirects=False) as c:
                         dirs_exist_ok=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
         shutil.copy2(root/'integrations/harness/production_boundary_controller.py',runtime/'gateway')
         report['code_sha256']={name:hashlib.sha256((runtime/name).read_bytes()).hexdigest()
-            for name in ('harness_service.mjs','harness_gateway.py','package-lock.json')}
+            for name in ('harness_service.mjs','harness_worker.mjs','harness_run.mjs','harness_gateway.py','package-lock.json')}
         control_net=docker('network','create','--internal','--label',label,'kf-boundary-main-'+nonce);networks.append(control_net)
         worker_net=docker('network','create','--internal','--label',label,'kf-boundary-worker-'+nonce);networks.append(worker_net)
         with tempfile.TemporaryDirectory(prefix='kf-boundary-artificial-env-') as temp:
@@ -127,11 +147,11 @@ with httpx.Client(timeout=120,trust_env=False,follow_redirects=False) as c:
                 '--lifespan','off','--no-access-log','--log-level','warning');containers.append(main_id)
             proxy_id=docker('create','--name','kf-boundary-proxy-'+nonce,'--network',control_net,
                 '--network-alias','kingfisher-gateway-control','--memory','64m','--cpus','0.25','--pids-limit','32',
-                '--env-file',str(proxy_env),*common,'--entrypoint','python',args.image,'/runtime/harness_gateway.py');containers.append(proxy_id)
+                '--env-file',str(proxy_env),*common,'--entrypoint','python',args.image,'/runtime/harness_gateway.py',*mode_args);containers.append(proxy_id)
             docker('network','connect','--alias','kingfisher-gateway',worker_net,proxy_id)
             worker_id=docker('create','--name','kf-boundary-worker-'+nonce,'--network',worker_net,
                 '--network-alias','kingfisher-worker','--memory','512m','--cpus','0.75','--pids-limit','64',
-                *common,'--entrypoint','/runtime/bin/node',args.image,'/runtime/harness_service.mjs');containers.append(worker_id)
+                *common,'--entrypoint','/runtime/bin/node',args.image,'/runtime/harness_service.mjs',*mode_args);containers.append(worker_id)
             docker('start',main_id,proxy_id,worker_id)
             def monitor():
                 while not monitor_stop.wait(2):
@@ -200,10 +220,17 @@ with httpx.Client(timeout=10,trust_env=False,follow_redirects=False) as c:
  r=c.post('http://kingfisher-gateway-control:8891/controller/initialize',json={},headers={'Authorization':'Bearer '+os.environ['KF_GATEWAY_CONTROL_KEY']});r.raise_for_status();print(json.dumps(r.json()))
 """
             report['initialize']=execute_json(main_id,initialize)
+            health=r"""import httpx,json,os
+with httpx.Client(timeout=10,trust_env=False,follow_redirects=False) as c:
+ r=c.get('http://kingfisher-gateway-control:8891/controller/health',headers={'Authorization':'Bearer '+os.environ['KF_GATEWAY_CONTROL_KEY']});r.raise_for_status();print(json.dumps(r.json()))
+"""
+            if args.controlled:report['controlled_health'].append(execute_json(main_id,health))
             for case in ('baseline','cancel','source_revoked'):
                 levels.append(pressure())
                 if levels[-1]>2:raise RuntimeError('Memory pressure increased')
-                report['cases'].append(fixture_call('/fixture/pilot?case='+case));save()
+                report['cases'].append(fixture_call('/fixture/pilot?case='+case))
+                if args.controlled:report['controlled_health'].append(execute_json(main_id,health))
+                save()
     except KeyboardInterrupt:report.update(error='KeyboardInterrupt')
     except Exception as exc:report.update(error=type(exc).__name__,operation=str(exc)[:100])
     finally:

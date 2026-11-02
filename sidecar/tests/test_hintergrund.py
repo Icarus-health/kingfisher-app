@@ -407,6 +407,61 @@ def test_ampel_parallel_nur_wenn_der_speicher_reicht():
     assert not speicher_reicht(64, ['qwen3.5:4b', 'unbekannt:1b'])
 
 
+def test_try_vordergrund_reserves_atomically_and_nested_aufruf_counts_once():
+    ampel = ModellAmpel()
+    with ampel.try_vordergrund() as acquired:
+        assert acquired is True
+        assert ampel.belegt() == {'vorne': 1, 'hinten': 0}
+        with ampel.aufruf(), als_hintergrund(), ampel.aufruf():
+            assert ampel.belegt() == {'vorne': 1, 'hinten': 0}
+        with ampel.try_vordergrund() as nested:
+            assert nested is False
+    assert ampel.belegt() == {'vorne': 0, 'hinten': 0}
+
+
+@pytest.mark.parametrize('existing', ['vordergrund', 'hintergrund'])
+def test_try_vordergrund_refuses_any_occupied_gate_even_with_parallel_enabled(existing):
+    ampel = ModellAmpel()
+    ampel.parallel = lambda: True
+    with getattr(ampel, existing)():
+        started = time.monotonic()
+        with ampel.try_vordergrund() as acquired:
+            assert acquired is False
+        assert time.monotonic() - started < .1
+
+
+@pytest.mark.parametrize('other', ['vordergrund', 'hintergrund'])
+def test_reserved_foreground_cannot_be_inherited_by_another_thread(other):
+    ampel = ModellAmpel()
+    ampel.parallel = lambda: True
+    entered, finished = threading.Event(), threading.Event()
+    def perform():
+        with getattr(ampel, other)():
+            entered.set()
+        finished.set()
+    try:
+        with ampel.try_vordergrund() as acquired:
+            assert acquired
+            task = threading.Thread(target=perform)
+            task.start()
+            assert not entered.wait(.1)
+    finally:
+        if 'task' in locals():
+            task.join(2)
+    assert finished.is_set()
+
+
+def test_try_vordergrund_cleans_ownership_and_reservation_after_exception():
+    ampel = ModellAmpel()
+    with pytest.raises(RuntimeError):
+        with ampel.try_vordergrund() as acquired:
+            assert acquired
+            raise RuntimeError('artificial failure')
+    assert ampel.belegt() == {'vorne': 0, 'hinten': 0}
+    with ampel.aufruf():
+        assert ampel.belegt()['vorne'] == 1
+
+
 def test_lokaler_anbieter_geht_ueber_die_ampel(monkeypatch):
     from icarus_memory.providers import OpenAICompatible
 
