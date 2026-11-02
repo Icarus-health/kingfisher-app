@@ -123,9 +123,6 @@ def main(argv=None):
             env = Path(private)/'gateway.env'
             env.write_text('KF_WORKER_SERVICE_KEY='+key+'\nKF_GATEWAY_CONTROL_KEY='+control+'\nPYTHONPATH=/runtime/gateway\n')
             env.chmod(0o600)
-            worker_env = Path(private)/'worker.env'
-            worker_env.write_text('KF_WORKER_SERVICE_KEY='+key+'\n')
-            worker_env.chmod(0o600)
             common = ['--read-only','--user','1000:1000','--cap-drop','ALL','--security-opt','no-new-privileges',
                 '--pids-limit','64','--tmpfs','/tmp:rw,noexec,nosuid,size=64m,uid=1000,gid=1000,mode=700',
                 '--tmpfs','/data:rw,noexec,nosuid,size=64k,mode=000',
@@ -138,7 +135,7 @@ def main(argv=None):
             docker('network','connect','--alias','kingfisher-gateway',internal,gateway)
             worker = docker('create','--name','kf-worker-'+nonce,'--network',internal,
                 '--network-alias','kingfisher-worker','--dns','127.0.0.1','--memory','512m','--cpus','0.75',
-                '--env-file',str(worker_env),*common,'--entrypoint','/runtime/bin/node',args.image,
+                *common,'--entrypoint','/runtime/bin/node',args.image,
                 '/runtime/harness_service.mjs')
             containers.append(worker)
             docker('start',gateway,worker)

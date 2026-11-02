@@ -86,6 +86,9 @@ def pilot(request:Request):
     grant = broker.issue('Wo liegt die Zugangskarte? Bitte mit Quelle.',area='analysis',sources=[source.id])
     try:
         with httpx.Client(timeout=115,trust_env=False,follow_redirects=False) as client:
+            initialized = client.post('http://kingfisher-worker:3001/init',
+                json={'key':os.environ['KF_WORKER_SERVICE_KEY']})
+            initialized.raise_for_status()
             response = client.post('http://kingfisher-worker:3001/run',headers={
                 'Authorization':'Bearer '+os.environ['KF_WORKER_SERVICE_KEY']},
                 json=dict(token=grant['token'],request='Wo liegt die Zugangskarte? Bitte mit Quelle.'))
