@@ -45,6 +45,9 @@ jobs:
       - name: Begrenztes Modul-Gateway und Prüfbelege (nur künstliche Daten)
         run: python -m pytest scripts/test_harness_gateway.py scripts/test_probe_harness_production_boundary.py -q
 
+      - name: Mistral-Quellenprobe ohne Anbieteraufruf
+        run: python -m pytest scripts/test_probe_mistral_source_package.py -q
+
       - name: Messlatte, Rahmenwerk auf der Mini-Welt (kein Modell)
         run: python -m pytest messlatte/tests -q
 

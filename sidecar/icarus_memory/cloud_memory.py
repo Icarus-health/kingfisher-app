@@ -20,6 +20,8 @@ from .source_processing_policy import ExplicitSourcePolicy, ScopedProvider as _S
 from .working_memory_analysis import UnsupportedSource, abschnitte_der, interpret_abschnitt
 from .working_memory_store import WorkingMemoryStore, source_fingerprint
 from .mail_filter import Decision
+from .cloud_credentials import MISTRAL_IMPORT_MODEL
+from .cloud_import_budget import MistralBudgetError
 
 MAX_SOURCES = 100
 MAX_BULK_SOURCES = 1000
@@ -38,7 +40,7 @@ class CloudMemoryError(ValueError):
 class CloudMemoryJobs:
     def __init__(self, episodes, database: Path, provider_factory, grant_status,
                  permission_lock=None, runtime_boundary=None, *, api_provider_factory=None, credential_status=None,
-                 source_screen=None):
+                 source_screen=None, mistral_budget=None):
         self.episodes = episodes
         self.memory = WorkingMemoryStore(episodes)
         self.categories = Categories(episodes)
@@ -49,6 +51,7 @@ class CloudMemoryJobs:
         self.api_provider_factory = api_provider_factory
         self.credential_status = credential_status
         self.source_screen = source_screen
+        self._mistral_budget = mistral_budget
         self.permission_lock = permission_lock or threading.RLock()
         self._runtime_boundary = runtime_boundary
         self.lock = threading.RLock()
@@ -84,6 +87,9 @@ class CloudMemoryJobs:
                     db.execute(f"ALTER TABLE {table} ADD COLUMN provider TEXT NOT NULL DEFAULT 'chatgpt'")
                 if "credential_revision" not in existing:
                     db.execute(f"ALTER TABLE {table} ADD COLUMN credential_revision TEXT")
+                for field, kind in (("budget_id", "TEXT"), ("budget_revision", "INTEGER"), ("price_id", "TEXT")):
+                    if field not in existing:
+                        db.execute(f"ALTER TABLE {table} ADD COLUMN {field} {kind}")
             if 'request_limit' not in columns:
                 db.execute('ALTER TABLE cloud_memory_jobs ADD COLUMN request_limit INTEGER')
             # Recovery never resumes unattended; the user must press Resume.
@@ -140,7 +146,7 @@ class CloudMemoryJobs:
 
     @staticmethod
     def _check_provider(identifier):
-        if identifier not in {"chatgpt", "anthropic"}:
+        if identifier not in {"chatgpt", "anthropic", "mistral"}:
             raise CloudMemoryError("Dieser Anbieter ist für Cloud-Einordnung nicht freigegeben.")
 
     def _credential(self, identifier):
@@ -151,12 +157,56 @@ class CloudMemoryJobs:
         value = self.credential_status(identifier) if callable(self.credential_status) else {}
         return value if isinstance(value, dict) else {}
 
-    def _build_provider(self, identifier, model):
+    def _build_provider(self, identifier, model, *, job_id=None, binding=None):
         if identifier == "chatgpt":
             return self.provider_factory(model)
         if not callable(self.api_provider_factory):
             raise CloudMemoryError("Der API-Zugang ist nicht vorbereitet.")
+        if identifier == "mistral":
+            if not job_id or not binding or model != MISTRAL_IMPORT_MODEL:
+                raise CloudMemoryError("Der Mistral-Auftrag ist nicht vollständig freigegeben.")
+            return self.api_provider_factory(identifier, model, job_id=job_id,
+                budget_id=binding["budget_id"], budget_revision=binding["budget_revision"], price_id=binding["price_id"])
         return self.api_provider_factory(identifier, model)
+
+    @property
+    def mistral_budget(self):
+        # Route injection is lazy so an unused/unavailable Mistral ledger does
+        # not affect the existing ChatGPT and Anthropic package paths.
+        value = self._mistral_budget
+        return value() if callable(value) else value
+
+    def _budget_status(self):
+        budget = self.mistral_budget
+        if budget is None:
+            raise CloudMemoryError("Das Mistral-Quellenbudget ist nicht verfügbar.")
+        return budget.status()
+
+    def _budget_current(self, binding, *, admission=False):
+        if (not binding.get("budget_id") or not binding.get("price_id")
+                or type(binding.get("budget_revision")) is not int):
+            return False
+        try:
+            budget = self.mistral_budget
+            if budget is None or not budget.matches(binding["budget_id"], binding["budget_revision"], binding["price_id"]):
+                return False
+            # An adapter's own reserved/dispatched request remains permitted.
+            # Readiness gates construction only, never its in-flight callback.
+            return not admission or budget.status().get("ready") is True
+        except MistralBudgetError:
+            return False
+
+    def _job_budget_status(self, job):
+        if job["provider"] != "mistral":
+            return {}
+        result = {key: job[key] for key in ("budget_id", "budget_revision", "price_id")}
+        try:
+            result["budget"] = self._budget_status()
+        except (CloudMemoryError, MistralBudgetError):
+            # Reading/revoking an existing package must remain possible when
+            # budget storage is unavailable. The global budget route fails closed.
+            pass
+        return result
 
     def _identity_current(self, job, provider):
         identifier = job["provider"]
@@ -164,6 +214,8 @@ class CloudMemoryJobs:
                 or getattr(provider, "model", None) != job["model"]
                 or getattr(provider, "is_local", True)
                 or not getattr(provider, "is_remote", False)):
+            return False
+        if identifier == "mistral" and (job["model"] != MISTRAL_IMPORT_MODEL or not self._budget_current(job)):
             return False
         credential = self._credential(identifier)
         if not credential.get("available"):
@@ -195,7 +247,7 @@ class CloudMemoryJobs:
             row = self.episodes._conn.execute(
                 "SELECT fingerprint,status,model FROM working_memory_sources WHERE episode_id=?",
                 (episode_id,)).fetchone()
-            if not row or row[0] != fingerprint or row[1] != "complete" or not row[2].startswith(("chatgpt:", "anthropic:")):
+            if not row or row[0] != fingerprint or row[1] != "complete" or not row[2].startswith(("chatgpt:", "anthropic:", "mistral:")):
                 return False
         return self.categories.list_for(episode_id)["status"] in {"complete", "empty"}
 
@@ -217,6 +269,9 @@ class CloudMemoryJobs:
         credential = self._credential(provider)
         grant_id = credential.get("grant_id") if provider == "chatgpt" else None
         revision = credential.get("credential_revision") if credential.get("available") else None
+        budget = self._budget_status() if provider == "mistral" else None
+        binding = ({"budget_id": budget["budget_id"], "budget_revision": budget["revision"], "price_id": budget["price_id"]}
+                   if budget is not None else {"budget_id": None, "budget_revision": None, "price_id": None})
         rowids = {}
         if source_ids is None:
             with self.episodes._lock:
@@ -273,10 +328,12 @@ class CloudMemoryJobs:
         request_limit = self._budget(sources)
         with self._connect() as db:
             db.execute("INSERT INTO cloud_memory_previews "
-                       "(id,purpose,model_scope,grant_id,sources,expires_at,provider,credential_revision) VALUES(?,?,?,?,?,?,?,?)",
+                       "(id,purpose,model_scope,grant_id,sources,expires_at,provider,credential_revision,budget_id,budget_revision,price_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                        (preview_id, purpose, model_scope, grant_id,
-                        json.dumps(sources, separators=(",", ":")), expires, provider, revision))
+                        json.dumps(sources, separators=(",", ":")), expires, provider, revision,
+                        binding["budget_id"], binding["budget_revision"], binding["price_id"]))
         return {"preview_id": preview_id, "purpose": purpose, "provider": provider, "count": len(sources),
+                **({"import_model": MISTRAL_IMPORT_MODEL, "budget": budget, **binding} if provider == "mistral" else {}),
                 "source_limit": source_limit,
                 "request_limit": request_limit,
                 "filtered_count": sum(item['category'] != 'unclear' for item in filtered),
@@ -311,6 +368,8 @@ class CloudMemoryJobs:
                 raise CloudMemoryError("Die Vorschau ist abgelaufen. Bitte neu prüfen.")
             if preview["provider"] != provider:
                 raise CloudMemoryError("Der Anbieter stimmt nicht mit der geprüften Vorschau überein.")
+            if provider == "mistral" and (model != MISTRAL_IMPORT_MODEL or not self._budget_current(dict(preview), admission=True)):
+                raise CloudMemoryError("Das Mistral-Quellenbudget ist nicht freigegeben oder wurde geändert. Bitte Budget und Vorschau erneut prüfen.")
             if preview["purpose"] == "bulk":
                 with self._connect() as db:
                     pilot = db.execute(
@@ -347,23 +406,25 @@ class CloudMemoryJobs:
             if any('planned_requests' not in allowed[i] for i in chosen):
                 raise CloudMemoryError('Die Vorschau stammt aus einer älteren Fassung. Bitte neu prüfen.')
             request_limit = self._budget([allowed[i] for i in chosen])
-            selected_provider = self._build_provider(provider, model)
+            job_id = uuid.uuid4().hex
+            selected_provider = self._build_provider(provider, model, job_id=job_id, binding=dict(preview))
             if getattr(selected_provider, "is_local", True) or not getattr(selected_provider, "is_remote", False):
                 raise CloudMemoryError("Der ausgewählte Anbieter ist kein expliziter Cloudanbieter.")
-            identity = {"provider": provider, "model": model, "grant_id": grant_id, "credential_revision": revision}
+            identity = {"provider": provider, "model": model, "grant_id": grant_id, "credential_revision": revision,
+                        **{key: preview[key] for key in ("budget_id", "budget_revision", "price_id")}}
             if not self._identity_current(identity, selected_provider):
                 raise CloudMemoryError("Anbieter, Modell oder Freigabe hat sich geändert. Bitte neu prüfen.")
-            job_id = uuid.uuid4().hex
             now = time.time()
             fingerprints = {i: allowed[i]["fingerprint"] for i in chosen}
             with self._connect() as db:
                 db.execute("""INSERT INTO cloud_memory_jobs
                     (id,purpose,model,grant_id,source_ids,fingerprints,source_limit,state,consent,
-                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision,request_limit)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision,request_limit,budget_id,budget_revision,price_id)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                            (job_id, preview["purpose"], model, grant_id,
                             json.dumps(chosen), json.dumps(fingerprints), len(chosen),
-                            "running", 1, 0, 0, 0, 0, "", now, now, provider, revision, request_limit))
+                            "running", 1, 0, 0, 0, 0, "", now, now, provider, revision, request_limit,
+                            preview["budget_id"], preview["budget_revision"], preview["price_id"]))
                 # Ein erneut zugestellter Start darf kein zweites bezahltes Paket erzeugen.
                 db.execute("UPDATE cloud_memory_previews SET expires_at=0 WHERE id=?", (preview_id,))
             thread = threading.Thread(target=self._run, args=(job_id, selected_provider),
@@ -402,6 +463,7 @@ class CloudMemoryJobs:
                                     "WHERE job_id=? ORDER BY rowid LIMIT 10", (job["id"],)).fetchall()
         return {"job": {"id": job["id"], "purpose": job["purpose"], "model": job["model"],
                          "provider": job["provider"], "quality_verified": False,
+                         **self._job_budget_status(job),
                          "state": job["state"], "selected": len(ids), "position": job["position"],
                          "completed": job["completed"], "failed": job["failed"],
                          "requests": job["requests"],
@@ -516,6 +578,8 @@ class CloudMemoryJobs:
 
     @staticmethod
     def _retryable(exc):
+        if isinstance(exc, MistralBudgetError):
+            return True  # A typed budget stop always requires explicit user action.
         message = str(exc).lower()
         name = type(exc).__name__.lower()
         return any(token in name or token in message for token in
@@ -524,6 +588,19 @@ class CloudMemoryJobs:
 
     @staticmethod
     def _stop_reason(exc):
+        if isinstance(exc, MistralBudgetError):
+            return {
+                "budget_exhausted": "Das Mistral-Quellenbudget reicht nicht aus; Auftrag pausiert.",
+                "budget_uncertain": "Die Mistral-Abrechnung ist unklar; weitere Anfragen bleiben gesperrt.",
+                "budget_busy": "Eine Mistral-Anfrage ist noch reserviert; Auftrag pausiert.",
+                "budget_changed": "Das Mistral-Quellenbudget wurde geändert; bitte eine neue Vorschau freigeben.",
+                "pricing_changed": "Die geprüften Mistral-Preise sind nicht mehr gültig; Auftrag pausiert.",
+                "credential_changed": "Der Mistral-Zugang wurde geändert; bitte eine neue Vorschau freigeben.",
+                "permission_changed": "Die Quellenfreigabe wurde geändert; Auftrag pausiert.",
+                "metadata_unavailable": "Die Mistral-Modelldaten konnten nicht eindeutig geprüft werden; Auftrag pausiert.",
+                "provider_rejected": "Mistral hat die Anfrage abgelehnt; Auftrag pausiert.",
+                "response_invalid": "Mistral hat keine gültige vollständige Antwort geliefert; Auftrag pausiert.",
+            }.get(exc.code, "Das Mistral-Quellenbudget ist nicht verfügbar; Auftrag pausiert.")
         name = type(exc).__name__.lower()
         message = str(exc).lower()
         if "quota" in name or "quota" in message or "kontingent" in message:
@@ -622,10 +699,15 @@ class CloudMemoryJobs:
             old_thread = self._threads.get(job["id"])
             if old_thread is not None and old_thread.is_alive():
                 raise CloudMemoryError("Der pausierte Auftrag beendet noch eine laufende Anfrage. Bitte gleich erneut versuchen.")
+            if job["provider"] == "mistral" and not self._budget_current(job, admission=True):
+                with self.permission_lock:
+                    self._save(job["id"], state="stopped", consent=0,
+                               stop_reason="Das Mistral-Quellenbudget ist nicht mehr freigegeben; Vorschau und Zustimmung erneut erforderlich.")
+                raise CloudMemoryError("Bitte das Mistral-Quellenbudget prüfen und eine neue Vorschau freigeben.")
             try:
-                provider = self._build_provider(job["provider"], job["model"])
+                provider = self._build_provider(job["provider"], job["model"], job_id=job["id"], binding=job)
             except (CloudMemoryError, ProviderError):
-                if job["provider"] == "anthropic":
+                if job["provider"] in {"anthropic", "mistral"}:
                     with self.permission_lock:
                         self._save(job["id"], state="stopped", consent=0,
                                    stop_reason="API-Zugang nicht mehr verfügbar; Vorschau und Zustimmung erneut erforderlich.")

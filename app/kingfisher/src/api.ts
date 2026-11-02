@@ -1186,18 +1186,22 @@ export type ModelRoleState = {
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
   ollama_cloud?: {modelle: string[]; hinweis: string}};
 export type CloudProviderPrivacy = {checked_at:string;region:string;training:string;retention:string;billing:string;sources:Array<{label:string;url:string}>};
-export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;privacy?:CloudProviderPrivacy};
-export type CloudMemoryProvider = "chatgpt" | "anthropic";
+export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;import_model?:string;privacy?:CloudProviderPrivacy};
+export type CloudMemoryProvider = "chatgpt" | "anthropic" | "mistral";
+export type MistralSourceBudget = {provider:"mistral";currency:"USD";budget_id:string;revision:number;price_id:string;price_valid_until:string;
+  cap_microusd:number;spent_microusd:number;held_microusd:number;remaining_microusd:number;
+  reconciliation_required:boolean;ready:boolean;blocked_reason:string|null};
+export type SourceBudgetBinding = {budget_id?:string|null;budget_revision?:number|null;price_id?:string|null;budget?:MistralSourceBudget;import_model?:string};
 export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
 export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boolean; secure_storage:boolean;
   active_account:string|null; accounts:Array<{id:string; label:string; active:boolean; plan_usage:boolean}>};
 export type ChatGPTModel = {id:string; label:string};
 export type CloudMemoryPurpose = "pilot"|"bulk"|"recheck";
-export type CloudMemoryPreview = {preview_id:string; purpose:CloudMemoryPurpose; provider?:CloudMemoryProvider; count:number;
+export type CloudMemoryPreview = SourceBudgetBinding & {preview_id:string; purpose:CloudMemoryPurpose; provider?:CloudMemoryProvider; count:number;
   sources:Array<{id:string;title:string;occurred_at:string|null}>; expires_at:number; sampling_note?:string;
   request_limit?:number;filtered_count?:number;review_count?:number;
   scanned_count:number;next_cursor:number|null};
-export type CloudMemoryJob = {id:string;purpose:CloudMemoryPurpose;provider?:CloudMemoryProvider;quality_verified?:boolean;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
+export type CloudMemoryJob = SourceBudgetBinding & {id:string;purpose:CloudMemoryPurpose;provider?:CloudMemoryProvider;quality_verified?:boolean;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
   selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;
   stop_reason:string;updated_at:number;issue_count?:number;
   issues?:Array<{episode_id:string;stage:string;code:string;reason?:string}>};
@@ -1288,12 +1292,15 @@ export const api = {
   chatgptModels: () => request<{models:ChatGPTModel[]}>("/api/v1/chatgpt/models"),
   chatgptDisconnect: () => request<{remote_revoked:boolean;notice:string}>("/api/v1/chatgpt",{method:"DELETE"}),
   cloudMemoryStatus: () => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/status"),
-  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt") => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
-    {method:"POST",body:JSON.stringify({purpose,cursor,provider,limit:purpose === "pilot" ? 100 : 1000})}),
+  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt",selection?:{source_ids?:string[];limit?:number}) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
+    {method:"POST",body:JSON.stringify({purpose,cursor,provider,limit:selection?.limit??(purpose === "pilot" ? 100 : 1000),...(selection?.source_ids?{source_ids:selection.source_ids}:{})})}),
   cloudMemoryStart: (preview_id:string,model:string,provider:CloudMemoryProvider="chatgpt") => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/start",
     {method:"POST",body:JSON.stringify({preview_id,model,provider,consent:true})}),
   cloudMemoryAction: (action:"pause"|"resume"|"revoke",job_id:string) => request<{job:CloudMemoryJob|null}>(`/api/v1/memory/cloud/${action}`,
     {method:"POST",body:JSON.stringify({job_id})}),
+  mistralSourceBudget: () => request<MistralSourceBudget>("/api/v1/memory/cloud/budget?provider=mistral"),
+  setMistralSourceBudget: (cap_microusd:number,expected_revision:number) => request<MistralSourceBudget>("/api/v1/memory/cloud/budget",
+    {method:"PUT",body:JSON.stringify({provider:"mistral",cap_microusd,expected_revision,consent:true})}),
   saveCloudAccess: (provider: CloudProviderAccess["id"], body: {api_key?: string; model: string}) =>
     request<CloudAccessState>(`/api/v1/models/cloud-access/${encodeURIComponent(provider)}`, {method: "PUT", body: JSON.stringify(body)}),
   removeCloudAccess: (provider: CloudProviderAccess["id"]) =>
