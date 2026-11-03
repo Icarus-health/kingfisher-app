@@ -78,6 +78,12 @@ sed -e "s/__FASSUNG__/$FASSUNG/g" -e "s/__BUNDLE_VERSION__/$BUNDLE_VERSION/g" \
 plutil -lint "$APP/Contents/Info.plist" >/dev/null
 cp "$COMPOSE_APP" "$APP/Contents/Resources/compose.yaml"
 cp scripts/kingfisher_update_storage.py "$APP/Contents/Resources/update-storage-probe.py"
+cp deploy/compose.modules.yaml "$APP/Contents/Resources/compose.modules.yaml"
+MODULE_RESOURCES="$APP/Contents/Resources/module-runtime"
+mkdir -p "$MODULE_RESOURCES"
+cp integrations/harness/package.json integrations/harness/package-lock.json "$MODULE_RESOURCES/"
+cp scripts/harness_run.mjs scripts/harness_service.mjs scripts/harness_worker.mjs \
+    scripts/harness_gateway.py "$MODULE_RESOURCES/"
 
 ICON="$ICON_QUELLE"
 [ -f "$ICON" ] || ICON="$ICON_RUECKFALL"

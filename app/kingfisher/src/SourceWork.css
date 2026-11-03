@@ -1,0 +1,14 @@
+.source-work { margin-top: 16px; min-width: 0; }
+.source-work .source-work-panel { display: grid; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--kf-rand-d7e1df); }
+.source-work form { display: grid; gap: 8px; min-width: 0; }
+.source-work label, .source-work-result > strong { font-size: 13px; font-weight: 600; }
+.source-work textarea { display: block; width: 100%; min-width: 0; resize: vertical; min-height: 72px; max-height: 280px; padding: 10px 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: inherit; font-size: 13px; line-height: 1.5; }
+.source-work textarea:disabled { opacity: .65; }
+.source-work textarea:focus-visible, .source-work summary:focus-visible { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
+.source-work .source-work-scope, .source-work p { margin: 0; overflow-wrap: anywhere; font-size: 12px; line-height: 1.5; }
+.source-work .source-work-error { color: var(--kf-schrift-bf3b44); }
+.source-work-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.source-work-result { display: grid; gap: 10px; min-width: 0; padding-top: 4px; }
+.source-work-draft, .source-work blockquote { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.6; }
+.source-work summary { width: fit-content; max-width: 100%; min-height: 32px; padding: 6px 0; cursor: pointer; font-size: 12px; font-weight: 600; }
+.source-work blockquote { margin: 8px 0 0; padding: 8px 12px; border-left: 2px solid var(--kf-rand-d7e1df); color: var(--kf-schrift-31535f); }

@@ -3,6 +3,7 @@ import { AntwortZeitenProtokoll } from "../AntwortZeiten";
 import { AktenOrdnerSettings } from "../AktenOrdnerSettings";
 import { WasAufgefallenIst } from "../BefundeAnsicht";
 import { GoogleVorbereiten } from "../GoogleVorbereiten";
+import { LocalModuleSettings } from "../LocalModuleSettings";
 import { MailFilterSettings } from "../MailFilterSettings";
 import { MailSyncSettings } from "../MailSyncSettings";
 import { MemoryAutomationSettings } from "../MemoryAutomationSettings";
@@ -53,6 +54,7 @@ export function Technik({ integrationen, ziel, zuBereich }: {
   const accounts = integrationen.overview?.mail_accounts ?? [];
   const inhalt: Record<string, ReactNode> = {
     routing: <RoutingControls />,
+    werkzeuge: <LocalModuleSettings />,
     antwortzeiten: <AntwortZeitenProtokoll />,
     suchindex: <SuchindexSettings active />,
     akten: <AktenOrdnerSettings />,

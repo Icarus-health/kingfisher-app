@@ -167,6 +167,19 @@ class Broker:
                         grant.discovered.add(identifier)
                 result = dict(items=items, scope='selected_originals_literal',
                               scanned=len(grant.sources), truncated=False)
+            elif name == 'selected_original':
+                self._exact(args, set())
+                if len(grant.sources) != 1:
+                    raise BridgeError('Genau ein ausgewähltes Original ist erforderlich.')
+                identifier = next(iter(grant.sources))
+                snap = self._snapshot(identifier)
+                length = len(snap.episode.body)
+                end = min(length, 400)
+                result = self._excerpt(snap, 0, end)
+                result.update(source_length=length, partial_coverage=end < length)
+                if not length:
+                    result['status'] = 'no_source_text'
+                grant.discovered.add(identifier)
             elif name == 'source_excerpt':
                 self._exact(args, {'id', 'start', 'end'})
                 identifier, start, end = args['id'], args['start'], args['end']

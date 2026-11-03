@@ -15,6 +15,39 @@ from icarus_memory.providers import OpenAICompatible, ProviderError
 BASE = "http://127.0.0.1:11434/v1"
 
 
+def test_try_managed_model_reserves_without_loading_and_reuses_owner_thread(monkeypatch):
+    monkeypatch.setattr(ollama_memory, '_ollama_client', lambda **kw: pytest.fail('reservation must not load a model'))
+    seen = []
+    with ollama_memory.try_managed_model() as acquired:
+        assert acquired
+        with ollama_memory.try_managed_model() as nested:
+            assert nested
+        def other():
+            with ollama_memory.try_managed_model() as available:
+                seen.append(available)
+        task = threading.Thread(target=other)
+        task.start()
+        task.join(1)
+        assert not task.is_alive() and seen == [False]
+    with ollama_memory.try_managed_model() as acquired:
+        assert acquired
+
+
+def test_try_managed_model_releases_on_exception():
+    with pytest.raises(RuntimeError):
+        with ollama_memory.try_managed_model() as acquired:
+            assert acquired
+            raise RuntimeError('artificial failure')
+    acquired = []
+    def other():
+        with ollama_memory.try_managed_model() as available:
+            acquired.append(available)
+    task = threading.Thread(target=other)
+    task.start()
+    task.join(1)
+    assert acquired == [True]
+
+
 def test_provider_gate_prepares_and_releases_managed_model(monkeypatch):
     from contextlib import contextmanager
     events = []

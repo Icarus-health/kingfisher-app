@@ -53,7 +53,7 @@ test("es gibt genau acht Schalter, und bei jedem steht, was den Rechner verläss
 });
 
 test("die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx verdrahtet", () => {
-  const erwartet = ["routing", "antwortzeiten", "suchindex", "akten", "rueckmeldungen", "befunde", "hintergrund", "filter", "quellen", "kartendienst", "google", "microsoft", "stand", "speicherorte", "fassung"];
+  const erwartet = ["routing", "werkzeuge", "antwortzeiten", "suchindex", "akten", "rueckmeldungen", "befunde", "hintergrund", "filter", "quellen", "kartendienst", "google", "microsoft", "stand", "speicherorte", "fassung"];
   assert.deepEqual(TECHNIK.map(t => t.id), erwartet);
   const technik = quelle("Einstellungen/Technik.tsx");
   for (const { id, titel, satz } of TECHNIK) {

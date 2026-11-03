@@ -1,0 +1,76 @@
+# Optional fixed runtime. It is never part of ordinary `compose up` or an import.
+# The native app verifies a public cache and the existing immutable application
+# image before using this file. Neither service receives the private data volume,
+# the application token, provider credentials or a Docker socket.
+name: kingfisher-modules
+
+services:
+  gateway:
+    image: ${KINGFISHER_MODULE_IMAGE:?verified immutable application image required}
+    entrypoint: ["python", "/runtime/harness_gateway.py", "--controlled-local-readonly-v1"]
+    environment:
+      - KF_GATEWAY_CONTROL_KEY=${KF_GATEWAY_CONTROL_KEY:?fresh controller credential required}
+    user: "1000:1000"
+    read_only: true
+    privileged: false
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 96m
+    cpus: 0.25
+    restart: "no"
+    dns: [127.0.0.1]
+    healthcheck:
+      disable: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,uid=1000,gid=1000,mode=700
+      - /data:rw,noexec,nosuid,size=64k,mode=000
+    volumes:
+      - type: bind
+        source: ${KINGFISHER_MODULE_RUNTIME:?verified public runtime cache required}
+        target: /runtime
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      control:
+        aliases: [kingfisher-gateway-control]
+      worker:
+        aliases: [kingfisher-gateway]
+
+  worker:
+    image: ${KINGFISHER_MODULE_IMAGE:?verified immutable application image required}
+    entrypoint: ["/runtime/bin/node", "/runtime/harness_service.mjs", "--controlled-local-readonly-v1"]
+    user: "1000:1000"
+    read_only: true
+    privileged: false
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 512m
+    cpus: 0.75
+    restart: "no"
+    dns: [127.0.0.1]
+    healthcheck:
+      disable: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,uid=1000,gid=1000,mode=700
+      - /data:rw,noexec,nosuid,size=64k,mode=000
+    volumes:
+      - type: bind
+        source: ${KINGFISHER_MODULE_RUNTIME:?verified public runtime cache required}
+        target: /runtime
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      worker:
+        aliases: [kingfisher-worker]
+
+networks:
+  control:
+    name: kingfisher-modules-control
+    internal: true
+  worker:
+    name: kingfisher-modules-worker
+    internal: true

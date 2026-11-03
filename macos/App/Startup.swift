@@ -16,9 +16,13 @@ enum StartOutcome {
 
 final class Startup {
     let paths: AppPaths
+    private let modules: ModuleRuntimeManager
     private var store: EnvStore { EnvStore(file: paths.envFile) }
 
-    init(paths: AppPaths) { self.paths = paths }
+    init(paths: AppPaths, modules: ModuleRuntimeManager? = nil) {
+        self.paths = paths
+        self.modules = modules ?? ModuleRuntimeManager(paths: paths)
+    }
 
     func run(say: (String) -> Void) -> StartOutcome {
         guard let docker = Docker.find() else { return .dockerMissing }
@@ -46,6 +50,9 @@ final class Startup {
             if docker.runningImage(paths: paths)?.name != configuredImage || !Loopback.healthy() {
                 if installed != nil && docker.hasAdditionalMounts(paths: paths) != false {
                     return .failed(Satz.bestehendeInstallation)
+                }
+                guard modules.stopBeforeMaintenance() else {
+                    return .failed("Die lokale Prüfung wird noch beendet. Bitte kurz warten und erneut starten.")
                 }
                 say(Satz.starten)
                 guard docker.compose(["up", "-d", "--no-deps", "kingfisher"], paths: paths, timeout: 1800).ok else {
@@ -82,6 +89,9 @@ final class Startup {
         } else {
             guard Loopback.inspectionMode(token: token) else { return .failed(Satz.falscheInstallation) }
         }
+        // Only a previously approved compatible local cache can be reconciled.
+        // Missing/failed optional modules never prevent the ordinary app opening.
+        modules.reconcileIfEnabled()
         let ollamaHint = OllamaHintState.select(
             isRunning: Loopback.ollamaRunning(),
             appInstalled: FileManager.default.fileExists(atPath: Adresse.ollamaApp.path))

@@ -1,0 +1,98 @@
+{
+  "scope": "Artificial sources only; no personal store, paid calls, import continuation or native-window acceptance.",
+  "runtime_manifest_sha256": "b820ba0045ac49dd4b86140ae4eae88277a4bc479909952ee4e5139ff2898ee1",
+  "code_sha256": {
+    "harness_service.mjs": "a8512a5eb90a56148f40a306cc024d8b4e1d5821a7c6e395639050b641709a3f",
+    "harness_worker.mjs": "64b28dcbde22d136c1cdd9ad8e52da2c3189f65b10647320d0e8942e1f1b425c",
+    "harness_run.mjs": "4e1a67dfd5534fefdac6f98eb697a99384fa3123d645cef0526d2f664f14b3ed",
+    "harness_gateway.py": "3635e00126b91149d74ac37df9d081d3a17db421b7a8c47b2d399e60ea02be02"
+  },
+  "os_boundary": {
+    "receipt_sha256": "081a242d1c4fb788fc141288877c85a2b1cbc812fbbf4dbe992e803437bf8332",
+    "seconds": 19.292,
+    "checks": {
+      "synthetic": true,
+      "controls": true,
+      "network": true,
+      "baseline": true,
+      "interruption": true,
+      "memory_reserve": true,
+      "cleanup": true,
+      "runtime_contract": true
+    },
+    "max_sampled_mac_pressure": 1,
+    "injected_replies": true
+  },
+  "earlier_real_model_failure": {
+    "receipt_sha256": "1ea198d41e747a95db8c1ead44bda011b8dc921d86ec98fa1a2ffb9038c0d70a",
+    "cases": [
+      {
+        "case": "person-task-deadline",
+        "status": "completed",
+        "seconds": 30.195
+      },
+      {
+        "case": "appointment-versus-deadline",
+        "status": "failed",
+        "seconds": 47.009
+      }
+    ],
+    "cleanup_verified": true,
+    "cause": "Intermittent model-loop failure; causation by subsequently repaired sampling/output defaults is not established."
+  },
+  "final_real_model": {
+    "receipt_sha256": "7744c91182464d1811c067b8b7d8c82377697abd7742358516b84f3c048dd40d",
+    "model": "kingfisher-qwen3.5:9b-8k",
+    "seconds": 97.191,
+    "cleanup_verified": true,
+    "originals_unchanged": true,
+    "max_sampled_mac_pressure": 2,
+    "cases": [
+      {
+        "case": "person-task-deadline",
+        "question": "Wer bittet um welche Aufgabe und bis wann? Nenne nur belegte Angaben.",
+        "text": "Vera König bittet Sören um den Entwurf für das Projekt Birke bis zum 7. November 2026.",
+        "status": "completed",
+        "seconds": 30.195,
+        "coverage": {
+          "source_characters": 182,
+          "opened_characters": 182,
+          "complete_text_opened": true
+        },
+        "maximum_status_request_seconds": 0.067118
+      },
+      {
+        "case": "appointment-versus-deadline",
+        "question": "Welche Aufgabe hat wer, welche Abgabefrist gilt und was ist nur ein Termin?",
+        "text": "Matthias Braun hat die Aufgabe, Unterlagen bis zum 6. November 2026 um 17 Uhr abzugeben; der 9. November 2026 ist nur ein Termin für eine Besprechung. Sören hat keine eigene Aufgabe zugesagt.",
+        "status": "completed",
+        "seconds": 29.588,
+        "coverage": {
+          "source_characters": 246,
+          "opened_characters": 246,
+          "complete_text_opened": true
+        },
+        "maximum_status_request_seconds": 0.079199
+      },
+      {
+        "case": "ambiguous-name",
+        "question": "Welcher Alex muss den Entwurf bis wann senden? Frage nach, wenn es nicht eindeutig ist.",
+        "text": "Die Quelle e-317d662f57c5 berichtet, dass sowohl Alexander Meier als auch Alexander Wolf gelegentlich „Alex“ genannt werden. Es ist nicht eindeutig, welcher der beiden den Entwurf senden muss und bis wann.",
+        "status": "completed",
+        "seconds": 30.11,
+        "coverage": {
+          "source_characters": 208,
+          "opened_characters": 208,
+          "complete_text_opened": true
+        },
+        "maximum_status_request_seconds": 0.06165
+      }
+    ]
+  },
+  "limits": [
+    "Three short artificial originals do not establish mixed-mail intake quality.",
+    "Model preserves ambiguity but did not ask a direct clarification question.",
+    "HTTP responsiveness is not a native UI or unrelated Mac application responsiveness measurement.",
+    "No canonical task or memory write is performed by this module."
+  ]
+}

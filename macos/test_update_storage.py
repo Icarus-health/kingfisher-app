@@ -57,7 +57,7 @@ elif args[:1] == ['exec']:
 else: sys.exit(1)
 '''
 
-def run_update(native_updater, tmp_path, before, after=None, missing_probe=False):
+def run_update(native_updater, tmp_path, before, after=None, missing_probe=False, module_drain=None):
     env_text = ('# retained user configuration\nICARUS_SIDECAR_TOKEN=test-token\n'
                 'ICARUS_SECRETS_PASSPHRASE=test-passphrase\n'
                 'KINGFISHER_IMAGE=ghcr.io/icarus-health/kingfisher-app:1.0.0\n')
@@ -71,10 +71,28 @@ def run_update(native_updater, tmp_path, before, after=None, missing_probe=False
     docker = tmp_path/'docker'
     docker.write_text('#!'+sys.executable+'\n'+FAKE_DOCKER)
     docker.chmod(0o755)
-    result = subprocess.run([str(native_updater)], env={**os.environ,'FIXTURE_DIR':str(tmp_path)},
+    environment = {**os.environ, 'FIXTURE_DIR': str(tmp_path)}
+    if module_drain is not None:
+        environment['FIXTURE_MODULE_DRAIN'] = module_drain
+    result = subprocess.run([str(native_updater)], env=environment,
                             capture_output=True, text=True, timeout=20)
     assert result.returncode == 0, result.stderr
     return result.stdout, (tmp_path/'trace').read_text().splitlines(), env_text
+
+
+def test_active_runtime_must_drain_before_any_backup_or_update(native_updater, tmp_path):
+    output, trace, original = run_update(native_updater, tmp_path, GOOD, module_drain='blocked')
+    assert output.strip() != 'updated'
+    assert 'module-stop' in trace
+    assert not set(trace) & {'backup', 'pull', 'restart', 'module-reconcile'}
+    assert (tmp_path/'kingfisher.env').read_text() == original
+
+
+def test_successful_update_reconciles_only_after_drain_and_restart(native_updater, tmp_path):
+    output, trace, _original = run_update(native_updater, tmp_path, GOOD, module_drain='allowed')
+    assert output.strip() == 'updated'
+    assert trace.index('module-stop') < trace.index('backup') < trace.index('pull')
+    assert trace.index('restart') < trace.index('module-reconcile')
 
 @pytest.mark.parametrize('status', [None, {**GOOD,'root_available_bytes':0},
     {**GOOD,'data_available_bytes':0}, {**GOOD,'root_available_inodes':0},

@@ -88,6 +88,33 @@ Die App erklärt den Grund und bietet „Weiter“ zur bisherigen Oberfläche. S
 Diese Reserven sind ein Schutzpuffer, keine Garantie gegen konkurrierende Schreibzugriffe oder besonders
 große künftige Migrationen und keine Kapazitätsfreigabe für große persönliche Importe.
 
+## Optionale lokale Werkzeuge
+
+In **Einstellungen → Für Techniker → Lokale Werkzeuge** bereitet „Einrichten“
+eine festgelegte öffentliche Node-/Harness-Laufzeit vor. Dafür werden öffentliche
+Dateien geladen und innerhalb eines begrenzten Hilfscontainers geprüft; die
+Abhängigkeiten werden nicht auf dem Mac ausgeführt. Das laufende Kingfisher wird
+kurz mit demselben unveränderlichen Bild neu gestartet. Vorhandene Schlüssel,
+Datenfreigaben und andere Einstellungen müssen danach exakt übereinstimmen.
+
+Erst nach Prüfung der getrennten Prozesse und ihrer tatsächlichen Zugriffsgrenzen
+wird die lokale Quellenprüfung bereitgemeldet. Sie liest eine ausdrücklich
+gewählte Originalquelle und aktuelle bestätigte Skills mit dem vorhandenen
+Qwen9B. Antworten bleiben Entwürfe mit Belegen; sie erzeugen keine Aufgaben oder
+bestätigten Gedächtniseinträge. BGE-M3, Cloud-Einstellungen und Importpause ändern
+sich dadurch nicht. Öffnen oder Statusprüfen lädt nichts herunter und startet
+keine Modellantwort.
+
+Ein Abbruch wartet auf das tatsächliche Ende eigener Arbeit. Ein fertiger,
+vertrauenswürdig geprüfter öffentlicher Cache bleibt für einen erneuten Versuch
+erhalten; daraus allein folgt keine Aktivierung. Vor Sicherung, Update,
+Wiederherstellung und Beenden werden Zugriffe entzogen und laufende Prüfungen
+beendet. Ist deren Ende unklar, wird die betreffende Wartung abgelehnt. Ohne
+eingerichtete Werkzeuge bleiben normale App und Updates nutzbar.
+
+Prüfstand und noch offene Abnahmen stehen im
+[Laufbericht](../docs/runs/2026-11-02-local-source-module/README.md).
+
 ## Aufbau
 
 | Datei | Inhalt |

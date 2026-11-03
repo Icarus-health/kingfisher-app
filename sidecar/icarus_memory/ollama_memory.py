@@ -37,6 +37,21 @@ HALTEN_GESPRAECH = "5m"
 _GESPRAECH_MODELL: ContextVar[str | None] = ContextVar("kingfisher_gespraech_modell", default=None)
 
 
+@contextmanager
+def try_managed_model() -> Iterator[bool]:
+    """Reserve existing model-memory ownership without waiting or loading.
+
+    The owning thread may enter normal `managed_model()` afterwards through
+    its existing reentrant lock. Other warmup/preparation behavior is unchanged.
+    """
+    acquired = _MANAGED_MODEL_LOCK.acquire(blocking=False)
+    try:
+        yield acquired
+    finally:
+        if acquired:
+            _MANAGED_MODEL_LOCK.release()
+
+
 def _ollama_client(*, timeout: float = _TIMEOUT_SECONDS, trust_env: bool = False,
                    follow_redirects: bool = False) -> httpx.Client:
     """Use only the configured local endpoint, without proxy or redirect routing."""

@@ -1,4 +1,4 @@
-// Artificial-only stdin runner; server mode lives in the separately isolated service.
+// Trusted stdin-only child; HTTP callers cannot supply this configuration.
 import {runHarness} from './harness_run.mjs';
 try {
  let raw='';

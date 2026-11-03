@@ -1,5 +1,6 @@
 """Worker capabilities stay scoped, bounded and dependent on current evidence."""
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 import threading
 
 import pytest
@@ -45,6 +46,136 @@ def test_only_selected_and_discovered_originals_can_be_opened(setup):
         broker.invoke(grant['token'], 'source_excerpt', {'id': secret.id, 'start': 0, 'end': 10})
     assert found['scope'] == 'selected_originals_literal'
     assert secret.id not in str(found)
+
+
+def test_selected_original_opens_generic_question_without_a_literal_hit(setup):
+    broker, episodes, _, _, put = setup
+    selected = put('  Äpfel\nliegen in Fach A42.\r\n' + 'α' * 410, title='Ablage')
+    secret = put('VERTRAULICH: nicht ausgewähltes Original', title='Privat')
+    before = [episodes.get(e.id).to_dict() for e in (selected, secret)]
+    grant = broker.issue('Fasse das bitte zusammen.', area='analysis', sources=[selected.id])
+    found = broker.invoke(grant['token'], 'memory_search', {'query': 'zusammen'})
+    assert found['items'] == []
+    with pytest.raises(BridgeError):
+        broker.invoke(grant['token'], 'source_excerpt', {'id': selected.id, 'start': 0, 'end': 10})
+
+    original = broker.invoke(grant['token'], 'selected_original', {})
+
+    assert datetime.fromisoformat(original.pop('recorded_at')) == selected.recorded_at
+    assert original == dict(id=selected.id, title='Ablage', quote=selected.body[:400],
+        start=0, end=400, fingerprint=episodes.belegbarer_snapshot(selected.id).support_fingerprint(),
+        occurred_at=None, source_type='document',
+        status='source_reports_unconfirmed', source_length=439, partial_coverage=True)
+    assert secret.id not in str(original) and 'VERTRAULICH' not in str(original)
+    tail = broker.invoke(grant['token'], 'source_excerpt', {'id': selected.id, 'start': 400, 'end': 439})
+    assert tail['quote'] == 'α' * 39
+    with pytest.raises(BridgeError):
+        broker.invoke(grant['token'], 'source_excerpt', {'id': secret.id, 'start': 0, 'end': 10})
+    assert [episodes.get(e.id).to_dict() for e in (selected, secret)] == before
+
+
+@pytest.mark.parametrize('body,want_end,want_partial,want_status', [
+    ('', 0, False, 'no_source_text'),
+    ('kurzer Originaltext', 19, False, 'source_reports_unconfirmed'),
+    ('🙂' * 400, 400, False, 'source_reports_unconfirmed'),
+    ('🙂' * 401, 400, True, 'source_reports_unconfirmed'),
+])
+def test_selected_original_reports_exact_character_coverage(setup, body, want_end, want_partial, want_status):
+    broker, _, _, _, put = setup
+    source = put(body)
+    grant = issue(broker, source)
+    result = broker.invoke(grant['token'], 'selected_original', {})
+    assert result['id'] == source.id
+    assert result['quote'] == body[:400]
+    assert (result['start'], result['end']) == (0, want_end)
+    assert result['source_length'] == len(body)
+    assert result['partial_coverage'] is want_partial
+    assert result['status'] == want_status
+
+
+@pytest.mark.parametrize('args', [None, [], '', {'id': 'any'}, {'query': 'Original'},
+    {'start': 0, 'end': 400}, {'sources': []}])
+def test_selected_original_accepts_only_empty_arguments(setup, args):
+    broker, _, _, _, put = setup
+    source = put('Original')
+    grant = issue(broker, source)
+    with pytest.raises(BridgeError): broker.invoke(grant['token'], 'selected_original', args)
+    with pytest.raises(BridgeError):
+        broker.invoke(grant['token'], 'source_excerpt', {'id': source.id, 'start': 0, 'end': 1})
+
+
+def test_selected_original_refuses_multi_source_grants_without_discovery(setup):
+    broker, _, _, _, put = setup
+    first, second = put('Erstes Original'), put('Zweites Original')
+    grant = issue(broker, first, second)
+    with pytest.raises(BridgeError): broker.invoke(grant['token'], 'selected_original', {})
+    for source in (first, second):
+        with pytest.raises(BridgeError):
+            broker.invoke(grant['token'], 'source_excerpt', {'id': source.id, 'start': 0, 'end': 1})
+    found = broker.invoke(grant['token'], 'memory_search', {'query': 'Original'})
+    assert {item['id'] for item in found['items']} == {first.id, second.id}
+
+
+def test_selected_original_shares_total_tool_quota_and_ninth_call_refuses(setup):
+    broker, _, _, _, put = setup
+    grant = issue(broker, put('Original'))
+    for _ in range(7): broker.invoke(grant['token'], 'skills_select', {})
+    assert broker.invoke(grant['token'], 'selected_original', {})['quote'] == 'Original'
+    with pytest.raises(BridgeError, match='Werkzeuggrenze'):
+        broker.invoke(grant['token'], 'selected_original', {})
+
+
+def test_selected_original_does_not_relax_existing_excerpt_bounds(setup):
+    broker, _, _, _, put = setup
+    source = put('x' * 401)
+    grant = issue(broker, source)
+    broker.invoke(grant['token'], 'selected_original', {})
+    for start, end in ((0, 401), (400, 402), (-1, 1), (True, 2), (0, 0)):
+        with pytest.raises(BridgeError):
+            broker.invoke(grant['token'], 'source_excerpt', {'id': source.id, 'start': start, 'end': end})
+    assert broker.invoke(grant['token'], 'source_excerpt', {'id': source.id, 'start': 400, 'end': 401})['quote'] == 'x'
+
+
+@pytest.mark.parametrize('stage', ['before', 'after_snapshot'])
+@pytest.mark.parametrize('change', ['withdraw', 'replace', 'cancel', 'expire', 'revoke_skill', 'conflicting_skill'])
+def test_selected_original_withholds_text_when_authority_changes(setup, monkeypatch, stage, change):
+    broker, episodes, procedures, clock, _ = setup
+    provenance = Provenance(source_type=SourceType.DOCUMENT)
+    source = episodes.record(EpisodeKind.DOCUMENT, 'Original', 'PRIVATE_OLD_TEXT', provenance,
+                             source_key='local-fixture-original')[0]
+    episodes.advance_source_head('local-fixture-original', None, source.id)
+    candidate = procedures.propose(skill())
+    procedures.accept(candidate['id'])
+    grant = broker.issue('Schreibe eine Zunftmail.', area='mail', sources=[source.id])
+
+    def mutate():
+        if change == 'withdraw': episodes.ignore(source.id)
+        elif change == 'replace':
+            replacement = episodes.record(EpisodeKind.DOCUMENT, 'Original', 'PRIVATE_NEW_TEXT', provenance,
+                                         source_key='local-fixture-original')[0]
+            episodes.advance_source_head('local-fixture-original', source.id, replacement.id)
+        elif change == 'cancel': broker.cancel(grant['id'])
+        elif change == 'expire': clock[0] = 120
+        elif change == 'revoke_skill': procedures.revoke(candidate['id'])
+        else: procedures.accept(procedures.propose(skill('zunftmail-zwei'))['id'])
+
+    if stage == 'before':
+        mutate()
+    else:
+        read = episodes.belegbarer_snapshot
+        reads = 0
+        def snapshot_then_change(*args, **kwargs):
+            nonlocal reads
+            snap = read(*args, **kwargs)
+            reads += 1
+            if reads == 2: mutate()  # After preflight and the actual original read.
+            return snap
+        monkeypatch.setattr(episodes, 'belegbarer_snapshot', snapshot_then_change)
+
+    with pytest.raises(BridgeError) as error:
+        broker.invoke(grant['token'], 'selected_original', {})
+    assert 'PRIVATE' not in str(error.value)
+    assert broker.current(grant['token']) is False
 
 
 @pytest.mark.parametrize('args', [{'query':'a'}, {'query':'x'*201}, {'query':'Zugangskarte', 'url':'http://other'},

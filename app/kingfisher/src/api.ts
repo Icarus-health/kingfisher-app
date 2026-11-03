@@ -1025,6 +1025,19 @@ export type LokaleKi = {
   installiert: string[]; cloud: string[];
 };
 
+export type LocalSourceReference = {id: string; fingerprint: string};
+export type LocalSourceStatus = {status: "configured" | "not_installed"; model: string; runtime?: {status: "idle" | "running" | "cancelling" | "stopping" | "stopped"; busy: boolean; model: string}; notice?: string};
+export type LocalSourceReview = {review_binding: string; source: LocalSourceReference; model: string; expires_in: number; limits: Record<string, number>};
+export type LocalSourceStart = {source_id: string; question: string; source_fingerprint: string; review_binding: string; consent: true; idempotency_key: string};
+export type LocalSourceRun = {
+  id: string; source: LocalSourceReference; model: string;
+  status: "running" | "completed" | "cancelled" | "stale" | "timed_out" | "failed" | "restarted";
+  execution_pending: boolean; label?: "DRAFT"; verified?: false; text?: string;
+  evidence?: Array<LocalSourceReference & {title?: string; start: number; end: number; quote: string}>;
+  coverage?: {source_characters: number; opened_characters: number; complete_text_opened: boolean};
+  error?: string; message?: string;
+};
+
 export class DocumentPreviewError extends Error {}
 export class ApiError extends Error {
   // `detail` ist der Grund, den der Server nennt, wenn er einen nennt.
@@ -1370,7 +1383,12 @@ export const api = {
   dismissWorkingMemory: (id: string) => request<{dismissed: boolean}>(`/api/v1/memory/working/${encodeURIComponent(id)}/dismiss`, {method: "POST"}),
   workingMemoryCorrection: (id: string) => request<WorkingMemoryCorrection>(`/api/v1/memory/working/${encodeURIComponent(id)}/correction`),
   saveWorkingMemoryCorrection: (id: string, body: {fingerprint: string; body: string}) => request<WorkingMemoryCorrectionResult>(`/api/v1/memory/working/${encodeURIComponent(id)}/correction`, {method: "POST", body: JSON.stringify(body)}),
-  profileSource: (kind: "episode" | "note", id: string) => request<{title: string; body: string; occurred_at?: string | null; recorded_at?: string; state?: string; revision?: number; correction_id?: string; correction_current?: boolean; source_current?: boolean; source_incomplete?: boolean; attachment_check_pending?: boolean; attachment_sources?: Array<{id: string; title: string}>; attachment_coverage?: {geprueft: boolean; vollstaendig: boolean; hinweis: string} | null; project_id?: string | null; memory_status?: {state: string; label: string}; provenance?: {source_type?: string; source_ref?: string; correction_current?: boolean}}>(`/api/v1/${kind === "episode" ? "episodes" : "notes"}/${encodeURIComponent(id)}`),
+  localSourceStatus: () => request<LocalSourceStatus>("/api/v1/modules/local-source/status"),
+  prepareLocalSource: (source_id: string, question: string) => request<LocalSourceReview>("/api/v1/modules/local-source/prepare", {method: "POST", body: JSON.stringify({source_id, question})}),
+  startLocalSource: ({source_id, question, source_fingerprint, review_binding, consent, idempotency_key}: LocalSourceStart) => request<LocalSourceRun>("/api/v1/modules/local-source/start", {method: "POST", body: JSON.stringify({source_id, question, source_fingerprint, review_binding, consent, idempotency_key})}),
+  localSourceRun: (id: string) => request<LocalSourceRun>(`/api/v1/modules/local-source/runs/${encodeURIComponent(id)}`),
+  cancelLocalSource: (id: string) => request<LocalSourceRun>(`/api/v1/modules/local-source/runs/${encodeURIComponent(id)}/cancel`, {method: "POST"}),
+  profileSource: (kind: "episode" | "note", id: string) => request<{title: string; body: string; occurred_at?: string | null; recorded_at?: string; state?: string; revision?: number; correction_id?: string; correction_current?: boolean; source_current?: boolean; source_fingerprint?: string; source_incomplete?: boolean; attachment_check_pending?: boolean; attachment_sources?: Array<{id: string; title: string}>; attachment_coverage?: {geprueft: boolean; vollstaendig: boolean; hinweis: string} | null; project_id?: string | null; memory_status?: {state: string; label: string}; provenance?: {source_type?: string; source_ref?: string; correction_current?: boolean}}>(`/api/v1/${kind === "episode" ? "episodes" : "notes"}/${encodeURIComponent(id)}`),
   identities: () => request<{entities: Array<{id: string; label: string; kind: string}>}>("/api/v1/memory/registry"),
   correctClaim: (id: string, body: {value: string; statement: string; reason: string; scope_ref: string | null; target_ref: string | null; valid_from: string | null; valid_until: string | null}) => request(`/api/v1/memory/claims/${encodeURIComponent(id)}/correct`, {method: "POST", body: JSON.stringify(body)}),
   retractClaim: (id: string, reason: string) => request(`/api/v1/memory/claims/${encodeURIComponent(id)}/retract`, {method: "POST", body: JSON.stringify({reason})}),

@@ -30,7 +30,7 @@ from types import SimpleNamespace
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Annotated, Any, Literal
 
-from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict, field_validator
@@ -52,6 +52,7 @@ from .backup import (
     snapshot_all,
 )
 from .update_backup import backup_before_update
+from . import local_module_integration as local_modules
 from . import (
     aufgaben_von_selbst, briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
     neu_eingegangen, personen, providers, suche, urteil, working_memory_semantic_runtime,
@@ -1426,7 +1427,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                   else app.state.summarizer)
     scheduler._run_consolidation = consolidation_job(consolidation)  # noqa: SLF001
     scheduler._run_summary = summary_job(summarizer)  # noqa: SLF001
-    scheduler._run_backup = backup_job(_data_dir()) if plan.backup else None  # noqa: SLF001
+    scheduler._run_backup = local_modules.scheduled_backup(app, backup_job(_data_dir())) if plan.backup else None  # noqa: SLF001
     hinten = rollen_von(app).provider("hintergrund")
     scheduler.configure(
         enabled=plan.enabled,
@@ -1447,6 +1448,7 @@ def _wire_scheduler(app: FastAPI) -> None:
 
 def _close_persistent_state(app: FastAPI) -> None:
     """Schließt alle offenen SQLite-Verbindungen vor einer Wiederherstellung."""
+    local_modules.stop_for_transition(app)
     cloud_jobs = getattr(app.state, "cloud_memory_jobs", None)
     if cloud_jobs is not None:
         cloud_jobs.pause(revoke=True)
@@ -1585,6 +1587,7 @@ def create_app(
         from .restore_boundary import mark_pending
         mark_pending(_data_dir(), 'forced_inspection_launcher')
     inspection = create_inspection_app(_data_dir())
+    local_modules.inspection_admin(inspection, os.environ.get(TOKEN_ENV))
     if pending(_data_dir()):
         return inspection
     # Vor dem ersten Öffnen: steht ein Umbau an, erst eine Kopie von vorher.
@@ -1592,7 +1595,10 @@ def create_app(
     app = FastAPI(title="Kingfisher", version="0.1.0")
     _ohne_geheimnisse_in_ablehnungen(app)
     app.state.runtime_boundary = RuntimeBoundary(_data_dir())
-    app.add_middleware(RecoveryBoundaryMiddleware, boundary=app.state.runtime_boundary, inspection=inspection)
+    async def before_module_restore(scope, receive):
+        return await local_modules.before_restore(app, scope, receive)
+    app.add_middleware(RecoveryBoundaryMiddleware, boundary=app.state.runtime_boundary, inspection=inspection,
+        before_exclusive=before_module_restore, module_authorized=lambda scope: local_modules.authorized(app, scope))
     from .mac_calendar import MacCalendar, install_routes
     app.state.mac_calendar = MacCalendar(_data_dir() / "mac-calendar.sqlite3")
     app.state.owns_agent = agent is None
@@ -1766,6 +1772,10 @@ def create_app(
     install_microsoft_routes(app, guard, _data_dir, lambda: _build_agent(app))
     from .memory_routes import install_routes as install_memory_routes
     install_memory_routes(app, guard)
+    def module_authorized(scope):
+        request = Request(scope)
+        return angemeldet(request.headers.get('x-icarus-token'), request.cookies.get(UI_SESSION_COOKIE))
+    local_modules.install(app, guard, authorized=module_authorized)
     from .recovery_jobs import RecoveryJobs, install_routes as install_recovery_routes
     app.state.recovery_jobs = RecoveryJobs(_data_dir() / "recovery-status.sqlite3")
     install_recovery_routes(app, guard, app.state.recovery_jobs, expected)
@@ -1780,8 +1790,11 @@ def create_app(
         if not isinstance(passwort, str) or not 16 <= len(passwort) <= 256:
             return JSONResponse({"detail": "Bitte ein Sicherungspasswort mit 16 bis 256 Zeichen wählen."}, status_code=422)
         try:
-            with app.state.conversation_lock:  # ein ruhiger Moment: keine Antwort schreibt gerade mitten hinein
-                archiv = erstellen(_data_dir(), passwort)
+            with local_modules.backup_context(app):
+                with app.state.conversation_lock:  # erst Modulruhe, dann die gemeinsame Sperre
+                    archiv = erstellen(_data_dir(), passwort)
+        except local_modules.ModuleMaintenanceError as exc:
+            return JSONResponse({'detail': str(exc)}, status_code=409)
         except BackupError as exc:
             return JSONResponse({"detail": str(exc)}, status_code=422)
         except (OSError, ValueError):
@@ -5944,7 +5957,18 @@ def create_app(
     def episode_detail(episode_id: str) -> dict[str, Any]:
         try:
             from .working_memory_status import source_status
-            result = app.state.episodes.get(episode_id).to_dict()
+            from .episodes import AUSGEBLENDETE_ZUSTAENDE, CHAT_LOOKUP_TAG
+            try:
+                pinned = app.state.episodes.belegbarer_snapshot(episode_id, max_bytes=256*1024)
+            except (ValueError, KeyError):
+                pinned = None
+            # Bind the reading stamp to the same immutable body shown by this
+            # response, not to a later independent read of a changed original.
+            module_current = bool(pinned and pinned.current()
+                and pinned.episode.state not in AUSGEBLENDETE_ZUSTAENDE
+                and CHAT_LOOKUP_TAG not in pinned.episode.tags)
+            result = (pinned.episode if module_current else app.state.episodes.get(episode_id)).to_dict()
+            result['source_fingerprint'] = pinned.support_fingerprint() if module_current else None
             result["memory_status"] = source_status(app, episode_id)
             from .anhaenge import gespeicherter_bericht
             result['attachment_coverage'] = gespeicherter_bericht(app.state.episodes.get(episode_id))
@@ -6720,8 +6744,11 @@ def create_app(
         # `make aktualisieren`, damit `make zurueck-vor-update` sie findet.
         from .backup import UPDATE_SET_PREFIX
         try:
-            path = (snapshot_all(_data_dir(), _data_dir() / "sicherungen", keep=3, prefix=UPDATE_SET_PREFIX)
-                    if vor_update else snapshot_all(_data_dir(), _data_dir() / "sicherungen"))
+            with local_modules.backup_context(app, before_update=vor_update):
+                path = (snapshot_all(_data_dir(), _data_dir() / "sicherungen", keep=3, prefix=UPDATE_SET_PREFIX)
+                        if vor_update else snapshot_all(_data_dir(), _data_dir() / "sicherungen"))
+        except local_modules.ModuleMaintenanceError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
         except BackupError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         return {
@@ -6758,6 +6785,7 @@ def create_app(
                 verify_snapshot_set(ziel)
             else:
                 verify_legacy_snapshot(ziel)
+            local_modules.stop_for_transition(app)
             # The middleware owns the exclusive boundary: no HTTP/Agent/worker
             # operation is still using these integrations when files are replaced.
             scheduler = getattr(app.state, "scheduler", None)
@@ -6788,6 +6816,8 @@ def create_app(
                 # Bestehende Icarus-Snapshots bleiben lesbar, sie enthalten
                 # aber absichtlich nur das damalige Selbstmodell.
                 restore(ziel, data_dir / "self-model.sqlite3")
+        except local_modules.ModuleMaintenanceError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
         except BackupError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 

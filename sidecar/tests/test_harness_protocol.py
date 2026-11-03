@@ -69,6 +69,46 @@ def test_model_tool_definitions_come_from_broker_not_worker():
         description=TOOLS[0]['description'],parameters=TOOLS[0]['inputSchema'])]
 
 
+def test_selected_original_alias_uses_trusted_empty_argument_schema():
+    data = payload()
+    data['tools'] = [dict(type='function', function=dict(name='mcp__kingfisher__selected_original',
+        description='Read all sources', parameters=dict(type='object', additionalProperties=True)))]
+    data['messages'] += [dict(role='assistant', content=None, tool_calls=[dict(id='chosen', type='function',
+        function=dict(name='mcp__kingfisher__selected_original', arguments='{}'))]),
+        dict(role='tool', tool_call_id='chosen', content='Original')]
+    messages, functions = normalize(data, MODEL)
+    assert messages[1]['tool_calls'][0]['function'] == dict(name='mcp__kingfisher__selected_original', arguments='{}')
+    assert len(functions) == 1
+    assert functions[0]['name'] == 'mcp__kingfisher__selected_original'
+    assert functions[0]['description'] != 'Read all sources'
+    assert functions[0]['parameters'] == dict(type='object', properties={}, additionalProperties=False)
+
+
+def catalog_tools():
+    return [dict(type='function', function=dict(name=name, parameters={})) for name in (
+        'mcp__kingfisher__memory_search', 'mcp__kingfisher__selected_original',
+        'mcp__kingfisher__source_excerpt', 'mcp__kingfisher__skills_select',
+        'list_mcp_resource_templates', 'list_mcp_resources', 'read_mcp_resource')]
+
+
+def test_complete_closed_sdk_catalog_is_supported_without_resource_authority():
+    _, functions = normalize(payload() | dict(tools=catalog_tools()), MODEL)
+    assert [f['name'] for f in functions] == ['mcp__kingfisher__memory_search',
+        'mcp__kingfisher__selected_original', 'mcp__kingfisher__source_excerpt', 'mcp__kingfisher__skills_select']
+
+
+@pytest.mark.parametrize('change', ['eighth', 'unknown', 'duplicate'])
+def test_closed_sdk_catalog_does_not_admit_extra_or_repeated_tools(change):
+    definitions = catalog_tools()
+    if change == 'eighth':
+        definitions.append(dict(type='function', function=dict(name='shell', parameters={})))
+    elif change == 'unknown':
+        definitions[-1]['function']['name'] = 'shell'
+    else:
+        definitions[-1] = definitions[0]
+    with pytest.raises(BridgeError): normalize(payload() | dict(tools=definitions), MODEL)
+
+
 @pytest.fixture
 def setup(tmp_path):
     episodes = EpisodeStore(tmp_path / 'e.db')
@@ -104,7 +144,7 @@ def test_mcp_resources_have_no_ambient_access_and_tools_are_curated(setup):
     def rpc(method, params=None):
         return client.post('/worker/mcp',headers=auth(grant),json=dict(jsonrpc='2.0',id=1,method=method,params=params or {})).json()
     listed = rpc('tools/list')['result']['tools']
-    assert [t['name'] for t in listed] == ['memory_search','source_excerpt','skills_select']
+    assert [t['name'] for t in listed] == ['memory_search','selected_original','source_excerpt','skills_select']
     assert rpc('resources/list')['result'] == {'resources':[]}
     assert rpc('resources/templates/list')['result'] == {'resourceTemplates':[]}
     assert rpc('resources/read',dict(uri='file:///etc/passwd'))['error']['code'] == -32601
@@ -112,6 +152,48 @@ def test_mcp_resources_have_no_ambient_access_and_tools_are_curated(setup):
     assert denied['result']['isError'] is True
     assert 'passwd' not in str(denied)
     assert client.get('/worker/mcp',headers=auth(grant)).status_code == 405
+
+
+def test_mcp_selected_original_is_exact_scoped_and_available_without_search(setup):
+    client, _, grant, source, _, calls, _ = setup
+    response = client.post('/worker/mcp', headers=auth(grant), json=dict(jsonrpc='2.0', id=1,
+        method='tools/call', params=dict(name='selected_original', arguments={})))
+    assert response.status_code == 200
+    result = response.json()['result']
+    assert result['isError'] is False
+    original = json.loads(result['content'][0]['text'])
+    assert original['id'] == source.id and original['quote'] == 'Zugangskarte liegt in A42.'
+    assert original['source_length'] == 26 and original['partial_coverage'] is False
+    assert not calls
+
+
+@pytest.mark.parametrize('params', [dict(name='selected_original', arguments={'id':'other'}),
+    dict(name='selected_original', arguments=[]), dict(name='selected_original'),
+    dict(name='selected_original', arguments={}, sources=['other']),
+    dict(name='mcp__kingfisher__selected_original', arguments={})])
+def test_mcp_selected_original_refuses_nonempty_or_malformed_calls(setup, params):
+    client, _, grant, *_ = setup
+    response = client.post('/worker/mcp', headers=auth(grant), json=dict(jsonrpc='2.0', id=1,
+        method='tools/call', params=params))
+    assert response.status_code == 200
+    assert response.json()['result']['isError'] is True
+    assert 'Zugangskarte liegt' not in response.text
+
+
+def test_model_selected_original_alias_round_trips_as_exact_empty_call(setup):
+    _, broker, grant, *_ = setup
+    app = FastAPI()
+    def infer(_messages, _tools, permitted):
+        assert permitted()
+        return Reply(text='', model=MODEL, tool_calls=[ToolCall(id='chosen',
+            name='mcp__kingfisher__selected_original', arguments={})])
+    register(app, broker, model=MODEL, infer=infer)
+    response = TestClient(app).post('/worker/v1/chat/completions', headers=auth(grant),
+        json=payload() | dict(tools=catalog_tools()))
+    assert response.status_code == 200
+    first = json.loads(response.text.splitlines()[0][6:])
+    call = first['choices'][0]['delta']['tool_calls'][0]
+    assert call['function'] == dict(name='mcp__kingfisher__selected_original', arguments='{}')
 
 
 @pytest.mark.parametrize('raw', ['{"model":"a","model":"b"}', '{"x":NaN}', '[1,2]', 'bad', '{"text":"'+'x'*33000+'"}'])

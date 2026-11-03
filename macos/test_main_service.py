@@ -20,7 +20,8 @@ def native_main_service(tmp_path_factory):
     build = tmp_path_factory.mktemp('native-main-service-build')
     app = ROOT / 'macos/App'
     sources = sorted((app / 'Logic').glob('*.swift')) + [app / name for name in
-        ('Paths.swift', 'Docker.swift', 'Updater.swift', 'Startup.swift')]
+        ('Paths.swift', 'Docker.swift', 'ModuleRuntimeCache.swift', 'ModuleRuntimeManager.swift',
+         'Updater.swift', 'Startup.swift')]
     sources.append(ROOT / 'macos/tests/main_service/main.swift')
     binary = build / 'main-service'
     result = subprocess.run([compiler, '-module-cache-path', str(build / 'cache'),
