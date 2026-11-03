@@ -16,6 +16,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var paths: AppPaths?
     private var startup: Startup?
     private var updater: Updater?
+    private var moduleManager: ModuleRuntimeManager?
+    private var moduleSetup: ModuleSetupWork?
+    private var moduleSetupTimer: Timer?
+    private var moduleStatusSequence = 0
+    private var moduleStatusRunning = false
+    private var moduleStatusObserver: (generation: Int, sequence: Int)?
+    private var moduleTerminationPending = false
     private var powerReporter: PowerReporter?
     private var calendarReporter: CalendarReporter?
     private var notificationReporter: NotificationReporter?
@@ -32,8 +39,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
         self.paths = paths
-        startup = Startup(paths: paths)
-        updater = Updater(paths: paths)
+        let modules = ModuleRuntimeManager(paths: paths)
+        moduleManager = modules
+        startup = Startup(paths: paths, modules: modules)
+        updater = Updater(paths: paths, modules: modules)
         start()
     }
 
@@ -57,12 +66,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                                    onCalendar: { [weak self] request in
             guard let self = self, !self.busy else { return }
             self.calendarReporter?.requestPermission(generation: request.generation)
-        }, onVoice: { [weak self] request in self?.requestVoice(request) })
+        }, onVoice: { [weak self] request in self?.requestVoice(request) },
+           onModules: { [weak self] request in self?.requestModules(request) })
         configuration.userContentController.add(bridge, name: UpdateRequest.bridgeName)
         surface = WebSurface(origin: AppPaths.origin, configuration: configuration)
         surface.window = window
         window.delegate = self
-        surface.onLeave = { [weak self] in self?.stopVoice() }
+        surface.onLeave = { [weak self] in
+            self?.stopVoice()
+            self?.moduleSetup?.cancellation.cancel()
+            self?.moduleStatusSequence += 1
+            self?.moduleStatusObserver = nil
+        }
         surface.onLoaded = { [weak self] in
             guard let self = self, !self.busy else { return }
             self.status.isHidden = true
@@ -224,6 +239,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Nur nach einer Nachricht der Seite, also nach einem Klick des Menschen dort. Nie von selbst.
     private func requestUpdate(_ request: UpdateRequest) {
         guard !busy, let updater = updater else { return }
+        moduleSetup?.cancellation.cancel()
+        moduleStatusSequence += 1
+        moduleStatusObserver = nil
         busy = true
         updating = true
         calendarReporter?.stop()
@@ -276,7 +294,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: Programm
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard updating else { return .terminateNow }
+        guard updating else {
+            guard moduleManager != nil else { return .terminateNow }
+            if moduleTerminationPending { return .terminateLater }
+            moduleTerminationPending = true
+            moduleSetup?.cancellation.cancel()
+            // Setup owns cleanup until its actual callback returns. Quitting
+            // must not leave a public builder or agent process behind.
+            if moduleSetup == nil { finishModuleTermination() }
+            return .terminateLater
+        }
         let alert = NSAlert()
         alert.messageText = "Kingfisher"
         alert.informativeText = Satz.updateLaeuft
@@ -323,6 +350,141 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let encoded = data.base64EncodedString()
         surface?.webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('kingfisher:voice',{detail:JSON.parse(new TextDecoder().decode(Uint8Array.from(atob('\(encoded)'),c=>c.charCodeAt(0))))}))")
     }
+
+    private final class ModuleSetupWork {
+        let generation: Int
+        let cancellation = ModuleSetupCancellation()
+        var observer: Int?
+        var phase: ModuleSetupPhase = .checking
+        init(generation: Int) { self.generation = generation }
+        var generations: Set<Int> { Set([generation] + (observer.map { [$0] } ?? [])) }
+    }
+
+    /// Called only by the existing same-origin, main-frame native bridge.
+    /// No setup starts from status, page load or ordinary app startup.
+    private func requestModules(_ request: ModuleSetupRequest) {
+        guard let manager = moduleManager else {
+            deliverModule(generation: request.generation, phase: .unavailable)
+            return
+        }
+        switch request.action {
+        case .cancel:
+            guard let work = moduleSetup, work.generations.contains(request.generation) else {
+                // A cancellation of an already completed setup is reconciled
+                // from actual state; it never starts a second operation.
+                requestModules(ModuleSetupRequest(message: ["aktion": "lokaleWerkzeugeStatus",
+                    "generation": request.generation])!)
+                return
+            }
+            work.cancellation.cancel()
+        case .status:
+            if let work = moduleSetup {
+                work.observer = request.generation
+                deliverModule(generation: request.generation, phase: work.phase)
+                return
+            }
+            moduleStatusObserver = (request.generation, moduleStatusSequence)
+            deliverModule(generation: request.generation, phase: .checking)
+            readModuleStatus(manager)
+        case .setup:
+            if let work = moduleSetup {
+                work.observer = request.generation
+                deliverModule(generation: request.generation, phase: work.phase)
+                return
+            }
+            guard !busy, !moduleTerminationPending else {
+                deliverModule(generation: request.generation, phase: .failed)
+                return
+            }
+            moduleStatusSequence += 1
+            moduleStatusObserver = nil
+            let work = ModuleSetupWork(generation: request.generation)
+            moduleSetup = work
+            deliverModule(generation: work.generation, phase: .checking)
+            // Long public downloads/builds can be quiet. Repeat only the actual
+            // current phase, without extra Docker/model/status requests.
+            moduleSetupTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] timer in
+                guard let self = self, self.moduleSetup === work else { timer.invalidate(); return }
+                guard !work.cancellation.isCancelled() else { return }
+                for generation in work.generations { self.deliverModule(generation: generation, phase: work.phase) }
+            }
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                let outcome: ModuleSetupPhase
+                do {
+                    try manager.prepareAndStart(progress: { phase in
+                        DispatchQueue.main.async {
+                            guard let self = self, self.moduleSetup === work else { return }
+                            work.phase = phase
+                            for generation in work.generations { self.deliverModule(generation: generation, phase: phase) }
+                        }
+                    }, cancelled: { work.cancellation.isCancelled() })
+                    outcome = .ready
+                } catch {
+                    outcome = work.cancellation.isCancelled() ? .cancelled : .failed
+                }
+                DispatchQueue.main.async {
+                    guard let self = self, self.moduleSetup === work else { return }
+                    self.moduleSetupTimer?.invalidate()
+                    self.moduleSetupTimer = nil
+                    for generation in work.generations { self.deliverModule(generation: generation, phase: outcome) }
+                    self.moduleSetup = nil
+                    if self.moduleTerminationPending { self.finishModuleTermination() }
+                }
+            }
+        }
+    }
+
+    /// Repeated status clicks share one actual metadata callback. A replaced
+    /// page gets one fresh read after the former callback exits, never a queue.
+    private func readModuleStatus(_ manager: ModuleRuntimeManager) {
+        guard !moduleStatusRunning, let observer = moduleStatusObserver else { return }
+        moduleStatusRunning = true
+        let sequence = observer.sequence
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let phase = manager.status()
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.moduleStatusRunning = false
+                guard self.moduleSetup == nil, let latest = self.moduleStatusObserver else { return }
+                guard latest.sequence == self.moduleStatusSequence else {
+                    self.moduleStatusObserver = nil
+                    return
+                }
+                if sequence != latest.sequence {
+                    self.readModuleStatus(manager)
+                    return
+                }
+                self.moduleStatusObserver = nil
+                self.deliverModule(generation: latest.generation, phase: phase)
+            }
+        }
+    }
+
+    private func deliverModule(generation: Int, phase: ModuleSetupPhase) {
+        guard let data = try? JSONSerialization.data(withJSONObject:
+            ["generation": generation, "status": phase.rawValue]) else { return }
+        let encoded = data.base64EncodedString()
+        surface?.webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('kingfisher:local-modules',{detail:JSON.parse(atob('\(encoded)'))}))")
+    }
+
+    private func finishModuleTermination() {
+        guard let manager = moduleManager else {
+            DispatchQueue.main.async { NSApp.reply(toApplicationShouldTerminate: true) }
+            return
+        }
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let quiet = manager.stopBeforeMaintenance()
+            DispatchQueue.main.async {
+                self?.moduleTerminationPending = false
+                NSApp.reply(toApplicationShouldTerminate: quiet)
+                if !quiet {
+                    self?.status.show(StatusContent(title: nil,
+                        sentence: "Die lokale Prüfung wird noch beendet. Bitte kurz warten und erneut schließen.",
+                        busy: false, actions: []))
+                }
+            }
+        }
+    }
 }
 
 /// Nimmt Nachrichten der Seite an. Nur aus dem Hauptrahmen der eigenen Adresse; alles andere wird ignoriert.
@@ -332,14 +494,17 @@ final class BridgeHandler: NSObject, WKScriptMessageHandler {
     private let onUpdate: (UpdateRequest) -> Void
     private let onCalendar: (CalendarPermissionRequest) -> Void
     private let onVoice: (VoiceRequest) -> Void
+    private let onModules: (ModuleSetupRequest) -> Void
 
     init(origin: URL, onUpdate: @escaping (UpdateRequest) -> Void,
          onCalendar: @escaping (CalendarPermissionRequest) -> Void = { _ in },
-         onVoice: @escaping (VoiceRequest) -> Void = { _ in }) {
+         onVoice: @escaping (VoiceRequest) -> Void = { _ in },
+         onModules: @escaping (ModuleSetupRequest) -> Void = { _ in }) {
         self.origin = origin
         self.onUpdate = onUpdate
         self.onCalendar = onCalendar
         self.onVoice = onVoice
+        self.onModules = onModules
     }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -347,6 +512,7 @@ final class BridgeHandler: NSObject, WKScriptMessageHandler {
         guard message.name == UpdateRequest.bridgeName, message.frameInfo.isMainFrame,
               source.protocol == origin.scheme, source.host == origin.host, source.port == origin.port else { return }
         if let voice = VoiceRequest(message: message.body) { onVoice(voice) }
+        else if let modules = ModuleSetupRequest(message: message.body) { onModules(modules) }
         else if let calendar = CalendarPermissionRequest(message: message.body) { onCalendar(calendar) }
         else if let request = UpdateRequest(message: message.body) { onUpdate(request) }
     }

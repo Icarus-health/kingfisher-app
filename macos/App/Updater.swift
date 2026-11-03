@@ -14,9 +14,13 @@ enum UpdateResult {
 
 final class Updater {
     let paths: AppPaths
+    private let modules: ModuleRuntimeManager
     private var store: EnvStore { EnvStore(file: paths.envFile) }
 
-    init(paths: AppPaths) { self.paths = paths }
+    init(paths: AppPaths, modules: ModuleRuntimeManager? = nil) {
+        self.paths = paths
+        self.modules = modules ?? ModuleRuntimeManager(paths: paths)
+    }
 
     /// `say` bekommt den Satz zum aktuellen Schritt.
     func perform(_ request: UpdateRequest, say: (String) -> Void) -> UpdateResult {
@@ -34,6 +38,9 @@ final class Updater {
         if let issue = storageIssue(docker, beforeBackup: true) {
             return .storageBlocked(oldFassung: oldFassung, issue: issue)
         }
+        // Revocation alone is insufficient. The manager must observe actual
+        // setup/inference/listener cleanup before backup or process replacement.
+        guard modules.stopBeforeMaintenance() else { return .notStarted(oldFassung: oldFassung) }
         guard let pinnedTag = docker.pin(previous) else { return .notStarted(oldFassung: oldFassung) }
         var blockedIssue: UpdateStorageIssue?
         var snapshotName: String?
@@ -49,7 +56,9 @@ final class Updater {
                                                                snapshotName: $0, token: token, docker: docker) } ?? false)
         }
         switch machine.phase {
-        case .finished: return .updated
+        case .finished:
+            modules.reconcileIfEnabled()
+            return .updated
         case .notStarted:
             if let issue = blockedIssue { return .storageBlocked(oldFassung: oldFassung, issue: issue) }
             return .notStarted(oldFassung: oldFassung)

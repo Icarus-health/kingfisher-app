@@ -32,33 +32,33 @@
 
 **Files:** `sidecar/icarus_memory/harness_broker.py`, `harness_protocol.py`; respective existing tests.
 
-- [ ] RED: generic question has no literal hit; selected-original read must return only the single authorized original's bounded exact first excerpt and metadata. Multi-source grant, extra arguments, hidden/changed source and the ninth tool call refuse. Existing literal search/excerpt behavior remains.
-- [ ] Add `selected_original` with exact empty arguments; require exactly one grant source, return metadata plus at most 400 original characters, mark only that original discovered for existing bounded excerpt reads. Include source length/partial-coverage metadata; empty originals must not manufacture evidence. Preserve the same quota and pre/post freshness checks.
-- [ ] Add the exact MCP schema and function alias; run Broker/Protocol and gateway oracle suites. Independent review before activation.
+- [x] RED: generic question has no literal hit; selected-original read must return only the single authorized original's bounded exact first excerpt and metadata. Multi-source grant, extra arguments, hidden/changed source and the ninth tool call refuse. Existing literal search/excerpt behavior remains.
+- [x] Add `selected_original` with exact empty arguments; require exactly one grant source, return metadata plus at most 400 original characters, mark only that original discovered for existing bounded excerpt reads. Include source length/partial-coverage metadata; empty originals must not manufacture evidence. Preserve the same quota and pre/post freshness checks.
+- [x] Add the exact MCP schema and function alias; run Broker/Protocol and gateway oracle suites. Independent review before activation.
 
 ### Task 2 — Reviewed controller and application boundary
 
 **Files:** new `local_module_controller.py`, `local_module_gateway.py`, tests; new `local_module_routes.py`; narrow registration/lifespan in `server.py`.
 
-- [ ] Replay the four reviewed scratch files after checking their hashes. Retain explicit review binding/source fingerprint/consent/idempotency, bounded in-memory jobs, exact evidence and single-flight through detached inference cleanup.
-- [ ] Connect the existing source/procedure stores and real source dependency resolver. Authenticate with the normal app guard. Expose status, prepare, start, poll and cancel before the UI catch-all; block restore/inspection/update states.
-- [ ] Pin verified local provider identity and use the existing shared model gate nonblockingly for every inference. Reject overlapping calls without starting another model; no unbounded waiting queue.
-- [ ] Tests: no model on opening/status, stale view, repeated/different confirmation, cancelled transport with live inference, changed runtime and provider, no secret in output, no canonical writes.
+- [x] Replay the four reviewed scratch files after checking their hashes. Retain explicit review binding/source fingerprint/consent/idempotency, bounded in-memory jobs, exact evidence and single-flight through detached inference cleanup.
+- [x] Connect the existing source/procedure stores and real source dependency resolver. Authenticate with the normal app guard. Expose status, prepare, start, poll and cancel before the UI catch-all; block restore/inspection/update states.
+- [x] Pin verified local provider identity and use the existing shared model gate nonblockingly for every inference. Reject overlapping calls without starting another model; no unbounded waiting queue.
+- [x] Tests: no model on opening/status, stale view, repeated/different confirmation, cancelled transport with live inference, changed runtime and provider, no secret in output, no canonical writes.
 
 ### Task 3 — Explicit controlled runtime and isolation
 
 **Files:** fixed scripts `harness_run.mjs`, `harness_service.mjs`, `harness_gateway.py`, their tests and OS probes; managed public runtime manifest/setup helpers.
 
-- [ ] Preserve synthetic contracts; add only fixed `controlled-local-readonly-v1` mode with fixed local model and paired opaque runtime generation. Worker cannot select mode, endpoint, command or credentials.
-- [ ] Managed runtime uses exact pinned public packages/lock and verified Node binaries; no host execution of dependency lifecycle scripts. Public cache only, read-only worker mount, no private volume or master keys.
-- [ ] Retain three-role isolation, direct-main/UI-bootstrap denial, outbound denial, nonroot/no capabilities/read-only/noexec/resource bounds. Prove current code in real Linux containers and separately with actual Qwen; label injected replies distinctly.
-- [ ] Review all mode/pairing/restart/cancellation paths before enabling in the app. Unsupported or unavailable runtime remains disabled.
+- [x] Preserve synthetic contracts; add only fixed `controlled-local-readonly-v1` mode with fixed local model and paired opaque runtime generation. Worker cannot select mode, endpoint, command or credentials.
+- [x] Managed runtime uses exact pinned public packages/lock and verified Node binaries; no host execution of dependency lifecycle scripts. Public cache only, read-only worker mount, no private volume or master keys.
+- [x] Retain three-role isolation, direct-main/UI-bootstrap denial, outbound denial, nonroot/no capabilities/read-only/noexec/resource bounds. Prove current code in real Linux containers and separately with actual Qwen; label injected replies distinctly.
+- [x] Review all mode/pairing/restart/cancellation paths before enabling in the app. Unsupported or unavailable runtime remains disabled.
 
 ### Task 4 — Source-side action and native lifecycle
 
 **Files:** compact source work component/API definitions, `ProfileSource.tsx`, optional settings card, fixed native setup bridge/lifecycle, packaging/Compose contracts.
 
-- [ ] Expose one optional action beside an open original. Show the question, selected source, local model, waiting/cancel state, draft and actual evidence. Keep source navigation and previous selection. No work on merely opening the pane.
-- [ ] Native setup/reconcile is a fixed operation with progress/cancel and verified public paths; no arbitrary command/path/URL. Normal app startup and offline rollback work while modules are absent.
-- [ ] Revoke/stop/wait before backup/update/restore; prevent new admissions throughout. Do not replace native identity or assume TCC continuity from bundle ID alone.
+- [x] Expose one optional action beside an open original. Show the question, selected source, local model, waiting/cancel state, draft and actual evidence. Keep source navigation and previous selection. No work on merely opening the pane.
+- [x] Native setup/reconcile is a fixed operation with progress/cancel and verified public paths; no arbitrary command/path/URL. Normal app startup and offline rollback work while modules are absent.
+- [x] Revoke/stop/wait before backup/update/restore; prevent new admissions throughout. Do not replace native identity or assume TCC continuity from bundle ID alone.
 - [ ] Rendered synthetic tests at 900/1280px, keyboard/focus/errors/draft retention, independent review, relevant backend/native regression and actual normal update/readback. Native window/permissions and actual mixed quality gate remain explicit acceptance tasks.

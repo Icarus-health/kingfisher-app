@@ -55,6 +55,7 @@ def main(argv=None):
         return int(subprocess.check_output(['sysctl', '-n', 'kern.memorystatus_vm_pressure_level'],
             text=True)) if os.uname().sysname == 'Darwin' else 1
     containers, networks, levels = [], [], []
+    controller_code = None
     nonce = secrets.token_hex(6)
     label = 'kingfisher.artificial-local=' + nonce
     stop = threading.Event()
@@ -64,19 +65,23 @@ def main(argv=None):
         if value['Config']['Labels'].get('kingfisher.artificial-local') != nonce:
             raise RuntimeError('Artificial ownership changed')
     def call(path, body=None, method='GET'):
-        code = """import httpx,json,os
+        code = """import httpx,json,os,time
 with httpx.Client(timeout=15,trust_env=False,follow_redirects=False) as c:
+ started=time.monotonic()
  r=c.request(%r,'http://127.0.0.1:8890'+%r,json=%r,headers={'x-icarus-token':os.environ['ICARUS_SIDECAR_TOKEN']})
- print(json.dumps({'status':r.status_code,'body':r.json()}))
+ print(json.dumps({'status':r.status_code,'body':r.json(),'http_seconds':round(time.monotonic()-started,6)}))
 """ % (method, path, body)
         return json.loads(docker('exec', main_id, 'python', '-c', code, timeout=20))
     started = time.monotonic()
     try:
         for name in ('harness_service.mjs', 'harness_worker.mjs', 'harness_run.mjs', 'harness_gateway.py'):
-            shutil.copy2(root / 'scripts' / name, runtime / name)
-        shutil.copytree(root / 'sidecar/icarus_memory', runtime / 'gateway/icarus_memory',
+            if (runtime / name).read_bytes() != (root / 'scripts' / name).read_bytes():
+                raise ValueError('Current reviewed public shim required')
+        controller_code = runtime.parent / ('kf-artificial-controller-' + nonce)
+        controller_code.mkdir(mode=0o755)
+        shutil.copytree(root / 'sidecar/icarus_memory', controller_code / 'icarus_memory',
             dirs_exist_ok=True, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
-        shutil.copy2(root / 'integrations/harness/local_source_model_controller.py', runtime / 'gateway')
+        shutil.copy2(root / 'integrations/harness/local_source_model_controller.py', controller_code)
         report['code_sha256'] = {name: hashlib.sha256((runtime / name).read_bytes()).hexdigest()
             for name in ('harness_service.mjs', 'harness_worker.mjs', 'harness_run.mjs', 'harness_gateway.py')}
         control = docker('network', 'create', '--internal', '--label', label,
@@ -89,7 +94,7 @@ with httpx.Client(timeout=15,trust_env=False,follow_redirects=False) as c:
             key, token = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
             environment = Path(temporary) / 'artificial.env'
             environment.write_text('KF_GATEWAY_CONTROL_KEY=' + key + '\nICARUS_SIDECAR_TOKEN=' + token
-                + '\nPYTHONPATH=/runtime/gateway\nICARUS_OLLAMA_8K_PROFILE=' + MODEL + '\n')
+                + '\nPYTHONPATH=/controller\nICARUS_OLLAMA_8K_PROFILE=' + MODEL + '\n')
             environment.chmod(0o600)
             proxy = Path(temporary) / 'proxy.env'
             proxy.write_text('KF_GATEWAY_CONTROL_KEY=' + key + '\n'); proxy.chmod(0o600)
@@ -101,6 +106,7 @@ with httpx.Client(timeout=15,trust_env=False,follow_redirects=False) as c:
                 '--network', control, '--network-alias', 'kingfisher-controller',
                 '--add-host', 'host.docker.internal:host-gateway', '--memory', '768m', '--cpus', '.5',
                 '--pids-limit', '64', '--env-file', str(environment), *common, '--entrypoint', 'python',
+                '--mount', 'type=bind,source=' + str(controller_code) + ',target=/controller,readonly',
                 args.image, '-m', 'uvicorn', 'local_source_model_controller:app', '--host', '0.0.0.0',
                 '--port', '8890', '--lifespan', 'off', '--no-access-log', '--log-level', 'warning')
             containers.append(main_id)
@@ -166,7 +172,10 @@ with httpx.Client(timeout=15,trust_env=False,follow_redirects=False) as c:
                     row['result'] = admitted; break
                 run_id = admitted['body']['id']
                 until = time.monotonic() + 125
+                samples = []
                 while True:
+                    health = call('/api/v1/modules/local-source/runtime/status')
+                    samples.append(dict(status=health['status'], seconds=health['http_seconds']))
                     state = call('/api/v1/modules/local-source/runs/' + run_id)
                     if state['status'] != 200 or (state['body'].get('status') != 'running'
                             and state['body'].get('execution_pending') is False):
@@ -176,6 +185,9 @@ with httpx.Client(timeout=15,trust_env=False,follow_redirects=False) as c:
                         raise RuntimeError('Artificial source deadline exceeded')
                     time.sleep(.5)
                 row['seconds'] = round(time.monotonic() - tick, 3)
+                row['api_samples'] = samples
+                row['api_responsive'] = all(sample['status'] == 200 and sample['seconds'] < 3
+                                            for sample in samples)
                 save()
                 if row['result']['status'] != 200 or row['result']['body'].get('status') != 'completed':
                     break
@@ -198,6 +210,9 @@ with httpx.Client(timeout=15,trust_env=False,follow_redirects=False) as c:
         for identifier in reversed(networks):
             try: docker('network', 'rm', identifier)
             except Exception: report.setdefault('cleanup_pending', []).append('network')
+        if controller_code is not None:
+            try: shutil.rmtree(controller_code)
+            except Exception: report.setdefault('cleanup_pending', []).append('artificial_controller_code')
         try:
             remaining = docker('ps', '-a', '-q', '--filter', 'label=' + label)
             remaining_networks = docker('network', 'ls', '-q', '--filter', 'label=' + label)

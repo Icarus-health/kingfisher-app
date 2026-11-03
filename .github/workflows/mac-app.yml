@@ -17,6 +17,10 @@ on:
     paths:
       - "macos/**"
       - "scripts/kingfisher_update_storage.py"
+      - "scripts/harness_*.mjs"
+      - "scripts/harness_gateway.py"
+      - "integrations/harness/package*.json"
+      - "deploy/compose.modules.yaml"
       - ".github/workflows/mac-app.yml"
 
 permissions:
@@ -38,10 +42,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Hauptdienst bei Start, Update und Rückkehr prüfen
+      - name: Hauptdienst, lokale Module und sichere Updates prüfen
         run: |
           python -m pip install pytest
-          python -m pytest macos/test_main_service.py -q
+          python -m pytest macos/test_main_service.py macos/test_update_storage.py macos/test_module_setup_request.py macos/test_module_runtime_cache.py macos/test_module_runtime_manager.py -q
 
       - name: Fenster des Bestands übersetzen
         # Teilt Shared/ mit der App; so fällt ein Bruch dort auch hier auf.

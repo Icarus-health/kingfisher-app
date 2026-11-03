@@ -83,7 +83,9 @@ def test_pause_does_not_duplicate_a_completed_idempotent_replay(env):
     review = controller.prepare(env['source'].id, QUESTION)
     first = terminal(controller, begin(controller, env['source'], review=review))
     calls = len(env['infer_calls'])
-    with controller.quiescent(wait_seconds=0):
+    # A terminal result can precede the execution thread's physical exit.
+    # Exercise the normal bounded drain rather than racing that cleanup.
+    with controller.quiescent(wait_seconds=2):
         pass
     replay = begin(controller, env['source'], review=review)
     assert replay['id'] == first['id']
@@ -98,7 +100,7 @@ def test_replay_freshness_crossing_pause_cannot_release_old_completed_text(env, 
 
     def crossing(*args):
         result = original(*args)
-        with controller.quiescent(wait_seconds=0):
+        with controller.quiescent(wait_seconds=2):
             pass
         return result
 

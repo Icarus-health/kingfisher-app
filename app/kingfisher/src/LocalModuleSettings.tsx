@@ -44,6 +44,7 @@ export function LocalModuleSettings() {
     <details>
       <summary>Umfang der Einrichtung</summary>
       <p className="source-hint">Die Laufzeit arbeitet später nur mit einer ausdrücklich ausgewählten Quelle und deinem lokalen Qwen-Modell. Sie verändert keine bestätigten Angaben oder Aufgaben. Modell, Cloud-Einstellungen und die Aufnahme deiner Quellen bleiben unverändert.</p>
+      <p className="source-hint">Zum Einrichten wird Kingfisher kurz neu gestartet. Deine gespeicherten Daten bleiben erhalten.</p>
     </details>
   </div>;
 }

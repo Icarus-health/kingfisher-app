@@ -94,7 +94,7 @@ def main(argv=None):
         partial=output.with_suffix(output.suffix+'.partial')
         partial.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n');os.replace(partial,output)
     nonce=secrets.token_hex(6);label='kingfisher.synthetic='+nonce
-    containers=[];networks=[];started=time.monotonic()
+    containers=[];networks=[];controller_code=None;started=time.monotonic()
     monitor_stop=threading.Event();monitoring=None;levels=[]
     def docker(*arguments,timeout=30):
         result=subprocess.run(['docker',*arguments],capture_output=True,text=True,timeout=timeout)
@@ -118,12 +118,16 @@ with httpx.Client(timeout=120,trust_env=False,follow_redirects=False) as c:
     try:
         levels.append(pressure())
         if levels[-1]>2:raise RuntimeError('Memory reserve unavailable')
-        for name in ('harness_service.mjs','harness_worker.mjs','harness_run.mjs',
-                     'test_harness_service.mjs','harness_gateway.py'):
-            shutil.copy2(root/'scripts'/name,runtime/name)
-        shutil.copytree(root/'sidecar/icarus_memory',runtime/'gateway/icarus_memory',
+        for name in ('harness_service.mjs','harness_worker.mjs','harness_run.mjs','harness_gateway.py'):
+            if (runtime/name).read_bytes() != (root/'scripts'/name).read_bytes():
+                raise ValueError('Current reviewed public shim required')
+        # The verified runtime is never mutated by this proof. Fixture code is
+        # a separate public read-only mount available only to the controller.
+        controller_code=runtime.parent/('kf-artificial-controller-'+nonce)
+        controller_code.mkdir(mode=0o755)
+        shutil.copytree(root/'sidecar/icarus_memory',controller_code/'icarus_memory',
                         dirs_exist_ok=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
-        shutil.copy2(root/'integrations/harness/production_boundary_controller.py',runtime/'gateway')
+        shutil.copy2(root/'integrations/harness/production_boundary_controller.py',controller_code)
         report['code_sha256']={name:hashlib.sha256((runtime/name).read_bytes()).hexdigest()
             for name in ('harness_service.mjs','harness_worker.mjs','harness_run.mjs','harness_gateway.py','package-lock.json')}
         control_net=docker('network','create','--internal','--label',label,'kf-boundary-main-'+nonce);networks.append(control_net)
@@ -132,7 +136,7 @@ with httpx.Client(timeout=120,trust_env=False,follow_redirects=False) as c:
             environment=Path(temp)/'artificial.env'
             environment.write_text('KF_GATEWAY_CONTROL_KEY='+secrets.token_urlsafe(32)
                 +'\nICARUS_SIDECAR_TOKEN='+secrets.token_urlsafe(32)
-                +'\nPYTHONPATH=/runtime/gateway\n')
+                +'\nPYTHONPATH=/controller\n')
             environment.chmod(0o600)
             proxy_env=Path(temp)/'proxy.env'
             proxy_env.write_text(environment.read_text().splitlines()[0]+'\n');proxy_env.chmod(0o600)
@@ -142,7 +146,9 @@ with httpx.Client(timeout=120,trust_env=False,follow_redirects=False) as c:
                 '--mount','type=bind,source='+str(runtime)+',target=/runtime,readonly','--label',label,'--dns','127.0.0.1']
             main_id=docker('create','--name','kf-boundary-controller-'+nonce,'--network',control_net,
                 '--network-alias','kingfisher-controller','--memory','512m','--cpus','0.5','--pids-limit','64',
-                '--env-file',str(environment),*common,'--entrypoint','python',args.image,
+                '--env-file',str(environment),*common,
+                '--mount','type=bind,source='+str(controller_code)+',target=/controller,readonly',
+                '--entrypoint','python',args.image,
                 '-m','uvicorn','production_boundary_controller:app','--host','0.0.0.0','--port','8890',
                 '--lifespan','off','--no-access-log','--log-level','warning');containers.append(main_id)
             proxy_id=docker('create','--name','kf-boundary-proxy-'+nonce,'--network',control_net,
@@ -210,11 +216,26 @@ with httpx.Client(timeout=5,trust_env=False,follow_redirects=False) as c:
 """
             baseline_result=execute_json(main_id,baseline)
             report['ui_bootstrap_baseline']=baseline_result=={'cookie':True,'authorized':True}
-            proc_test=docker('exec',worker_id,'/runtime/bin/node','--test','--test-reporter=tap','--test-name-pattern',
-                'same-UID child cannot find initialized service credential in parent initial environment',
-                '/runtime/test_harness_service.mjs',timeout=45)
-            report['parent_proc_tap']=proc_test
-            report['parent_proc_test']=bool(re.search(r'^ok \d+ - same-UID child cannot find initialized service credential in parent initial environment\s*$',proc_test,re.M))
+            parent_probe=r"""
+import {createService} from '/runtime/harness_service.mjs';
+import {CONTROLLED_MODE} from '/runtime/harness_run.mjs';
+import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';
+const key=crypto.randomBytes(32).toString('base64url');
+const service=createService({mode:CONTROLLED_MODE,runtime:'/runtime',scratch:'/tmp'});
+await new Promise(resolve=>service.listen(0,'127.0.0.1',resolve));
+let result={passed:false};
+try {
+ const response=await fetch('http://127.0.0.1:'+service.address().port+'/init',{method:'POST',body:JSON.stringify({key,mode:CONTROLLED_MODE})});
+ await response.text();
+ const child=spawnSync(process.execPath,['--input-type=module','-e',"import fs from 'node:fs';process.stdout.write(fs.readFileSync('/proc/'+process.ppid+'/environ'));"],{env:{PATH:'/usr/bin:/bin'},timeout:3000,maxBuffer:65536});
+ const initial=child.stdout?.toString()??'';
+ result={passed:response.status===200&&child.status===0&&!initial.includes(key)&&!initial.includes('KF_WORKER_SERVICE_KEY=')&&!initial.includes('KF_GATEWAY_CONTROL_KEY=')&&!initial.includes('ICARUS_SIDECAR_TOKEN=')};
+} finally {service.closeAllConnections();await new Promise(resolve=>service.close(resolve));}
+console.log(JSON.stringify(result));
+"""
+            proc_test=json.loads(docker('exec',worker_id,'/runtime/bin/node','--input-type=module','-e',parent_probe))
+            report['parent_proc_receipt']=proc_test
+            report['parent_proc_test']=proc_test=={'passed':True}
             initialize=r"""import httpx,json,os
 with httpx.Client(timeout=10,trust_env=False,follow_redirects=False) as c:
  r=c.post('http://kingfisher-gateway-control:8891/controller/initialize',json={},headers={'Authorization':'Bearer '+os.environ['KF_GATEWAY_CONTROL_KEY']});r.raise_for_status();print(json.dumps(r.json()))
@@ -249,6 +270,9 @@ with httpx.Client(timeout=10,trust_env=False,follow_redirects=False) as c:
                 docker('network','rm',identifier)
                 if docker('network','ls','-q','--filter','id='+identifier):raise RuntimeError('Network remains')
             except Exception:report.setdefault('cleanup_pending',[]).append(identifier)
+        if controller_code is not None:
+            try:shutil.rmtree(controller_code)
+            except Exception:report.setdefault('cleanup_pending',[]).append('artificial_controller_code')
         report['cleanup_verified']=not report.get('cleanup_pending')
         report['checks']=boundary_checks(report)
         report['status']='passed' if all(report['checks'].values()) else 'failed'

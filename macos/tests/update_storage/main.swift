@@ -1,6 +1,8 @@
 import Foundation
 
-// Only external commands and HTTP are fixtures. Docker, Updater and EnvStore are production code.
+// Only external commands, HTTP and the optional runtime lifecycle are fixtures.
+// Docker, Updater and EnvStore are production code. The runtime has its own real
+// manager suite; these cross-platform tests isolate update capacity/order.
 struct CommandResult {
     let status: Int32
     let output: String
@@ -35,6 +37,20 @@ enum Loopback {
     }
     static func waitForVersion(_ version: String, token: String) -> Bool { true }
     static func inspectionMode(token: String) -> Bool { true }
+}
+final class ModuleRuntimeManager {
+    init(paths: AppPaths) {}
+    private func record(_ event: String) {
+        guard ProcessInfo.processInfo.environment["FIXTURE_MODULE_DRAIN"] != nil else { return }
+        let file = URL(fileURLWithPath: Shell.searchPath).appendingPathComponent("trace")
+        let handle = try! FileHandle(forWritingTo: file)
+        handle.seekToEndOfFile(); handle.write(Data((event + "\n").utf8)); handle.closeFile()
+    }
+    func stopBeforeMaintenance() -> Bool {
+        record("module-stop")
+        return ProcessInfo.processInfo.environment["FIXTURE_MODULE_DRAIN"] != "blocked"
+    }
+    func reconcileIfEnabled() { record("module-reconcile") }
 }
 if CommandLine.arguments.count == 3 {
     if let status = UpdateStorageStatus.parse(CommandLine.arguments[1]) {

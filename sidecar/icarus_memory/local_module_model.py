@@ -152,6 +152,10 @@ class VerifiedModuleModel:
                         if not allowed():
                             raise ValueError('revoked local request')
                         local._verified_local_permitted = allowed
+                        # This factual source job has the protocol's fixed
+                        # 256-token ceiling and deterministic sampling. Never
+                        # inherit ordinary conversation generation defaults.
+                        local._request_payload = lambda payload: dict(payload, max_tokens=256, temperature=0)
                         # Existing complete() uses its ordinary 60s native path.
                         # Clamp only this job-local copy to the inherited shared
                         # deadline, including time spent in metadata/preparation.

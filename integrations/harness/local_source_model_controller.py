@@ -51,9 +51,20 @@ provider = OpenAICompatible(MODEL, 'artificial-local', 'http://host.docker.inter
 
 class TrackedModel(VerifiedModuleModel):
     def infer(self, identity, messages, tools, permitted):
-        calls.append(dict(model=identity.model, local=identity.local,
-                          source_safety='Quellen' in messages[0].get('content', '')))
-        return super().infer(identity, messages, tools, permitted)
+        row = dict(model=identity.model, local=identity.local,
+                   source_safety='Quellen' in messages[0].get('content', ''))
+        calls.append(row)
+        try:
+            reply = super().infer(identity, messages, tools, permitted)
+            # Artificial fixture only: actual tool choices explain bounded
+            # loop failures without collecting headers, grants or credentials.
+            row['tool_choices'] = [dict(name=tool.name, arguments=tool.arguments)
+                                   for tool in reply.tool_calls]
+            row['returned_text'] = bool(reply.text)
+            return reply
+        except Exception as error:
+            row['failure_type'] = type(error).__name__
+            raise
 
 
 model = TrackedModel(lambda: provider, threading.Lock())

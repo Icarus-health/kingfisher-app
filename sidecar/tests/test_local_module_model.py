@@ -96,6 +96,10 @@ def test_verified_inference_reuses_one_ampel_permit_and_never_mutates_ordinary_p
     identity = model.identity()
     reply = inference(model, identity, fixture)
     assert reply.text == 'Künstlicher Entwurf.' and reply.model == MODEL
+    # The closed worker protocol permits at most 256 output tokens. Ordinary
+    # chat defaults (1024 tokens / temperature1) must not leak into fact review.
+    assert chats(fixture)[0]['options']['num_predict'] == 256
+    assert chats(fixture)[0]['options']['temperature'] == 0
     assert fixture['occupancy'] == [{'vorne': 1, 'hinten': 0}]
     assert len(chats(fixture)) == 1
     body = chats(fixture)[0]

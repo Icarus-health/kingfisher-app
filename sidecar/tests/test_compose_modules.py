@@ -12,17 +12,18 @@ FILE = ROOT / 'deploy/compose.modules.yaml'
 IMAGE = 'sha256:' + 'a' * 64
 
 
-def config(tmp_path):
+def config(tmp_path, compose_file=FILE):
     if shutil.which('docker') is None:
         pytest.skip('Docker Compose unavailable')
     # An empty, explicit environment prevents the machine's real credentials
     # from entering even the config-only command. Nothing is started or pulled.
     environment = {'PATH': os.environ['PATH'], 'HOME': str(tmp_path),
+        'DOCKER_HOST': 'unix://' + str(tmp_path / 'no-docker-daemon.sock'),
         'KINGFISHER_MODULE_IMAGE': IMAGE, 'KF_GATEWAY_CONTROL_KEY': 'x' * 43,
         'KINGFISHER_MODULE_RUNTIME': str(tmp_path / 'public-runtime')}
     compose = shutil.which('docker-compose')
     command = [compose] if compose else ['docker', 'compose']
-    result = subprocess.run([*command, '-f', str(FILE),
+    result = subprocess.run([*command, '-f', str(compose_file),
         'config', '--format', 'json'], env=environment, capture_output=True,
         text=True, timeout=20)
     assert result.returncode == 0, result.stderr
@@ -62,6 +63,10 @@ def test_no_cloud_or_worker_authority_in_resolved_config(tmp_path):
 
 
 def test_resolved_runtime_has_only_public_readonly_mount_and_resource_bounds(tmp_path):
+    # Older compose-go versions omit a false bool in JSON; newer versions
+    # preserve the explicitly disabled OptOut. The source must disable it in
+    # both services regardless of serialization. No daemon is contacted.
+    assert FILE.read_text().count('create_host_path: false\n') == 2
     value = config(tmp_path)
     for name, memory, cpu, pids in [('worker', 512 * 1024 ** 2, .75, 64),
                                    ('gateway', 96 * 1024 ** 2, .25, 32)]:
@@ -79,9 +84,25 @@ def test_resolved_runtime_has_only_public_readonly_mount_and_resource_bounds(tmp
         assert service['dns'] == ['127.0.0.1']
         assert service['healthcheck']['disable'] is True
         assert not service.get('ports')
-        assert service['volumes'] == [{'type': 'bind',
+        assert len(service['volumes']) == 1
+        mount = dict(service['volumes'][0])
+        assert mount.pop('bind') in ({}, {'create_host_path': False})
+        assert mount == {'type': 'bind',
             'source': str(tmp_path / 'public-runtime'), 'target': '/runtime',
-            'read_only': True, 'bind': {'create_host_path': False}}]
+            'read_only': True}
         assert len(service['tmpfs']) == 2
         assert all('noexec' in entry and 'nosuid' in entry for entry in service['tmpfs'])
         assert any(entry.startswith('/data:') and 'mode=000' in entry for entry in service['tmpfs'])
+
+
+def test_config_parser_keeps_enabled_host_creation_distinguishable(tmp_path):
+    # A parser that drops *both* true and false must not make the safety test
+    # vacuous. New OptOut parsers omit true; older bool parsers emit true.
+    unsafe = tmp_path / 'unsafe.compose.yaml'
+    unsafe.write_text(FILE.read_text().replace('create_host_path: false', 'create_host_path: true'))
+    safe = config(tmp_path)
+    value = config(tmp_path, unsafe)
+    for name, service in value['services'].items():
+        unsafe_bind = service['volumes'][0].get('bind', {})
+        assert unsafe_bind in ({}, {'create_host_path': True})
+        assert unsafe_bind != safe['services'][name]['volumes'][0].get('bind', {})
