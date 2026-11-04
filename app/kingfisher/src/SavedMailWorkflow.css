@@ -7,6 +7,7 @@
 #root .saved-mail-workflow details > :not(summary) { margin:var(--g-a1) 0 var(--g-a2); }
 #root .saved-mail-workflow blockquote { margin:var(--g-a2) 0; padding:0 0 0 var(--g-a3); border-left:2px solid var(--g-linie); white-space:pre-wrap; font:var(--g-text); }
 #root .saved-mail-workflow-task { margin-top:var(--g-a3); padding-top:var(--g-a3); border-top:1px solid var(--g-linie); }
+#root .saved-task-summary { margin:var(--g-a1) 0 var(--g-a2); font:var(--g-neben); color:var(--g-tinte); }
 #root .saved-task-fields { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:var(--g-a3); }
 #root .saved-task-fields > label:nth-child(3) { grid-column:1 / -1; }
 #root .saved-mail-workflow-task label { display:flex; flex-direction:column; gap:var(--g-a1); margin:var(--g-a2) 0; font:500 14px/1.4 var(--g-schrift); color:var(--g-tinte); }

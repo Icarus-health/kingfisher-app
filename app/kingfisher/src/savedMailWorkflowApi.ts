@@ -5,7 +5,7 @@ export type SavedMailWorkflowView = {
  project_preparation_status?:'unprepared'|'unavailable'|'ready'|'not_needed';project_preparation_detail?:string;
  temporal_status:string;temporal_reason:string;detail:string;
 };
-export type SavedTaskInput = {fingerprint:string;source_digest:string;title:string;project_id:string|null;new_project_name:string|null;due:null;waiting_for:null};
+export type SavedTaskInput = {fingerprint:string;source_digest:string;title:string;project_id:string|null;new_project_name:string|null;due:string|null;waiting_for:string|null};
 const base = (id:string) => `/api/v1/local-mail/${encodeURIComponent(id)}/workflow`;
 export const savedMailWorkflowApi = {
  read:(id:string,signal?:AbortSignal)=>request<SavedMailWorkflowView>(base(id),{signal}),

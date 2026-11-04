@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {savedMailWorkflowApi,type SavedMailWorkflowView} from './savedMailWorkflowApi';
-import {initialSavedTask,savedTaskPayload,type SavedTaskDraft} from './savedMailWorkflowState';
+import {initialSavedTask,savedTaskPayload,savedDeadlineText,type SavedTaskDraft} from './savedMailWorkflowState';
 import {navigate} from './ui';
 
 export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,onTaskSaved,nebenAktion}: {
@@ -52,6 +52,10 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
  }
  async function save(id:string,draft:SavedTaskDraft) {
   if(!view || !valid)return;
+  if(draft.reviewFingerprint!==view.fingerprint){setError('Die Grundlage hat sich geändert. Bitte deine erhaltenen Eingaben am aktuellen Beleg prüfen.');return;}
+  // Auch unveränderte Vorgaben gehören zum bestätigten Entwurf. Nach einem
+  // Fehler darf ein erneutes Lesen sie nicht still durch neue Werte ersetzen.
+  setDrafts(values=>({...values,[id]:draft}));
   const version=epoch.current;setBusy(id);setError('');
   try {
    const task=await savedMailWorkflowApi.accept(episodeId,id,savedTaskPayload(view,draft));
@@ -81,11 +85,15 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
    {view.status==='incomplete' && <p>Überblick über einen Ausschnitt. Aufgaben aus unvollständigem Text werden hier nicht neu vorgeschlagen.</p>}
    {view.status==='ready' && !view.items.length && <p>In dieser Mail steht keine offene Aufgabe für dich.</p>}
    {view.status!=='archived' && view.items.filter(item=>!saved[item.id]).map(item=>{
-    const draft=drafts[item.id] || initialSavedTask(item,view.projects);
+    const draft=drafts[item.id] || initialSavedTask(item,view.projects,view.fingerprint);
+    const reviewed=draft.reviewFingerprint===view.fingerprint;
     const update=(change:Partial<SavedTaskDraft>)=>setDrafts(values=>({...values,[item.id]:{...draft,...change}}));
     return <form key={item.id} className="saved-mail-workflow-task" onSubmit={event=>{event.preventDefault();void save(item.id,draft);}}>
      <>
       <h3>{item.review_required?'Bitte auf heutige Aktualität prüfen':'Aufgabenvorschlag'}</h3>
+      <p className="saved-task-summary">{draft.waiting.trim() ? `Warte auf ${draft.waiting.trim()}` : 'Für mich'} · {savedDeadlineText(draft)}
+       {item.person_vorschlag ? ` · Bezug: ${item.person_vorschlag.name || item.person_vorschlag.adresse}` : ' · Bezugsperson offen'}</p>
+      {item.temporal_reason && <p className="saved-mail-workflow-context">{item.temporal_reason}</p>}
       <details className="saved-task-evidence"><summary>Beleg und Zuordnung prüfen</summary><blockquote>{item.evidence[0]?.quote}</blockquote>{item.project_suggestion && <p>Projektvorschlag: {item.project_suggestion.name} · {item.project_suggestion.reason}</p>}</details>
       <div className="saved-task-fields">
       <label>Aufgabe<textarea rows={2} value={draft.title} onChange={event=>update({title:event.target.value})} maxLength={4096} disabled={Boolean(busy)}/></label>
@@ -94,7 +102,12 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
       </select></label>
       {draft.project==='new' && <label>Neues Projekt<input value={draft.newProject} onChange={event=>update({newProject:event.target.value})} maxLength={200} disabled={Boolean(busy)}/></label>}
       </div>
-      <div className="saved-task-confirmation"><small>Ohne Frist und wartende Person{draft.project==='new'?' · Neues Projekt wird mit angelegt':''}.</small><button className="primary-action" type="submit" disabled={!valid || Boolean(busy) || !draft.title.trim() || (draft.project==='new' && !draft.newProject.trim())}>{busy===item.id?'Wird gespeichert …':draft.project==='new'?'Aufgabe und Projekt bestätigen':'Aufgabe bestätigen'}</button></div>
+      <details className="quiet-details"><summary>Frist und Zuständigkeit ändern</summary><div className="saved-task-fields">
+       <label>Fällig am<input type="date" value={draft.due} onChange={event=>update({due:event.target.value})} disabled={Boolean(busy)}/><small>Der vorgeschlagene Zeitpunkt bleibt beim gleichen Tag erhalten. Ein neuer Tag gilt bis 23:59 Uhr.</small></label>
+       <label>Warte auf<input value={draft.waiting} onChange={event=>update({waiting:event.target.value})} maxLength={1024} disabled={Boolean(busy)} placeholder="Niemanden – liegt bei mir"/></label>
+      </div></details>
+      {!reviewed && <p role="status">Die Grundlage hat sich geändert. Deine Eingaben bleiben erhalten. Bitte Frist, Person und Projekt am aktuellen Beleg prüfen. <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>update({reviewFingerprint:view.fingerprint})}>Eingaben am aktuellen Stand geprüft</button></p>}
+      <div className="saved-task-confirmation"><small>{draft.project==='new'?'Neues Projekt wird mit angelegt.':'Übernimmt die sichtbaren Angaben.'}</small><button className="primary-action" type="submit" disabled={!valid || !reviewed || Boolean(busy) || !draft.title.trim() || (draft.project==='new' && !draft.newProject.trim())}>{busy===item.id?'Wird gespeichert …':draft.project==='new'?'Aufgabe und Projekt bestätigen':'Aufgabe bestätigen'}</button></div>
      </>
     </form>;
    })}
