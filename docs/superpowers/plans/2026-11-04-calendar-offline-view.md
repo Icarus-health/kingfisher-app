@@ -12,10 +12,10 @@ Dies ist die Fehlerbehandlung einer offenen Kalenderansicht, kein persistenter O
 
 ## Schritte
 
-- [ ] Providerfehler/erfolgreich leer/Entzug/Quellenwechsel/In-flight-Änderung im Backend reproduzieren.
-- [ ] Antwortgebundene Lesemetadaten liefern, unveränderte Modell- und Gedächtniswege beibehalten.
-- [ ] Quellenweise Vorschau in derselben Ansicht mit Alter und gesperrten Aktionen; echte Gegenfälle für Spiegelkopien und Zeitraumwechsel.
-- [ ] Betroffene Tests, vollständige UI-Suite, unabhängiges Review und künstliche gerenderte Bedienprüfung.
+- [x] Providerfehler/erfolgreich leer/Entzug/Quellenwechsel/In-flight-Änderung im Backend reproduzieren.
+- [x] Antwortgebundene Lesemetadaten liefern, unveränderte Modell- und Gedächtniswege beibehalten.
+- [x] Quellenweise Vorschau in derselben Ansicht mit Alter und gesperrten Aktionen; echte Gegenfälle für Spiegelkopien und Zeitraumwechsel.
+- [x] Betroffene Tests, vollständige UI-Suite, unabhängiges Review und künstliche gerenderte Bedienprüfung.
 - [ ] GitHub-Lieferung; native Prüfung und normale Installation bleiben getrennt.
 
 ## Review Focus
