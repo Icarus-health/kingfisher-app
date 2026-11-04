@@ -71,14 +71,14 @@ def test_recovery_is_packaged_separate_and_does_not_attach_main_bridges():
     assert 'NSSecureTextField(' in controller
 
 
-def test_close_warnings_cover_all_recovery_browsers_and_reload_uses_focus():
+def test_close_flushes_all_recovery_browsers_and_reload_uses_focus():
     controller = (ROOT / 'macos/App/RecoveryWindowController.swift').read_text()
     delegate = (ROOT / 'macos/App/AppDelegate.swift').read_text()
-    assert 'var needsDraftQuitConfirmation: Bool { surface != nil }' in controller
-    assert 'if needsDraftQuitConfirmation && !closeConfirmed' in controller
+    assert 'var draftSurface: WebSurface? { surface }' in controller
+    assert 'surface.confirmLeaving' in controller
     assert 'transientBrowser' not in controller
-    assert 'needsDraftQuitConfirmation' in delegate
-    assert 'recoveryQuitConfirmed = false' in delegate
+    assert 'recoveryWindows.map { $0.draftSurface }' in delegate
+    assert 'draftsQuitConfirmed = false' in delegate
     assert 'NSApp.keyWindow' in delegate
     assert 'RecoveryReloadTarget.resolve' in delegate
     assert 'validateMenuItem' in delegate and 'activeReloadTarget != .none' in delegate

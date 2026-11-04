@@ -92,21 +92,27 @@ test('closing a ready file preview needs an explicit discard; keeping it preserv
 
 // A late send result must never discard a newer edit or a different conversation.
 test('conversation drafts survive unmount, isolate chats, and clear only the submitted revision',async()=>{
+  const oldWindow=globalThis.window,old={getConversationDraft:api.getConversationDraft,saveConversationDraft:api.saveConversationDraft};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  const drafts=new Map();api.getConversationDraft=async id=>drafts.get(id)??{text:'',revision:0,instance_id:'input-instance'};
+  api.saveConversationDraft=async(id,body)=>{const value={text:body.text,revision:body.expected_revision+1,instance_id:body.instance_id};drafts.set(id,value);return value;};
   let resolve;const pending=new Promise(r=>resolve=r);
   const a=await driver('CommandBar',{conversation:true,conversationId:'draft-a',onSubmit:()=>pending});
-  let tree=a.render();nodes(tree,'textarea')[0].props.onChange({target:{value:'erster Entwurf'}});
+  a.render();a.runEffects();await tick();let tree=a.render();nodes(tree,'textarea')[0].props.onChange({target:{value:'erster Entwurf'}});
   const sent=nodes(a.render(),'form')[0].props.onSubmit({preventDefault(){}});
   nodes(a.render(),'textarea')[0].props.onChange({target:{value:'nächster Entwurf'}});a.close();
   const b=await driver('CommandBar',{conversation:true,conversationId:'draft-b',onSubmit:async()=>{}});
-  try{assert.equal(nodes(b.render(),'textarea')[0].props.value,'');
+  try{b.render();b.runEffects();await tick();assert.equal(nodes(b.render(),'textarea')[0].props.value,'');
     nodes(b.render(),'textarea')[0].props.onChange({target:{value:'anderes Gespräch'}});
     resolve();await sent;assert.equal(nodes(b.render(),'textarea')[0].props.value,'anderes Gespräch');
     const restored=await driver('CommandBar',{conversation:true,conversationId:'draft-a',onSubmit:async()=>{}});
-    try{assert.equal(nodes(restored.render(),'textarea')[0].props.value,'nächster Entwurf');
+    try{restored.render();restored.runEffects();await tick();assert.equal(nodes(restored.render(),'textarea')[0].props.value,'nächster Entwurf');
       await nodes(restored.render(),'form')[0].props.onSubmit({preventDefault(){}});
       assert.equal(nodes(restored.render(),'textarea')[0].props.value,'');
+      assert.equal(drafts.get('draft-a').text,'');
+      const {flushConversationDraft}=await server.ssrLoadModule('/src/conversationDrafts.ts');await flushConversationDraft('draft-b');
     }finally{restored.close();}
-  }finally{b.close();}
+  }finally{b.close();Object.assign(api,old);globalThis.window=oldWindow;}
 });
 test('recording never requests keyboard submit',async()=>{
   const v=voice();v.state.phase='listening';
@@ -118,4 +124,27 @@ test('two submit events during the same pending send issue only one request',asy
  try{nodes(d.render(),'textarea')[0].props.onChange({target:{value:'einmal'}});const submit=nodes(d.render(),'form')[0].props.onSubmit;
    const first=submit({preventDefault(){}});const second=submit({preventDefault(){}});assert.equal(sends,1);resolve();await Promise.all([first,second]);
  }finally{d.close();}
+});
+
+test('backend save error stays visible and blocks sending until retry has acknowledged the draft',async()=>{
+ const old={getConversationDraft:api.getConversationDraft,saveConversationDraft:api.saveConversationDraft},oldWindow=globalThis.window;
+ globalThis.window={addEventListener(){},removeEventListener(){}};let remote={text:'',revision:0,instance_id:'input-errors'},fail=true,sends=0;
+ api.getConversationDraft=async()=>remote;api.saveConversationDraft=async(_id,body)=>{if(fail)throw Error('disk full');return remote={...remote,text:body.text,revision:remote.revision+1};};
+ const drafts=await server.ssrLoadModule('/src/conversationDrafts.ts');const d=await driver('CommandBar',{conversation:true,conversationId:'save-errors',onSubmit:async()=>{sends++;}});
+ const words=node=>node==null?'':typeof node==='object'?[node.props?.children].flat(10).map(words).join(' '):String(node);
+ try{d.render();d.runEffects();await tick();nodes(d.render(),'textarea')[0].props.onChange({target:{value:'bleibt sichtbar'}});await assert.rejects(drafts.flushConversationDraft('save-errors'));
+  assert.match(words(d.render()),/Entwurf noch nicht gesichert/);assert.doesNotMatch(words(d.render()),/Entwurf gesichert/);assert.equal(nodes(d.render(),'textarea')[0].props.value,'bleibt sichtbar');
+  await nodes(d.render(),'form')[0].props.onSubmit({preventDefault(){}});assert.equal(sends,0);fail=false;byName(d.render(),'Erneut sichern').props.onClick();await tick();assert.match(words(d.render()),/Entwurf gesichert/);
+ }finally{d.close();Object.assign(api,old);globalThis.window=oldWindow;}
+});
+test('new composer locks only its short submission phase; pending clear preserves the next visible input',async()=>{
+ const old={getConversationDraft:api.getConversationDraft,saveConversationDraft:api.saveConversationDraft},oldWindow=globalThis.window;
+ globalThis.window={addEventListener(){},removeEventListener(){}};const remote=new Map();let finish,clear;
+ api.getConversationDraft=async id=>remote.get(id)??{text:'',revision:0,instance_id:'input-lock'};
+ api.saveConversationDraft=async(id,body)=>{if(id==='clear-typing'&&!body.text)await new Promise(r=>clear=r);const value={text:body.text,revision:body.expected_revision+1,instance_id:body.instance_id};remote.set(id,value);return value;};
+ const a=await driver('CommandBar',{conversation:true,draftId:'new-lock',lockWhileBusy:true,onSubmit:()=>new Promise(r=>finish=r)});
+ try{a.render();a.runEffects();await tick();nodes(a.render(),'textarea')[0].props.onChange({target:{value:'erste Frage'}});const sent=nodes(a.render(),'form')[0].props.onSubmit({preventDefault(){}});await tick();assert.equal(nodes(a.render(),'textarea')[0].props.disabled,true);nodes(a.render(),'textarea')[0].props.onChange({target:{value:'darf während Bindung nicht ändern'}});assert.equal(nodes(a.render(),'textarea')[0].props.value,'erste Frage');finish();await sent;}finally{a.close();}
+ const b=await driver('CommandBar',{conversation:true,conversationId:'clear-typing',onSubmit:async()=>{}});
+ try{b.render();b.runEffects();await tick();nodes(b.render(),'textarea')[0].props.onChange({target:{value:'gesendet'}});const sent=nodes(b.render(),'form')[0].props.onSubmit({preventDefault(){}});await tick();nodes(b.render(),'textarea')[0].props.onChange({target:{value:'Folgefrage'}});clear();await sent;assert.equal(nodes(b.render(),'textarea')[0].props.value,'Folgefrage');const drafts=await server.ssrLoadModule('/src/conversationDrafts.ts');await drafts.flushConversationDraft('clear-typing');
+ }finally{b.close();Object.assign(api,old);globalThis.window=oldWindow;}
 });

@@ -195,6 +195,11 @@ export type ConversationPayload = {
   memory_candidates: MemoryCandidateCard[];
 };
 
+export type ConversationDraftHandoff = {id:string;text:string;state:'ready'|'started'|'accepted'};
+export type ConversationDraftBinding = {conversation_id:string;handoff:ConversationDraftHandoff};
+export type ConversationDraftPayload = {text:string;revision:number;instance_id:string;handoff?:ConversationDraftHandoff;binding?:ConversationDraftBinding};
+export type ConversationDraftBound = ConversationDraftBinding & {instance_id:string;claimed?:boolean};
+
 export type ConversationSummary = {
   id: string;
   title: string;
@@ -1063,7 +1068,8 @@ export async function request<T>(path: string, init?: RequestInit, previewError 
     }
     const payload = await response.json().catch(() => null);
     throw new ApiError(response.status, typeof payload?.detail === "string" ? payload.detail.slice(0, 500) : undefined,
-      typeof payload?.grund === "string" ? payload.grund.slice(0, 40) : undefined);
+      typeof payload?.grund === "string" ? payload.grund.slice(0, 40) :
+        typeof payload?.detail?.code === "string" ? payload.detail.code.slice(0,40) : undefined);
   }
   return response.json() as Promise<T>;
 }
@@ -1461,6 +1467,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ title }),
     }),
+  bindNewConversationDraft: (body:{instance_id:string;expected_revision:number}) => request<ConversationDraftBound>('/api/v1/conversation-drafts/new/bind',{method:'POST',body:JSON.stringify(body)}),
+  startConversationDraftHandoff: (id:string,body:{instance_id:string;handoff_id:string}) => request<ConversationDraftBound>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}/handoff/start`,{method:'POST',body:JSON.stringify(body)}),
+  finishConversationDraftHandoff: (id:string,body:{instance_id:string;handoff_id:string}) => request<ConversationDraftBound>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}/handoff/finish`,{method:'POST',body:JSON.stringify(body)}),
+  getConversationDraft: (id:string) => request<ConversationDraftPayload>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}`),
+  saveConversationDraft: (id:string,body:{text:string;expected_revision:number;instance_id:string}) =>
+    request<ConversationDraftPayload>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(body)}),
   getConversation: (id: string, signal?: AbortSignal) => request<ConversationPayload>(`/api/v1/conversations/${id}`, {signal}),
   conversationPage: (q = "", cursor?: string, signal?: AbortSignal) => {
     const params = new URLSearchParams({q, limit: "30"});
@@ -1578,9 +1590,10 @@ export const api = {
   latestConversation: () => request<{ conversation: ConversationPayload["conversation"] | null }>(
     "/api/v1/conversations/latest",
   ),
-  sendMessage: (id: string, message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }) =>
+  sendMessage: (id: string, message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }, draftInstance?:string) =>
     request<ConversationPayload>(`/api/v1/conversations/${id}/messages`, {
       method: "POST",
+      ...(draftInstance ? {headers:{'X-Kingfisher-Draft-Instance':draftInstance}} : {}),
       body: JSON.stringify({
         message,
         ...(clarification?.newQuestion ? { new_question: true } : {}),

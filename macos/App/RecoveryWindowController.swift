@@ -13,8 +13,7 @@ final class RecoveryWindowController: NSWindowController, NSWindowDelegate {
     private var selection = RecoverySelection()
     private var surface: WebSurface?
     private var closeConfirmed = false
-    // sessionStorage belongs to this WebView, even with a persistent cookie store.
-    var needsDraftQuitConfirmation: Bool { surface != nil }
+    var draftSurface: WebSurface? { surface }
     var canReload: Bool { surface != nil && !isWorking }
     func reloadPage() { if canReload { surface?.reload(fallbackPath: "today") } }
     private let titleLabel = NSTextField(labelWithString: "Sicherung wiederherstellen")
@@ -338,12 +337,10 @@ final class RecoveryWindowController: NSWindowController, NSWindowDelegate {
             alert.informativeText = "Bitte warte, bis der aktuelle Schritt beendet ist. Die laufende Haupt-App bleibt unverändert."
             alert.beginSheetModal(for: sender); return false
         }
-        if needsDraftQuitConfirmation && !closeConfirmed {
-            let alert = NSAlert(); alert.messageText = "Arbeitskopie schließen?"
-            alert.informativeText = "Ungesendete Gesprächsentwürfe können beim Schließen dieses Fensters verloren gehen. Bereits gespeicherte Daten bleiben erhalten."
-            alert.addButton(withTitle: "Offen lassen"); alert.addButton(withTitle: "Schließen")
-            alert.beginSheetModal(for: sender) { [weak self] result in
-                if result == .alertSecondButtonReturn { self?.closeConfirmed = true; self?.close() }
+        if let surface = surface, !closeConfirmed {
+            surface.confirmLeaving { [weak self] in
+                self?.closeConfirmed = true
+                self?.close()
             }
             return false
         }

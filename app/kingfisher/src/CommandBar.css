@@ -10,3 +10,9 @@
 .shell .command-bar .send-button .interface-icon { width: 20px; height: 20px; color: var(--g-auf-akzent); }
 .shell .command-bar .send-button:disabled { background: var(--g-segment-grund); opacity: 1; cursor: default; }
 .shell .command-bar .send-button:disabled .interface-icon { color: var(--g-platzhalter); }
+
+.composer-draft-status { display:flex; flex-wrap:wrap; align-items:center; gap:0.3rem 0.6rem; margin:0.3rem 0; color:var(--g-leise); font:var(--g-fussnote); }
+.composer-draft-status[role="alert"] { color:var(--g-warnung); }
+.composer-draft-status details { width:100%; }
+.composer-draft-status pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:10rem; overflow:auto; font:inherit; padding:0.65rem; background:var(--g-flaeche); border-radius:0.5rem; }
+.composer-draft-status button { font:inherit; }

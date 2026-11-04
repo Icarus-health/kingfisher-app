@@ -27,7 +27,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     private var calendarReporter: CalendarReporter?
     private var notificationReporter: NotificationReporter?
     private var recoveryWindows: [RecoveryWindowController] = []
-    private var recoveryQuitConfirmed = false
+    private var draftsQuitConfirmed = false
+    private var draftsQuitPending = false
+    private var draftCloseConfirmed = false
     /// Start oder Update laufen; dann gelten weder Neu laden noch eine zweite Anfrage.
     private var busy = false
     private var updating = false
@@ -332,24 +334,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     // MARK: Programm
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if updating {
+            let alert = NSAlert(); alert.messageText = "Kingfisher"
+            alert.informativeText = Satz.updateLaeuft
+            alert.beginSheetModal(for: window)
+            return .terminateCancel
+        }
         if recoveryWindows.contains(where: { $0.isWorking }) {
             let alert = NSAlert(); alert.messageText = "Wiederherstellung läuft"
             alert.informativeText = "Bitte warte, bis der aktuelle Schritt beendet ist. Die angelegten Ordner bleiben erhalten."
             alert.beginSheetModal(for: window)
             return .terminateCancel
         }
-        if !recoveryQuitConfirmed && recoveryWindows.contains(where: { $0.needsDraftQuitConfirmation }) {
-            let alert = NSAlert(); alert.messageText = "Arbeitskopie und Kingfisher schließen?"
-            alert.informativeText = "Ungesendete Gesprächsentwürfe in den Arbeitskopien können beim Beenden verloren gehen. Bereits gespeicherte Daten bleiben erhalten."
-            alert.addButton(withTitle: "Offen lassen"); alert.addButton(withTitle: "Schließen")
-            alert.beginSheetModal(for: window) { [weak self] response in
-                if response == .alertSecondButtonReturn {
-                    self?.recoveryQuitConfirmed = true
-                    NSApp.terminate(nil)
-                    // A different guard may cancel quitting. Do not waive a
-                    // later confirmation or this window's own close warning.
-                    self?.recoveryQuitConfirmed = false
+        if !draftsQuitConfirmed {
+            guard !draftsQuitPending else { return .terminateCancel }
+            draftsQuitPending = true
+            let surfaces = ([surface] + recoveryWindows.map { $0.draftSurface }).compactMap { $0 }
+            let group = DispatchGroup()
+            var allSaved = true
+            for page in surfaces {
+                group.enter()
+                page.prepareDraftsToLeave { saved in allSaved = allSaved && saved; group.leave() }
+            }
+            group.notify(queue: .main) { [weak self] in
+                guard let self = self else { return }
+                let resume: (Bool) -> Void = { proceed in
+                    self.draftsQuitPending = false
+                    if proceed {
+                        self.draftsQuitConfirmed = true
+                        NSApp.terminate(nil)
+                        self.draftsQuitConfirmed = false
+                    }
+                    // Keep editing frozen while module shutdown is pending.
+                    // A refused quit must restore it immediately.
+                    if !self.moduleTerminationPending { surfaces.forEach { $0.cancelDraftLeave() } }
                 }
+                if allSaved { resume(true); return }
+                guard self.window.attachedSheet == nil else { resume(false); return }
+                let alert = NSAlert(); alert.messageText = "Entwurf noch nicht gesichert"
+                alert.informativeText = "Mindestens ein Fenster konnte seinen Gesprächsentwurf nicht sichern. Bleibe in Kingfisher, um den Text zu sichern oder zu kopieren."
+                alert.addButton(withTitle: "Offen lassen"); alert.addButton(withTitle: "Trotzdem beenden")
+                alert.beginSheetModal(for: self.window) { resume($0 == .alertSecondButtonReturn) }
             }
             return .terminateCancel
         }
@@ -384,6 +409,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     }
 
     func applicationDidResignActive(_ notification: Notification) { stopVoice() }
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        guard !draftCloseConfirmed, let surface = surface else { return true }
+        surface.confirmLeaving { [weak self, weak sender] in
+            self?.draftCloseConfirmed = true
+            sender?.performClose(nil)
+            self?.draftCloseConfirmed = false
+            // Closing the main window hides it; reopening keeps this web document.
+            surface.cancelDraftLeave()
+        }
+        return false
+    }
     func windowDidResignKey(_ notification: Notification) { stopVoice() }
     func windowWillClose(_ notification: Notification) { stopVoice() }
 
@@ -535,6 +571,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             let quiet = manager.stopBeforeMaintenance()
             DispatchQueue.main.async {
                 self?.moduleTerminationPending = false
+                if !quiet {
+                    self?.surface?.cancelDraftLeave()
+                    self?.recoveryWindows.forEach { $0.draftSurface?.cancelDraftLeave() }
+                }
                 NSApp.reply(toApplicationShouldTerminate: quiet)
                 if !quiet {
                     self?.status.show(StatusContent(title: nil,

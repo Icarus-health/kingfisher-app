@@ -4530,6 +4530,8 @@ def create_app(
                 return True
         return False
     register_conversation_search_routes(app, guard, _safe_conversation_summary, _conversation_search_match)
+    from .conversation_draft_routes import register as register_conversation_drafts
+    register_conversation_drafts(app, guard)
 
     @app.get("/api/v1/conversations", dependencies=guard)
     def list_conversations(limit: int = Query(default=100, ge=1, le=200)) -> dict[str, Any]:
@@ -4676,8 +4678,12 @@ def create_app(
         status_code=201,
     )
     def send_conversation_message(
-        conversation_id: str, body: ConversationMessageIn
+        conversation_id: str, body: ConversationMessageIn, request: Request
     ) -> dict[str, Any]:
+        draft_instance = request.headers.get('x-kingfisher-draft-instance')
+        if draft_instance is not None and draft_instance != app.state.conversation_draft_instance_id:
+            raise HTTPException(409, detail={'code': 'draft_instance_changed',
+                'message': 'Die App wurde neu gestartet. Bitte den gespeicherten Entwurf erneut laden.'})
         if app.state.conversations.get(conversation_id) is None:
             raise HTTPException(status_code=404, detail="Unbekanntes Gespräch")
 
