@@ -36,11 +36,10 @@ test("„Stimmt nicht?“ nur unter Antworten, nicht unter dem Gedächtnisvorsch
 });
 
 test("nach „Melden“ steht, was mit der Meldung geschieht (Befund 12)", () => {
-  assert.match(GEMELDET, /^Gemerkt\. /);
-  assert.match(GEMELDET, /bleibt auf diesem Rechner/);
-  assert.match(GEMELDET, /ändert nichts an deinem Gedächtnis/);
+  assert.match(GEMELDET, /^Meldung gespeichert\. /);
+  assert.match(GEMELDET, /Fakten und Abläufe bleiben unverändert/);
   // Fremdprobe 3, Befund 11: vorne nur, was die Nutzerin wissen muss; „Prüffrage“ und „Messlatte“ stehen hinten.
-  assert.match(GEMELDET, /^Gemerkt\. Kingfisher soll diesen Fehler nicht wieder machen\. /);
+  assert.doesNotMatch(GEMELDET, /gelernt|nie wieder|soll diesen Fehler nicht wieder machen/i);
   assert.doesNotMatch(GEMELDET, /Prüffrage|Messlatte|[Ww]er Kingfisher verbessert/);
   const komponente = readFileSync(new URL("../src/RueckmeldungAnsicht.tsx", import.meta.url), "utf8");
   assert.match(komponente, /\{GEMELDET\} <Verweis ziel="technik-rueckmeldungen" \/>/);

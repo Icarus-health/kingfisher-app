@@ -124,23 +124,32 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
       {error ? <p role="alert">{error} <button type="button" className="secondary-action" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Erneut laden</button></p> : null}
       {!detail && !error ? <p role="status">Fassung wird gelesen …</p> : null}
       {detail ? <>
-        <p className="procedure-row-meta">{AREAS[detail.area]} · Bei Bedarf · {detail.contexts?.length ? detail.contexts.join(" / ") : "Allgemeiner Ablauf"}{detail.base_version !== undefined ? ` · auf Basis von Version ${detail.base_version}` : ""}</p>
+        <p className="procedure-row-meta"><strong>Gilt für:</strong> {AREAS[detail.area]}{detail.contexts?.length ? ` · ${detail.contexts.join(" / ")}` : " · ohne besonderen Kontext"}</p>
         {!detail.current ? <p role="status">Die Beleggrundlage hat sich verändert. Diese Fassung kann nicht übernommen werden. Prüfe die Quellen und schlage eine neue Fassung vor.</p> : null}
-        <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Ob die Schritte fachlich passen, prüfst du selbst vor dem Übernehmen.</p>
+        {detail.checks.structure !== true || detail.checks.routing_examples !== true ? <p role="alert">
+          {detail.checks.structure !== true ? "Strukturprüfung nicht bestanden. " : ""}
+          {detail.checks.routing_examples !== true ? "Auswahlbeispiele nicht bestanden. " : ""}Bitte den Ablauf überarbeiten.</p> : null}
         <p><strong>Passend bei:</strong> {detail.triggers.join("; ")}</p>
         <ol>{detail.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
-        <details className="quiet-details"><summary>Beispiele und Herkunft</summary>
-          <p><strong>Passendes Beispiel:</strong> {detail.positive}</p>
-          <p><strong>Gegenbeispiel:</strong> {detail.negative}</p>
+        <details className="quiet-details" open={detail.state === "pending" ? true : undefined}><summary>Wann passt er – und wann nicht?</summary>
+          <p><strong>Passt:</strong> {detail.positive}</p>
+          <p><strong>Passt nicht:</strong> {detail.negative}</p>
+        </details>
+        {detail.state === "pending" ? <p className="procedure-review-hint">Noch nicht aktiv. Prüfe die Schritte und beide Beispiele vor dem Übernehmen.</p> : null}
+        <details className="quiet-details"><summary>Herkunft und technische Prüfung</summary>
+          {detail.base_version ? <p>Auf Basis von Version {detail.base_version}.</p> : null}
+          <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Das bestätigt die Form, nicht die fachliche Eignung.</p>
           {Object.keys(detail.sources).length ? <dl>{Object.entries(detail.sources).map(([id, source]) => <div key={id}><dt>{id}</dt><dd>{source}</dd></div>)}</dl> : <p>Ohne zusätzliche Quellenbelege; manuell vorgeschlagen.</p>}
         </details>
         <div className="source-form-actions">
           {detail.state === "pending" ? <><button type="button" className="primary-action" disabled={busy || !canAccept} onClick={() => void onAction(detail.id, "accept")}>Geprüft übernehmen</button>
             <button type="button" className="secondary-action" disabled={busy} onClick={() => void onAction(detail.id, "reject")}>Nicht übernehmen</button></> : null}
           {detail.state === "active" ? <button type="button" className="secondary-action" disabled={busy} onClick={() => void onAction(detail.id, "revoke")}>Zurücknehmen</button> : null}
-          <button type="button" className="secondary-action" disabled={busy} onClick={() => setEditing(value => !value)}>Neue Fassung</button>
-          <button type="button" className="secondary-action" disabled={busy} onClick={() => download(detail)}>Als Markdown sichern</button>
         </div>
+        <details className="quiet-details"><summary>Bearbeiten und exportieren</summary>
+          <div className="source-form-actions"><button type="button" className="secondary-action" disabled={busy} onClick={() => setEditing(value => !value)}>Neue Fassung</button>
+          <button type="button" className="secondary-action" disabled={busy} onClick={() => download(detail)}>Als Markdown sichern</button></div>
+        </details>
         {editing ? <ProcedureForm detail={detail} busy={busy} onSave={onSave} onCancel={() => setEditing(false)} /> : null}
       </> : null}
     </> : null}

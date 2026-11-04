@@ -12,6 +12,8 @@
 #root .procedure-library .procedure-row-title { font: 600 16px/1.45 var(--g-schrift); color: var(--g-tinte); }
 #root .procedure-library .procedure-row-meta { margin-block: var(--g-a2); font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
 #root .procedure-library .procedure-row-heading .procedure-row-meta { margin: 0; font: var(--g-fussnote); }
+#root .procedure-library .procedure-review-hint { color: var(--g-tinte); font: var(--g-neben); }
+#root .procedure-library .procedure-row dl { overflow-wrap: anywhere; }
 #root .procedure-library .procedure-state[data-state="pending"] { color: var(--g-warnung); font-weight: 600; }
 #root .procedure-library .procedure-help { margin-top: var(--g-a5); }
 #root .procedure-library .procedure-row > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; border-radius: var(--g-radius-bedien); }

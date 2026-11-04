@@ -166,3 +166,26 @@ test('leere Skillsuche lässt sich mit einem Klick zurücksetzen',()=>fixture(''
  assert.equal(rows(d).length,3);
  assert.equal(nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.value,'');
 }));
+
+// Tatsächlich sichtbarer Text: ein geschlossener Detailblock zeigt nur seine Zusammenfassung.
+const visibleText=n=>n==null?'':typeof n!=='object'?String(n):n.type==='details'&&!n.props.open
+ ? [n.props.children].flat(30).filter(c=>c?.type==='summary').map(visibleText).join('')
+ : [n.props?.children].flat(30).map(visibleText).join('');
+test('pending review shows use boundaries before acceptance and keeps successful technical checks folded',()=>fixture('?ablauf=a',async({d})=>{
+ const entry=rows(d)[0],row=driver(entry.type,entry.props);
+ try{row.render();row.run();await tick();const tree=row.render(),shown=visibleText(tree);
+  assert.match(shown,/Nur Schritte von a/);assert.match(shown,/Zunftmail prüfen/);assert.match(shown,/Private Mail/);
+  assert.match(shown,/Noch nicht aktiv/);assert.doesNotMatch(shown,/Strukturprüfung:|Auswahlbeispiele:|auf Basis von Version/);
+  assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen')[0]);
+ }finally{row.close();}
+}));
+test('failed technical checks remain visible outside folded details and prevent acceptance',()=>fixture('?ablauf=a',async({d})=>{
+ const fetch=globalThis.fetch;globalThis.fetch=async path=>path==='/api/v1/procedures/a'
+  ?new Response(JSON.stringify({...detail('a'),checks:{structure:true,routing_examples:false,human_review_required:true}})):fetch(path);
+ const entry=rows(d)[0],row=driver(entry.type,entry.props);
+ try{row.render();row.run();await tick();const tree=row.render();
+  assert.match(visibleText(tree),/Auswahlbeispiele.*nicht bestanden/);
+  assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen')[0].props.disabled,true);
+  assert.ok(nodes(tree,n=>n.props?.role==='alert').length);
+ }finally{row.close();}
+}));

@@ -16,6 +16,7 @@
 .stimmt-nicht-feld small { font: var(--g-fussnote); color: var(--g-leise); }
 .shell main .stimmt-nicht-feld input { min-height: 44px; padding: 0 var(--g-a3); font: var(--g-text); }
 .message .stimmt-nicht .stimmt-nicht-fehler { font: var(--g-neben); color: var(--g-rot); }
+.message .stimmt-nicht .stimmt-nicht-wirkung { font: var(--g-fussnote); color: var(--g-leise); }
 .stimmt-nicht-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a3); }
 .shell main .stimmt-nicht-aktionen .secondary-action { min-height: 44px; }
 
