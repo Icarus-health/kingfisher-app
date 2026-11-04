@@ -18,6 +18,8 @@
 .message .stimmt-nicht .stimmt-nicht-fehler { font: var(--g-neben); color: var(--g-rot); }
 .message .stimmt-nicht .stimmt-nicht-wirkung { font: var(--g-fussnote); color: var(--g-leise); }
 .stimmt-nicht-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a3); }
+.stimmt-nicht-lernen { display: flex; align-items: center; gap: var(--g-a2); min-height: 44px; font: var(--g-neben); color: var(--g-tinte); }
+.shell main .stimmt-nicht-lernen input { width: 18px; height: 18px; min-height: 18px; flex: 0 0 18px; }
 .shell main .stimmt-nicht-aktionen .secondary-action { min-height: 44px; }
 
 .rueckmeldungen { padding: 22px 26px 24px; }

@@ -11,7 +11,8 @@ type Procedure = {
   category?: Category; contexts?: string[];
   checks: { structure: boolean; routing_examples: boolean; human_review_required: boolean };
 };
-type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string> };
+type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string>;
+  corrections?: Array<{request:string;correction:string;conversation_id:string;message_id:string}> };
 type Catalog = { items: Procedure[]; core: { id: string; name: string; title: string; category: string; purpose?: Category; area: string; description: string }[] };
 type Spec = { name: string; title: string; description: string; area: Area; category?: Category; contexts: string[]; triggers: string[]; steps: string[]; positive: string; negative: string };
 type Save = (spec: Spec, sources: string[]) => Promise<boolean>;
@@ -136,6 +137,10 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
           <p><strong>Passt nicht:</strong> {detail.negative}</p>
         </details>
         {detail.state === "pending" ? <p className="procedure-review-hint">Noch nicht aktiv. Prüfe die Schritte und beide Beispiele vor dem Übernehmen.</p> : null}
+        {detail.corrections?.length ? <details className="quiet-details"><summary>Aus {detail.corrections.length} eigenen Arbeitskorrekturen</summary>
+          <ul>{detail.corrections.map(source=><li key={source.message_id}><p>{source.request}</p><p><strong>Deine Korrektur:</strong> {source.correction}</p>
+            <a href={`/conversations/${encodeURIComponent(source.conversation_id)}`}>Gespräch öffnen</a></li>)}</ul>
+        </details> : null}
         <details className="quiet-details"><summary>Herkunft und technische Prüfung</summary>
           {detail.base_version ? <p>Auf Basis von Version {detail.base_version}.</p> : null}
           <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Das bestätigt die Form, nicht die fachliche Eignung.</p>

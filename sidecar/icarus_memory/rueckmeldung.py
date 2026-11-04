@@ -8,8 +8,9 @@ Woche verloren.
 
 Was diese Ablage **nicht** tut: Sie schreibt nichts ins Gedächtnis, ändert keine Quelle,
 keine Akte und keine Antwort und sendet nichts. Eine Meldung ist eine Notiz des Nutzers
-an die Entwicklung, nicht an das Gedächtnis (Regel des Gedächtnisses: Fakten kommen nur
-über Vorschlag und Annahme in den Bestand).
+an die Entwicklung. Ausdrücklich markierte Arbeitsweisen sind zusätzlich an den
+Originalauftrag gebunden; workflow_learning darf daraus nur inaktive Vorschläge ableiten.
+Fakten kommen weiterhin ausschließlich über Vorschlag und Annahme in den Bestand.
 
 Eine eigene Datei, `rueckmeldungen.sqlite3` (Tabelle `rueckmeldung`, eigene Versionierung),
 in der Sicherung wie `gespraeche.sqlite3`. Sie enthält Frage- und Antworttexte des Nutzers
@@ -71,7 +72,22 @@ def _pruefen(conn: sqlite3.Connection) -> None:
     verify_schema(conn, expected_tables=_TABELLEN, expected_primary_keys=_SCHLUESSEL, expected_indexes=_indizes())
 
 
-_MIGRATIONS = (Migration(1, 'rueckmeldung', _migrieren, _pruefen),)
+_WORKFLOW_TABLES = {**_TABELLEN, 'rueckmeldung': _TABELLEN['rueckmeldung'] | {'workflow'},
+                   'workflow_checks': {'request_key', 'result'}}
+
+
+def _workflow_migration(conn):
+    conn.execute("ALTER TABLE rueckmeldung ADD COLUMN workflow TEXT NOT NULL DEFAULT '{}'")
+    conn.execute('CREATE TABLE workflow_checks (request_key TEXT PRIMARY KEY, result TEXT NOT NULL)')
+
+
+def _workflow_verify(conn):
+    verify_schema(conn, expected_tables=_WORKFLOW_TABLES,
+        expected_primary_keys={**_SCHLUESSEL, 'workflow_checks': {'request_key'}}, expected_indexes=_indizes())
+
+
+_MIGRATIONS = (Migration(1, 'rueckmeldung', _migrieren, _pruefen),
+               Migration(2, 'workflow_corrections', _workflow_migration, _workflow_verify))
 
 
 class RueckmeldungFehler(ValueError):
@@ -87,7 +103,8 @@ def _lesen(row: sqlite3.Row) -> dict[str, Any]:
             'struktur': json.loads(row['struktur']), 'art': row['art'], 'art_text': ART_TEXTE[row['art']],
             'richtig': row['richtig'], 'belege': json.loads(row['belege']), 'modell': json.loads(row['modell']),
             'status': row['status'], 'erledigt_am': _iso(row['erledigt_am']),
-            'gespraech_id': row['gespraech_id'], 'nachricht_id': row['nachricht_id']}
+            'gespraech_id': row['gespraech_id'], 'nachricht_id': row['nachricht_id'],
+            'workflow': json.loads(row['workflow']) if 'workflow' in row.keys() else {}}
 
 
 class Rueckmeldungen:
@@ -111,7 +128,7 @@ class Rueckmeldungen:
 
     def melden(self, *, frage: str, antwort: str, art: str, nachricht_id: str, gespraech_id: str = '',
                richtig: str = '', struktur: dict[str, Any] | None = None, belege: list[str] | None = None,
-               modell: dict[str, Any] | None = None) -> dict[str, Any]:
+               modell: dict[str, Any] | None = None, workflow: dict | None = None) -> dict[str, Any]:
         """Legt eine Meldung an. Meldet man dieselbe Antwort noch einmal, ersetzt das Neue das Alte und macht sie wieder offen."""
         if art not in ARTEN:
             raise RueckmeldungFehler('Unbekannte Art der Meldung.')
@@ -122,16 +139,34 @@ class Rueckmeldungen:
         with self._lock:
             self._conn.execute(
                 "INSERT INTO rueckmeldung(id,erstellt,frage,antwort,struktur,art,richtig,belege,modell,status,"
-                "erledigt_am,gespraech_id,nachricht_id) VALUES (?,?,?,?,?,?,?,?,?,'offen',NULL,?,?) "
+                "erledigt_am,gespraech_id,nachricht_id,workflow) VALUES (?,?,?,?,?,?,?,?,?,'offen',NULL,?,?,?) "
                 "ON CONFLICT(nachricht_id) DO UPDATE SET art=excluded.art, richtig=excluded.richtig, "
-                "erstellt=excluded.erstellt, status='offen', erledigt_am=NULL",
+                "erstellt=excluded.erstellt, status='offen', erledigt_am=NULL, workflow=excluded.workflow",
                 (kennung, time.time(), frage[:MAX_FRAGE], antwort[:MAX_ANTWORT],
                  json.dumps(struktur or {}, ensure_ascii=False), art, richtig[:MAX_RICHTIG],
                  json.dumps(sorted(set(belege or [])), ensure_ascii=False),
-                 json.dumps(modell or {}, ensure_ascii=False), gespraech_id, nachricht_id))
+                 json.dumps(modell or {}, ensure_ascii=False), gespraech_id, nachricht_id,
+                 json.dumps(workflow or {}, ensure_ascii=False)))
             self._conn.commit()
             row = self._conn.execute('SELECT * FROM rueckmeldung WHERE nachricht_id = ?', (nachricht_id,)).fetchone()
         return _lesen(row)
+
+    def workflow_candidates(self, area: str) -> list[dict]:
+        """Begrenztes Fenster eigener Arbeitskorrekturen; kein Durchlauf durch alle Notizen."""
+        with self._lock:
+            rows = self._conn.execute("SELECT * FROM rueckmeldung WHERE json_extract(workflow, '$.area')=? "
+                'ORDER BY erstellt DESC, id LIMIT 32', (area,)).fetchall()
+        return [_lesen(row) for row in rows]
+
+    def workflow_result(self, key: str) -> dict | None:
+        with self._lock:
+            row = self._conn.execute('SELECT result FROM workflow_checks WHERE request_key=?', (key,)).fetchone()
+        return json.loads(row['result']) if row else None
+
+    def save_workflow_result(self, key: str, result: dict) -> None:
+        with self._lock, self._conn:
+            self._conn.execute('INSERT OR REPLACE INTO workflow_checks VALUES (?,?)',
+                (key, json.dumps(result, ensure_ascii=False)))
 
     def liste(self, *, status: str | None = None) -> list[dict[str, Any]]:
         """Alle Meldungen, neueste zuerst; optional nur `offen` oder `erledigt`."""

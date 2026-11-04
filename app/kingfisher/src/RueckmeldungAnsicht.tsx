@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ApiError, api, type Rueckmeldung, type RueckmeldungArt, type RueckmeldungZaehlung } from "./api";
+import { ApiError, api, type Rueckmeldung, type RueckmeldungArt, type RueckmeldungZaehlung, type WorkflowLearning } from "./api";
 import { ARTEN, GEMELDET, kurz, zaehlSatz } from "./rueckmeldung";
 import { Verweis } from "./VerweisLink";
 import "./Rueckmeldung.css";
@@ -16,6 +16,9 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
   const [sendet, setSendet] = useState(false);
   const [gemerkt, setGemerkt] = useState(false);
   const [fehler, setFehler] = useState("");
+  const [arbeitsweise, setArbeitsweise] = useState(false);
+  const [lernen, setLernen] = useState<WorkflowLearning|null>(null);
+  const [zurueckgenommen, setZurueckgenommen] = useState(false);
   const erste = useRef<HTMLButtonElement>(null);
   const ausloeser = useRef<HTMLButtonElement>(null);
   const formular = useRef<HTMLFormElement>(null);
@@ -39,7 +42,9 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
     if (!art) return;
     setSendet(true); setFehler("");
     try {
-      await api.rueckmeldungMelden({ conversation_id: conversationId, message_id: messageId, art, richtig: richtig.trim() });
+      const result = await api.rueckmeldungMelden({ conversation_id: conversationId, message_id: messageId, art, richtig: richtig.trim(),
+        ...(arbeitsweise ? {arbeitsweise:true} : {}) });
+      setLernen(result.lernen ?? null);
       setGemerkt(true); setOffen(false);
     } catch (e) {
       setFehler(e instanceof ApiError && e.detail ? e.detail : "Das ließ sich gerade nicht merken. Bitte noch einmal versuchen.");
@@ -48,6 +53,21 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
     }
   }
 
+  async function zuruecknehmen() {
+    if (!art || sendet) return;
+    setSendet(true); setFehler("");
+    try {
+      await api.rueckmeldungMelden({conversation_id:conversationId,message_id:messageId,art,richtig:richtig.trim(),arbeitsweise:false});
+      setArbeitsweise(false); setLernen(null); setZurueckgenommen(true);
+    } catch { setFehler("Die Arbeitsweise wurde noch nicht zurückgenommen. Bitte erneut versuchen."); }
+    finally { setSendet(false); }
+  }
+  if (gemerkt && (arbeitsweise || zurueckgenommen)) return <div className="stimmt-nicht-gemerkt" role="status">
+    <p>{zurueckgenommen ? "Arbeitsweise zurückgenommen. Diese Korrektur wird nicht mehr zum Lernen verwendet." : learningText(lernen)}</p>
+    {lernen?.proposal_id && ["proposed","active"].includes(lernen.status) ? <a className="g-knopf-schlicht" href={`/settings?ablauf=${encodeURIComponent(lernen.proposal_id)}#ich-ablaeufe`}>Ablauf prüfen</a> : null}
+    {arbeitsweise ? <button className="stimmt-nicht-link" type="button" disabled={sendet} onClick={()=>void zuruecknehmen()}>Arbeitsweise zurücknehmen</button> : null}
+    {fehler ? <p role="alert">{fehler}</p> : null}
+  </div>;
   if (gemerkt) return <p className="stimmt-nicht-gemerkt" role="status">{GEMELDET} <Verweis ziel="technik-rueckmeldungen" />.</p>;
   if (!offen) return <button ref={ausloeser} className="stimmt-nicht-link" type="button" onClick={() => setOffen(true)}>Stimmt nicht?</button>;
   return <form ref={formular} className="stimmt-nicht" aria-label="Antwort melden" aria-describedby={`stimmt-nicht-wirkung-${messageId}`}
@@ -61,13 +81,30 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
     <label className="stimmt-nicht-feld">Richtig wäre … <small>(freiwillig, kurz, zum Beispiel ein Datum oder ein Name)</small>
       <input type="text" value={richtig} maxLength={2000} autoComplete="off" disabled={sendet} onChange={event => setRichtig(event.target.value)} />
     </label>
-    <p className="stimmt-nicht-wirkung" id={`stimmt-nicht-wirkung-${messageId}`}>Speichert eine Fehlermeldung. Fakten und Abläufe bleiben unverändert.</p>
+    <label className="stimmt-nicht-lernen"><input type="checkbox" checked={arbeitsweise} disabled={sendet}
+      onChange={event=>setArbeitsweise(event.target.checked)} />Als Arbeitsweise berücksichtigen</label>
+    <p className="stimmt-nicht-wirkung" id={`stimmt-nicht-wirkung-${messageId}`}>{arbeitsweise
+      ? "Ähnliche Korrekturen lokal prüfen. Ein neuer Ablauf wird erst nach deiner Bestätigung aktiv."
+      : "Speichert eine Fehlermeldung. Fakten und Abläufe bleiben unverändert."}</p>
     {fehler ? <p className="stimmt-nicht-fehler" role="alert">{fehler}</p> : null}
     <div className="stimmt-nicht-aktionen">
-      <button className="secondary-action" type="submit" disabled={!art || sendet}>Melden</button>
+      <button className="secondary-action" type="submit" disabled={!art || sendet || (arbeitsweise && !richtig.trim())}>{sendet && arbeitsweise ? "Speichert und prüft …" : "Melden"}</button>
       <button className="stimmt-nicht-link" type="button" disabled={sendet} onClick={schliessen}>Abbrechen</button>
     </div>
   </form>;
+}
+
+export function learningText(result: WorkflowLearning|null) {
+  switch (result?.status) {
+    case "collecting": return `Arbeitskorrektur gespeichert (${result.count ?? 1} von mindestens 3 verschiedenen Aufträgen). Noch kein Ablauf aktiviert.`;
+    case "proposed": return "Ein Ablaufvorschlag liegt zur Prüfung bereit. Er ist noch nicht aktiv.";
+    case "active": return "Diese Arbeitsweise gehört bereits zu einem bestätigten Ablauf.";
+    case "dismissed": return "Die Korrektur ist gespeichert. Ein zuvor abgelehnter oder zurückgenommener Ablauf wird nicht erneut angeboten.";
+    case "no_pattern": case "not_workflow": return "Korrektur gespeichert. Daraus lässt sich noch kein gemeinsamer Arbeitsablauf ableiten.";
+    case "local_required": return "Korrektur gespeichert. Für Lernvorschläge muss das lokale Modell ausgewählt sein.";
+    case "changed": return "Korrektur gespeichert. Die Grundlage des bisherigen Vorschlags hat sich geändert; er wird nicht mehr angewendet.";
+    default: return "Korrektur gespeichert; die Ablaufprüfung war noch nicht möglich. Kein Ablauf aktiviert.";
+  }
 }
 
 function tag(wert: string) {

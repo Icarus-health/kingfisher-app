@@ -13,8 +13,9 @@ from .procedure_model import draft as draft_procedure
 
 
 def connect(app, directory):
+    from .workflow_learning import dependency
     app.state.procedures = ProcedureStore(directory / 'procedures.sqlite3',
-        dependency=lambda identifier: episode_dependency(app.state.episodes, identifier))
+        dependency=lambda identifier: dependency(app, identifier))
 
 
 def explicit_learning(message):
@@ -125,7 +126,7 @@ def register(app, guard):
     def propose(body: ProposalIn):
         with app.state.conversation_lock:
             try:
-                stamps = {identifier:episode_dependency(app.state.episodes, identifier) for identifier in body.sources}
+                stamps = {identifier:app.state.procedures.dependency(identifier) for identifier in body.sources}
                 if any(not value for value in stamps.values()):
                     raise ProcedureError('Eine Grundlage ist nicht mehr aktuell.')
                 return app.state.procedures.propose(body.spec.model_dump(), sources=stamps)
@@ -135,7 +136,19 @@ def register(app, guard):
     @app.get('/api/v1/procedures/{identifier}', dependencies=guard)
     def get_procedure(identifier: str):
         try:
-            return app.state.procedures.get(identifier)
+            with app.state.conversation_lock:
+                item = app.state.procedures.get(identifier)
+                item['corrections'] = []
+                if item['current']:
+                    from .workflow_learning import PREFIX
+                    for source in item['sources']:
+                        if source.startswith(PREFIX):
+                            row = app.state.rueckmeldungen.hole(source[len(PREFIX):])
+                            if row and row['workflow']:
+                                item['corrections'].append({'request':row['workflow']['request'],
+                                    'correction':row['richtig'],'conversation_id':row['gespraech_id'],
+                                    'message_id':row['nachricht_id']})
+                return item
         except ProcedureError as exc:
             raise HTTPException(404, str(exc)) from exc
 

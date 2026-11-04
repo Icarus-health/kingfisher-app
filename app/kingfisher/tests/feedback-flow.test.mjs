@@ -53,3 +53,17 @@ test('a save in flight cannot be dismissed as though it had been cancelled',()=>
  assert.equal(d.render().type,'form');assert.equal(button(d.render(),'Abbrechen').props.disabled,true);
  release();await tick();assert.equal(calls.length,1);assert.equal(d.render().props.role,'status');
 }));
+
+test('workflow learning is explicit and can be withdrawn after saving',()=>fixture(async({d,calls})=>{
+ button(d.render(),'Stimmt nicht?').props.onClick();let tree=d.render();d.run();button(tree,'Etwas anderes').props.onClick();
+ nodes(tree,n=>n.type==='input'&&n.props.type==='text')[0].props.onChange({target:{value:'Vor dem Entwurf den Empfänger prüfen.'}});
+ tree=d.render();const learning=nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0];
+ assert.ok(learning,'Arbeitsweise muss gesondert gekennzeichnet werden');assert.equal(learning.props.checked,false);
+ learning.props.onChange({target:{checked:true}});assert.equal(calls.length,0);
+ d.render().props.onSubmit({preventDefault(){}});await tick();tree=d.render();
+ assert.equal(calls[0].body.arbeitsweise,true);
+ assert.match(text(tree),/noch nicht aktiv|Kein Ablauf aktiviert/);
+ const undo=button(tree,'Arbeitsweise zurücknehmen');assert.ok(undo);
+ undo.props.onClick();await tick();assert.equal(calls[1].body.arbeitsweise,false);
+ assert.match(text(d.render()),/zurückgenommen/);
+}));
