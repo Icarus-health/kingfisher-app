@@ -7,7 +7,7 @@ import re
 import httpx
 
 from .cloud_import_budget import ENDPOINT, MODEL, MistralBudgetError
-from .providers import Reply
+from .providers import Reply, _json_transport_timeout
 
 _MAX_RESPONSE_BYTES = 1_048_576
 _MAX_OUTPUT_BYTES = 131_072
@@ -91,7 +91,7 @@ class MistralImportProvider:
             return False
 
     def _client(self):
-        return httpx.Client(timeout=90, trust_env=False, follow_redirects=False)
+        return httpx.Client(timeout=_json_transport_timeout(90), trust_env=False, follow_redirects=False)
 
     def _check(self, still_permitted):
         try:
@@ -146,7 +146,9 @@ class MistralImportProvider:
     def _exchange(self, client, method, path, payload=None):
         failure = 'metadata_unavailable' if method == 'GET' else 'budget_uncertain'
         headers = {'authorization': 'Bearer ' + self._key, 'content-type': 'application/json'}
-        options = {} if payload is None else {'json': payload}
+        options = {'timeout': _json_transport_timeout(90)}
+        if payload is not None:
+            options['json'] = payload
         try:
             # Stream transport bytes solely to enforce a finite response bound;
             # model generation remains explicitly nonstreaming in the payload.
@@ -155,6 +157,7 @@ class MistralImportProvider:
                     raise MistralBudgetError('metadata_unavailable' if method == 'GET' else 'provider_rejected')
                 chunks, size = [], 0
                 for chunk in response.iter_bytes():
+                    _json_transport_timeout(90)
                     size += len(chunk)
                     if size > _MAX_RESPONSE_BYTES:
                         raise MistralBudgetError(failure)
