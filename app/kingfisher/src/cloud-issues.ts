@@ -13,6 +13,7 @@ export function cloudIssueText(issue:{stage:string;code:string;reason?:string}):
     ? "Die Quelle ist unvollständig oder überschreitet eine Auswertungsgrenze."
     : (issue.reason && Object.hasOwn(reasons,issue.reason) ? reasons[issue.reason]
        : "Die Modellantwort ließ sich nicht vollständig an der Originalmail belegen.");
+  if(issue.stage==='tasks')return `Aufgabenprüfung offen. ${detail} Die gespeicherte Quellen- und Personeneinordnung bleibt erhalten.`;
   return issue.stage==="categories"
     ? `Themen und Personen offen. ${detail} Die gespeicherte Grundeinordnung bleibt erhalten.`
     : detail;

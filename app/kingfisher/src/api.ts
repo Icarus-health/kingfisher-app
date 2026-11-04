@@ -1215,10 +1215,12 @@ export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boo
 export type ChatGPTModel = {id:string; label:string};
 export type CloudMemoryPurpose = "pilot"|"bulk"|"recheck";
 export type CloudMemoryPreview = SourceBudgetBinding & {preview_id:string; purpose:CloudMemoryPurpose; provider?:CloudMemoryProvider; count:number;
+  include_tasks?:boolean;
   sources:Array<{id:string;title:string;occurred_at:string|null}>; expires_at:number; sampling_note?:string;
   request_limit?:number;filtered_count?:number;review_count?:number;
   scanned_count:number;next_cursor:number|null};
 export type CloudMemoryJob = SourceBudgetBinding & {id:string;purpose:CloudMemoryPurpose;provider?:CloudMemoryProvider;quality_verified?:boolean;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
+  include_tasks?:boolean;
   selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;
   stop_reason:string;updated_at:number;issue_count?:number;
   issues?:Array<{episode_id:string;stage:string;code:string;reason?:string}>};
@@ -1311,8 +1313,8 @@ export const api = {
   chatgptModels: () => request<{models:ChatGPTModel[]}>("/api/v1/chatgpt/models"),
   chatgptDisconnect: () => request<{remote_revoked:boolean;notice:string}>("/api/v1/chatgpt",{method:"DELETE"}),
   cloudMemoryStatus: () => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/status"),
-  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt",selection?:{source_ids?:string[];limit?:number}) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
-    {method:"POST",body:JSON.stringify({purpose,cursor,provider,limit:selection?.limit??(purpose === "pilot" ? 100 : 1000),...(selection?.source_ids?{source_ids:selection.source_ids}:{})})}),
+  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt",selection?:{source_ids?:string[];limit?:number;include_tasks?:boolean}) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
+    {method:"POST",body:JSON.stringify({purpose,cursor,provider,include_tasks:selection?.include_tasks??provider==='mistral',limit:selection?.limit??(purpose === "pilot" ? 100 : 1000),...(selection?.source_ids?{source_ids:selection.source_ids}:{})})}),
   cloudMemoryStart: (preview_id:string,model:string,provider:CloudMemoryProvider="chatgpt") => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/start",
     {method:"POST",body:JSON.stringify({preview_id,model,provider,consent:true})}),
   cloudMemoryAction: (action:"pause"|"resume"|"revoke",job_id:string) => request<{job:CloudMemoryJob|null}>(`/api/v1/memory/cloud/${action}`,

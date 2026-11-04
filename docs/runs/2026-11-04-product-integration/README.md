@@ -45,3 +45,13 @@ Zwei gezielte Komponententests scheiterten vorher an der unsichtbaren Uhrzeit. N
 Ein unabhängiger P5-Review fand anschließend, dass gesicherte Skills und Korrekturen im historischen Leser nicht erreichbar waren. Die feste Lese-Allowlist wurde um diese zwei vorhandenen Tabellen ergänzt. Ein verschlüsselter Roundtrip sowie 57 betroffene Tests bestanden; der unabhängige Abschlussreview fand keine weiteren Befunde. Alte Aktionen, Modelle und Freigaben bleiben gesperrt. Das ist eine zusätzliche begrenzte Backendänderung nach dem ursprünglichen Integrationslauf; [Nachweis und offene vollständige Arbeitswiederherstellung](../2026-11-04-workflow-recovery/README.md).
 
 Die persönliche native Prüfung, echte Mistral-Stichprobe nach Schlüssel/Umfang/Budget, Lastmessung und Alltagsabnahme bleiben erforderlich. Die breitere Produktziellinie P0–P6 ist durch diese Integration nicht erreicht.
+
+## Anschlussprüfung Mistral-Aufgaben
+
+Der bisherige Quellenpfad führte noch keine Aufgaben-/Fristprüfung aus. Neue,
+ausdrücklich freigegebene Mistral-Pakete können dafür jetzt den vorhandenen
+TaskDetector samt Gegenprüfung nutzen. Alte Jobs behalten ihren Umfang;
+Ablehnungen bleiben bestehen und Bulk verlangt einen passenden Pilot.
+[Änderung, Tests und Grenzen](../2026-11-04-mistral-task-package/README.md).
+Zusätzlich bestand ein [modellfreier 50.000-Quellen-Ablagetest](../2026-11-04-memory-area-scale/README.md).
+Beides ersetzt weder echte Mistral-Qualität noch native Bedienabnahme.

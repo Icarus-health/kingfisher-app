@@ -60,9 +60,13 @@ class TaskDetector:
         return count
 
     def run(self, *, with_model: bool, limit: int = 10, rechecks_only: bool = False,
-            permitted: Callable[[], bool] = lambda: True, quellenfilter: Callable[[Any], bool] | None = None) -> DetectionReport:
+            permitted: Callable[[], bool] = lambda: True, quellenfilter: Callable[[Any], bool] | None = None,
+            source_ids: list[str] | None = None) -> DetectionReport:
+        if source_ids is not None and (not isinstance(source_ids, list)
+                or len(source_ids) > 20 or any(not isinstance(i, str) or not i for i in source_ids)):
+            raise ValueError('Die ausdrückliche Aufgabenprüfung benötigt höchstens 20 Quellen.')
         # Der kurze Takt liest nur die Wiedervorlage; Anzeige/Übernahme prüfen Quellen weiterhin frisch.
-        report = DetectionReport(superseded=0 if rechecks_only else self.expire_sources())
+        report = DetectionReport(superseded=0 if rechecks_only or source_ids is not None else self.expire_sources())
         local = self.provider is not None and getattr(self.provider, 'is_local', False)
         scoped_remote = (self.provider is not None and callable(self.policy_for)
                          and getattr(self.provider, 'is_remote', False) is True)
@@ -70,11 +74,17 @@ class TaskDetector:
             return report
         report.available = True
         attempted = 0
-        cursor = self.proposals.task_scan_cursor()
+        cursor = self.proposals.task_scan_cursor() if source_ids is None else ''
         budget = max(0, min(limit, 20))
-        priority_budget = budget if rechecks_only else self.episodes.task_recheck_budget(budget)
+        priority_budget = 0 if source_ids is not None else (budget if rechecks_only else self.episodes.task_recheck_budget(budget))
 
         def work():
+            if source_ids is not None:
+                for identifier in dict.fromkeys(source_ids):
+                    if attempted >= budget:
+                        break
+                    yield self.episodes.get(identifier), None
+                return
             # Höchstens eine begrenzte Queue-Seite; im Bestandslauf das halbe Modellbudget.
             # Der kurze Takt nutzt nur die Queue. Im Bestandslauf mit Budget 1 wechselt die Spur dauerhaft.
             if priority_budget:
@@ -166,6 +176,9 @@ class TaskDetector:
                 # Fehler bleiben erneut prüfbar, ohne fremde Texte im Status.
                 report.failed += 1
                 self.proposals.memory_analysis.abandon(job)
+                if source_ids is not None:
+                    # Explicit cloud jobs retain typed budget/credential errors.
+                    raise
             else:
                 with self.lock:
                     if not permitted():
@@ -196,7 +209,7 @@ class TaskDetector:
                         self.proposals.memory_analysis.abandon(job, state='cancelled')
             if recheck is not None:
                 self.episodes.finish_task_recheck(recheck, completed=result is not None and result[1])
-            else:
+            elif source_ids is None:
                 self.proposals.advance_task_scan(cursor)
             if attempted >= budget:
                 break

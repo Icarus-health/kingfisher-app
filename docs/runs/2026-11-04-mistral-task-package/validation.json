@@ -1,0 +1,45 @@
+{
+  "synthetic_only": true,
+  "actual_provider_calls": 0,
+  "private_data_used": false,
+  "model_quality_verified": false,
+  "native_ui_verified": false,
+  "mac_updated": false,
+  "bulk_import_resumed": false,
+  "tests": {
+    "affected_backend": {
+      "passed": 217,
+      "seconds": 31.59
+    },
+    "adjacent_suites": {
+      "passed": 57,
+      "seconds": 21.32
+    },
+    "frontend": {
+      "passed": 1076,
+      "seconds": 12.21
+    },
+    "independent_new_tests": 18
+  },
+  "build": "passed",
+  "asset_contract": "passed",
+  "known_warnings": [
+    "Starlette httpx testclient deprecation",
+    "Frontend bundle larger than 500 kB"
+  ],
+  "review": {
+    "important_pilot_scope_finding": "reproduced and fixed; independently verified",
+    "open_blockers": 0
+  },
+  "files_sha256": {
+    "sidecar/icarus_memory/cloud_memory.py": "11f15bb4c14975b9e3da6c2fd75dbbecf3aa670b9962bd3b23fa641e3c72599c",
+    "sidecar/icarus_memory/cloud_memory_routes.py": "9a99316ed9222104998b9d3d79e74dede9394b2b30f1ad65cb90392b89f60d27",
+    "sidecar/icarus_memory/task_detection.py": "318aa668ffb50de8281adfe1edd7f2dc1f0017e3e28041e19bfb1df77245a595",
+    "sidecar/icarus_memory/proposals.py": "0abe5e62dda80eb857a4966ffbd3d11a94d282d871be375c713f6c647015b25e",
+    "sidecar/tests/test_cloud_task_package.py": "dac9d3aad105985e488d2b07739811c56837ba2fbe7664bf709804e89436a027",
+    "app/kingfisher/src/CloudMemory.tsx": "76998165e68bdb2c32220c6b0fe76834ed4efd29b5e638b950270cad79f327bc",
+    "app/kingfisher/src/api.ts": "51116b548a2f4d8d34122593c6736f8e6fb8eb9bcdf28d1950e067024a089e21",
+    "app/kingfisher/src/cloud-issues.ts": "4e06ac96b7ed2bf00e0fa8848ce538dd905f1ab221a3e04433ab5d2722106724",
+    "app/kingfisher/tests/settings-disclosure.test.mjs": "6afc8095b9a771c9182d2436c7d46e6536924d7c43eee4952e89e9a11ba5f973"
+  }
+}

@@ -640,7 +640,7 @@ def test_bulk_requires_a_completed_pilot(tmp_path):
     add_email(episodes)
     preview = jobs.preview("bulk")
 
-    with pytest.raises(CloudMemoryError, match="Pilot muss abgeschlossen"):
+    with pytest.raises(CloudMemoryError, match="Prüfumfang"):
         jobs.start(preview["preview_id"], "subscription-test", True)
 
 def test_remote_provider_is_never_accepted_by_local_worker_without_scope(tmp_path):
