@@ -107,7 +107,8 @@ def test_native_cloud_correction_is_counted_and_commits_only_fresh_exact_evidenc
     assert first[1]["blocks"] == corrected[1]["blocks"]
     assert first[2] == corrected[2]
     assert corrected[1]["validation_failure"] == {
-        "code": "invalid_entity_evidence", "reason": "entity_missing"}
+        "code": "invalid_entity_evidence", "reason": "entity_missing",
+        "entity_errors": [{"index": 0, "reason": "entity_missing"}]}
     assert corrected[1]["rejected_output"] == proposal(evidence("B1"))
     stored = Categories(h.episodes).list_for(h.source.id)
     assert len(stored["categories"]) == 1

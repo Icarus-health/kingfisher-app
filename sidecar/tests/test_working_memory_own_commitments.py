@@ -106,8 +106,13 @@ def test_g_q08_other_promise_cannot_reenter_from_akten_sentence_evidence(memory)
     answer, (_, links, _), model = ask(memory, sentences=True, select=select)
     assert {ref['episode_id'] for ref in answer['refs']} == {own.id}
     assert {link['episode_id'] for link in links} == {own.id}
-    assert all(OTHER_PROMISE not in beleg['text']
-               for call in model.satzanfragen for beleg in call['belege'])
+    # The source-bound route offers numbered originals instead of one free
+    # text field. Check their actual contents, not only source selection.
+    texts = [text for call in model.satzanfragen for beleg in call['belege']
+             for text in ([beleg['text']] if 'text' in beleg else
+                          [s['text'] for s in beleg['originalsaetze']])]
+    assert texts and any(OWN_PROMISE in text for text in texts)
+    assert all('Unterlagen für Projekt Ceder' not in text for text in texts)
 
 
 def test_legacy_saved_own_promise_answer_with_other_actor_is_unavailable(memory):

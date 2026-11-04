@@ -79,7 +79,7 @@ _AUSWAHL_ANFANG = re.compile(
 _AUSWAHL_TEIL = re.compile(
     r'\s+(?:(?:beim|vom|bei|von|aus|in|im|am|an)\s+'
     r'(?:(?:der|dem|den|des|das|einer|einem)\s+)?'
-    r'(?:(?:projekt)\s+)?["\'„«]?[\w.@+-]+["\'“»]?'
+    r'(?:(?:projekt)\s+)?["\'\u201e«]?[\w.@+-]+["\'“»]?'
     r'|\([\w.+-]+(?:@[\w.-]+|\.[\w.-]+)\)'
     r'|<[\w.+-]+@[\w.-]+>|[\w.+-]+@[\w.-]+)', re.I)
 _ADRESSFRAGE_ANFANG = re.compile(
