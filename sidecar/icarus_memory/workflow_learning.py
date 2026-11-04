@@ -138,10 +138,12 @@ def _review(app, row):
     if not getattr(provider,'is_local',False):
         return {'status':'local_required'}
     state = chat_state(app)
+    catalog = app.state.procedures.learning_catalog(row['workflow']['request'])
     def permitted():
         return (app.state.agent.provider is provider and chat_state(app)==state
+                and app.state.procedures.learning_catalog(row['workflow']['request']) == catalog
                 and all(dependency(app,k)==v for k,v in sources.items()))
-    payload = {'corrections':records, 'existing':app.state.procedures.learning_catalog(row['workflow']['request'])}
+    payload = {'corrections':records, 'existing':catalog}
     if len(json.dumps(payload,ensure_ascii=False).encode()) > 8000:
         return {'status':'too_long'}
     messages = [dict(role='system', content=
@@ -185,3 +187,25 @@ def _review(app, row):
         return result
     except (ProviderError,ProcedureError,ValueError,TypeError):
         return {'status':'unavailable'}
+
+
+def conversation_feedback(app, conversation_id):
+    """Persistenter Bedienstand ohne Modellarbeit und ohne erneutes Einblenden entzogener Texte."""
+    store = getattr(app.state,'rueckmeldungen',None)
+    if store is None:
+        return {}
+    rows = store.for_conversation(conversation_id)
+    if not rows:
+        return {}
+    procedures = app.state.procedures.items()
+    result = {}
+    for row in rows:
+        current = bool(dependency(app,PREFIX+row['id'])) if row['workflow'] else False
+        learning = {'status':'recorded'} if current else {'status':'changed'}
+        matches = [p for p in procedures if PREFIX+row['id'] in p['sources']]
+        if current and matches:
+            learning = _existing(app,{'status':'proposed','proposal_id':matches[0]['id']})
+        result[row['nachricht_id']] = {'id':row['id'],'art':row['art'],
+            'richtig':row['richtig'] if current else '', 'arbeitsweise':bool(row['workflow']),
+            'lernen':learning if row['workflow'] else None}
+    return result

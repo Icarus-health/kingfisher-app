@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ApiError, api, type Rueckmeldung, type RueckmeldungArt, type RueckmeldungZaehlung, type WorkflowLearning } from "./api";
+import { ApiError, api, type Rueckmeldung, type RueckmeldungArt, type RueckmeldungZaehlung, type WorkflowLearning, type WorkflowFeedback } from "./api";
 import { ARTEN, GEMELDET, kurz, zaehlSatz } from "./rueckmeldung";
 import { Verweis } from "./VerweisLink";
 import "./Rueckmeldung.css";
@@ -9,15 +9,16 @@ import "./Rueckmeldung.css";
  * eine Frage in einem Satz mit den Arten zur Auswahl und einem freien Feld. Die Meldung bleibt auf diesem Rechner,
  * schreibt nichts ins Gedächtnis und sendet nichts; unter „Für Techniker“ lässt sie sich als Prüffrage speichern (Messlatte).
  */
-export function StimmtNicht({ conversationId, messageId }: { conversationId: string; messageId: string }) {
+export function StimmtNicht({ conversationId, messageId, saved }: { conversationId: string; messageId: string; saved?:WorkflowFeedback }) {
   const [offen, setOffen] = useState(false);
-  const [art, setArt] = useState<RueckmeldungArt | null>(null);
-  const [richtig, setRichtig] = useState("");
+  const [art, setArt] = useState<RueckmeldungArt | null>(saved?.art ?? null);
+  const [richtig, setRichtig] = useState(saved?.richtig ?? "");
   const [sendet, setSendet] = useState(false);
-  const [gemerkt, setGemerkt] = useState(false);
+  const [gemerkt, setGemerkt] = useState(Boolean(saved));
   const [fehler, setFehler] = useState("");
-  const [arbeitsweise, setArbeitsweise] = useState(false);
-  const [lernen, setLernen] = useState<WorkflowLearning|null>(null);
+  const [arbeitsweise, setArbeitsweise] = useState(saved?.arbeitsweise ?? false);
+  const [lernen, setLernen] = useState<WorkflowLearning|null>(saved?.lernen ?? null);
+  const [feedbackId, setFeedbackId] = useState(saved?.id ?? "");
   const [zurueckgenommen, setZurueckgenommen] = useState(false);
   const erste = useRef<HTMLButtonElement>(null);
   const ausloeser = useRef<HTMLButtonElement>(null);
@@ -45,6 +46,7 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
       const result = await api.rueckmeldungMelden({ conversation_id: conversationId, message_id: messageId, art, richtig: richtig.trim(),
         ...(arbeitsweise ? {arbeitsweise:true} : {}) });
       setLernen(result.lernen ?? null);
+      setFeedbackId(result.meldung.id);
       setGemerkt(true); setOffen(false);
     } catch (e) {
       setFehler(e instanceof ApiError && e.detail ? e.detail : "Das ließ sich gerade nicht merken. Bitte noch einmal versuchen.");
@@ -57,7 +59,7 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
     if (!art || sendet) return;
     setSendet(true); setFehler("");
     try {
-      await api.rueckmeldungMelden({conversation_id:conversationId,message_id:messageId,art,richtig:richtig.trim(),arbeitsweise:false});
+      await api.rueckmeldungArbeitsweiseZuruecknehmen(feedbackId);
       setArbeitsweise(false); setLernen(null); setZurueckgenommen(true);
     } catch { setFehler("Die Arbeitsweise wurde noch nicht zurückgenommen. Bitte erneut versuchen."); }
     finally { setSendet(false); }
@@ -96,6 +98,7 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
 
 export function learningText(result: WorkflowLearning|null) {
   switch (result?.status) {
+    case "recorded": return "Arbeitskorrektur gespeichert. Neue Abläufe werden erst nach deiner Bestätigung aktiv.";
     case "collecting": return `Arbeitskorrektur gespeichert (${result.count ?? 1} von mindestens 3 verschiedenen Aufträgen). Noch kein Ablauf aktiviert.`;
     case "proposed": return "Ein Ablaufvorschlag liegt zur Prüfung bereit. Er ist noch nicht aktiv.";
     case "active": return "Diese Arbeitsweise gehört bereits zu einem bestätigten Ablauf.";

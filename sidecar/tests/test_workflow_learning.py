@@ -167,3 +167,56 @@ def test_review_shows_own_corrections_and_hides_them_after_withdrawal(flow):
     assert all(item['correction']==CORRECTION and item['conversation_id'] for item in detail['corrections'])
     client.post('/api/v1/rueckmeldungen',json={**body,'arbeitsweise':False})
     assert client.get(f'/api/v1/procedures/{identifier}').json()['corrections']==[]
+
+
+@pytest.mark.parametrize('change',['accept','revoke'])
+def test_skill_catalog_changes_during_synthesis_invalidate_old_draft(flow,change):
+    app,_,p=flow; store=app.state.procedures
+    old=store.accept(store.propose(spec())['id'])
+    feedback(flow,1); feedback(flow,2)
+    def during():
+        if change=='revoke': store.revoke(old['id'])
+        else: store.accept(store.propose({**spec(),'steps':['Vor dem Entwurf immer Zuständigkeit prüfen.']})['id'])
+    p.during=during
+    result,_=feedback(flow,3)
+    assert result['lernen']['status']!='proposed'
+    assert not [item for item in store.items() if item['request_key'].startswith('corrections-v1:')]
+
+
+def test_conversation_readback_preserves_workflow_consent_and_proposal_without_model(flow):
+    app,client,p=flow
+    for n in range(3): result,body=feedback(flow,n)
+    identifier=result['lernen']['proposal_id']; calls=len(p.seen)
+    messages=client.get('/api/v1/conversations/'+body['conversation_id']).json()['messages']
+    saved=next(m for m in messages if m['id']==body['message_id'])['metadata']['workflow_feedback']
+    assert saved['arbeitsweise'] is True and saved['richtig']==CORRECTION
+    assert saved['lernen']['proposal_id']==identifier
+    assert len(p.seen)==calls
+    client.post('/api/v1/rueckmeldungen',json={**body,'arbeitsweise':False})
+    messages=client.get('/api/v1/conversations/'+body['conversation_id']).json()['messages']
+    assert next(m for m in messages if m['id']==body['message_id'])['metadata']['workflow_feedback']['arbeitsweise'] is False
+
+
+def test_withdraw_by_identifier_preserves_note_and_invalidates_proposal_idempotently(flow):
+    app,client,p=flow
+    for n in range(3): result,body=feedback(flow,n)
+    identifier=result['meldung']['id']; proposal=result['lernen']['proposal_id']; calls=len(p.seen)
+    note=app.state.rueckmeldungen.hole(identifier)
+    for _ in range(2):
+        assert client.post(f'/api/v1/rueckmeldungen/{identifier}/arbeitsweise-zuruecknehmen').status_code==200
+    after=app.state.rueckmeldungen.hole(identifier)
+    assert after['richtig']==note['richtig'] and after['frage']==note['frage'] and after['workflow']=={}
+    assert client.post(f'/api/v1/procedures/{proposal}/accept').status_code==409
+    assert client.post('/api/v1/rueckmeldungen/missing/arbeitsweise-zuruecknehmen').status_code==404
+    assert len(p.seen)==calls
+
+
+def test_withdrawn_conversation_evidence_is_not_rehydrated_as_feedback_text(flow):
+    app,client,_=flow
+    result,body=feedback(flow,1)
+    # Nachträglich geänderte Quellenbindung macht die ursprüngliche Lernableitung ungültig.
+    app.state.conversations.replace_source_lineage(body['message_id'],[{'episode_id':'missing-source'}])
+    messages=client.get('/api/v1/conversations/'+body['conversation_id']).json()['messages']
+    saved=next(m for m in messages if m['id']==body['message_id'])['metadata']['workflow_feedback']
+    assert saved['richtig']=='' and saved['arbeitsweise'] is True
+    assert saved['lernen']['status']=='changed'

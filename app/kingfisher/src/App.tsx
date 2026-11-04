@@ -515,7 +515,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {beleg.art === "ohne" && !procedureProposal && !message.metadata?.context?.procedure_choice ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
                 {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate(`/settings?ablauf=${encodeURIComponent(procedureProposal.id)}#ich-ablaeufe`)}>Ablauf prüfen</button> : null}
                 {meldbar(message) ? <div className="antwort-rueckkanal">
-                  <StimmtNicht conversationId={data.conversation.id} messageId={message.id} />
+                  <StimmtNicht conversationId={data.conversation.id} messageId={message.id} saved={message.metadata?.workflow_feedback} />
                   {uebernehmbar(message) ? <InDieAkte conversationId={data.conversation.id} messageId={message.id} /> : null}
                 </div> : null}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_choices?.length ? <div className="memory-actions clarification-choices" role="group" aria-label="Antwort auswählen">

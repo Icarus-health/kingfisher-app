@@ -122,6 +122,13 @@ def register(app, guard, data_dir) -> None:
         return {'meldungen': ablage().liste(status=status), 'zaehlung': ablage().zaehlen(),
                 'arten': [{'id': art, 'text': ART_TEXTE[art]} for art in ARTEN]}
 
+    @app.post('/api/v1/rueckmeldungen/{kennung}/arbeitsweise-zuruecknehmen', dependencies=guard)
+    def withdraw_workflow(kennung: str):
+        with app.state.conversation_lock:
+            if not ablage().withdraw_workflow(kennung):
+                raise HTTPException(404,'Diese Korrektur gibt es nicht mehr.')
+        return {'withdrawn':True}
+
     @app.get('/api/v1/rueckmeldungen/faelle', dependencies=guard)
     def faelle() -> JSONResponse:
         """Alle Meldungen, auch erledigte, als Fälle im Fragenformat der Messlatte. Enthält Frage- und Antworttexte."""

@@ -158,6 +158,15 @@ class Rueckmeldungen:
                 'ORDER BY erstellt DESC, id LIMIT 32', (area,)).fetchall()
         return [_lesen(row) for row in rows]
 
+    def for_conversation(self, conversation_id: str) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute('SELECT * FROM rueckmeldung WHERE gespraech_id=?', (conversation_id,)).fetchall()
+        return [_lesen(row) for row in rows]
+
+    def withdraw_workflow(self, identifier: str) -> bool:
+        with self._lock, self._conn:
+            return self._conn.execute("UPDATE rueckmeldung SET workflow='{}' WHERE id=?", (identifier,)).rowcount == 1
+
     def workflow_result(self, key: str) -> dict | None:
         with self._lock:
             row = self._conn.execute('SELECT result FROM workflow_checks WHERE request_key=?', (key,)).fetchone()
