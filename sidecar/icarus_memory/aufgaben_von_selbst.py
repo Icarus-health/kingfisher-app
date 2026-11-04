@@ -153,8 +153,8 @@ def frist_aus(zitat: str, bezug: datetime | None) -> datetime | None:
 
 def _frist_aufloesen(zitat: str, bezug: datetime | None) -> tuple[bool, datetime | None]:
     """Erkannte, aber unaufgelöste Frist von einer Quelle ohne Frist unterscheiden."""
-    from .fristen import fristen_in
-    suche = fristen_in(zitat or '', bezug)
+    from .fristen import fristangaben_in
+    suche = fristangaben_in(zitat or '', bezug)
     uhren = [match for match in _UHR.finditer(zitat or '')
              if match['um'] or match['uhr'] or match['trenner'] == ':']
     erkannt = bool(suche.fristen or suche.ohne_datum or uhren or _UHR_HINWEIS.search(zitat or ''))
