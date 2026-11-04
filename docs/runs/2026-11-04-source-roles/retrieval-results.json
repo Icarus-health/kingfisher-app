@@ -1,0 +1,472 @@
+{
+  "format": "hybrid-memory-development-v1",
+  "qualification": false,
+  "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+  "dataset_sha256": "889ac4ae05fb5f62353358c56e0cc50c64b8447a20c6d153e294ec08c8f542cf",
+  "weights_unchanged": true,
+  "chat_model_calls": 0,
+  "local_embedding_only": true,
+  "status": "completed",
+  "exact_cases_out_of_ten": {
+    "lexical": 4,
+    "hybrid": 8
+  },
+  "results": [
+    {
+      "case_id": "hybrid-funding",
+      "mode": "lexical",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 1.5016089170239866,
+      "retrieval_seconds": 0.003058500005863607,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S1"
+      ],
+      "retrieval": {
+        "missing": [
+          "S1"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-funding",
+      "mode": "hybrid",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 1.5016089170239866,
+      "retrieval_seconds": 0.053423166973516345,
+      "actual_source_ids": [
+        "S1"
+      ],
+      "expected_source_ids": [
+        "S1"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-travel",
+      "mode": "lexical",
+      "question": "Welches Verkehrsmittel nutzen wir auf dem Weg in die bayerische Landeshauptstadt?",
+      "preparation_seconds": 0.1830437920289114,
+      "retrieval_seconds": 0.0005118749104440212,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S2"
+      ],
+      "retrieval": {
+        "missing": [
+          "S2"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-travel",
+      "mode": "hybrid",
+      "question": "Welches Verkehrsmittel nutzen wir auf dem Weg in die bayerische Landeshauptstadt?",
+      "preparation_seconds": 0.1830437920289114,
+      "retrieval_seconds": 0.04672037495765835,
+      "actual_source_ids": [
+        "S2"
+      ],
+      "expected_source_ids": [
+        "S2"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-staffing",
+      "mode": "lexical",
+      "question": "Was steht zur Planung der Belegschaft an?",
+      "preparation_seconds": 0.18688404199201614,
+      "retrieval_seconds": 0.0008711249101907015,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S3"
+      ],
+      "retrieval": {
+        "missing": [
+          "S3"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-staffing",
+      "mode": "hybrid",
+      "question": "Was steht zur Planung der Belegschaft an?",
+      "preparation_seconds": 0.18688404199201614,
+      "retrieval_seconds": 0.04303912492468953,
+      "actual_source_ids": [
+        "S3"
+      ],
+      "expected_source_ids": [
+        "S3"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-repairs",
+      "mode": "lexical",
+      "question": "Welche Frist gilt für Instandsetzungen?",
+      "preparation_seconds": 0.17072879103943706,
+      "retrieval_seconds": 0.0003730830503627658,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S4"
+      ],
+      "retrieval": {
+        "missing": [
+          "S4"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-repairs",
+      "mode": "hybrid",
+      "question": "Welche Frist gilt für Instandsetzungen?",
+      "preparation_seconds": 0.17072879103943706,
+      "retrieval_seconds": 0.04372891690582037,
+      "actual_source_ids": [
+        "S4"
+      ],
+      "expected_source_ids": [
+        "S4"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-ambiguous",
+      "mode": "lexical",
+      "question": "Welche Adresse gehört zu Alex Winter?",
+      "preparation_seconds": 0.17476491606794298,
+      "retrieval_seconds": 0.0017129590269178152,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 2,
+        "found_count": 2,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-ambiguous",
+      "mode": "hybrid",
+      "question": "Welche Adresse gehört zu Alex Winter?",
+      "preparation_seconds": 0.17476491606794298,
+      "retrieval_seconds": 0.040309709031134844,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 2,
+        "found_count": 2,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-specific",
+      "mode": "lexical",
+      "question": "Wo erreiche ich Alex Winter aus dem Einkauf?",
+      "preparation_seconds": 0.17342258407734334,
+      "retrieval_seconds": 0.0018360000103712082,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S6"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-specific",
+      "mode": "hybrid",
+      "question": "Wo erreiche ich Alex Winter aus dem Einkauf?",
+      "preparation_seconds": 0.17342258407734334,
+      "retrieval_seconds": 0.04034049995243549,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S6"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-action",
+      "mode": "lexical",
+      "question": "Wurde die Nachricht abgeschickt?",
+      "preparation_seconds": 0.17051704204641283,
+      "retrieval_seconds": 0.0022638749796897173,
+      "actual_source_ids": [
+        "S1",
+        "S7",
+        "S8"
+      ],
+      "expected_source_ids": [
+        "S7"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S1",
+          "S8"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 3,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-action",
+      "mode": "hybrid",
+      "question": "Wurde die Nachricht abgeschickt?",
+      "preparation_seconds": 0.17051704204641283,
+      "retrieval_seconds": 0.038049208000302315,
+      "actual_source_ids": [
+        "S1",
+        "S7",
+        "S8"
+      ],
+      "expected_source_ids": [
+        "S7"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S1",
+          "S8"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 3,
+        "recall": 1.0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-absent",
+      "mode": "lexical",
+      "question": "Welche Farbe hat mein Fahrrad?",
+      "preparation_seconds": 0.1699858750216663,
+      "retrieval_seconds": 0.0003774160286411643,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-absent",
+      "mode": "hybrid",
+      "question": "Welche Farbe hat mein Fahrrad?",
+      "preparation_seconds": 0.1699858750216663,
+      "retrieval_seconds": 0.03586504200939089,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-withdrawn",
+      "mode": "lexical",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.1467587089864537,
+      "retrieval_seconds": 0.00035616697277873755,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-withdrawn",
+      "mode": "hybrid",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.1467587089864537,
+      "retrieval_seconds": 0.036112333997152746,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-expired",
+      "mode": "lexical",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.16384020796976984,
+      "retrieval_seconds": 0.00040079199243336916,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-expired",
+      "mode": "hybrid",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.16384020796976984,
+      "retrieval_seconds": 0.03818616701755673,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "answer_quality": "not_evaluated"
+    }
+  ]
+}

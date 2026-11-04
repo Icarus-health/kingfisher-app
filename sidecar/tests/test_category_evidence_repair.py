@@ -97,3 +97,86 @@ def test_transport_errors_are_not_retried(tmp_path):
     with pytest.raises(ProviderError):
         interpret(provider, item)
     assert len(provider.calls) == 1
+
+
+def test_repair_identifies_each_bad_anchor_without_selecting_replacements(tmp_path):
+    episodes, categories = setup(tmp_path)
+    item = source(episodes, 'Projekt Nord\u00a0Stern mit Example.de.')
+    bad = result(entity(name='Nord Stern'), entity(name='Invented Person'),
+                 entity('source', 'Example.de'), entity(name='Example.de'))
+    def answer(payload, call):
+        if call == 1:
+            return bad
+        assert payload['validation_failure']['entity_errors'] == [
+            {'index': 0, 'reason': 'entity_missing'},
+            {'index': 1, 'reason': 'entity_missing'},
+            {'index': 2, 'reason': 'entity_span'},
+        ]
+        assert payload['rejected_output'] == bad
+        assert payload['blocks'] == [{'block_id': 'B1', 'text': item.body}]
+        return result(entity(name='Nord\u00a0Stern'), entity(name='Example.de'))
+    provider = RepairProvider(answer)
+    assert run_remote(categories, item, provider).ok
+    assert len(provider.calls) == 2
+    assert [row['name'] for row in categories.list_for(item.id)['entities']] == [
+        'Nord\u00a0Stern', 'Example.de']
+
+
+@pytest.mark.parametrize('space', ['\u00a0', '\u202f'])
+def test_invisible_source_whitespace_is_visible_in_json_but_preserved_exactly(tmp_path, space):
+    episodes, categories = setup(tmp_path)
+    name = f'Nord{space}Stern'
+    item = source(episodes, f'{name} ist ein Handelsname.')
+    original = item.to_dict()
+    class VisibleProvider(RepairProvider):
+        def complete_json(self, messages, **kwargs):
+            raw = messages[-1]['content']
+            assert space not in raw
+            assert ('\\u%04x' % ord(space)) in raw
+            assert json.loads(raw)['blocks'][0]['text'] == item.body
+            return super().complete_json(messages, **kwargs)
+    provider = VisibleProvider(lambda payload, call: result(
+        entity(name='Nord Stern' if call == 1 else name)))
+    assert run_remote(categories, item, provider).ok
+    assert len(provider.calls) == 2
+    saved = categories.list_for(item.id)['entities'][0]
+    assert saved['name'] == name
+    assert item.body[saved['start']:saved['end']] == name
+    assert episodes.get(item.id).to_dict() == original
+
+
+def test_local_large_unicode_source_still_fits_verified_8k_input_budget(tmp_path):
+    from icarus_memory.providers import OpenAICompatible
+    from icarus_memory.local_context_profile import _native_payload
+    episodes, _ = setup(tmp_path)
+    body = '\n\n'.join(['Nord\u00a0Stern\u00a0liefert\u00a0die\u00a0Unterlagen. ' * 67] * 3)
+    item = source(episodes, body)
+    actual = OpenAICompatible('kingfisher-qwen3.5:9b-8k', 'artificial', 'http://127.0.0.1:11434/v1')
+    class LocalCapture:
+        is_local = True
+        entity_anchor_mode = 'block_quote'
+        def complete_json(self, messages, *, max_tokens, schema):
+            # Pure payload builders only: no transport, profile lookup or inference.
+            payload = actual._json_payload(messages, max_tokens, schema)
+            _native_payload(actual, payload)
+            return Reply(text='{"categories":[],"entities":[]}')
+    taxonomy = [{'id': r[0], 'label': r[1], 'description': r[2]} for r in _DEFAULTS]
+    assert _interpret(LocalCapture(), item, taxonomy) == ([], [])
+    assert episodes.get(item.id).body == body
+
+
+def test_repair_feedback_includes_duplicate_after_earlier_missing_anchor(tmp_path):
+    episodes, categories = setup(tmp_path)
+    item = source(episodes, 'Example.de ist ein Handelsname.')
+    def answer(payload, call):
+        if call == 1:
+            return result(entity(name='Missing'), entity(), entity())
+        assert payload['validation_failure']['entity_errors'] == [
+            {'index': 0, 'reason': 'entity_missing'},
+            {'index': 2, 'reason': 'entity_duplicate'},
+        ]
+        return result(entity())
+    provider = RepairProvider(answer)
+    assert run_remote(categories, item, provider).ok
+    assert len(provider.calls) == 2
+    assert len(categories.list_for(item.id)['entities']) == 1

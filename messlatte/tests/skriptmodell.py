@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 
-from icarus_memory import absatzauswahl, satzpruefung_modell
+from icarus_memory import absatzauswahl, satzantwort, satzpruefung_modell
 from icarus_memory.providers import Reply
 
 
@@ -58,7 +58,7 @@ class SkriptModell:
             return self._pruefen(messages)
         system = messages[0]['content']
         nutzer = json.loads(messages[-1]['content'])
-        if system.startswith('Du formulierst die Antwort auf eine Frage'):
+        if satzantwort.ist_satzanfrage(messages):
             self.satzanfragen.append(nutzer)
             regel = next((r for k, r in self.saetze.items() if k.casefold() in nutzer['anliegen'].casefold()), None)
             antwort = regel(nutzer) if callable(regel) else regel or {'status': 'unklar', 'saetze': []}

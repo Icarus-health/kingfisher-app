@@ -238,3 +238,13 @@ def test_rowid_update_cannot_replace_another_claim_behind_fts_triggers(tmp_path,
                                (target, 'synthetic:0'))
     assert [c.id for c in agent._knowledge.search_context('Originalbeleg')[0]] == [root.id]
     assert len(agent._knowledge.search_context('Zweitbeleg')[0]) == 1
+
+
+def test_function_words_do_not_consume_candidate_budget_before_specific_hit(tmp_path):
+    agent, _, _, accept = _knowledge_agent(tmp_path)
+    expected, _ = accept('Die Nachricht liegt noch als Entwurf vor.')
+    template, _ = accept('Der Zuschuss wurde bewilligt.')
+    insert_claims(agent._knowledge, variants(template, 130, 'wurde'))
+    found, meta = agent._knowledge.search_context('Wurde die Nachricht abgeschickt?', limit=1)
+    assert [claim.id for claim in found] == [expected.id]
+    assert not meta['candidates_truncated']

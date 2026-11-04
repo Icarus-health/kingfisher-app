@@ -1,0 +1,37 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "sidecar/tests/test_context.py",
+    "sidecar/tests/test_context_identity.py",
+    "sidecar/tests/test_knowledge_explicit_context.py",
+    "sidecar/tests/test_knowledge_context_relevance.py",
+    "sidecar/tests/test_claim_index.py",
+    "sidecar/tests/test_claims.py",
+    "sidecar/tests/test_knowledge_search.py",
+    "sidecar/tests/test_live_knowledge_search.py",
+    "sidecar/tests/test_knowledge_word_forms.py",
+    "sidecar/tests/test_knowledge_bericht_report_synonym.py",
+    "sidecar/tests/test_knowledge_time.py",
+    "sidecar/tests/test_personenfrage.py",
+    "sidecar/tests/test_source_index.py",
+    "sidecar/tests/test_person_retrieval_repair.py",
+    "sidecar/tests/test_agent.py",
+    "sidecar/tests/test_evidence_answer.py",
+    "sidecar/tests/test_conversation_retraction.py",
+    "sidecar/tests/test_knowledge_conflicts.py",
+    "sidecar/tests/test_claim_correction.py",
+    "sidecar/tests/test_memory_evidence_answers.py",
+    "sidecar/tests/test_profile_history.py",
+    "scripts/test_probe_hybrid_memory.py",
+    "-q"
+  ],
+  "passed": 522,
+  "failed": 0,
+  "seconds": 66.21,
+  "warnings": [
+    "Existing Starlette TestClient httpx deprecation"
+  ],
+  "scope": "affected tests, not full backend"
+}

@@ -67,6 +67,39 @@ _ZEITKONTEXT = frozenset(umschrift_gleich(w) for w in (
     *MONAT_NUMMER, *WOCHENTAGE, 'Sonnabend', 'heute', 'morgen', 'gestern',
     'vorgestern', 'übermorgen', 'Frühling', 'Sommer', 'Herbst', 'Winter'))
 
+# Ein Personenmerkmal muss als positive Ergänzung zur genannten Person
+# vorkommen. Ein Wort irgendwo in einer Frage (etwa einer bestrittenen
+# Behauptung oder nach „nicht“) ist keine solche Auswahl.
+_AUSWAHL_ANFANG = re.compile(
+    r'\s*(?:(?:was|wann|wo|wohin|womit|worauf|welche\w*)\b[^,;:?!\n]{0,160}\b'
+    r'(?:von|mit|über|ueber|hat|hatte|haben|habe|sagt|meldet|liefert|lieferte|'
+    r'schreibt|schrieb|sendet|arbeitet|erreiche|kontaktiere|kann|soll|muss)(?:\s+ich)?'
+    r'|wie\s+(?:erreiche|kontaktiere|kann|soll|muss)\s+ich'
+    r'|bis\s+wann\s+(?:soll|muss|darf|kann)(?:\s+ich)?)\s+', re.I)
+_AUSWAHL_TEIL = re.compile(
+    r'\s+(?:(?:beim|vom|bei|von|aus|in|im|am|an)\s+'
+    r'(?:(?:der|dem|den|des|das|einer|einem)\s+)?'
+    r'(?:(?:projekt)\s+)?["\'\u201e«]?[\w.@+-]+["\'“»]?'
+    r'|\([\w.+-]+(?:@[\w.-]+|\.[\w.-]+)\)'
+    r'|<[\w.+-]+@[\w.-]+>|[\w.+-]+@[\w.-]+)', re.I)
+_ADRESSFRAGE_ANFANG = re.compile(
+    r'\s*(?:hat|hatte|kann|soll|muss|wird|ist|(?:erzähl|erzaehl)\s+mir\s+(?:etwas\s+)?(?:über|ueber))\s+', re.I)
+_AUFGABENFRAGE_ANFANG = re.compile(r'\s*(?:hat|hatte)\s+', re.I)
+_AUFGABENFRAGE_ENDE = re.compile(r'\s+(?:die|diese|seine|eine)\s+aufgaben?\b', re.I)
+# Nur vollständige, bekannte Fortsetzungen akzeptieren. Das Fehlen eines
+# Wortes aus einer Sperrliste belegt keine eindeutige Zuordnung: Zusätze wie
+# „Diese Zuordnung ist unbestätigt“ oder neue Alternativformulierungen müssen
+# zurückfragen. Eine verneinte Aufgabenhandlung bleibt dagegen unterstützt.
+_AUFGABENHANDLUNG = (
+    r'(?:noch\s+)?(?:nicht\s+)?(?:erledigt|zugesagt|übernommen|uebernommen|'
+    r'gesendet|geschickt|geschrieben|geliefert|abgeschlossen)')
+_AUSWAHL_ENDE = re.compile(
+    r'\s*(?:' + _AUFGABENHANDLUNG +
+    r'|(?:die|diese|seine|eine)\s+aufgaben?\s+' + _AUFGABENHANDLUNG +
+    r'|(?:den|die|das)\s+[\w-]{1,80}\s+(?:liefern|senden|schicken|erledigen|abgeben)'
+    r'|feedback(?:\s+(?:zu|zum|zur)\s+[\w-]{1,80})?\s+geben'
+    r'|pro\s+person)?\s*[?!.]?\s*', re.I)
+
 
 @dataclass
 class Kandidat:
@@ -257,6 +290,41 @@ def _kontextwoerter(frage: str) -> set[str]:
             for w in re.split(r'[^\wäöüß]+', begriff.casefold()) if len(w) >= 4}
 
 
+def _auswahltext(frage: str, erwaehnung: Erwaehnung) -> str:
+    """Nur positiv angebundene Merkmale, nicht der erfragte Sachverhalt.
+
+    Aufgaben dürfen verneint sein („noch nicht erledigt“), das Merkmal selbst
+    nicht. Unbekannte Satzformen klären die Person, statt eine Prämisse als
+    Identitätsbeleg zu behandeln. Keine neue Identität wird gespeichert.
+    """
+    name = r'(?<![\w-])' + r'\s+'.join(map(re.escape, erwaehnung.text.split())) + r'(?![\w-])'
+    stellen = list(re.finditer(name, frage, re.I))
+    if len(stellen) != 1:
+        return ''
+    stelle = stellen[0]
+    anfang = frage[:stelle.start()]
+    ende = stelle.end()
+    while teil := _AUSWAHL_TEIL.match(frage, ende):
+        ende = teil.end()
+    auswahl = frage[stelle.end():ende]
+    # „Hat Alex (a@example.org) ...?“ nennt eine Adresse, fragt aber nicht
+    # nach seiner Zugehörigkeit. Der gleiche Satzbau ohne Adresse („Ist Alex
+    # im Einkauf ...?“) belegt die gerade erfragte Zugehörigkeit nicht.
+    adressfrage = (_ADRESSFRAGE_ANFANG.fullmatch(anfang)
+                  and re.search(r'[\w.+-]+@[\w.-]+', auswahl))
+    aufgabenfrage = (_AUFGABENFRAGE_ANFANG.fullmatch(anfang)
+                    and _AUFGABENFRAGE_ENDE.match(frage[ende:]))
+    if not _AUSWAHL_ANFANG.fullmatch(anfang) and not adressfrage and not aufgabenfrage:
+        return ''
+    if not _AUSWAHL_ENDE.fullmatch(frage[ende:]):
+        return ''
+    # „Was kostet das Catering von Alex?“ benennt die Leistung bereits vor
+    # dem Namen. Nur diese bestehende positive Preisfrage darf das ergänzen.
+    leistung = re.search(r'\b(?:kostet|kosten)\s+(?:(?:das|die|der)\s+)?([\wäöüß-]+)\s+von\s*$',
+                         anfang, re.I)
+    return auswahl + (' beim ' + leistung[1] if leistung else '')
+
+
 def unterscheidet(frage: str, erwaehnung: Erwaehnung, episodes: Any) -> Kandidat | None:
     """Die Person, zu der die Frage allein passt; nichts, wenn kein Wort der Frage entscheidet.
 
@@ -264,6 +332,9 @@ def unterscheidet(frage: str, erwaehnung: Erwaehnung, episodes: Any) -> Kandidat
     entscheiden. Allgemeine Betreffwörter und ähnliche Wortanfänge tun das nicht.
     Passen Merkmale zu verschiedenen Personen, bleibt die Frage offen.
     """
+    frage = _auswahltext(frage, erwaehnung)
+    if not frage:
+        return None
     explizit = [k for k in erwaehnung.kandidaten if any(
         re.search(r'(?<![\w.+@-])' + re.escape(a) + r'(?![\w.+@-])', frage, re.I)
         for a in k.adressen or [k.adresse])]

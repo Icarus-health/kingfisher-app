@@ -112,7 +112,7 @@ def test_expiry_during_provider_blocks_answer_and_returned_tool(tmp_path):
             clock.return_value = AT+timedelta(hours=2)
             return Reply(text='EXPIRED_ANSWER', tool_calls=[ToolCall(id='x',name='forbidden',arguments={})])
         provider.complete = answer
-        agent._knowledge_context_items = lambda _: ()  # expired root only exists in OLD context
+        agent._knowledge_context_items = lambda _, *, focus_query=None: ()  # expired root only exists in OLD context
         agent._handle = lambda *args: pytest.fail('stale tool executed')
         turn = agent.send('Weiter?')
     assert turn.context['invalidated'] is True
@@ -156,7 +156,7 @@ def test_old_input_source_changes_reset_history_without_new_selection(tmp_path, 
     first = agent.send('Was macht Kranz?')
     agent.load_history([{'role':'user','content':'old question'},
                         {'role':'assistant','content':'OLD_DERIVATION','context':first.context}])
-    agent._knowledge_context_items = lambda _: ()
+    agent._knowledge_context_items = lambda _, *, focus_query=None: ()
     if change == 'ignore': episodes.ignore(source.id)
     elif change == 'retract': agent._knowledge.retract(claim.id, reason='Synthetic correction')
     else:

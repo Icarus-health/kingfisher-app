@@ -1,0 +1,132 @@
+{
+  "date": "2026-11-04",
+  "model": "kingfisher-qwen3.5:9b-8k",
+  "model_digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+  "code_sha256": {
+    "harness_service.mjs": "a8512a5eb90a56148f40a306cc024d8b4e1d5821a7c6e395639050b641709a3f",
+    "harness_worker.mjs": "64b28dcbde22d136c1cdd9ad8e52da2c3189f65b10647320d0e8942e1f1b425c",
+    "harness_run.mjs": "b0ebffa6ddeb5cded90b65e9cb9fc72f9c508a28a8b535d3abca573cead89ed6",
+    "harness_gateway.py": "3635e00126b91149d74ac37df9d081d3a17db421b7a8c47b2d399e60ea02be02"
+  },
+  "artificial_only": true,
+  "paid_calls": 0,
+  "personal_store_opened": false,
+  "scope": "isolated actual local model; not updated native app or full memory acceptance",
+  "execution_status": "completed_for_review",
+  "semantic_review": "9/9 passed frozen criteria; manually reviewed",
+  "original_sources_unchanged": true,
+  "cleanup_verified": true,
+  "sampled_max_mac_pressure": 2,
+  "seconds": 306.548,
+  "model_calls": 18,
+  "cases": [
+    {
+      "id": "requester-versus-owner",
+      "original": "Künstliche Prüfquelle KF-Modulprobe43. Vera König bittet Sören Kube: Bitte sende den Entwurf für Nordstern bis 7. November 2026, 17 Uhr. Matthias Braun liefert seine Unterlagen bis 6. November 2026, 12 Uhr. Das Treffen ist am 9. November 2026, 10 Uhr. Der Termin ist keine Abgabefrist.",
+      "question": "Wer soll laut dieser Quelle was erledigen und bis wann? Trenne Abgabefristen vom Treffen.",
+      "answer": "Laut der Quelle bittet Vera König Sören Kube, den Entwurf für Nordstern bis zum 7. November 2026, 17 Uhr, zu senden. Matthias Braun liefert seine Unterlagen bis zum 6. November 2026, 12 Uhr. Das Treffen findet am 9. November 2026, 10 Uhr statt, ist aber keine Abgabefrist.",
+      "seconds": 33.619,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.060945,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "requester-owner-reversed",
+      "original": "Sören Kube bittet Vera König: Bitte sende den Entwurf für Nordstern bis 7. November 2026, 17 Uhr. Matthias Braun liefert seine Unterlagen bis 6. November 2026, 12 Uhr. Das Treffen ist am 9. November 2026, 10 Uhr. Sören übernimmt keine Lieferung.",
+      "question": "Wer hat welche Aufgabe und bis wann? Unterscheide Auftraggeber und ausführende Person.",
+      "answer": "Sören Kube bittet Vera König, den Entwurf für Nordstern bis zum 7. November 2026, 17 Uhr, zu senden. Matthias Braun liefert seine Unterlagen bis zum 6. November 2026, 12 Uhr. Das Treffen findet am 9. November 2026, 10 Uhr statt. Sören Kube übernimmt keine Lieferung.",
+      "seconds": 31.985,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.058775,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "person-task-deadline",
+      "original": "Von: Vera König <vera.koenig@example.invalid>\nDatum: 2. November 2026\nHallo Sören, bitte sende mir den Entwurf für das Projekt Birke bis zum 7. November 2026. Viele Grüße, Vera König",
+      "question": "Wer bittet um welche Aufgabe und bis wann? Nenne nur belegte Angaben.",
+      "answer": "Vera König bittet Sören um den Entwurf für das Projekt Birke bis zum 7. November 2026.",
+      "seconds": 27.651,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.070801,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "appointment-versus-deadline",
+      "original": "Von: Matthias Braun <matthias.braun@example.invalid>\nDatum: 2. November 2026\nDie Besprechung ist am 9. November 2026 um 10 Uhr. Ich, Matthias Braun, sende die Unterlagen bis zum 6. November 2026 um 17 Uhr. Sören hat keine eigene Aufgabe zugesagt.",
+      "question": "Welche Aufgabe hat wer, welche Abgabefrist gilt und was ist nur ein Termin?",
+      "answer": "Matthias Braun hat die Aufgabe, Unterlagen bis zum 6. November 2026 um 17 Uhr abzugeben. Die Besprechung am 9. November 2026 um 10 Uhr ist ein Termin, keine Abgabefrist. Sören hat keine eigene Aufgabe zugesagt.",
+      "seconds": 32.336,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.079655,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "ambiguous-name",
+      "original": "Projekt Birke: Alexander Meier und Alexander Wolf arbeiten mit. Beide werden gelegentlich Alex genannt. Alex soll den Entwurf senden. Welcher der beiden gemeint ist und bis wann, steht nicht in der Nachricht.",
+      "question": "Welcher Alex muss den Entwurf bis wann senden? Frage nach, wenn es nicht eindeutig ist.",
+      "answer": "Wen meinst du: Alexander Meier oder Alexander Wolf? Beide werden gelegentlich „Alex“ genannt. Die Quelle berichtet, dass unklar ist, welcher der beiden den Entwurf senden soll und bis wann.",
+      "seconds": 33.092,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.079031,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "ambiguous-other-name",
+      "original": "Im Projekt Fjord arbeiten Jana Neumann und Jana Peters. Beide werden Jana genannt. Die Nachricht lautet: Jana kümmert sich um das Protokoll. Weder der Nachname noch eine Abgabefrist sind in der Nachricht angegeben.",
+      "question": "Welche Jana übernimmt das Protokoll und wann ist es fällig?",
+      "answer": "Wen meinst du: Jana Neumann oder Jana Peters? Die Quelle berichtet, dass beide Jana genannt werden, aber weder der Nachname noch eine Abgabefrist für das Protokoll angegeben sind.",
+      "seconds": 33.549,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.072444,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "meeting-as-deadline",
+      "original": "Vera König bittet Sören Kube: Sende den Entwurf spätestens bis zum Treffen am 9. November 2026 um 10 Uhr. Dies ist der späteste Abgabezeitpunkt. Wer am Treffen teilnimmt, steht nicht in der Nachricht.",
+      "question": "Wer soll was bis wann abgeben? Gibt es eine belegte Abgabefrist?",
+      "answer": "Vera König bittet Sören Kube, den Entwurf bis zum Treffen am 9. November 2026 um 10 Uhr abzugeben. Dies ist die einzige belegte Abgabefrist. Wer am Treffen teilnimmt, ist nicht Teil der Aufgabe.",
+      "seconds": 38.404,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.081261,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "three-name-candidates",
+      "original": "Alexander Meier, Alexander Wolf und Alexander Braun werden im Projekt alle Alex genannt. Alex soll den Entwurf senden. Welche der drei Personen gemeint ist, steht nicht dabei; auch keine Frist.",
+      "question": "Welcher Alex soll den Entwurf senden?",
+      "answer": "Wen meinst du: Alexander Meier, Alexander Wolf oder Alexander Braun? Die Quelle bestätigt, dass alle drei im Projekt „Alex“ genannt werden, aber es ist nicht belegt, welcher der drei den Entwurf senden soll. Zudem gibt es keine belegte Frist für die Abgabe.",
+      "seconds": 32.177,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.073541,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    },
+    {
+      "id": "delegated-request",
+      "original": "Vera König bittet Sören Kube: Frage bitte Matthias Braun, ob er die Unterlagen bis zum 6. November 2026 um 12 Uhr liefern kann. Matthias hat noch nicht geantwortet. Eine Frist für Sörens Nachfrage ist nicht genannt.",
+      "question": "Was soll Sören tun, was hat Matthias zugesagt, und welche Fristen sind verbindlich belegt?",
+      "answer": "Sören soll Matthias Braun fragen, ob er die Unterlagen bis zum 6. November 2026 um 12 Uhr liefern kann. Matthias hat noch nicht geantwortet, sodass keine Zusage vorliegt. Eine verbindliche Frist für Sörens Nachfrage ist nicht genannt.",
+      "seconds": 35.294,
+      "api_responsive": true,
+      "max_sampled_api_seconds": 0.117336,
+      "semantic_review": "passed_frozen_criteria",
+      "label": "DRAFT",
+      "verified": false
+    }
+  ]
+}

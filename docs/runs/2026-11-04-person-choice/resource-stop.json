@@ -1,0 +1,375 @@
+{
+  "suite": "person-answer-local-v1",
+  "synthetic_only": true,
+  "model": "kingfisher-qwen3.5:9b-8k",
+  "status": "failed",
+  "live_model_verified": false,
+  "cloud_calls": 0,
+  "import_resumed": false,
+  "ingestion": "deterministic; not intake evaluation",
+  "semantic_search": "off; BGE verified separately",
+  "sentence_verifier": "same model",
+  "cases": [
+    [
+      "ambiguous",
+      "Wo erreiche ich Alex Winter?",
+      "meaning_choice",
+      []
+    ],
+    [
+      "negative",
+      "Wo erreiche ich Alex Winter, aber nicht aus dem Einkauf?",
+      "meaning_choice",
+      []
+    ],
+    [
+      "disputed",
+      "Welche Belege zeigen, dass Alex Winter im Einkauf arbeitet?",
+      "meaning_choice",
+      []
+    ],
+    [
+      "contact",
+      "Wo erreiche ich Alex Winter aus dem Einkauf?",
+      "working_reports",
+      [
+        "purchasing"
+      ]
+    ],
+    [
+      "deadline",
+      "Bis wann soll Alex Winter aus dem Einkauf den Angebotsvergleich liefern?",
+      "working_reports",
+      [
+        "purchasing"
+      ]
+    ],
+    [
+      "explicit",
+      "Bis wann soll Alex Winter (winter@beta.example) den Stundenplan liefern?",
+      "working_reports",
+      [
+        "school"
+      ]
+    ]
+  ],
+  "sources": [
+    [
+      "purchasing",
+      "winter@alpha.example",
+      "Kontakt Einkauf",
+      "Alex Winter aus dem Einkauf ist unter einkauf@example.invalid erreichbar. Alex Winter hat zugesagt, den Angebotsvergleich bis zum 6. November 2026 an Sören zu liefern."
+    ],
+    [
+      "school",
+      "winter@beta.example",
+      "Kontakt Schule",
+      "Alex Winter an der Schule ist unter schule@example.invalid erreichbar. Alex Winter hat zugesagt, den Stundenplan bis zum 13. November 2026 an Sören zu liefern."
+    ]
+  ],
+  "mac_interaction": "not tested",
+  "dataset_sha256": "50dd2c5ef923772794f9edba2d6d88ce5f1dce2c7eea5ecd3b60ec498dc0bd73",
+  "code_sha256": {
+    "sidecar/icarus_memory/personenfrage.py": "0ec86fd876c1fca359a76b7e81d0fbfc6d1228ee88c5b7cf194937df6950e3dc",
+    "sidecar/icarus_memory/agent.py": "bdb917274819d6018688c017469c747e2c15c5813dc5e209ad62e00f2a738f47"
+  },
+  "seconds": 42.088,
+  "prose_review": "pending; source/status checks alone are not full answer acceptance",
+  "local_model_digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+  "error": "RuntimeError: memory_reserve",
+  "originals_unchanged": null,
+  "withdrawal": null,
+  "model_calls": [
+    {
+      "question_id": "contact",
+      "status": "completed",
+      "seconds": 9.631,
+      "failure_reason": null
+    },
+    {
+      "question_id": "contact",
+      "status": "completed",
+      "seconds": 9.296,
+      "failure_reason": null
+    },
+    {
+      "question_id": "contact",
+      "status": "completed",
+      "seconds": 4.715,
+      "failure_reason": null
+    },
+    {
+      "question_id": "contact",
+      "status": "completed",
+      "seconds": 0.979,
+      "failure_reason": null
+    },
+    {
+      "question_id": "deadline",
+      "status": "completed",
+      "seconds": 6.249,
+      "failure_reason": null
+    },
+    {
+      "question_id": "deadline",
+      "status": "completed",
+      "seconds": 3.14,
+      "failure_reason": null
+    },
+    {
+      "question_id": "deadline",
+      "status": "completed",
+      "seconds": 3.787,
+      "failure_reason": null
+    },
+    {
+      "question_id": "deadline",
+      "status": "completed",
+      "seconds": 1.056,
+      "failure_reason": null
+    },
+    {
+      "question_id": "explicit",
+      "status": "completed",
+      "seconds": 6.447,
+      "failure_reason": null
+    }
+  ],
+  "resources": [
+    {
+      "pressure": 1,
+      "free_percent": 60
+    },
+    {
+      "pressure": 1,
+      "free_percent": 60
+    },
+    {
+      "pressure": 1,
+      "free_percent": 60
+    },
+    {
+      "pressure": 1,
+      "free_percent": 60
+    },
+    {
+      "pressure": 1,
+      "free_percent": 60
+    },
+    {
+      "pressure": 1,
+      "free_percent": 60
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 26
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 28
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 27
+    },
+    {
+      "pressure": 2,
+      "free_percent": 26
+    },
+    {
+      "pressure": 2,
+      "free_percent": 26
+    },
+    {
+      "pressure": 2,
+      "free_percent": 26
+    },
+    {
+      "pressure": 2,
+      "free_percent": 24
+    }
+  ],
+  "rows": [
+    {
+      "id": "ambiguous",
+      "question": "Wo erreiche ich Alex Winter?",
+      "expected_status": "meaning_choice",
+      "status": "meaning_choice",
+      "expected_sources": [],
+      "selected": [],
+      "displayed": [],
+      "choices": [
+        "purchasing",
+        "school"
+      ],
+      "checks": {
+        "status": true,
+        "selected_sources": true,
+        "displayed_sources": true,
+        "calls_successful": true,
+        "clarifies_before_model": true
+      },
+      "passed": true,
+      "reply": "„Alex Winter“ kommt in deinem Bestand in mehreren Zusammenhängen vor. Welchen meinst du?\n\n· Mails von Alex Winter (winter@alpha.example) — zuletzt: Kontakt Einkauf\n· Mails von Alex Winter (winter@beta.example) — zuletzt: Kontakt Schule",
+      "calls": 0,
+      "seconds": 0.016
+    },
+    {
+      "id": "negative",
+      "question": "Wo erreiche ich Alex Winter, aber nicht aus dem Einkauf?",
+      "expected_status": "meaning_choice",
+      "status": "meaning_choice",
+      "expected_sources": [],
+      "selected": [],
+      "displayed": [],
+      "choices": [
+        "purchasing",
+        "school"
+      ],
+      "checks": {
+        "status": true,
+        "selected_sources": true,
+        "displayed_sources": true,
+        "calls_successful": true,
+        "clarifies_before_model": true
+      },
+      "passed": true,
+      "reply": "„Alex Winter“ kommt in deinem Bestand in mehreren Zusammenhängen vor. Welchen meinst du?\n\n· Mails von Alex Winter (winter@alpha.example) — zuletzt: Kontakt Einkauf\n· Mails von Alex Winter (winter@beta.example) — zuletzt: Kontakt Schule",
+      "calls": 0,
+      "seconds": 0.002
+    },
+    {
+      "id": "disputed",
+      "question": "Welche Belege zeigen, dass Alex Winter im Einkauf arbeitet?",
+      "expected_status": "meaning_choice",
+      "status": "meaning_choice",
+      "expected_sources": [],
+      "selected": [],
+      "displayed": [],
+      "choices": [
+        "purchasing",
+        "school"
+      ],
+      "checks": {
+        "status": true,
+        "selected_sources": true,
+        "displayed_sources": true,
+        "calls_successful": true,
+        "clarifies_before_model": true
+      },
+      "passed": true,
+      "reply": "„Alex Winter“ kommt in deinem Bestand in mehreren Zusammenhängen vor. Welchen meinst du?\n\n· Mails von Alex Winter (winter@alpha.example) — zuletzt: Kontakt Einkauf\n· Mails von Alex Winter (winter@beta.example) — zuletzt: Kontakt Schule",
+      "calls": 0,
+      "seconds": 0.002
+    },
+    {
+      "id": "contact",
+      "question": "Wo erreiche ich Alex Winter aus dem Einkauf?",
+      "expected_status": "working_reports",
+      "status": "working_reports",
+      "expected_sources": [
+        "purchasing"
+      ],
+      "selected": [
+        "purchasing"
+      ],
+      "displayed": [
+        "purchasing"
+      ],
+      "choices": [],
+      "checks": {
+        "status": true,
+        "selected_sources": true,
+        "displayed_sources": true,
+        "calls_successful": true,
+        "clarifies_before_model": true
+      },
+      "passed": true,
+      "reply": "Alex Winter aus dem Einkauf ist unter einkauf@example.invalid erreichbar. [1] (nur eine Quelle)\n\nBelege\n[1] Kontakt Einkauf; von Alex Winter <winter@alpha.example>\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "calls": 4,
+      "seconds": 21.264
+    },
+    {
+      "id": "deadline",
+      "question": "Bis wann soll Alex Winter aus dem Einkauf den Angebotsvergleich liefern?",
+      "expected_status": "working_reports",
+      "status": "working_reports",
+      "expected_sources": [
+        "purchasing"
+      ],
+      "selected": [
+        "purchasing"
+      ],
+      "displayed": [
+        "purchasing"
+      ],
+      "choices": [],
+      "checks": {
+        "status": true,
+        "selected_sources": true,
+        "displayed_sources": true,
+        "calls_successful": true,
+        "clarifies_before_model": true
+      },
+      "passed": true,
+      "reply": "Alex Winter hat zugesagt, den Angebotsvergleich bis zum 6. November 2026 an Sören zu liefern. [1] (nur eine Quelle)\n\nBelege\n[1] Kontakt Einkauf; von Alex Winter <winter@alpha.example>\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "calls": 4,
+      "seconds": 14.294
+    }
+  ],
+  "independent_review": {
+    "completed_rows_reviewed": 5,
+    "semantic_errors_found": 0,
+    "sixth_case_complete": false,
+    "new_regression_tests_passed": 25,
+    "original_review_findings_resolved": true
+  }
+}

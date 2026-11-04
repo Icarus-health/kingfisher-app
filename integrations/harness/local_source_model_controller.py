@@ -22,6 +22,17 @@ from icarus_memory.providers import OpenAICompatible
 
 
 CASES = [
+    dict(id='requester-versus-owner', text='Künstliche Prüfquelle KF-Modulprobe43. '
+         'Vera König bittet Sören Kube: Bitte sende den Entwurf für Nordstern bis '
+         '7. November 2026, 17 Uhr. Matthias Braun liefert seine Unterlagen bis '
+         '6. November 2026, 12 Uhr. Das Treffen ist am 9. November 2026, 10 Uhr. '
+         'Der Termin ist keine Abgabefrist.',
+         question='Wer soll laut dieser Quelle was erledigen und bis wann? Trenne Abgabefristen vom Treffen.'),
+    dict(id='requester-owner-reversed', text='Sören Kube bittet Vera König: Bitte sende '
+         'den Entwurf für Nordstern bis 7. November 2026, 17 Uhr. Matthias Braun '
+         'liefert seine Unterlagen bis 6. November 2026, 12 Uhr. '
+         'Das Treffen ist am 9. November 2026, 10 Uhr. Sören übernimmt keine Lieferung.',
+         question='Wer hat welche Aufgabe und bis wann? Unterscheide Auftraggeber und ausführende Person.'),
     dict(id='person-task-deadline', text='Von: Vera König <vera.koenig@example.invalid>\n'
          'Datum: 2. November 2026\nHallo Sören, bitte sende mir den Entwurf für das Projekt '
          'Birke bis zum 7. November 2026. Viele Grüße, Vera König',
@@ -35,6 +46,22 @@ CASES = [
          'Beide werden gelegentlich Alex genannt. Alex soll den Entwurf senden. '
          'Welcher der beiden gemeint ist und bis wann, steht nicht in der Nachricht.',
          question='Welcher Alex muss den Entwurf bis wann senden? Frage nach, wenn es nicht eindeutig ist.'),
+    dict(id='ambiguous-other-name', text='Im Projekt Fjord arbeiten Jana Neumann und Jana Peters. '
+         'Beide werden Jana genannt. Die Nachricht lautet: Jana kümmert sich um das Protokoll. '
+         'Weder der Nachname noch eine Abgabefrist sind in der Nachricht angegeben.',
+         question='Welche Jana übernimmt das Protokoll und wann ist es fällig?'),
+    dict(id='meeting-as-deadline', text='Vera König bittet Sören Kube: Sende den Entwurf '
+         'spätestens bis zum Treffen am 9. November 2026 um 10 Uhr. Dies ist der späteste '
+         'Abgabezeitpunkt. Wer am Treffen teilnimmt, steht nicht in der Nachricht.',
+         question='Wer soll was bis wann abgeben? Gibt es eine belegte Abgabefrist?'),
+    dict(id='three-name-candidates', text='Alexander Meier, Alexander Wolf und Alexander Braun '
+         'werden im Projekt alle Alex genannt. Alex soll den Entwurf senden. Welche der drei '
+         'Personen gemeint ist, steht nicht dabei; auch keine Frist.',
+         question='Welcher Alex soll den Entwurf senden?'),
+    dict(id='delegated-request', text='Vera König bittet Sören Kube: Frage bitte Matthias Braun, '
+         'ob er die Unterlagen bis zum 6. November 2026 um 12 Uhr liefern kann. '
+         'Matthias hat noch nicht geantwortet. Eine Frist für Sörens Nachfrage ist nicht genannt.',
+         question='Was soll Sören tun, was hat Matthias zugesagt, und welche Fristen sind verbindlich belegt?'),
 ]
 
 temporary = tempfile.TemporaryDirectory(prefix='kf-artificial-local-source-')

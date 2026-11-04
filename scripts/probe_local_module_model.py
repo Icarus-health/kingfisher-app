@@ -27,7 +27,9 @@ def main(argv=None):
     parser.add_argument('--image', required=True)
     parser.add_argument('--output', required=True)
     parser.add_argument('--case', action='append', choices=[
-        'person-task-deadline', 'appointment-versus-deadline', 'ambiguous-name'])
+        'requester-versus-owner', 'requester-owner-reversed',
+        'person-task-deadline', 'appointment-versus-deadline', 'ambiguous-name', 'ambiguous-other-name',
+        'meeting-as-deadline', 'three-name-candidates', 'delegated-request'])
     args = parser.parse_args(argv)
     if not re.fullmatch(r'sha256:[a-f0-9]{64}', args.image):
         raise ValueError('Existing immutable image required')

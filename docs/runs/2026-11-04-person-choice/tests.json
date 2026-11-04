@@ -1,0 +1,22 @@
+{
+  "passed": 162,
+  "seconds": 40.52,
+  "full_backend_suite": false,
+  "files": [
+    "sidecar/tests/test_person_scope_questions.py",
+    "sidecar/tests/test_personenfrage.py",
+    "sidecar/tests/test_person_retrieval_repair.py",
+    "sidecar/tests/test_kennzeichnung.py",
+    "sidecar/tests/test_frage_weg.py",
+    "sidecar/tests/test_mail_header_name_retrieval.py",
+    "sidecar/tests/test_umschrift.py",
+    "sidecar/tests/test_identitaet_graph.py",
+    "sidecar/tests/test_kennzeichnung_saetze.py"
+  ],
+  "production_sha256": {
+    "sidecar/icarus_memory/personenfrage.py": "0ec86fd876c1fca359a76b7e81d0fbfc6d1228ee88c5b7cf194937df6950e3dc"
+  },
+  "warnings": [
+    "Existing Starlette TestClient httpx deprecation"
+  ]
+}

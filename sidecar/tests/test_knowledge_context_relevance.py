@@ -162,14 +162,13 @@ def test_same_name_entries_keep_distinct_identity_after_filtering(tmp_path):
     refs = {item['subject_ref'] for item in ambiguous.context['items']}
     assert refs == {purchasing.subject_ref, school.subject_ref}
 
-    # 'Einkauf' still leaves school with a two-term match ('alex', 'winter'),
-    # so both remain candidates here; the noise filter's job is dropping
-    # single-term noise, not full name disambiguation. What matters for this
-    # test is that neither entry's identity is affected by the other.
+    # Earlier valid evidence remains in conversation history. A narrower
+    # next question must not merge its separate canonical identities.
     specific = agent.send('Wo erreiche ich Alex Winter aus dem Einkauf?')
     specific_items = {item['assertion_id']: item['subject_ref'] for item in specific.context['items']}
     assert specific_items['claim:' + purchasing.id] == purchasing.subject_ref
     assert specific_items['claim:' + school.id] == school.subject_ref
+    assert specific.context['knowledge_retrieval']['explicit_context_preferred'] == 1
 
 
 def test_withdrawn_source_stays_excluded_after_relevance_filtering(tmp_path):
@@ -202,3 +201,49 @@ def test_relevance_filtering_works_after_reopening_existing_index(tmp_path):
     finally:
         reopened_claims.close()
         reopened_episodes.close()
+
+
+@pytest.mark.parametrize('hybrid', [False, True])
+def test_auxiliary_verb_does_not_admit_unrelated_evidence(tmp_path, hybrid):
+    agent, provider, episodes, accept = _knowledge_agent(tmp_path)
+    expected, _ = accept('Der Entwurf der Nachricht wurde vorbereitet. Ein Versand ist nicht belegt.')
+    noise, _ = accept('Der Zuschuss für das Atlasvorhaben wurde bewilligt.')
+    other, _ = accept('Die Präsentation wurde abgesagt.')
+    if hybrid:
+        agent._knowledge_search = HybridKnowledgeSearch.prepare(
+            agent._knowledge, episodes.support_snapshot, [expected.id], _ConstantEmbedder())
+    turn = agent.send('Wurde die Nachricht abgeschickt?')
+    assert {item['assertion_id'] for item in turn.context['items']} == {'claim:' + expected.id}
+    assert noise.statement not in str(provider.messages[-1])
+    assert other.statement not in str(provider.messages[-1])
+
+
+def test_meaningful_single_word_is_kept_next_to_auxiliary_overlap(tmp_path):
+    agent, _, _, accept = _knowledge_agent(tmp_path)
+    one, _ = accept('Die Nachricht befindet sich noch in den Entwürfen.')
+    two, _ = accept('Die Nachricht wurde vorbereitet.')
+    accept('Der Zuschuss wurde bewilligt.')
+    turn = agent.send('Wurde die Nachricht abgeschickt?')
+    assert {i['assertion_id'] for i in turn.context['items']} == {'claim:' + one.id, 'claim:' + two.id}
+
+
+def test_semantic_evidence_survives_even_when_lexical_match_is_only_auxiliary(tmp_path):
+    agent, _, episodes, accept = _knowledge_agent(tmp_path)
+    expected, _ = accept('Der Brief wurde noch nicht versendet.')
+    agent._knowledge_search = HybridKnowledgeSearch.prepare(
+        agent._knowledge, episodes.support_snapshot, [expected.id], _ConstantEmbedder())
+    turn = agent.send('Wurde die Nachricht abgeschickt?')
+    assert {i['assertion_id'] for i in turn.context['items']} == {'claim:' + expected.id}
+
+
+@pytest.mark.parametrize(('text', 'query'), [
+    ('Meine Bitte lautet: Ruf mich morgen an.', 'Was war meine Bitte?'),
+    ('Das Los liegt in der Schublade.', 'Wo ist mein Los?'),
+    ('Will betreut den Einkauf.', 'Wer ist Will?'),
+])
+def test_meaningful_nouns_and_names_survive_query_filter(tmp_path, text, query):
+    agent, provider, _, accept = _knowledge_agent(tmp_path)
+    expected, _ = accept(text)
+    turn = agent.send(query)
+    assert {i['assertion_id'] for i in turn.context['items']} == {'claim:' + expected.id}
+    assert text in str(provider.messages[-1])

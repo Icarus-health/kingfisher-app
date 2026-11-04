@@ -747,9 +747,15 @@ def originalabschnitt_stellen(text: str) -> tuple[tuple[int, int, str], ...]:
     """Original units with offsets, so paragraph and sentence boundaries can share spans."""
     geschuetzt = {i for match in _ABKUERZUNG.finditer(text)
                   for i in range(match.start(), match.end()) if text[i] == '.'}
+    # Punkt/Fragezeichen in einer Adresse sind keine Satzgrenzen. Satzzeichen
+    # am Ende eines Links bleiben dagegen Grenzen; die Quelloffsets ändern sich nicht.
+    for muster in (_MAIL, _LINK):
+        for match in muster.finditer(text):
+            ende = match.start() + len(match.group().rstrip('.,;:!?)]}»›”’`'))
+            geschuetzt.update(i for i in range(match.start(), ende) if text[i] in '.!?')
     teile, start = [], 0
     for match in re.finditer(r'[.!?]+', text):
-        if all(text[i] == '.' and (i in geschuetzt or (i > 0 and text[i - 1].isdigit()))
+        if all(i in geschuetzt or (text[i] == '.' and i > 0 and text[i - 1].isdigit())
                for i in range(match.start(), match.end())):
             continue
         ende = match.end()
@@ -887,6 +893,14 @@ _PERSONENROLLE = re.compile(
     r'Auftraggeber\w*|Auftragnehmer\w*|Anfragende\w*|Verantwortliche\w*)\b', re.I)
 
 
+def personenbezug(text: str, personen: Sequence[str] = ()) -> bool:
+    """Dieselbe Rollenbindung für Moduswahl und Prüfung, ohne Identitätsinferenz."""
+    namen = {teil for name in personen if isinstance(name, str)
+             for teil in (name.strip(), re.split(r'\s+', name.strip())[0]) if teil}
+    person = any(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', text, re.I) for name in namen)
+    return bool(_PERSONENBEZUG.search(text) or _PERSONENROLLE.search(text) or person)
+
+
 def rollenbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str],
                   personen: Sequence[str] = ()) -> bool:
     """Rollen bekannter Personen brauchen vollständige sichtbare Originalsätze.
@@ -897,10 +911,7 @@ def rollenbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str],
     Die Metadaten benennen nur mögliche Akteure, sie belegen keine Handlung.
     Pronomen und ausdrückliche Rollen bleiben unabhängig davon wortlautgebunden.
     """
-    namen = {teil for name in personen if isinstance(name, str)
-             for teil in (name.strip(), re.split(r'\s+', name.strip())[0]) if teil}
-    person = any(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', satz, re.I) for name in namen)
-    if not (_PERSONENBEZUG.search(satz) or _PERSONENROLLE.search(satz) or person):
+    if not personenbezug(satz, personen):
         return True
     if len(sichtbar) != len(quellen):
         return False

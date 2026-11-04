@@ -1,0 +1,948 @@
+{
+  "format": "hybrid-memory-development-v1",
+  "qualification": false,
+  "planned_attempts": 20,
+  "dataset_sha256": "889ac4ae05fb5f62353358c56e0cc50c64b8447a20c6d153e294ec08c8f542cf",
+  "git_commit": "f7cbb7b1128df3ee48b1aaecc169fb2d0a3e0edf",
+  "chat_model_calls": 0,
+  "local_embedding_only": true,
+  "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+  "weights_unchanged": true,
+  "status": "completed",
+  "candidate_sha256": {
+    "sidecar/icarus_memory/agent.py": "bdb917274819d6018688c017469c747e2c15c5813dc5e209ad62e00f2a738f47",
+    "sidecar/icarus_memory/claim_index.py": "82e0952ab9b52d7529b28b3269c68fae349bacd6faa0e5e2277d117bb13f71ac",
+    "sidecar/icarus_memory/knowledge_query_scope.py": "1a0c9386f3284dd40610dcf7ca425c66ba02f7484d8a98de40b282e980d2294b",
+    "scripts/probe_hybrid_memory.py": "8cc770578a70ef7334b8c5d62debe57d101ea35446995168fdb64fd08efe36d9"
+  },
+  "keep_alive_seconds": 30,
+  "synthetic_only": true,
+  "resources": {
+    "pressure_max": 2,
+    "free_percent_min": 35
+  },
+  "results": [
+    {
+      "case_id": "hybrid-funding",
+      "mode": "lexical",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 1.5423646250274032,
+      "retrieval_seconds": 0.002255417057313025,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S1"
+      ],
+      "retrieval": {
+        "missing": [
+          "S1"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-funding",
+      "mode": "hybrid",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 1.5423646250274032,
+      "retrieval_seconds": 0.08607833308633417,
+      "actual_source_ids": [
+        "S1"
+      ],
+      "expected_source_ids": [
+        "S1"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-32f62dfb6f5f"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-travel",
+      "mode": "lexical",
+      "question": "Welches Verkehrsmittel nutzen wir auf dem Weg in die bayerische Landeshauptstadt?",
+      "preparation_seconds": 0.18695704103447497,
+      "retrieval_seconds": 0.0006369579350575805,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S2"
+      ],
+      "retrieval": {
+        "missing": [
+          "S2"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 6,
+        "query_terms_used": 6,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-travel",
+      "mode": "hybrid",
+      "question": "Welches Verkehrsmittel nutzen wir auf dem Weg in die bayerische Landeshauptstadt?",
+      "preparation_seconds": 0.18695704103447497,
+      "retrieval_seconds": 0.059264458948746324,
+      "actual_source_ids": [
+        "S2"
+      ],
+      "expected_source_ids": [
+        "S2"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 6,
+        "query_terms_used": 6,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-0d5e4b090ad1"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-staffing",
+      "mode": "lexical",
+      "question": "Was steht zur Planung der Belegschaft an?",
+      "preparation_seconds": 0.18786620802711695,
+      "retrieval_seconds": 0.0007143749389797449,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S3"
+      ],
+      "retrieval": {
+        "missing": [
+          "S3"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-staffing",
+      "mode": "hybrid",
+      "question": "Was steht zur Planung der Belegschaft an?",
+      "preparation_seconds": 0.18786620802711695,
+      "retrieval_seconds": 0.05849366704933345,
+      "actual_source_ids": [
+        "S3"
+      ],
+      "expected_source_ids": [
+        "S3"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-18c3044e5aca"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-repairs",
+      "mode": "lexical",
+      "question": "Welche Frist gilt für Instandsetzungen?",
+      "preparation_seconds": 0.2031730420421809,
+      "retrieval_seconds": 0.0005975409876555204,
+      "actual_source_ids": [],
+      "expected_source_ids": [
+        "S4"
+      ],
+      "retrieval": {
+        "missing": [
+          "S4"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-repairs",
+      "mode": "hybrid",
+      "question": "Welche Frist gilt für Instandsetzungen?",
+      "preparation_seconds": 0.2031730420421809,
+      "retrieval_seconds": 0.06372054200619459,
+      "actual_source_ids": [
+        "S4"
+      ],
+      "expected_source_ids": [
+        "S4"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-abcedeb26a2c"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-ambiguous",
+      "mode": "lexical",
+      "question": "Welche Adresse gehört zu Alex Winter?",
+      "preparation_seconds": 0.2020737499697134,
+      "retrieval_seconds": 0.0022992080776020885,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 2,
+        "found_count": 2,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 1,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-ambiguous",
+      "mode": "hybrid",
+      "question": "Welche Adresse gehört zu Alex Winter?",
+      "preparation_seconds": 0.2020737499697134,
+      "retrieval_seconds": 0.057690541027113795,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 2,
+        "found_count": 2,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 1,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 2,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-819d6d93897a",
+          "k-d875bca46da3"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-specific",
+      "mode": "lexical",
+      "question": "Wo erreiche ich Alex Winter aus dem Einkauf?",
+      "preparation_seconds": 0.20188245794270188,
+      "retrieval_seconds": 0.003566542058251798,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S6"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 1
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-specific",
+      "mode": "hybrid",
+      "question": "Wo erreiche ich Alex Winter aus dem Einkauf?",
+      "preparation_seconds": 0.20188245794270188,
+      "retrieval_seconds": 0.07356241694651544,
+      "actual_source_ids": [
+        "S5",
+        "S6"
+      ],
+      "expected_source_ids": [
+        "S5"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S6"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 2,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-63904d846b53",
+          "k-c567902aa062"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 1
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-action",
+      "mode": "lexical",
+      "question": "Wurde die Nachricht abgeschickt?",
+      "preparation_seconds": 0.19602083298377693,
+      "retrieval_seconds": 0.0015690000727772713,
+      "actual_source_ids": [
+        "S7"
+      ],
+      "expected_source_ids": [
+        "S7"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-action",
+      "mode": "hybrid",
+      "question": "Wurde die Nachricht abgeschickt?",
+      "preparation_seconds": 0.19602083298377693,
+      "retrieval_seconds": 0.05660891602747142,
+      "actual_source_ids": [
+        "S7"
+      ],
+      "expected_source_ids": [
+        "S7"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-929ad74c7576"
+        ],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-absent",
+      "mode": "lexical",
+      "question": "Welche Farbe hat mein Fahrrad?",
+      "preparation_seconds": 0.1991478749550879,
+      "retrieval_seconds": 0.0005832909373566508,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-absent",
+      "mode": "hybrid",
+      "question": "Welche Farbe hat mein Fahrrad?",
+      "preparation_seconds": 0.1991478749550879,
+      "retrieval_seconds": 0.060909457970410585,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "lexical",
+        "semantic_status": "no_matches",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 8,
+        "semantic_hits": 0,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-withdrawn",
+      "mode": "lexical",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.17452195903752,
+      "retrieval_seconds": 0.0008312499849125743,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-withdrawn",
+      "mode": "hybrid",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.17452195903752,
+      "retrieval_seconds": 0.06041595805436373,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "lexical",
+        "semantic_status": "no_matches",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 7,
+        "semantic_hits": 0,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-expired",
+      "mode": "lexical",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.2125487079611048,
+      "retrieval_seconds": 0.0007927920669317245,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    },
+    {
+      "case_id": "hybrid-expired",
+      "mode": "hybrid",
+      "question": "Welche Finanzierung ist genehmigt?",
+      "preparation_seconds": 0.2125487079611048,
+      "retrieval_seconds": 0.06701400002930313,
+      "actual_source_ids": [],
+      "expected_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "synonym_version": 1,
+        "synonyms_used": 0,
+        "synonym_candidates": 0,
+        "ranking_mode": "lexical",
+        "semantic_status": "no_matches",
+        "semantic_scope": "explicit_snapshot",
+        "semantic_snapshot_items": 7,
+        "semantic_hits": 0,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [],
+        "payload_omitted": 0,
+        "explicit_context_preferred": 0
+      },
+      "answer_quality": "not_evaluated"
+    }
+  ],
+  "summary": {
+    "lexical": {
+      "exact": 5,
+      "cases": 10
+    },
+    "hybrid": {
+      "exact": 9,
+      "cases": 10
+    }
+  }
+}

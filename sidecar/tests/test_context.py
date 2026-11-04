@@ -245,13 +245,13 @@ def _knowledge_agent(tmp_path):
         support_resolver=EpisodeSupportResolver(service._proposals, episodes),
     )
 
-    def accept(text, dependencies=()):
+    def accept(text, dependencies=(), *, subject_ref=None, predicate="note"):
         episode, _ = episodes.record(
             EpisodeKind.MESSAGE, "Synthetic evidence", text,
             Provenance(source_type=SourceType.CHAT, source_ref=f"test:{text}"), at=AT,
         )
         proposal, _ = service.propose(
-            subject_ref=person_id(text), predicate="note", value=text,
+            subject_ref=subject_ref or person_id(text), predicate=predicate, value=text,
             statement=text, rationale="Synthetic confirmed evidence",
             evidence=[Evidence(episode.id, text, episode.digest)],
             depends_on=list(dependencies), at=AT,

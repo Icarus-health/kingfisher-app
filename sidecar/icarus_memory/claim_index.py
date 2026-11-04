@@ -75,10 +75,19 @@ def verify(connection):
             raise sqlite3.DatabaseError(f'claim search shadow schema differs: {name}')
 
 
+def query_terms(query):
+    """Query-only passive auxiliaries; keep stored lexical-v1 unchanged.
+
+    Do not reuse the broader source-search function-word list: its folded
+    words include meaningful nouns/names such as Bitte, Los and Will.
+    """
+    return terms_v1(query) - {'wurde', 'wurden', 'worden'}
+
+
 def search(connection, query, limit=CANDIDATE_LIMIT):
     if type(limit) is not int or not 1 <= limit <= CANDIDATE_LIMIT:
         raise ValueError('candidate limit must be an integer from 1 to 128')
-    all_terms = sorted(terms_v1(query))
+    all_terms = sorted(query_terms(query))
     terms = all_terms[:TERM_LIMIT]
     # Candidate search must expand the same alternatives the later context
     # selection in agent.py recognizes (word forms and the closed noun

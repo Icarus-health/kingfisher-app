@@ -1,0 +1,175 @@
+{
+  "status": "passed",
+  "live_model_verified": true,
+  "synthetic_only": true,
+  "original_store": "temporary",
+  "model": "kingfisher-qwen3.5:9b-8k",
+  "results": [
+    {
+      "id": "optional-portal",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [
+        "Vera König"
+      ],
+      "topics": [
+        "personal"
+      ],
+      "task_titles": [
+        "Unterlagen senden"
+      ],
+      "deadlines": [
+        null
+      ],
+      "seconds": 16.665
+    },
+    {
+      "id": "optional-direct",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [
+        "Vera König"
+      ],
+      "topics": [
+        "personal"
+      ],
+      "task_titles": [
+        "Unterlagen senden"
+      ],
+      "deadlines": [
+        null
+      ],
+      "seconds": 9.431
+    },
+    {
+      "id": "explicit-deadline",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [
+        "Vera König"
+      ],
+      "topics": [
+        "appointments",
+        "personal"
+      ],
+      "task_titles": [
+        "Unterlagen als PDF senden"
+      ],
+      "deadlines": [
+        "2026-11-05"
+      ],
+      "seconds": 11.089
+    },
+    {
+      "id": "newsletter",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [],
+      "topics": [
+        "information"
+      ],
+      "task_titles": [],
+      "deadlines": [],
+      "seconds": 5.516
+    },
+    {
+      "id": "mixed",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [
+        "Vera König"
+      ],
+      "topics": [
+        "information",
+        "personal"
+      ],
+      "task_titles": [
+        "Unterlagen senden"
+      ],
+      "deadlines": [
+        null
+      ],
+      "seconds": 10.794
+    },
+    {
+      "id": "appointment-versus-deadline",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [
+        "Vera König"
+      ],
+      "topics": [
+        "appointments",
+        "personal"
+      ],
+      "task_titles": [
+        "Unterlagen bis zum 5. November 2026 senden"
+      ],
+      "deadlines": [
+        "2026-11-05"
+      ],
+      "seconds": 11.375
+    },
+    {
+      "id": "distinct-people",
+      "status": "passed",
+      "checks": {
+        "persons": true,
+        "tasks": true,
+        "deadlines": true,
+        "categories": true
+      },
+      "original_unchanged": true,
+      "person_names": [
+        "Alex Blau",
+        "Alex Rot"
+      ],
+      "topics": [
+        "work"
+      ],
+      "task_titles": [],
+      "deadlines": [],
+      "seconds": 10.757
+    }
+  ],
+  "calls": 19,
+  "seconds": 76.432,
+  "dataset_sha256": "5d1d15390f03db316d534d5fa339c7f7f04a3678b7839810ecbbac137db8aadc",
+  "local_model_digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17"
+}

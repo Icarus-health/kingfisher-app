@@ -1,0 +1,8 @@
+{
+  "scripts/harness_run.mjs": "b0ebffa6ddeb5cded90b65e9cb9fc72f9c508a28a8b535d3abca573cead89ed6",
+  "scripts/probe_local_module_model.py": "0862ab4385775637613bc719b1f618079744e1e5cba853d57f6be4b08096da3c",
+  "integrations/harness/local_source_model_controller.py": "b9b475ea22b6751d47566e13572c4ce51869e699f0897617c9ef8ff82a1cef15",
+  "sidecar/icarus_memory/memory_categories.py": "8d2b3ce6d525557cd11782d963aa91daf3f5372c37684f1f16430232dfe936d5",
+  "sidecar/tests/test_category_evidence_repair.py": "3793250ea77855688b4f1f14e77837982ff6ec8534f2e1249a3c32c73c20fa26",
+  "scripts/probe_intake_precision.py": "c6e7f9df14f6149b8dcd41aadc00c3df39495b0cb0893021f6d00bf818b17bb5"
+}
