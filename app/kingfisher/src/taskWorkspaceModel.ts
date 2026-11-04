@@ -41,6 +41,19 @@ export function dueLabel(value: string | null, now = new Date()) {
   return new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() ? {year: "numeric"} : {}) }).format(date);
 }
 
+/** Gespeicherte Uhrzeit in der Gerätezeitzone; keine abgeleitete Quellengenauigkeit. */
+export function dueTimeLabel(value: string | null) {
+  if (!value || !/[T ]\d{2}:\d{2}/.test(value)) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${new Intl.DateTimeFormat("de-DE", {hour: "2-digit", minute: "2-digit"}).format(date)} Uhr`;
+}
+
+export function dueDateTimeLabel(value: string | null, now = new Date()) {
+  const clock = dueTimeLabel(value);
+  return `${dueLabel(value, now)}${clock ? ` · ${clock}` : ""}`;
+}
+
 /** Die Zeile unter „Aufgaben“: wie viele Aufgaben heute dran oder überfällig sind.
  *
  * Gezählt werden die geladenen Zeilen; die Liste kommt nach Fälligkeit sortiert und seitenweise. Ist die erste Seite bis

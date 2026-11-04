@@ -72,6 +72,7 @@
    eigenem Bedienelement links: `.g-zeile-bedient`, `.g-zeile-ziel`, `.g-zeile-links`, `.g-zeile-ueber` in Grundlage.css). */
 #root .task-row.compact > .task-row-actions { grid-column: 3; grid-row: 1; }
 #root .task-row.compact > time { grid-column: 3; grid-row: 1; padding-left: var(--g-a2); white-space: nowrap; text-align: right; }
+#root .task-row.compact .task-due-clock { display: block; }
 #root .task-row :is(time, .task-meta) { font: var(--g-neben); color: var(--g-leise); font-variant-numeric: tabular-nums; }
 #root .task-row time.overdue, #root .task-row .task-meta time.overdue { color: var(--g-rot); font-weight: 500; }
 #root .task-row .task-meta { display: block; margin: 0; white-space: normal; overflow: visible; overflow-wrap: anywhere; }

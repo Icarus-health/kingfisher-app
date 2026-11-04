@@ -6,7 +6,7 @@ import {TaskHistory} from "./TaskHistory";
 import {endOfTaskDay, localTaskDay as dateInput} from "./taskWorkflow";
 import {localReminderInput, reminderEditChanges, reminderLabel, tomorrowAtNine} from "./reminderDates";
 import {postSatz} from "./aufgabenPost";
-import {dueLabel} from "./taskWorkspaceModel";
+import {dueDateTimeLabel, dueLabel, dueTimeLabel} from "./taskWorkspaceModel";
 import {anlageZeile, personHref, personName} from "./aufgabenVonSelbst";
 
 /**
@@ -75,7 +75,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
   // Eine leise Zeile unter dem Titel statt mehrerer: Projekt (nur wenn gesetzt), Wartet auf, Wiedervorlage. Im Detail
   // steht die Fälligkeit vorne, in der Liste rechts.
   const meta = [
-    !compact && task.due ? <time key="due" className={task.overdue ? "overdue" : ""} dateTime={task.due}>{dueLabel(task.due)}</time> : null,
+    !compact && task.due ? <time key="due" className={task.overdue ? "overdue" : ""} dateTime={task.due}>{dueDateTimeLabel(task.due)}</time> : null,
     (!compact || showProjectName) && projectName ? <span key="project" className="task-project">{projectName}</span> : null,
     (view === "waiting" || !compact) && task.wartet_auf ? <span key="waiting">Wartet auf {task.wartet_auf}</span> : null,
     person && task.person ? (compact ? <span key="person" className="task-person">{person}</span>
@@ -88,7 +88,8 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
     <button aria-label={complete ? `${task.title} wieder öffnen` : `${task.title} erledigen`} title={complete ? "Wieder öffnen" : "Erledigen"} className="task-check g-zeile-links" disabled={!canComplete || completing} onClick={onComplete} type="button">{complete ? <img src={icon("check", "Outline")} alt="" /> : null}</button>
     <div className="task-copy">{editing ? <form className="task-create task-edit" onSubmit={saveEdit}>
       <label className="task-edit-title">Aufgabe<input autoFocus={focusTitle} required value={editTitle} onChange={event => setEditTitle(event.target.value)} /></label>
-      <label>Fällig am<input type="date" value={editDue} onChange={event => setEditDue(event.target.value)} /></label>
+      <label>Fällig am<input type="date" value={editDue} onChange={event => setEditDue(event.target.value)} />
+        {editDue ? <small>{editDue === dateInput(task.due) ? `Gespeichert: ${dueDateTimeLabel(task.due)}.${dueTimeLabel(task.due) ? " Die Uhrzeit bleibt erhalten." : ""}` : "Der neue Tag gilt bis 23:59 Uhr."}</small> : null}</label>
       <div className="task-edit-reminder"><label>Wieder vorlegen am<input type="datetime-local" step="60" value={editRemindAt} onChange={event => {setEditRemindAt(event.target.value); setReminderError("");}} /></label>
       <div className="task-reminder-edit-actions"><button type="button" className="text-action" onClick={() => {setEditRemindAt(localReminderInput(tomorrowAtNine())); setReminderError("");}}>Morgen 09:00</button>{editRemindAt ? <button type="button" className="text-action" onClick={() => {setEditRemindAt(""); setReminderError("");}}>Wiedervorlage löschen</button> : null}</div></div>
       {reminderError && <p className="partial-error" role="alert">{reminderError}</p>}
@@ -98,6 +99,6 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
       {!compact && actions}
       {!compact && !editing && task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}{!compact && !editing && <TaskHistory taskId={task.id} revision={JSON.stringify([task.title, task.due, remindAt, task.notes, task.status, task.project_id, task.wartet_auf])} />}</div>
     {compact && !ohneAktionen && actions}
-    {compact && task.due ? <time className={task.overdue ? "overdue" : ""} dateTime={task.due}>{dueLabel(task.due)}</time> : null}
+    {compact && task.due ? <time className={task.overdue ? "overdue" : ""} dateTime={task.due} aria-label={dueDateTimeLabel(task.due)}>{dueLabel(task.due)}{dueTimeLabel(task.due) ? <span className="task-due-clock">{dueTimeLabel(task.due)}</span> : null}</time> : null}
   </article>;
 }

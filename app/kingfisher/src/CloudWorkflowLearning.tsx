@@ -138,7 +138,7 @@ export function CloudWorkflowLearning({ onProposed, refreshKey = 0 }: { onPropos
     <div className="source-form"><label>Bereich für die Prüfung<select value={area} disabled={busy || running} onChange={event => { invalidatePreview(); setArea(event.target.value as Area); }}>
       {Object.entries(AREAS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
     </select></label></div>
-    {status ? <p className="source-hint">{status.candidates[area]} markierte Arbeitskorrekturen in diesem Bereich.</p> : <p role="status">Arbeitsstand wird gelesen …</p>}
+    {status ? <p className="source-hint">{status.candidates[area] > 0 ? `${status.candidates[area]} passende Arbeitskorrekturen für eine neue Prüfung.` : "Aktuell keine passenden Arbeitskorrekturen für eine neue Prüfung."}</p> : <p role="status">Arbeitsstand wird gelesen …</p>}
     {budget ? <p className="source-hint">Quellen und Abläufe teilen ein Gesamtlimit: {formatBudgetUsd(budget.remaining_microusd, true)} verfügbar von {formatBudgetUsd(budget.cap_microusd)}.</p> : null}
     {budget && !budget.ready ? <p role="status">{budgetNotice(budget)}</p> : null}
     <p className="source-hint"><a href="/settings#ki">Mistral-Zugang und gemeinsames Kostenlimit verwalten</a></p>

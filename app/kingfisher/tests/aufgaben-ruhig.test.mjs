@@ -149,6 +149,32 @@ async function rowTree(props) {
   return d.render();
 }
 
+test('Fristuhrzeit ist in Liste und Detail ohne Öffnen der Quelle sichtbar', async () => {
+  const due = new Date(2030, 10, 30, 14, 30).toISOString();
+  for (const compact of [true, false]) {
+    const tree = await rowTree({task: task('t', 'Belege prüfen', due), compact});
+    const time = nodes(tree, n => n.type === 'time')[0];
+    assert.equal(time.props.dateTime, due);
+    assert.match(text(time), /30\. Nov\./);
+    assert.match(text(time), /14:30 Uhr/);
+  }
+});
+
+test('Bearbeiten zeigt den gespeicherten Zeitpunkt und bewahrt ihn bei einer Notizänderung', async () => {
+  const {TaskRow} = await server.ssrLoadModule('/src/TaskRow.tsx');
+  const due = new Date(2030, 10, 30, 14, 30).toISOString();
+  const changes = [];
+  const d = driver(() => TaskRow({task: task('t', 'Belege prüfen', due), view: 'mine', completing: false,
+    startEditing: true, projects: [], onComplete() {}, onWait() {}, onProjectChange() {},
+    async onEdit(value) { changes.push(value); return true; }}));
+  let tree = d.render();
+  assert.match(text(tree), /Gespeichert: .*14:30 Uhr/);
+  nodes(tree, n => n.type === 'textarea')[0].props.onChange({target: {value: 'Nur eine Notiz'}});
+  tree = d.render();
+  await nodes(tree, n => n.type === 'form')[0].props.onSubmit({preventDefault() {}});
+  assert.deepEqual(changes, [{notes: 'Nur eine Notiz'}], 'keine ersetzte Frist im Änderungsauftrag');
+});
+
 test('Listenzeile: Projekt nur wenn gesetzt, Aktionen per Tastatur erreichbar und nur bei Zeiger oder Fokus sichtbar', async () => {
   let tree = await rowTree({task: task('t', 'Unterlagen vorbereiten', '2030-09-30T10:00:00', {project_id: 'p'}), compact: true, onOpen() {}});
   assert.match(text(tree), /Rheinauenblick/);

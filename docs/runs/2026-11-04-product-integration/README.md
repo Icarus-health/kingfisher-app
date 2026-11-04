@@ -1,6 +1,6 @@
 # Gemeinsame Prüfung: Lernen, Mistral-Vorbereitung, Mailaufgabe und Kalender
 
-Zusammengeführter Produktstand `d8581e8aed1febafa1297ade9ba87d4804645a88`, danach ausschließlich CI-Trennung und Dokumentation. Enthält die separat geprüften Pakete PR120, PR121, PR122 einschließlich `caee3bc` und PR123. Keine Konfliktauflösung oder neue Produktlogik beim lokalen Zusammenführen. Basis `1b5a262`.
+Zusammengeführter Produktstand `d8581e8aed1febafa1297ade9ba87d4804645a88`, anschließend CI-Trennung, Dokumentation und die unten getrennt ausgewiesene Darstellungskorrektur. Enthält die separat geprüften Pakete PR120, PR121, PR122 einschließlich `caee3bc` und PR123. Keine Konfliktauflösung oder neue Produktlogik beim lokalen Zusammenführen. Basis `1b5a262`.
 
 ## Ergebnis
 
@@ -30,8 +30,14 @@ Am Ende: ein künstlicher Modellaufruf für den Lernvorschlag, null echte Modell
 - Eine separate native „Kingfisher Produktprüfung.app“ mit dem vorhandenen `WebSurface` wurde gebaut und signaturgeprüft. Sie ist noch nicht gestartet; die konkrete Startfreigabe ist angefragt. Das ist weder eine native Bedienabnahme noch ein Test des normalen Updaters.
 - Noch kein Release, kein Merge auf main und kein Update der persönlichen App aus diesem Gesamtpaket.
 
-## Kleine offene Bedienbefunde
+## Nacharbeit: Fristuhrzeit und prüfbare Arbeitskorrekturen
 
-Die Aufgabenansicht bewahrt die genaue Frist im Speicher, zeigt in der kompakten und geöffneten Ansicht zunächst aber nur den Tag. Die Uhrzeit ist über den Beleg auffindbar; ihre direkte Darstellung sollte verständlicher werden. Der optionale Mistral-Bereich zählt aktuell passende prüfbare Korrekturen, bezeichnet die Zahl jedoch pauschal als „markierte Arbeitskorrekturen“. Bereits zu einem lokalen Vorschlag gebündelte Korrekturen können daher als Null erscheinen. Beide Beobachtungen bleiben gezielte Darstellungsarbeit; sie wurden hier nicht still mit geändert.
+Die gemeinsame Bedienprobe zeigte zwei Darstellungsprobleme. Die genaue Frist blieb gespeichert, war aber erst im Beleg zu sehen. Die Aufgabenliste zeigt jetzt Tag und gespeicherte Uhrzeit untereinander, das Detail beides zusammen. Beim Bearbeiten ist der gespeicherte Zeitpunkt sichtbar; ein unveränderter Tag bewahrt seine Uhrzeit. Ein neu gewählter Tag gilt weiterhin bis 23:59 Uhr, was das Formular jetzt ausdrücklich erklärt. Die Gerätezeitzone bleibt maßgeblich. Die Anzeige behauptet keine zusätzliche Genauigkeit der Originalquelle; auch gespeicherte Tagesendzeiten werden nicht als unbekannt ausgeblendet.
+
+Die Mistral-Anzeige nennt jetzt „passende Arbeitskorrekturen für eine neue Prüfung“. Null bedeutet keine aktuell passende neue Prüfung und behauptet nicht mehr, dass keine Korrekturen gespeichert seien. Vorhandene lokale Vorschläge und Freigabeschranken bleiben unverändert.
+
+Zwei gezielte Komponententests scheiterten vorher an der unsichtbaren Uhrzeit. Nach der Korrektur bestehen 1.074 Frontendtests in 13,19 Sekunden, einschließlich Darstellung in Liste/Detail und einer echten Notizänderung ohne ersetzte Frist im Änderungsauftrag. TypeScript, Produktionsbuild, Assetvertrag und Diffprüfung bestehen; die vorhandene Bundlegrößenwarnung bleibt. Keine Backendlogik geändert, daher kein weiterer Vollbackendlauf.
+
+**Noch keine erneute visuelle Abnahme dieser Nacharbeit:** Die Computersteuerung lehnte am 04.11.2026 den Zugriff auf die separate Testinstanz automatisch ab, weil die angefragte Start-/Nutzungsfreigabe für das neue Testfenster noch unbeantwortet ist. Es wurde kein anderer Browser oder Umweg verwendet. Die Bediennachweise oben gelten für den früheren Produktstand, nicht für die neue Darstellung. Die persönliche App und der geschützte Testentwurf bleiben unberührt.
 
 Die persönliche native Prüfung, echte Mistral-Stichprobe nach Schlüssel/Umfang/Budget, Lastmessung und Alltagsabnahme bleiben erforderlich. Die breitere Produktziellinie P0–P6 ist durch diese Integration nicht erreicht.
