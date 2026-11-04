@@ -265,7 +265,15 @@ class ProcedureStore:
                 raise ProcedureError('Ablauf nicht gefunden.')
             return self._item(row, body=True)
 
-    def propose(self, spec, *, sources=None, request_key=''):
+    def propose(self, spec, *, sources=None, request_key='', synthesis=None):
+        # Internal attribution, not editable instructions or new permissions.
+        # It is stored with a NEW proposal; deduplication never changes authorship.
+        if synthesis is not None:
+            if (not isinstance(synthesis,dict) or set(synthesis)!={'provider','model'}
+                    or any(not isinstance(value,str) or not re.fullmatch(r'[A-Za-z0-9._:/-]{1,128}',value)
+                           for value in synthesis.values())):
+                raise ProcedureError('Ungültige Herkunft des Ablaufentwurfs.')
+            synthesis = dict(synthesis)
         data = validate(spec)
         if request_key.startswith('corrections-') and has_concrete_values(data):
             raise ProcedureError('Konkrete Angaben gehören nicht in automatisch gelernte Arbeitsverfahren.')
@@ -291,6 +299,8 @@ class ProcedureStore:
             version = max((row['version'] for row in rows), default=0) + 1
             identifier = 'proc-' + uuid.uuid4().hex[:12]
             header = {key:value for key, value in data.items() if key != 'steps'}
+            if synthesis is not None:
+                header['synthesis'] = synthesis
             self._conn.execute('INSERT INTO procedures VALUES (?,?,?,?,?,?,?,?,?,?)',
                 (identifier, data['name'], version, 'pending', base, json.dumps(header, ensure_ascii=False),
                  markdown(data), json.dumps(sources), key, now().isoformat()))

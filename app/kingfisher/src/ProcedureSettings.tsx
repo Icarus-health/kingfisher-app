@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, request } from "./api";
+import { CloudWorkflowLearning } from "./CloudWorkflowLearning";
 import "./ProcedureSettings.css";
 
 type Area = "mail" | "planning" | "analysis";
@@ -11,7 +12,7 @@ type Procedure = {
   category?: Category; contexts?: string[];
   checks: { structure: boolean; routing_examples: boolean; human_review_required: boolean };
 };
-type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string>;
+type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string>; synthesis?: { provider: "mistral"; model: string };
   corrections?: Array<{request:string;correction:string;conversation_id:string;message_id:string}> };
 type Catalog = { items: Procedure[]; core: { id: string; name: string; title: string; category: string; purpose?: Category; area: string; description: string }[] };
 type Spec = { name: string; title: string; description: string; area: Area; category?: Category; contexts: string[]; triggers: string[]; steps: string[]; positive: string; negative: string };
@@ -87,15 +88,19 @@ function download(detail: Detail) {
   URL.revokeObjectURL(url);
 }
 
-function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item: Procedure; busy: boolean; targeted?: boolean;
+function ProcedureRow({ item, busy, onAction, onSave, targeted = false, readback = 0 }: { item: Procedure; busy: boolean; targeted?: boolean; readback?: number;
   onAction: (id: string, action: "accept" | "reject" | "revoke") => Promise<void>; onSave: Save }) {
   const [opened, setOpened] = useState(targeted);
-  const [detail, setDetail] = useState<Detail | null>(null);
+  const [snapshot, setSnapshot] = useState<{ key: string; value: Detail } | null>(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState<Detail | null>(null);
   const generation = useRef(0);
   const summary = useRef<HTMLElement>(null);
+  const detailKey = `${readback}:${item.id}:${item.version}:${item.state}:${item.current}`;
+  // A new catalog generation invalidates the body synchronously, before its effect rereads it.
+  const detail = snapshot?.key === detailKey && item.current && snapshot.value.current ? snapshot.value : null;
+  const foundationChanged = !item.current || (snapshot?.key === detailKey && !snapshot.value.current);
   useEffect(() => {
     setOpened(targeted);
     if (!targeted) return;
@@ -109,13 +114,13 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
   useEffect(() => {
     if (!opened) return;
     const current = ++generation.current;
-    setError(""); setDetail(null);
-    request<Detail>(path(item.id)).then(value => { if (generation.current === current) setDetail(value); })
+    setError(""); setSnapshot(null);
+    request<Detail>(path(item.id)).then(value => { if (generation.current === current) setSnapshot({ key: detailKey, value }); })
       .catch(error => { if (generation.current === current) setError(errorText(error, "Die Fassung konnte nicht geladen werden.")); });
     return () => { generation.current++; };
-  }, [opened, item.id, attempt, targeted]);
+  }, [opened, detailKey, attempt, targeted]);
   // Eine Listenzeile ist keine vollständige Prüfung: Übernehmen erst nach dem Lesen der aktuellen Fassung.
-  const canAccept = Boolean(detail && detail.state === "pending" && detail.current && detail.checks.structure === true && detail.checks.routing_examples === true);
+  const canAccept = Boolean(detail && item.state === "pending" && detail.state === "pending" && detail.current && detail.checks.structure === true && detail.checks.routing_examples === true);
   return <details className="quiet-details procedure-row" open={opened} onToggle={event => { if (event.target === event.currentTarget) setOpened(event.currentTarget.open); }}>
     <summary ref={summary}><span className="procedure-row-heading"><span className="procedure-row-title">{item.title}</span>
       <span className="procedure-row-meta">{CATEGORIES[categoryOf(item)]} · Version {item.version} · <span className="procedure-state" data-state={item.state}>{STATES[item.state]}</span>{!item.current ? " · Grundlage verändert" : ""}</span>
@@ -123,10 +128,10 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
     {opened ? <>
       <p className="source-hint">{item.description}</p>
       {error ? <p role="alert">{error} <button type="button" className="secondary-action" disabled={busy} onClick={() => setAttempt(value => value + 1)}>Erneut laden</button></p> : null}
-      {!detail && !error ? <p role="status">Fassung wird gelesen …</p> : null}
+      {foundationChanged ? <p role="status">Die Beleggrundlage hat sich verändert. Diese Fassung kann nicht übernommen werden. Prüfe die Quellen und schlage eine neue Fassung vor.</p> : null}
+      {!detail && !error && !foundationChanged ? <p role="status">Fassung wird gelesen …</p> : null}
       {detail ? <>
         <p className="procedure-row-meta"><strong>Gilt für:</strong> {AREAS[detail.area]}{detail.contexts?.length ? ` · ${detail.contexts.join(" / ")}` : " · ohne besonderen Kontext"}</p>
-        {!detail.current ? <p role="status">Die Beleggrundlage hat sich verändert. Diese Fassung kann nicht übernommen werden. Prüfe die Quellen und schlage eine neue Fassung vor.</p> : null}
         {detail.checks.structure !== true || detail.checks.routing_examples !== true ? <p role="alert">
           {detail.checks.structure !== true ? "Strukturprüfung nicht bestanden. " : ""}
           {detail.checks.routing_examples !== true ? "Auswahlbeispiele nicht bestanden. " : ""}Bitte den Ablauf überarbeiten.</p> : null}
@@ -142,9 +147,10 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
             <a href={`/conversations/${encodeURIComponent(source.conversation_id)}`}>Gespräch öffnen</a></li>)}</ul>
         </details> : null}
         <details className="quiet-details"><summary>Herkunft und technische Prüfung</summary>
+          {detail.synthesis?.provider === "mistral" ? <p>Mit Mistral entworfen · lokal gespeichert. Modell: {detail.synthesis.model}.</p> : null}
           {detail.base_version ? <p>Auf Basis von Version {detail.base_version}.</p> : null}
           <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Das bestätigt die Form, nicht die fachliche Eignung.</p>
-          {Object.keys(detail.sources).length ? <dl>{Object.entries(detail.sources).map(([id, source]) => <div key={id}><dt>{id}</dt><dd>{source}</dd></div>)}</dl> : <p>Ohne zusätzliche Quellenbelege; manuell vorgeschlagen.</p>}
+          {Object.keys(detail.sources).length ? <dl>{Object.entries(detail.sources).map(([id, source]) => <div key={id}><dt>{id}</dt><dd>{source}</dd></div>)}</dl> : <p>{detail.synthesis ? "Ohne zusätzliche Quellenbelege." : "Ohne zusätzliche Quellenbelege; manuell vorgeschlagen."}</p>}
         </details>
         <div className="source-form-actions">
           {detail.state === "pending" ? <><button type="button" className="primary-action" disabled={busy || !canAccept} onClick={() => void onAction(detail.id, "accept")}>Geprüft übernehmen</button>
@@ -152,11 +158,12 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
           {detail.state === "active" ? <button type="button" className="secondary-action" disabled={busy} onClick={() => void onAction(detail.id, "revoke")}>Zurücknehmen</button> : null}
         </div>
         <details className="quiet-details"><summary>Bearbeiten und exportieren</summary>
-          <div className="source-form-actions"><button type="button" className="secondary-action" disabled={busy} onClick={() => setEditing(value => !value)}>Neue Fassung</button>
+          <div className="source-form-actions"><button type="button" className="secondary-action" disabled={busy} onClick={() => setEditing(value => value ? null : detail)}>Neue Fassung</button>
           <button type="button" className="secondary-action" disabled={busy} onClick={() => download(detail)}>Als Markdown sichern</button></div>
         </details>
-        {editing ? <ProcedureForm detail={detail} busy={busy} onSave={onSave} onCancel={() => setEditing(false)} /> : null}
       </> : null}
+      {editing ? <div hidden={!detail}><ProcedureForm detail={editing} busy={busy || !detail} onSave={onSave} onCancel={() => setEditing(null)} /></div> : null}
+      {editing && !detail ? <p className="source-hint">Deine Bearbeitung bleibt erhalten und ist bis zur Prüfung einer gültigen Fassung ausgeblendet.</p> : null}
     </> : null}
   </details>;
 }
@@ -253,7 +260,7 @@ export function ProcedureSettings() {
       {filtered ? <p className="procedure-row-meta" role="status">{visible.length + core.length} Treffer{outsideFilter ? " einschließlich angefordertem Ablauf" : ""}</p> : null}
       {outsideFilter ? <p role="status">Der angeforderte Ablauf bleibt unabhängig vom Filter zur Prüfung sichtbar.</p> : null}
       {visible.length ? <h3 className="procedure-group-title">Eigene Abläufe</h3> : null}
-      {visible.map(item => <ProcedureRow key={`${item.id}:${readback}`} item={item} targeted={item.id === target} busy={busy || !verified} onAction={act} onSave={save} />)}
+      {visible.map(item => <ProcedureRow key={item.id} readback={readback} item={item} targeted={item.id === target} busy={busy || !verified} onAction={act} onSave={save} />)}
       {!visible.length && !core.length ? <p role="status">{filtered ? "Keine passenden Abläufe. Passe Suche oder Kategorie an." : "Noch keine Abläufe vorhanden."}</p> : null}
       {core.length ? <section className="procedure-core" aria-label="Mitgelieferte Abläufe">
         {(["essential", "contextual"] as const).filter(tier => core.some(item => item.category === tier)).map(tier => <div key={tier}>
@@ -266,7 +273,8 @@ export function ProcedureSettings() {
       <details className="quiet-details procedure-help"><summary>Eigene Abläufe hinzufügen</summary>
         <p className="source-hint">Im Gespräch kannst du „Lerne diesen Ablauf: …“ schreiben. Der Vorschlag bleibt bis zu deiner Prüfung inaktiv.</p>
         <details className="quiet-details"><summary>Manuell vorschlagen</summary><ProcedureForm busy={busy || !verified} onSave={save} /></details>
-        <p className="source-hint">Essenzielle Grundverfahren gelten immer. Eigene Abläufe bleiben lokal; bei Bedarf lädt Kingfisher die passende übernommene Fassung.</p>
+        <CloudWorkflowLearning refreshKey={readback} onProposed={() => { void load().catch(() => { /* Der Ladefehler bleibt in der Bibliothek sichtbar. */ }); }} />
+        <p className="source-hint">Essenzielle Grundverfahren gelten immer. Eigene Abläufe werden lokal gespeichert; bei Bedarf lädt Kingfisher die passende übernommene Fassung.</p>
       </details>
     </> : null}
   </section>;

@@ -189,3 +189,69 @@ test('failed technical checks remain visible outside folded details and prevent 
   assert.ok(nodes(tree,n=>n.props?.role==='alert').length);
  }finally{row.close();}
 }));
+
+test('cloud proposal refresh preserves the selected row, its key and library filters',()=>fixture('?ablauf=a',async({d,calls})=>{
+ nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.onChange({target:{value:'Gleicher'}});
+ nodes(d.render(),n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0].props.onChange({target:{value:'communication'}});
+ const before=rows(d).map(n=>({id:n.props.item.id,key:n.key,targeted:n.props.targeted}));
+ const cloud=nodes(d.render(),n=>n.type?.name==='CloudWorkflowLearning')[0];assert.ok(cloud);
+ cloud.props.onProposed();await tick();
+ assert.deepEqual(rows(d).map(n=>({id:n.props.item.id,key:n.key,targeted:n.props.targeted})),before);
+ assert.equal(nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.value,'Gleicher');
+ assert.equal(nodes(d.render(),n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0].props.value,'communication');
+ assert.equal(calls.filter(path=>path==='/api/v1/procedures').length,2);
+}));
+
+test('Mistral synthesis provenance distinguishes generation from local storage',()=>fixture('?ablauf=a',async({d})=>{
+ const fetch=globalThis.fetch;globalThis.fetch=async path=>path==='/api/v1/procedures/a'
+  ?Response.json({...detail('a'),synthesis:{provider:'mistral',model:'mistral-small-2603'}}):fetch(path);
+ const entry=rows(d)[0],row=driver(entry.type,entry.props);
+ try{row.render();row.run();await tick();const tree=row.render();
+  assert.match(text(tree),/Mit Mistral entworfen · lokal gespeichert/);assert.match(text(tree),/mistral-small-2603/);
+  assert.doesNotMatch(text(tree),/manuell vorgeschlagen/);
+  assert.match(visibleText(tree),/Noch nicht aktiv/);
+ }finally{row.close();}
+}));
+
+test('catalog refresh rereads opened detail, immediately hides withdrawn provenance and preserves the edit draft',()=>{
+ const supplied=[item('a')];
+ return fixture('?ablauf=a',async({d,calls})=>{
+  const entry=rows(d)[0],row=driver(entry.type,entry.props);let form;
+  const originalFetch=globalThis.fetch;
+  let withdrawn=false,release;
+  globalThis.fetch=async(path,init)=>{
+   if(path!=='/api/v1/procedures/a')return originalFetch(path,init);
+   calls.push(path);
+   const body={...detail('a'),current:!withdrawn,steps:['Alter vertraulicher Schritt'],sources:{source:'Entzogener Quellenbeleg'},corrections:[{request:'Alter Auftrag',correction:'Entzogene Korrektur',conversation_id:'c',message_id:'m'}]};
+   if(withdrawn)return new Promise(resolve=>{release=()=>resolve(Response.json(body));});
+   return Response.json(body);
+  };
+  try{
+   row.render();row.run();await tick();let tree=row.render();
+   nodes(tree,n=>n.type==='button'&&text(n)==='Neue Fassung')[0].props.onClick();tree=row.render();
+   const editor=nodes(tree,n=>n.type?.name==='ProcedureForm')[0];form=driver(editor.type,editor.props);
+   nodes(form.render(),n=>n.type==='input')[1].props.onChange({target:{value:'Mein ungespeicherter Entwurf'}});
+   withdrawn=true;supplied[0]={...supplied[0],current:false};
+   nodes(d.render(),n=>n.type?.name==='CloudWorkflowLearning')[0].props.onProposed();await tick();
+   const fresh=rows(d)[0];assert.equal(fresh.key,entry.key);row.props=fresh.props;tree=row.render();
+   assert.equal(tree.props.open,true);assert.doesNotMatch(text(tree),/Alter vertraulicher Schritt|Entzogener Quellenbeleg|Entzogene Korrektur/);
+   assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Geprüft übernehmen'&&!n.props.disabled).length,0);
+   const retained=nodes(tree,n=>n.type?.name==='ProcedureForm')[0];assert.ok(retained,'editing component remains mounted');assert.equal(retained.props.busy,true);
+   assert.ok(nodes(tree,n=>n.props?.hidden&&nodes(n,x=>x===retained).length).length,'stale editor stays hidden until fresh valid detail');
+   form.props=retained.props;assert.equal(nodes(form.render(),n=>n.type==='input')[1].props.value,'Mein ungespeicherter Entwurf');
+   row.run();await tick();assert.equal(calls.filter(p=>p==='/api/v1/procedures/a').length,2);release();await tick();tree=row.render();
+   assert.doesNotMatch(text(tree),/Alter vertraulicher Schritt|Entzogener Quellenbeleg|Entzogene Korrektur/);
+   assert.match(text(tree),/Beleggrundlage hat sich verändert/);
+  }finally{form?.close();row.close();}
+ },supplied);
+});
+
+test('accepting a procedure advances the cloud receipt refresh key',()=>fixture('?ablauf=a',async({d})=>{
+ const before=nodes(d.render(),n=>n.type?.name==='CloudWorkflowLearning')[0].props.refreshKey;
+ const oldFetch=globalThis.fetch;let accepted=false;
+ globalThis.fetch=async(path,init)=>path==='/api/v1/procedures/a/accept'?(accepted=true,Response.json({...detail('a'),state:'active'}))
+  :path==='/api/v1/procedures'&&accepted?Response.json({items:[{...item('a'),state:'active'}],core:[]}):oldFetch(path,init);
+ await rows(d)[0].props.onAction('a','accept');
+ const after=nodes(d.render(),n=>n.type?.name==='CloudWorkflowLearning')[0].props.refreshKey;
+ assert.ok(after>before,'confirmed mutation refreshes the child receipt');
+}));

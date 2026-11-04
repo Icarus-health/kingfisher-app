@@ -1453,6 +1453,10 @@ def _wire_scheduler(app: FastAPI) -> None:
 def _close_persistent_state(app: FastAPI) -> None:
     """Schließt alle offenen SQLite-Verbindungen vor einer Wiederherstellung."""
     local_modules.stop_for_transition(app)
+    learning = getattr(app.state, 'cloud_workflow_learning', None)
+    if learning is not None:
+        learning.revoke(readback=False)
+        app.state.cloud_workflow_learning = None
     cloud_jobs = getattr(app.state, "cloud_memory_jobs", None)
     if cloud_jobs is not None:
         cloud_jobs.pause(revoke=True)
@@ -6999,6 +7003,8 @@ def create_app(
     register_learning_routes(app, guard)
     from .procedure_routes import register as register_procedure_routes
     register_procedure_routes(app, guard)
+    from .cloud_workflow_learning import register as register_cloud_learning
+    register_cloud_learning(app, guard, _data_dir)
     from .world_routes import register_world_routes
     register_world_routes(app, guard, _data_dir)
 

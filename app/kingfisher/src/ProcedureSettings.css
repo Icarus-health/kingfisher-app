@@ -16,6 +16,13 @@
 #root .procedure-library .procedure-row dl { overflow-wrap: anywhere; }
 #root .procedure-library .procedure-state[data-state="pending"] { color: var(--g-warnung); font-weight: 600; }
 #root .procedure-library .procedure-help { margin-top: var(--g-a5); }
+#root .procedure-library .cloud-workflow-learning { margin-block: var(--g-a3); }
+#root .procedure-library .cloud-workflow-preview { margin-top: var(--g-a4); }
+#root .procedure-library .cloud-workflow-preview li { overflow-wrap: anywhere; white-space: pre-wrap; }
+#root .procedure-library .cloud-workflow-preview pre { max-height: 20rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: var(--g-fussnote); }
+#root .procedure-library .cloud-workflow-consent { display: flex; align-items: flex-start; gap: var(--g-a2); }
+#root .procedure-library .cloud-workflow-consent input { flex: 0 0 auto; width: auto; margin-top: .3em; }
+#root .procedure-library .cloud-workflow-progress { margin-top: var(--g-a3); }
 #root .procedure-library .procedure-row > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; border-radius: var(--g-radius-bedien); }
 @media (max-width: 700px) {
   #root .procedure-library .procedure-filters { grid-template-columns: minmax(0, 1fr); }
