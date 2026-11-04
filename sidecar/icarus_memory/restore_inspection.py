@@ -9,7 +9,8 @@ from fastapi.responses import HTMLResponse
 
 TABLES = {'tasks.sqlite3': 'tasks', 'knowledge.sqlite3': 'knowledge_claims',
           'episodes.sqlite3': 'episodes', 'self-model.sqlite3': 'assertions',
-          'conversations.sqlite3': 'conversation_messages', 'workspace.sqlite3': 'notes'}
+          'conversations.sqlite3': 'conversation_messages', 'workspace.sqlite3': 'notes',
+          'procedures.sqlite3': 'procedures', 'rueckmeldungen.sqlite3': 'rueckmeldung'}
 
 
 def assertion_count(directory):

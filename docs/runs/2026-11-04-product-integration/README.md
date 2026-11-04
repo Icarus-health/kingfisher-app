@@ -40,4 +40,8 @@ Zwei gezielte Komponententests scheiterten vorher an der unsichtbaren Uhrzeit. N
 
 **Noch keine erneute visuelle Abnahme dieser Nacharbeit:** Die Computersteuerung lehnte am 04.11.2026 den Zugriff auf die separate Testinstanz automatisch ab, weil die angefragte Start-/Nutzungsfreigabe für das neue Testfenster noch unbeantwortet ist. Es wurde kein anderer Browser oder Umweg verwendet. Die Bediennachweise oben gelten für den früheren Produktstand, nicht für die neue Darstellung. Die persönliche App und der geschützte Testentwurf bleiben unberührt.
 
+## Anschlussprüfung Wiederherstellung
+
+Ein unabhängiger P5-Review fand anschließend, dass gesicherte Skills und Korrekturen im historischen Leser nicht erreichbar waren. Die feste Lese-Allowlist wurde um diese zwei vorhandenen Tabellen ergänzt. Ein verschlüsselter Roundtrip sowie 57 betroffene Tests bestanden; der unabhängige Abschlussreview fand keine weiteren Befunde. Alte Aktionen, Modelle und Freigaben bleiben gesperrt. Das ist eine zusätzliche begrenzte Backendänderung nach dem ursprünglichen Integrationslauf; [Nachweis und offene vollständige Arbeitswiederherstellung](../2026-11-04-workflow-recovery/README.md).
+
 Die persönliche native Prüfung, echte Mistral-Stichprobe nach Schlüssel/Umfang/Budget, Lastmessung und Alltagsabnahme bleiben erforderlich. Die breitere Produktziellinie P0–P6 ist durch diese Integration nicht erreicht.
