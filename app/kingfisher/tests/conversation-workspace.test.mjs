@@ -149,6 +149,40 @@ test('review button opens the exact procedure id through an encoded settings lin
  }finally{d.close();api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
 });
 
+test('only latest skill conflict offers a one-time selection through the chat API',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation,oldSend=api.sendMessage;
+ globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};
+ globalThis.document={getElementById(){return null;}};
+ const choice={token:'opaque-choice',options:[{id:'a',label:'Zunftmail',version:1},{id:'core',label:'Diesmal ohne persönlichen Ablauf'}]};
+ const payload={conversation:{id:'skills',title:'Test'},context:{items:[]},memory_candidates:[],messages:[
+  {id:'old',role:'assistant',content:'Alte Auswahl',status:'complete',metadata:{context:{procedure_choice:{...choice,token:'old-token'}}}},
+  {id:'latest',role:'assistant',content:'Welcher Ablauf?',status:'complete',metadata:{context:{procedure_choice:choice}}}]};
+ const sent=[];api.getConversation=async()=>payload;api.sendMessage=async(...args)=>{sent.push(args);return {...payload,messages:[]};};
+ const d=driver(Conversation,{id:'skills',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try{d.render();d.runEffects();await tick();const controls=nodes(d.render(),n=>n.type?.name==='ProcedureChoice');
+  assert.equal(controls.length,1,'nur die aktuelle Rückfrage ist bedienbar');
+  await controls[0].props.onChoose(choice.options[0]);await tick();
+  assert.deepEqual(sent,[['skills','Zunftmail',{procedure:{token:'opaque-choice',id:'a'}}]]);
+ }finally{d.close();api.getConversation=oldGet;api.sendMessage=oldSend;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
+test('expired skill choice offers explicit retry of original request without automatic model work',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api,ApiError}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation,oldSend=api.sendMessage;
+ globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};globalThis.document={getElementById(){return null;}};
+ const choice={token:'expired',options:[{id:'a',label:'Zunftmail'}]};
+ const payload={conversation:{id:'skills',title:'Test'},context:{items:[]},memory_candidates:[],messages:[
+  {id:'latest',role:'assistant',content:'Welcher Ablauf?',status:'complete',metadata:{context:{original_question:'Schreibe eine Zunftmail.',procedure_choice:choice}}}]};
+ const sent=[];api.getConversation=async()=>payload;api.sendMessage=async(...args)=>{sent.push(args);if(sent.length===1)throw new ApiError(409,'stale');return {...payload,messages:[]};};
+ const d=driver(Conversation,{id:'skills',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try{d.render();d.runEffects();await tick();await nodes(d.render(),n=>n.type?.name==='ProcedureChoice')[0].props.onChoose(choice.options[0]);await tick();
+  assert.equal(sent.length,1);assert.equal(nodes(d.render(),n=>n.type?.name==='ProcedureChoice').length,0);
+  const retry=button(d.render(),'Auftrag erneut prüfen');assert.ok(retry);await retry.props.onClick();await tick();
+  assert.equal(sent[1][1],'Schreibe eine Zunftmail.');assert.deepEqual(sent[1][2],{newQuestion:true});
+ }finally{d.close();api.getConversation=oldGet;api.sendMessage=oldSend;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
 test('unverified original fallback keeps the whole source behind a closed accessible disclosure',async()=>{
  const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
  const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation;

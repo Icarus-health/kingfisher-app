@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { ProfileSource } from "./ProfileSource";
 import { stilHinweis } from "./stilprofil";
+import {ProcedureChoice, type ProcedureChoicePrompt, type ProcedureChoiceValue} from './ProcedureChoice';
 import "./MailReplySuggestion.css";
 
 export type Suggestion = { body: string; basis: "message_and_instruction" | "source_quotes"; context_token: string | null; source_status: string; sources: {episode_id: string; title: string}[];
@@ -15,10 +16,12 @@ export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, 
   const [suggestionVisible, setSuggestionVisible] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingChoice, setPendingChoice] = useState<ProcedureChoicePrompt|null>(null);
   const generation = useRef(0);
   const validationVersion = useRef(0);
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => { generation.current += 1; validationVersion.current += 1; controller.current?.abort(); }, [uid]);
+  useEffect(() => {setPendingChoice(null);setSuggestion(null);setError('');}, [uid]);
   useEffect(() => {
     const token = suggestion?.context_token;
     if (!token) return;
@@ -42,7 +45,7 @@ export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, 
     window.addEventListener("focus", onFocus);
     return () => { active = false; validationVersion.current++; window.removeEventListener("focus", onFocus); };
   }, [uid, suggestion?.context_token, onInvalidated]);
-  async function suggest() {
+  async function suggest(choice?:ProcedureChoiceValue) {
     if (loading || disabled) return;
     controller.current?.abort();
     const current = ++generation.current;
@@ -50,19 +53,22 @@ export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, 
     controller.current = requestController;
     let timedOut = false;
     const timeout = window.setTimeout(() => { timedOut = true; requestController.abort(); }, 90000);
-    setLoading(true); setError(""); setSuggestion(null);
+    setLoading(true); setError(""); setSuggestion(null);setPendingChoice(null);
     try {
       const response = await fetch(`/api/v1/messages/${encodeURIComponent(uid)}/reply-suggestion`, {
         method: "POST", credentials: "same-origin", signal: requestController.signal,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ instruction: instruction.trim() }),
+        body: JSON.stringify({ instruction: instruction.trim(), ...(choice?{procedure_choice:choice}:{}) }),
       });
       if (!response.ok) throw new Error(response.status === 409 ? "stale" : "request");
-      const next = await response.json() as Suggestion;
-      if (current === generation.current) { setSuggestionVisible(!next.context_token); setSuggestion(next); }
+      const next = await response.json() as Suggestion | {procedure_choice:ProcedureChoicePrompt};
+      if (current === generation.current) {
+        if ('procedure_choice' in next) setPendingChoice(next.procedure_choice);
+        else {setSuggestionVisible(!next.context_token); setSuggestion(next);}
+      }
     } catch (failure) {
       if (current === generation.current && (timedOut || !requestController.signal.aborted)) setError(failure instanceof Error && failure.message === "stale"
-        ? "Mail oder Rohquelle haben sich geändert. Bitte einen neuen Vorschlag erstellen."
+        ? "Mail, Ablauf oder Grundlage haben sich geändert. Bitte einen neuen Vorschlag erstellen."
         : "Der lokale Antwortvorschlag konnte nicht erstellt werden. Bitte erneut versuchen.");
     } finally {
       window.clearTimeout(timeout);
@@ -72,8 +78,11 @@ export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, 
   function cancel() { generation.current += 1; controller.current?.abort(); controller.current = null; setLoading(false); }
   return <section className="mail-reply-suggestion" aria-label="Lokalen Antwortvorschlag erstellen">
     <p className="mail-reply-suggestion-label">Lokaler Vorschlag für diese Mail. Falls frühere Nachrichten passen, werden sie wörtlich zitiert. Bitte prüfen.</p>
-    <label>Was soll die Antwort sagen? (optional)<input maxLength={1500} disabled={disabled || loading} value={instruction} onChange={event => setInstruction(event.target.value)} /></label>
-    {!loading ? <button className="mail-reader-secondary" type="button" disabled={disabled} onClick={() => void suggest()}>Antwort vorschlagen</button> : <button className="mail-reader-secondary" type="button" onClick={cancel}>Vorschlag abbrechen</button>}
+    <label>Was soll die Antwort sagen? (optional)<input maxLength={1500} disabled={disabled || loading} value={instruction} onChange={event => {setInstruction(event.target.value);setPendingChoice(null);}} /></label>
+    {!loading ? !pendingChoice && <button className="mail-reader-secondary" type="button" disabled={disabled} onClick={() => void suggest()}>Antwort vorschlagen</button> : <button className="mail-reader-secondary" type="button" onClick={cancel}>Vorschlag abbrechen</button>}
+    {pendingChoice?<><p>Welchen Ablauf soll ich diesmal verwenden?</p><ProcedureChoice prompt={pendingChoice}
+      busy={disabled||loading} onChoose={option=>suggest({token:pendingChoice.token,id:option.id})}
+      onCancel={()=>setPendingChoice(null)} /></>:null}
     {loading ? <p role="status">Lokaler Antwortvorschlag wird erstellt …</p> : null}
     {error ? <p className="mail-reader-error" role="alert">{error} <button type="button" onClick={() => void suggest()}>Erneut versuchen</button></p> : null}
     {suggestion && !suggestionVisible ? <p role="status">Quellenbezug des Vorschlags wird geprüft …</p> : null}

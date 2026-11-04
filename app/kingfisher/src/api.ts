@@ -1,4 +1,5 @@
 import type {HealthPayload} from "./healthObservationForm";
+import type {ProcedureChoicePrompt, ProcedureChoiceValue} from './ProcedureChoice';
 import type { AktenArt, ArtStand, KreisArt, KreisStand, KreisUebersicht } from "./kreis";
 import type { KreisTonStand, StilRegeln } from "./stilprofil";
 import type { WkStand } from "./wiederkehrendes";
@@ -107,7 +108,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { original_fallback?: boolean; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { resolved_approval_id?: string; context?: { original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -1570,7 +1571,7 @@ export const api = {
   latestConversation: () => request<{ conversation: ConversationPayload["conversation"] | null }>(
     "/api/v1/conversations/latest",
   ),
-  sendMessage: (id: string, message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean }) =>
+  sendMessage: (id: string, message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }) =>
     request<ConversationPayload>(`/api/v1/conversations/${id}/messages`, {
       method: "POST",
       body: JSON.stringify({
@@ -1578,6 +1579,7 @@ export const api = {
         ...(clarification?.newQuestion ? { new_question: true } : {}),
         ...(clarification?.choice !== undefined ? { clarification_choice: clarification.choice } : {}),
         ...(clarification?.date ? { clarification_date: clarification.date } : {}),
+        ...(clarification?.procedure ? { procedure_choice:clarification.procedure } : {}),
       }),
     }),
   retryMessage: (conversationId: string, messageId: string) =>
