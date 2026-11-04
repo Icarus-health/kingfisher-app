@@ -315,7 +315,11 @@ class ProcedureStore:
     def export(self, identifier):
         return self.get(identifier)['markdown']
 
-    def select(self, message, *, area=None, local=True):
+    def select(self, message, *, area=None, local=True, choice=None):
+        with self._lock:
+            return self._select(message, area=area, local=local, choice=choice)
+
+    def _select(self, message, *, area, local, choice):
         essential, contextual, builtin = [], [], []
         for name, (title, category, task, text) in CORE.items():
             if category == 'essential' or area == task:
@@ -324,11 +328,27 @@ class ProcedureStore:
                 (essential if category == 'essential' else builtin).append(item)
         headers = self.items(active_only=True, area=area) if local and area in DEFAULT_CATEGORIES else []
         candidates = [item for item in headers if item['current'] and _matches(item, message, area)]
+        missing = area in {'mail','planning','analysis'} and not candidates
         # Überschneidende Anwendungsgebiete sind eine offene Entscheidung, keine Zufallsrangfolge.
         conflicts = sorted(item['name'] for item in candidates) if len(candidates) > 1 else []
+        choices = [{key: item[key] for key in ('id','name','title','version')}
+                   for item in sorted(candidates, key=lambda item: item['id'])] if conflicts else []
+        choice_signature = _hash({'message':message, 'area':area, 'local':local,
+            'candidates':[{key:item[key] for key in ('id','name','version','sources')}
+                          for item in sorted(candidates, key=lambda item:item['id'])]}) if conflicts else None
+        if choice is not None:
+            if (not isinstance(choice, dict) or set(choice) != {'id','signature'}
+                    or not isinstance(choice['id'], str) or not choice_signature
+                    or choice['signature'] != choice_signature
+                    or choice['id'] not in {'core', *(item['id'] for item in candidates)}):
+                raise ProcedureError('Die Auswahl passt nicht mehr zum Auftrag oder Ablaufstand. Bitte erneut auswählen.')
+            candidates = [item for item in candidates if item['id'] == choice['id']]
+            conflicts = []
         if not conflicts:
             for item in candidates[:2]:
                 detail = self.get(item['id'])
+                if detail['state'] != 'active' or not detail['current']:
+                    raise ProcedureError('Die Auswahl ist nicht mehr aktuell. Bitte erneut auswählen.')
                 contextual.append({**item, 'digest': _hash(detail['markdown']),
                     'core': False, 'text': '\n'.join(detail['steps'])})
         chosen = essential + builtin + contextual
@@ -337,15 +357,16 @@ class ProcedureStore:
             + '\n'.join(f"{item['title']}: {item['text']}" for item in chosen))
         refs = [{key:item[key] for key in ('id','name','version','digest','core')} for item in chosen]
         return dict(essential=essential, builtin=builtin, contextual=contextual, conflicts=conflicts,
+                    choices=choices, choice_signature=choice_signature,
                     refs=refs, signature=_hash(refs), instructions=instructions,
-                    missing=area in {'mail','planning','analysis'} and not candidates)
+                    missing=missing)
 
-    def select_for(self, message, provider, *, area=None):
+    def select_for(self, message, provider, *, area=None, choice=None):
         from .procedure_model import local_context_allowed
         local = bool(getattr(provider, 'is_local', False))
         if local and self.items(active_only=True):
             local = local_context_allowed(provider)
-        return self.select(message, area=area, local=local)
+        return self.select(message, area=area, local=local, choice=choice)
 
     def current(self, selection):
         for ref in selection['refs']:
