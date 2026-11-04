@@ -99,6 +99,12 @@ class MacCalendar:
         """Jede Auswahl und jeder Adapter-Stand entwertet alte Suchergebnisse."""
         return self.read().get('cache_revision', 0)
 
+    def display_authority(self):
+        """Permission/selection changes invalidate display previews, routine syncs do not."""
+        state = self.read()
+        return [state.get('generation'), state.get('enabled'), sorted(state.get('selected') or []),
+                state.get('status')]
+
     def change(self, action):
         with self.connection() as db:
             db.execute('BEGIN IMMEDIATE')
