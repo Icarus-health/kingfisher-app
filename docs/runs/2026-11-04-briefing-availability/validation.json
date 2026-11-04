@@ -1,0 +1,41 @@
+{
+  "scope": "P3 briefing refresh, calendar availability and next-week fallback; synthetic offline checks only",
+  "base_commit": "48d18274af24214e8397bb0c712dcbaa38386170",
+  "frontend_initial_red": {
+    "failed": 5,
+    "passed": 0
+  },
+  "backend_initial_red": {
+    "failed": 4,
+    "passed": 2
+  },
+  "frontend_targeted_passed": 59,
+  "frontend_full_passed": 1114,
+  "frontend_build": true,
+  "backend_targeted_passed": 151,
+  "backend_new_cases_passed": 7,
+  "independent_review": {
+    "remaining_findings": 0,
+    "backend_passed": 48,
+    "extra_backend_probes": 1,
+    "ui_permanent_passed": 7,
+    "extra_ui_probes": 3,
+    "corrected_finding": "public notification calendar reader retains CalendarError on total failure"
+  },
+  "source_sha256": {
+    "app/kingfisher/src/TagesLage.tsx": "f78decbd56ed02b25a0d075be4b922cf40580a40bb5cd76a41f0a5d388e301e1",
+    "app/kingfisher/tests/tageslage-refresh.test.mjs": "439ced63f4b6289fa0fba923b1d541018ce539d8bf27748c7410cba20d71dc9f",
+    "sidecar/icarus_memory/server.py": "7ad479275f3df596fdc643dace8699bc4cfe88bad36be941b37b749768908ae5",
+    "sidecar/icarus_memory/tag_routes.py": "4a69b0d5dfe3ea60f349abedcdc258cf0cb22d37c009ab884de4937a68b4e3fd",
+    "sidecar/tests/test_briefing_calendar_availability.py": "c4128e6c380f6e3da956c35ee19ece6b0d674e9ae15bb8a4baf10693eb3f1197"
+  },
+  "model_calls": 0,
+  "cloud_calls": 0,
+  "bulk_import_resumed": false,
+  "native_window_test": false,
+  "personal_installation": false,
+  "notes": [
+    "Test selections overlap and must not be added.",
+    "Existing build bundle-size and Starlette deprecation warnings remain."
+  ]
+}

@@ -3841,7 +3841,9 @@ def create_app(
         from .logbuch_routes import zeilen as logbuch_zeilen
         from .wetter_routes import dienst as wetter_dienst
         # `post=false`: ohne Posteingang, damit Heute den Gruß sofort zeigt; die Oberfläche holt danach den Rest.
-        return compose_morning(_dashboard_data(days=1, post=post, briefing_now=current), now=current, target=target,
+        # Der leere heutige Kalender verweist auf den nächsten Termin innerhalb
+        # einer Woche. Dafür braucht auch die lesende Projektion dieses Fenster.
+        return compose_morning(_dashboard_data(days=7, post=post, briefing_now=current), now=current, target=target,
                                wetter=lambda: wetter_dienst(app).aktuell(), verlauf=logbuch_zeilen(app, current),
                                nutzername=str((app.state.settings.einrichtung or {}).get("name") or ""))
 
