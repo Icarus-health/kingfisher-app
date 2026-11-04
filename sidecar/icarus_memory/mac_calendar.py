@@ -102,8 +102,10 @@ class MacCalendar:
     def display_authority(self):
         """Permission/selection changes invalidate display previews, routine syncs do not."""
         state = self.read()
-        return [state.get('generation'), state.get('enabled'), sorted(state.get('selected') or []),
-                state.get('status')]
+        selected = set(state.get('selected') or [])
+        available = {calendar['id'] for calendar in state.get('calendars') or []}
+        return [state.get('generation'), state.get('enabled'), sorted(selected),
+                state.get('status'), sorted(selected & available)]
 
     def change(self, action):
         with self.connection() as db:

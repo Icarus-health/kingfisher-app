@@ -85,7 +85,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const [actionTarget, setActionTarget] = useState<CalendarOverview["items"][number] | "new" | null>(null);
   const [data, setData] = useState<CalendarOverview | null>(null);
   const [loadedRangeKey, setLoadedRangeKey] = useState("");
-  const [legacyPreparation, setLegacyPreparation] = useState<CalendarOverview["items"][number] | null>(null);
   const [error, setError] = useState(false);
   const [revision, setRevision] = useState(0);
   const [loadedRevision, setLoadedRevision] = useState(0);
@@ -100,7 +99,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     setPreparationUid(prepare);
     setPreparationAt(prepareAt ?? null);
     setFollowup(nachbereiten);
-    if (!prepare) setLegacyPreparation(null);
     const url = new URL(window.location.href);
     if (prepare) {
       url.searchParams.set("prepare", prepare);
@@ -117,7 +115,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const visibleData = loadedRangeKey === rangeKey ? data : null;
   const selectPreparation = (uid: string | null, start?: string | null) => {
     const event = uid ? findCalendarEvent(visibleData?.items ?? [], uid, start) : null;
-    if (event) setLegacyPreparation(event);
     select(uid, null, event?.start);
   };
   const followupTarget = splitFollowup(followup);
@@ -149,7 +146,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     api.calendar(visibleWindow.from.toISOString(), visibleWindow.until.toISOString())
       .then(next => { if (active) { setData(old=>calendarPreview(old,next,loadedRangeKey===rangeKey)); setLoadedRangeKey(rangeKey); setLoadedRevision(revision); } })
       .catch(failure => { if (active) {
-        setError(true);setData(null);setLegacyPreparation(null);
+        setError(true);setData(null);
         if(failure instanceof Error && /^HTTP (401|403|404|409)$/.test(failure.message))setActionTarget(null);
       } })
       .finally(() => { if (active) setLoading(false); });
@@ -164,7 +161,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       if (!active) return;
       const event = findCalendarEvent(result.items, preparationUid);
       if (!event) return;
-      setLegacyPreparation(event);
       if (event.start) {
         const start = new Date(event.start);
         if (Number.isFinite(start.getTime())) {
@@ -228,7 +224,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         const day = new Date(gridYear, month, i + 1), events = onDay(day);
         return <div key={i} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${dateKey(day) === dateKey(focus) ? "is-selected" : ""} ${events.length ? "has-events" : ""}`}>
           <button type="button" className="calendar-month-date" aria-label={`${day.toLocaleDateString("de-DE")}, ${events.length} Termine im geladenen Zeitraum`} aria-pressed={dateKey(day) === dateKey(focus)} onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong>{i + 1}</strong>{small && events.length>0 && <span className="event-dot" />}</button>
-          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" className="calendar-month-event" key={calendarEventKey(event)} title={event.summary} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span><span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
+          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" className="calendar-month-event" key={calendarEventKey(event)} title={event.stale_since ? `${event.summary} · ${calendarPreviewLabel(event)}` : event.summary} aria-label={event.stale_since ? `${event.summary} · ${calendarPreviewLabel(event)}` : undefined} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span>{event.stale_since ? <small className="calendar-month-stale">ungeprüft · </small> : null}<span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
         </div>;
       })}
     </div>;
@@ -249,10 +245,9 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
           <span className="g-zeile-pfeil" aria-hidden="true" />
         </button>)}</div>
       </section>)}</div>; }
-  const selectedAt = validDate(preparationAt);
-  const selectedInRange = selectedAt && selectedAt >= visibleWindow.from && selectedAt < visibleWindow.until;
-  const preparationEvent = preparationUid ? findCalendarEvent((visibleData?.items ?? []).filter(item=>!item.stale_since), preparationUid, preparationAt)
-    || (!(visibleData && selectedInRange) ? findCalendarEvent(legacyPreparation ? [legacyPreparation] : [], preparationUid, preparationAt) : null) : null;
+  // Legacy links resolve a date above; only a fresh read of that visible range
+  // may mount preparation. A previously selected object is never authority.
+  const preparationEvent = preparationUid ? findCalendarEvent((visibleData?.items ?? []).filter(item=>!item.stale_since), preparationUid, preparationAt) : null;
   useEffect(() => {
     if (preparationEvent?.start) {
       const start = new Date(preparationEvent.start);

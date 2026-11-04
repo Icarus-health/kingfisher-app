@@ -95,3 +95,26 @@ def test_mac_authority_change_during_read_discards_response(tmp_path, monkeypatc
         NamedCalendar('mac-calendar', 'Mac', mac), NamedCalendar('b', 'Zweiter Kalender', second)])
     second.on_read = lambda: mac.select([])
     assert client.get('/api/v1/calendar', params=PARAMS).status_code == 409
+
+
+def test_disappearing_selected_mac_calendar_invalidates_preview_context(tmp_path, monkeypatch):
+    client, first, second = setup_calendar(tmp_path, monkeypatch)
+    mac = MacCalendar(tmp_path / 'calendar-test.sqlite3')
+    state = mac.enable()
+    calendars = [{'id': 'one', 'name': 'Eins'}, {'id': 'unselected', 'name': 'Andere'}]
+    mac.update(WorkerUpdate(generation=state['generation'], status='granted', calendars=calendars))
+    state = mac.select(['one'])
+    def update(available):
+        mac.update(WorkerUpdate(generation=state['generation'], status='granted', calendars=available))
+    client.app.state.calendar = CalendarCollection([
+        NamedCalendar('mac-calendar', 'Mac', mac), NamedCalendar('b', 'Zweiter Kalender', second)])
+    before = client.get('/api/v1/calendar', params=PARAMS).json()['read_context']
+    update(calendars[:1])
+    assert client.get('/api/v1/calendar', params=PARAMS).json()['read_context'] == before
+    update([])
+    after = client.get('/api/v1/calendar', params=PARAMS).json()
+    assert after['failed_sources'] == ['mac-calendar']
+    assert after['read_context'] != before
+    update(calendars)
+    second.on_read = lambda: update([])
+    assert client.get('/api/v1/calendar', params=PARAMS).status_code == 409

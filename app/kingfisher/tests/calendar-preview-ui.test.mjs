@@ -26,11 +26,37 @@ test('provider failure retains a visibly stale readable event with no event acti
  assert.match(text(tree),/Aktualisierte Besprechung/);assert.doesNotMatch(text(tree),/ungeprüft/);
  view=response([]);tick();d.render();await d.flush();assert.doesNotMatch(text(d.render()),/Aktualisierte Besprechung/);
 }));
-test('authority conflict removes cached events and a changed range does not reuse them',()=>harness(async(server,driver,tick)=>{
+test('authority conflict removes cached events',()=>harness(async(server,driver,tick)=>{
  const {CalendarPage}=await server.ssrLoadModule('/src/CalendarPage.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const item=event();let failure=false;
  api.calendar=async()=>{if(failure)throw Error('HTTP 409');return response([item]);};api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[]});api.macCalendar=async()=>({enabled:false,selected:[],calendars:[]});
  const d=driver(CalendarPage,{recentConversation:null});d.render();await d.flush();assert.match(text(d.render()),/Künstliche Besprechung/);
  failure=true;tick();d.render();await d.flush();assert.doesNotMatch(text(d.render()),/Künstliche Besprechung/);
+}));
+for (const change of ['failure','authority','empty']) test(`preparation cannot revive on navigation after ${change}`,()=>harness(async(server,driver,tick)=>{
+ const {CalendarPage}=await server.ssrLoadModule('/src/CalendarPage.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');let view=response([event()]);
+ api.calendar=async()=>view;api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[]});api.macCalendar=async()=>({enabled:false,selected:[],calendars:[]});
+ const d=driver(CalendarPage,{recentConversation:null});d.render();await d.flush();let tree=d.render();
+ nodes(tree,n=>n.type==='button'&&/Künstliche Besprechung/.test(text(n)))[0].props.onClick();tree=d.render();
+ nodes(tree,n=>n.type==='button'&&text(n)==='Vorbereiten')[0].props.onClick();tree=d.render();await d.flush();tree=d.render();await d.flush();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type?.name==='CalendarPreparation').length,1);
+ view=change==='failure'?response([],['a']):change==='authority'?{...response([]),read_context:'two'}:response([]);
+ tick();d.render();await d.flush();tree=d.render();await d.flush();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type?.name==='CalendarPreparation').length,0);
+ nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Nächster Zeitraum')[0].props.onClick();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type?.name==='CalendarPreparation').length,0);
+ await d.flush();tree=d.render();assert.equal(nodes(tree,n=>n.type?.name==='CalendarPreparation').length,0);
+ assert.doesNotMatch(text(tree),/Künstliche Besprechung/);
+}));
+test('month view identifies stale events individually while keeping fresh events unmarked',()=>harness(async(server,driver,tick)=>{
+ globalThis.localStorage.getItem=()=> 'Monat';
+ const {CalendarPage}=await server.ssrLoadModule('/src/CalendarPage.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const stale=event(),fresh={...event(),uid:'b:other',source_id:'b',summary:'Frischer Termin'};let view=response([stale,fresh]);
+ api.calendar=async()=>view;api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[]});api.macCalendar=async()=>({enabled:false,selected:[],calendars:[]});
+ const d=driver(CalendarPage,{recentConversation:null});d.render();await d.flush();d.render();
+ view=response([fresh],['a']);tick();d.render();await d.flush();const tree=d.render();
+ const buttons=nodes(tree,n=>n.type==='button'&&n.props.className==='calendar-month-event');
+ const old=buttons.find(n=>/Künstliche Besprechung/.test(text(n))),current=buttons.find(n=>/Frischer Termin/.test(text(n)));
+ assert.ok(old);assert.ok(current);assert.match(text(old),/ungeprüft/);assert.match(old.props.title,/Stand.*ungeprüft/);assert.match(old.props['aria-label'],/Stand.*ungeprüft/);assert.doesNotMatch(text(current),/ungeprüft/);
 }));
 test('an open event edit retains its component but loses write verification during a source outage',()=>harness(async(server,driver,tick)=>{
  const {CalendarPage}=await server.ssrLoadModule('/src/CalendarPage.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');let view=response([event()]);
@@ -47,4 +73,15 @@ test('unverified calendar edit does not submit but retains typed title for recov
  nodes(tree,n=>n.type==='input'&&n.props.maxLength===500)[0].props.onChange({target:{value:'Eigener Titel'}});props.sourceVerified=false;tree=d.render();
  nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();tree=d.render();assert.equal(calls,0);assert.equal(nodes(tree,n=>n.type==='input'&&n.props.maxLength===500)[0].props.value,'Eigener Titel');
  assert.match(text(tree),/Kalenderstand.*ungeprüft/);props.sourceVerified=true;tree=d.render();nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();assert.equal(calls,1);
+}));
+
+test('legacy UID-only preparation links resolve a date and wait for the fresh range',()=>harness(async(server,driver)=>{
+ globalThis.window.location.search='?prepare=a%3Aevent';globalThis.window.location.href='http://synthetic/calendar?prepare=a%3Aevent';
+ const {CalendarPage}=await server.ssrLoadModule('/src/CalendarPage.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const future=event();future.start=new Date(Date.now()+40*86400000).toISOString();future.end=new Date(Date.parse(future.start)+3600000).toISOString();let legacyReads=0;
+ api.calendar=async(from,until)=>{if(!from){legacyReads++;return response([future]);}return response(Date.parse(from)<=Date.parse(future.start)&&Date.parse(future.start)<Date.parse(until)?[future]:[]);};
+ api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[]});api.macCalendar=async()=>({enabled:false,selected:[],calendars:[]});
+ const d=driver(CalendarPage,{recentConversation:null});let tree;
+ for(let i=0;i<6;i++){tree=d.render();await d.flush();}tree=d.render();
+ assert.equal(legacyReads,1);const preparation=nodes(tree,n=>n.type?.name==='CalendarPreparation');assert.equal(preparation.length,1);assert.equal(preparation[0].props.event.start,future.start);
 }));
