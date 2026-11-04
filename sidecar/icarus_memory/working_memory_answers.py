@@ -796,9 +796,14 @@ Status bezeichnet nötige Klärung, nicht das Thema. Wirklich unklare Person/Zei
             # Eine Überholungsbeziehung niemals durch Wegfiltern abschwächen:
             # in diesem Fall bleiben nur die frisch geprüften Originalzitate.
             if not any(u.durch in fremde_zusagen for us in kontext.ueberholt.values() for u in us):
+                # Der Quellenrahmen wurde oben validiert. Die ausdrücklich bestätigte
+                # Bedeutung muss auch beim Formulieren ankommen, nicht nur bei der Suche.
+                nutzerwahl = ({'begriff': meaning_scope['begriff'][:160], 'art': meaning_scope['art'][:80],
+                               'auswahl': meaning_scope['label'][:160]}
+                              if meaning_scope is not None and meaning_scope['chosen'] is True else None)
                 answer['satzantwort'] = satzantwort.erzeugen(question, selected, satzkontext, episodes, claims, provider,
                                                              jetzt=now(), zeiten=zeiten, rahmen=rahmen, suche=lookup,
-                                                             pruefung=pruefung)
+                                                             pruefung=pruefung, nutzerwahl=nutzerwahl)
     except (ProviderError, ValueError, TypeError, KeyError):
         answer.update(status='selection_failed')
     if cloud and provider.aufrufe:

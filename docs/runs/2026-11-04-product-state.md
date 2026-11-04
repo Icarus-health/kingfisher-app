@@ -3,15 +3,16 @@
 Diese Matrix unterscheidet gebauten Code, isolierte Prüfungen und die tatsächlich
 benutzte App. Sie ersetzt keine historischen Protokolle und erklärt deren
 unterschiedliche Aussagekraft. Aktueller Reparaturzweig: PR #117,
-Produktionscode bis `d753efc6a2fb377dd85b4bc6bf31be7dcaa0af50`.
+Die jeweiligen Produktionscode-Prüfsummen stehen bei den einzelnen Läufen;
+die neueste Korrektur betrifft die Auswahl unveränderter Personen-Originalsätze.
 
 | Bereich | Gebaut / Regressionen | Echtes Modell, getrennte künstliche Daten | Aktualisierte Mac-App | Alltag |
 |---|---|---|---|---|
 | Auftraggeber, Ausführender, Empfänger; Bitte/Zusage; Termin/Frist | Rollenhinweise korrigiert, betroffene Worker-/Harness-Tests bestanden | Qwen9B: 9/9 eingefrorene Fälle in der getrennten Laufzeit inhaltlich geprüft | Noch offen; der Fehler wurde zuvor in 1.0.43 beobachtet | Offen |
 | Kategorien und Beleganker | Genaue Belegprüfung unverändert; vorhandener einzelner Cloud-Korrekturversuch erhält gezielte Fehlerangaben; 68 betroffene Tests bestanden | Lokale künstliche Aufnahme: 7/7 Prüffälle; konkrete entfernte Ankerkorrektur noch nicht live abgenommen | Noch offen | Offen |
 | Suchkontext | Abfrage-Hilfswörter eingegrenzt, keine persistente Indexänderung; 522 betroffene Tests bestanden | BGE-M3: 9/10 exakte Quellensätze, erwartete Quellen immer enthalten; ein zusätzlicher Alex-Treffer bleibt dokumentiert | Noch offen | Offen |
-| Personenwahl und belegte Antwort | 162 betroffene Tests; unabhängiges Review samt 25 neuen Gegenfällen bestanden | Qwen9B: sechs eingefrorene Fragen vollständig bestanden, Inhalt unabhängig geprüft; Originale/Entzug geprüft | Noch offen; die Probe nutzte den echten Antwortcode, aber temporäre Stores | Offen |
-| Speicher und Hintergrundlast | Unveränderte Probegrenzen, sichere Unterbrechung bei zu wenig Reserve | Abbruch bei 24% frei; nach Erholung auf 63% vollständige Wiederholung, Minimum 25%, Druck maximal 2 | Bedienung von Mail, Kalender und Texteingabe während Modellarbeit noch offen | Dauerbetrieb offen |
+| Personenwahl und belegte Antwort | Frühere 162 Tests; nach im Fenster gefundenem Paraphrasefehler 538 betroffene Tests bestanden, Originalauswahl und bestätigte Personenwahl korrigiert | Frühere sechs Fragen bestanden; neue echte API-Probe: Kontakt und zwei Fristen 3/3 korrekt, gespeichert und erneut gelesen | Getrenntes natives Fenster: Personenwahl, Original, Kalender-Rückweg und Entwurfserhalt geprüft; finale Antwortanzeige und normale Installation noch offen | Offen |
+| Speicher und Hintergrundlast | Unveränderte Probegrenzen, sichere Unterbrechung bei zu wenig Reserve | Ressourcenabbrüche bleiben dokumentiert; letzte drei Antworten Minimum 31% frei, Druck maximal 2, je 4–11 Sekunden | Kalender/Rückweg und Entwurf im Testfenster geprüft; zusammenhängender Mail-/Kalender-/Eingabeablauf während Dauerlast noch offen | Dauerbetrieb offen |
 | Skillbibliothek und CoS-Abläufe | Vorhandene Implementierung ist Grundlage; keine neue vollständige Abnahme in diesem Reparaturpaket | Zusammenhängende P2-/P3-Prüfung noch offen | Offen | Offen |
 | Erweiterungsplattform | Vorhandene begrenzte Laufzeit; voller P6-Modulvertrag ist weiterhin Planarbeit | Isolierte Rollenprobe ist kein Nachweis einer vollständigen Pluginplattform | Offen | Offen |
 
@@ -20,6 +21,7 @@ Produktionscode bis `d753efc6a2fb377dd85b4bc6bf31be7dcaa0af50`.
 - [Rollen, Aufnahme und Beleganker](2026-11-04-source-roles/README.md)
 - [Suchkontext und bewusst offener Gegenfall](2026-11-04-retrieval-precision/README.md)
 - [Personenwahl: Fehler, Ressourcenabbruch und vollständig bestandener Folgelauf](2026-11-04-person-choice/README.md)
+- [Im Mac-Fenster gefundener Paraphrasefehler und korrigierte Originalauswahl](2026-11-04-person-original-answer/README.md)
 - [Verbindlicher Produktplan P0–P6](../superpowers/plans/2026-11-04-kingfisher-product-completion.md)
 
 Die Testzahlen stammen aus unterschiedlichen abgegrenzten Läufen und werden

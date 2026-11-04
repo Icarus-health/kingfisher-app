@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-04",
+  "synthetic_only": true,
+  "cloud_calls": 0,
+  "installed_app_verified": false,
+  "final_native_window_verified": false,
+  "bge_used": false,
+  "ingestion_tested": false,
+  "model": "kingfisher-qwen3.5:9b-8k",
+  "model_digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+  "code_base": "e495018",
+  "code_sha256": {
+    "sidecar/icarus_memory/satzantwort.py": "6479acb262b4ddb339c069510b9c1ed268e8530f963772080a71e5acf658c7b1",
+    "sidecar/icarus_memory/satzpruefung.py": "cf9462dec8e79a2e8d21e48080da0c7cd453e138367a3f9fca0c639fd73b69b0",
+    "sidecar/icarus_memory/working_memory_answers.py": "d897ff205cf9d4428864885fc4fea34b1e6e432b8352d39c09f25dd0284ecba6"
+  },
+  "status": "passed",
+  "rows": [
+    {
+      "id": "school-contact",
+      "question": "Wo erreiche ich Alex Winter, aber nicht aus dem Einkauf?",
+      "seconds": 4.277,
+      "status": "saetze",
+      "answer": "Alex Winter an der Schule ist unter schule@example.invalid erreichbar.",
+      "expected": "schule@example.invalid",
+      "excluded": "einkauf@example.invalid",
+      "passed": true,
+      "persisted_status": "saetze",
+      "selected_source_ids": [
+        "e-8a706fc09bf8"
+      ]
+    },
+    {
+      "id": "school-deadline",
+      "question": "Bis wann soll Alex Winter (winter@beta.example) den Stundenplan liefern?",
+      "seconds": 10.044,
+      "status": "saetze",
+      "answer": "Alex Winter hat zugesagt, den Stundenplan bis zum 13. November 2026 an Sören zu liefern.",
+      "expected": "13. November 2026",
+      "excluded": "6. November 2026",
+      "passed": true,
+      "persisted_status": "saetze",
+      "selected_source_ids": [
+        "e-8a706fc09bf8"
+      ]
+    },
+    {
+      "id": "purchasing-deadline",
+      "question": "Bis wann soll Alex Winter aus dem Einkauf den Angebotsvergleich liefern?",
+      "seconds": 11.303,
+      "status": "saetze",
+      "answer": "Alex Winter hat zugesagt, den Angebotsvergleich bis zum 6. November 2026 an Sören zu liefern.",
+      "expected": "6. November 2026",
+      "excluded": "13. November 2026",
+      "passed": true,
+      "persisted_status": "saetze",
+      "selected_source_ids": [
+        "e-b75eb199299a"
+      ]
+    }
+  ],
+  "model_calls": 11,
+  "model_seconds": 24.439,
+  "minimum_free_percent": 31,
+  "maximum_memory_pressure": 2,
+  "method": "Actual isolated Mac-local API, real Qwen source selection/original statement selection/same-model judge, GET after each persisted conversation. No full-system performance claim."
+}

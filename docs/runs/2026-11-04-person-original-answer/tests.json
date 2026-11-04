@@ -1,0 +1,14 @@
+{
+  "passed": 538,
+  "warnings": 1,
+  "seconds": 63.02,
+  "command": "python -m pytest sidecar/tests/test_person_original_selection.py sidecar/tests/test_actor_scope_regression.py sidecar/tests/test_satzantwort.py sidecar/tests/test_satzpruefung.py sidecar/tests/test_satzpruefung_modell.py sidecar/tests/test_original_sentence_selection.py sidecar/tests/test_original_quote_context.py sidecar/tests/test_person_scope_questions.py sidecar/tests/test_person_retrieval_repair.py sidecar/tests/test_answer_source_boundaries.py sidecar/tests/test_answer_clarification_projection.py sidecar/tests/test_conditional_report_binding.py sidecar/tests/test_normative_paragraph_context.py sidecar/tests/test_docx_native_selection.py sidecar/tests/test_docx_native_candidates.py sidecar/tests/test_negative_answer_recheck.py sidecar/tests/test_conditional_scope_completeness.py sidecar/tests/test_kennzeichnung_saetze.py -q",
+  "warning": "Existing Starlette/httpx deprecation warning",
+  "code_sha256": {
+    "sidecar/icarus_memory/satzantwort.py": "6479acb262b4ddb339c069510b9c1ed268e8530f963772080a71e5acf658c7b1",
+    "sidecar/icarus_memory/satzpruefung.py": "cf9462dec8e79a2e8d21e48080da0c7cd453e138367a3f9fca0c639fd73b69b0",
+    "sidecar/icarus_memory/working_memory_answers.py": "d897ff205cf9d4428864885fc4fea34b1e6e432b8352d39c09f25dd0284ecba6"
+  },
+  "new_regression_cases": 21,
+  "full_backend_suite": false
+}
