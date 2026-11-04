@@ -182,7 +182,7 @@ Der Katalog ist die vollständige Richtung, kein Versprechen, jeden Dienst gleic
 
 **Anknüpfung:** `docs/65-ziellinie.md`, bestehende Run Records; `sidecar/icarus_memory/{task_modality,working_memory_identity,people_quality,model_routing,ollama_memory}.py`; `scripts/probe_intake_precision.py` und vorhandene Mail-/Gedächtnisproben.
 
-- [ ] Eine aktuelle Matrix aus „gebaut“, „synthetisch geprüft“, „echtes Modell geprüft“, „auf dem Mac geprüft“, „im Alltag bestanden“ anlegen; ältere widersprüchliche Aussagen mit datiertem Verweis einordnen, nicht löschen.
+- [x] Eine aktuelle Matrix aus „gebaut“, „synthetisch geprüft“, „echtes Modell geprüft“, „auf dem Mac geprüft“, „im Alltag bestanden“ anlegen; ältere widersprüchliche Aussagen mit datiertem Verweis einordnen, nicht löschen. [Stand 04.11.2026](../../runs/2026-11-04-product-state.md); die verbleibenden P0-Abnahmen stehen dort ausdrücklich offen.
 - [ ] Die noch offenen Kategorien-/Quellenankerfehler und Personenrückfragen mit konkreten Original-Gegenfällen reproduzieren. Nur identifizierte Ursachen ändern; Regression plus Gegenbeispiel je Fehler.
 - [ ] Nach bestätigter Speicherreserve die reale Qwen9B-/BGE-M3-Probe im installierten Ablauf durchführen; auch Abbruch, Quellenänderung und Wiederaufnahme prüfen.
 - [ ] Laufzeitbegrenzung, Vorfilter und wartende Jobs gemeinsam messen; auf dem Mac währenddessen Mail, Kalender und Texteingabe bedienen.

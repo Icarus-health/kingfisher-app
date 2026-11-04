@@ -44,7 +44,7 @@ existing identity freshness check.
   live artifact's source hashes, and read the five completed replies against
   the artificial sources. No semantic error was found in those completed replies.
 
-## Actual Qwen probe: partial, not accepted
+## Actual Qwen probe: development and interrupted runs
 
 The [six frozen questions and synthetic source text](resource-stop.json) use the
 installed `kingfisher-qwen3.5:9b-8k`, digest
@@ -78,6 +78,32 @@ describe this as six passed cases or a fluid-Mac acceptance. The first run did
 verify original-source preservation and withdrawal; the interrupted final run
 does not inherit those checks as if it completed them.
 
+## Completed run after resource recovery
+
+A later read-only preflight measured **63% free memory**, pressure level 1 and
+no loaded model. This material reserve change justified repeating the exact
+six cases under the same limits, with no production code, fixture or expected
+answer changes. No user application was closed and no memory threshold lowered.
+
+The [completed run](completed.json) passed all six case checks in **50.163 s**:
+three source-bound clarifications without model calls, and three correct
+source-backed answers with four model calls each (12 total). The contact answer
+took 21.452 s; purchasing deadline 14.021 s; school deadline 14.248 s.
+
+The last answer correctly states that the school contact promised the timetable
+to Sören by **13 November 2026**, citing only the school source. The purchasing
+contact instead promised the offer comparison by **6 November 2026**. An
+independent reviewer read all six final replies against both artificial sources:
+no person mixing, unsupported statement or wrong date was found in this run.
+Final installed-model verification, original preservation and source-withdrawal
+invalidation also passed.
+
+Free memory reached a minimum of **25%**, pressure at most 2. This stayed within
+the gate but leaves limited margin and is not a native UI responsiveness or
+endurance measurement. The earlier failed and interrupted reports remain in the
+record; the completed evidence does not turn them into successful runs. This is
+one frozen synthetic development set, not universal quality or a held-out test.
+
 ## Reproduction and remaining gates
 
 With repository dependencies installed and sufficient Mac memory, run:
@@ -92,6 +118,6 @@ loopback Ollama, no proxy/download/cloud, an 8K context, 15-second keep-alive,
 It saves checkpoints. Do not close other applications, relax the reserve gate or
 repeat expensive runs solely to obtain a green report.
 
-Still required: complete local-model acceptance under adequate reserve, updated
-native app interaction, representative source acceptance and the broader P0–P6
+Still required: local-model acceptance in the updated installed app, native
+interaction, representative source acceptance and the broader P0–P6
 product plan. The large import remains paused; this branch is not installed yet.
