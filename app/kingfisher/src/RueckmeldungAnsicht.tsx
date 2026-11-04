@@ -17,7 +17,23 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
   const [gemerkt, setGemerkt] = useState(false);
   const [fehler, setFehler] = useState("");
   const erste = useRef<HTMLButtonElement>(null);
-  useEffect(() => { if (offen) erste.current?.focus(); }, [offen]);
+  const ausloeser = useRef<HTMLButtonElement>(null);
+  const formular = useRef<HTMLFormElement>(null);
+  const warOffen = useRef(false);
+  useEffect(() => {
+    const zurueck = warOffen.current && !offen;
+    warOffen.current = offen;
+    const frame = requestAnimationFrame(() => {
+      if (offen) {
+        // Das wachsende Formular darf nicht hinter der festen Chateingabe verschwinden.
+        formular.current?.scrollIntoView({ block: "nearest" });
+        erste.current?.focus({ preventScroll: true });
+      } else if (zurueck) ausloeser.current?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [offen]);
+
+  function schliessen() { if (!sendet) { setOffen(false); setFehler(""); } }
 
   async function senden() {
     if (!art) return;
@@ -33,8 +49,10 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
   }
 
   if (gemerkt) return <p className="stimmt-nicht-gemerkt" role="status">{GEMELDET} <Verweis ziel="technik-rueckmeldungen" />.</p>;
-  if (!offen) return <button className="stimmt-nicht-link" type="button" onClick={() => setOffen(true)}>Stimmt nicht?</button>;
-  return <form className="stimmt-nicht" aria-label="Antwort melden" onSubmit={event => { event.preventDefault(); void senden(); }}>
+  if (!offen) return <button ref={ausloeser} className="stimmt-nicht-link" type="button" onClick={() => setOffen(true)}>Stimmt nicht?</button>;
+  return <form ref={formular} className="stimmt-nicht" aria-label="Antwort melden" aria-describedby={`stimmt-nicht-wirkung-${messageId}`}
+    onKeyDown={event => { if (event.key === "Escape" && !sendet) { event.preventDefault(); event.stopPropagation(); schliessen(); } }}
+    onSubmit={event => { event.preventDefault(); void senden(); }}>
     <p id={`stimmt-nicht-${messageId}`}>Was stimmt an dieser Antwort nicht?</p>
     <div className="stimmt-nicht-arten" role="group" aria-labelledby={`stimmt-nicht-${messageId}`}>
       {ARTEN.map((eintrag, index) => <button key={eintrag.id} type="button" ref={index === 0 ? erste : undefined}
@@ -43,10 +61,11 @@ export function StimmtNicht({ conversationId, messageId }: { conversationId: str
     <label className="stimmt-nicht-feld">Richtig wäre … <small>(freiwillig, kurz, zum Beispiel ein Datum oder ein Name)</small>
       <input type="text" value={richtig} maxLength={2000} autoComplete="off" disabled={sendet} onChange={event => setRichtig(event.target.value)} />
     </label>
+    <p className="stimmt-nicht-wirkung" id={`stimmt-nicht-wirkung-${messageId}`}>Speichert eine Fehlermeldung. Fakten und Abläufe bleiben unverändert.</p>
     {fehler ? <p className="stimmt-nicht-fehler" role="alert">{fehler}</p> : null}
     <div className="stimmt-nicht-aktionen">
       <button className="secondary-action" type="submit" disabled={!art || sendet}>Melden</button>
-      <button className="stimmt-nicht-link" type="button" disabled={sendet} onClick={() => { setOffen(false); setFehler(""); }}>Abbrechen</button>
+      <button className="stimmt-nicht-link" type="button" disabled={sendet} onClick={schliessen}>Abbrechen</button>
     </div>
   </form>;
 }

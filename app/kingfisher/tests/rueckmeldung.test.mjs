@@ -34,6 +34,14 @@ test("Gemeldet werden nur fertige Antworten, keine Rückfragen", () => {
   assert.equal(meldbar({...antwort, metadata: {context: {clarification_choices: []}}}), true);
 });
 
+test("Ablaufauswahl und Lernvorschlag sind keine fehlerhaften Sachantworten", () => {
+  const antwort = {role: "assistant", status: "complete"};
+  assert.equal(meldbar({...antwort, metadata: {context: {procedure_choice: {token: "opaque", options: []}}}}), false);
+  assert.equal(meldbar({...antwort, metadata: {context: {procedure_proposal: {id: "proc-a", state: "pending"}}}}), false);
+  assert.equal(meldbar({...antwort, metadata: {context: {procedures: [{id: "proc-a"}]}}}), true,
+    "Eine echte Antwort mit angewendetem Ablauf bleibt meldbar");
+});
+
 // Fremdprobe, Befund 16: kein Kommandozeilenbefehl in der Oberfläche; sie sagt, was aus einer Meldung wird.
 test("Die Oberfläche nennt keinen Befehl, sondern was aus einer Meldung wird", () => {
   const src = new URL("../src/", import.meta.url);
