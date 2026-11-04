@@ -245,3 +245,55 @@ def test_local_negative_does_not_prevent_explicit_mistral_second_opinion(flow,mo
     assert start(flow[1],packet).status_code == 200
     assert finish(flow)['job']['result']['status'] == 'proposed'
     assert len(calls) == 2
+
+
+@pytest.mark.parametrize('state',['pending','active'])
+def test_reusing_manual_skill_preserves_authorship_and_current_state(flow,monkeypatch,state):
+    seed(flow); configure(flow,monkeypatch); transport(monkeypatch)
+    app,client,_ = flow
+    original = app.state.procedures.propose(spec())
+    if state == 'active':
+        app.state.procedures.accept(original['id'])
+    assert start(client,preview(client)).status_code == 200
+    result = finish(flow)['job']['result']
+    assert result['proposal_id'] == original['id']
+    assert result['status'] == ('active' if state == 'active' else 'proposed')
+    assert result['reused'] is True
+    stored = client.get('/api/v1/procedures/'+original['id']).json()
+    assert not stored.get('synthesis')
+    assert stored['sources'] == {} and stored['state'] == state
+
+
+def test_proposal_synthesis_origin_survives_standard_backup_restore(flow,monkeypatch,tmp_path):
+    from icarus_memory.backup import snapshot_all, restore_all
+    from icarus_memory.procedures import ProcedureStore
+    seed(flow); configure(flow,monkeypatch); transport(monkeypatch)
+    app,client,_ = flow
+    assert start(client,preview(client)).status_code == 200
+    identifier = finish(flow)['job']['result']['proposal_id']
+    service = app.state.cloud_workflow_learning
+    snapshot = snapshot_all(service.path.parent,tmp_path/'backups')
+    restored_dir = tmp_path/'restored'
+    restore_all(snapshot,restored_dir)
+    assert not (restored_dir/service.path.name).exists()
+    assert not (restored_dir/'mistral-source-budget.sqlite3').exists()
+    restored = ProcedureStore(restored_dir/'procedures.sqlite3',dependency=app.state.procedures.dependency)
+    try:
+        assert restored.get(identifier).get('synthesis') == {'provider':'mistral','model':'mistral-small-2603'}
+    finally:
+        restored.close()
+
+
+@pytest.mark.parametrize('action,expected',[('accept','active'),('reject','dismissed'),('revoke','dismissed')])
+def test_cloud_receipt_reads_current_proposal_activation(flow,monkeypatch,action,expected):
+    seed(flow); configure(flow,monkeypatch); calls = transport(monkeypatch)
+    app,client,_ = flow
+    assert start(client,preview(client)).status_code == 200
+    identifier = finish(flow)['job']['result']['proposal_id']
+    path = '/api/v1/procedures/'+identifier
+    if action == 'revoke':
+        assert client.post(path+'/accept').status_code == 200
+    assert client.post(path+'/'+action).status_code == 200
+    result = client.get(ROOT+'/status').json()['job']['result']
+    assert result['status'] == expected
+    assert len(calls) == 2

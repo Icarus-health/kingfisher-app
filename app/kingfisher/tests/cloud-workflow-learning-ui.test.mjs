@@ -15,7 +15,7 @@ const nodes=(n,p,out=[])=>{if(!n||typeof n!=='object')return out;if(p(n))out.pus
 const text=n=>n==null?'':typeof n==='object'?[n.props?.children].flat(30).map(text).join(''):String(n);
 const tick=async()=>{for(let i=0;i<5;i++)await new Promise(setImmediate);};
 function driver(Component,props){const states=[],refs=[],effects=[],pending=[];let s=0,r=0,e=0;
- const d={state(v){const i=s++;if(!(i in states))states[i]=typeof v==='function'?v():v;return[states[i],n=>states[i]=typeof n==='function'?n(states[i]):n];},ref(v){return refs[r++]??={current:v};},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__workflowDriver=d;return Component(props);},async flush(){d.render();pending.splice(0).forEach(fn=>fn());await tick();d.render();pending.splice(0).forEach(fn=>fn());await tick();},close(){effects.forEach(x=>x.cleanup?.());delete globalThis.__workflowDriver;}};return d;}
+ const d={props,state(v){const i=s++;if(!(i in states))states[i]=typeof v==='function'?v():v;return[states[i],n=>states[i]=typeof n==='function'?n(states[i]):n];},ref(v){return refs[r++]??={current:v};},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__workflowDriver=d;return Component(d.props);},async flush(){d.render();pending.splice(0).forEach(fn=>fn());await tick();d.render();pending.splice(0).forEach(fn=>fn());await tick();},close(){effects.forEach(x=>x.cleanup?.());delete globalThis.__workflowDriver;}};return d;}
 const budget=()=>({provider:'mistral',currency:'USD',budget_id:'shared-source-budget',revision:3,price_id:'price',price_valid_until:'2026-12-01',cap_microusd:1000000,spent_microusd:200000,held_microusd:0,remaining_microusd:800000,reconciliation_required:false,ready:true,blocked_reason:null});
 const status=()=>({provider:'mistral',model:'mistral-small-2603',available:true,budget:budget(),job:null,candidates:{mail:2,planning:1,analysis:0}});
 const preview=()=>({preview_id:'preview-one',available:true,model:'mistral-small-2603',payload:{corrections:[{id:'c1',request:'Künstlichen Termin vorbereiten',correction:'Zuerst die Zeit prüfen.'},{id:'c2',request:'Anderer Beispielauftrag',correction:'Nur bestätigte Daten verwenden.'}],existing:[{name:'termin-pruefen',title:'Termin prüfen',description:'Katalogbeschreibung',version:2,triggers:['Termin'],contexts:['Verein']}]},budget:budget(),max_requests:2,expires_at:Date.now()/1000+600});
@@ -56,12 +56,39 @@ test('explicit consent sends only the preview identity once, then polls and leav
  const start=button(d,'Mit Mistral prüfen');start.props.onClick();start.props.onClick();await d.flush();
  assert.equal(calls.filter(c=>c.path.endsWith('/start')).length,1);assert.deepEqual(calls.find(c=>c.path.endsWith('/start')).body,{preview_id:'preview-one',consent:true});
  release();await d.flush();assert.match(text(d.render()),/Prüfung läuft/);assert.ok(button(d,'Prüfung abbrechen'));assert.equal(checkbox(d),undefined);
- ctx.setStatus({...status(),job:job('complete',{status:'proposed',proposal_id:'proposal-one',count:2})});
+ ctx.setStatus({...status(),job:job('complete',{status:'proposed',proposal_id:'proposal-one',count:2,reused:false,synthesis:{provider:'mistral',model:'mistral-small-2603'}})});
  ctx.events.get('focus')();await d.flush();
- assert.equal(ctx.refreshes(),1);assert.match(text(d.render()),/Noch nicht aktiv/);
+ assert.equal(ctx.refreshes(),1);assert.match(text(d.render()),/als Vorschlag gespeichert/);assert.match(text(d.render()),/Mit Mistral entworfen/);
  assert.equal(nodes(d.render(),n=>n.type==='button'&&/übernehmen|aktivieren/i.test(text(n))).length,0);
  ctx.events.get('focus')();await d.flush();assert.equal(ctx.refreshes(),1);
 }));
+
+test('receipt refresh follows acceptance and revocation without stale inactive or authorship claims',()=>fixture(async({d,setStatus,calls})=>{
+ assert.match(text(d.render()),/als Vorschlag gespeichert/);
+ setStatus({...status(),job:job('complete',{status:'active',proposal_id:'proposal-one',reused:false,synthesis:{provider:'mistral',model:'mistral-small-2603'}})});
+ d.props={...d.props,refreshKey:1};await d.flush();
+ assert.match(text(d.render()),/Ablauf ist übernommen/);assert.doesNotMatch(text(d.render()),/Noch nicht aktiv/);
+ setStatus({...status(),job:job('complete',{status:'dismissed',proposal_id:'proposal-one',reused:false,synthesis:{provider:'mistral',model:'mistral-small-2603'}})});
+ d.props={...d.props,refreshKey:2};await d.flush();
+ assert.match(text(d.render()),/Ablauf wird nicht verwendet/);assert.doesNotMatch(text(d.render()),/Ablauf ist übernommen|Noch nicht aktiv/);
+ assert.equal(calls.filter(c=>c.path.endsWith('/start')).length,0);
+},{...status(),job:job('complete',{status:'proposed',proposal_id:'proposal-one',reused:false,synthesis:{provider:'mistral',model:'mistral-small-2603'}})}));
+
+test('remounting a reused manual procedure never claims a new inactive Mistral-authored result',async()=>{
+ for(const resultStatus of ['proposed','active','dismissed'])await fixture(async({d,calls})=>{
+  assert.match(text(d.render()),/vorhandener Ablauf/);assert.doesNotMatch(text(d.render()),/Mit Mistral entworfen|Noch nicht aktiv|Ein neuer/);
+  if(resultStatus==='active')assert.match(text(d.render()),/Ablauf ist übernommen/);
+  if(resultStatus==='dismissed')assert.match(text(d.render()),/Ablauf wird nicht verwendet/);
+  assert.equal(calls.filter(c=>c.path.endsWith('/start')).length,0);
+ },{...status(),job:job('complete',{status:resultStatus,proposal_id:'manual-one',reused:true})});
+});
+
+test('a withdrawn observed result refreshes the library once and removes its synthesis claim',()=>fixture(async({d,setStatus,events,refreshes})=>{
+ assert.equal(refreshes(),1);
+ setStatus({...status(),job:job('complete',{status:'changed'})});events.get('focus')();await d.flush();
+ assert.equal(refreshes(),2);assert.match(text(d.render()),/nicht mehr verwendbar/);assert.doesNotMatch(text(d.render()),/Mit Mistral entworfen/);
+ events.get('focus')();await d.flush();assert.equal(refreshes(),2);
+},{...status(),job:job('complete',{status:'proposed',proposal_id:'proposal-one',reused:false,synthesis:{provider:'mistral',model:'mistral-small-2603'}})}));
 
 test('changing area or cloud access invalidates the preview and its consent',()=>fixture(async({d,events,calls})=>{
  await prepare(d);await consent(d);
@@ -69,6 +96,12 @@ test('changing area or cloud access invalidates the preview and its consent',()=
  assert.equal(checkbox(d),undefined);assert.equal(button(d,'Mit Mistral prüfen'),undefined);
  await prepare(d);assert.deepEqual(calls.findLast(c=>c.path.endsWith('/preview')).body,{area:'planning'});assert.equal(checkbox(d).props.checked,false);
  await consent(d);events.get('kingfisher:cloud-access-changed')();await d.flush();assert.equal(checkbox(d),undefined);
+ assert.equal(calls.filter(c=>c.path.endsWith('/start')).length,0);
+}));
+
+test('a parent library refresh invalidates prior preview and consent',()=>fixture(async({d,calls})=>{
+ await prepare(d);await consent(d);d.props={...d.props,refreshKey:1};await d.flush();
+ assert.equal(checkbox(d),undefined);assert.equal(button(d,'Mit Mistral prüfen'),undefined);
  assert.equal(calls.filter(c=>c.path.endsWith('/start')).length,0);
 }));
 

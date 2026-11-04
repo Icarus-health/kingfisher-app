@@ -79,6 +79,17 @@ class CloudWorkflowLearning:
         # A status read must not resurrect an answer derived from withdrawn data.
         if result and any(dependency(self.app,k)!=v for k,v in json.loads(row['sources']).items()):
             result = {'status':'changed'}
+        if result and result.get('proposal_id'):
+            try:
+                item = self.app.state.procedures.get(result['proposal_id'])
+                if not item['current']:
+                    result = {'status':'changed'}
+                else:
+                    result = {**result,'status':('active' if item['state']=='active' else
+                              'proposed' if item['state']=='pending' else 'dismissed'),
+                              'synthesis':item.get('synthesis')}
+            except ProcedureError:
+                result = {'status':'changed'}
         return {'id':row['id'],'state':row['state'],'requests':row['requests'],
                 'message':row['message'],'result':result}
 
@@ -180,7 +191,8 @@ class CloudWorkflowLearning:
                     with self._db() as conn:
                         conn.execute("UPDATE jobs SET state='complete',result=? WHERE id=? AND state='running'",
                                      (json.dumps(result),identifier))
-                synthesize(app,preview.packet,generate,permitted,on_result=finished)
+                synthesize(app,preview.packet,generate,permitted,on_result=finished,
+                           synthesis={'provider':'mistral','model':MODEL})
         except Exception as error:
             if isinstance(error,MistralBudgetError):
                 message = ('Kosten oder Freigabe konnten nicht sicher bestätigt werden. Bitte den Mistral-Kostenstand prüfen; es wird nicht automatisch wiederholt.')
@@ -201,12 +213,6 @@ class CloudWorkflowLearning:
                              (' AND id=?' if identifier else ''),(identifier,) if identifier else ())
             self._previews.clear()
         return self.status() if readback else None
-
-    def origin(self, identifier):
-        with self._db() as conn:
-            row = conn.execute("SELECT 1 FROM jobs WHERE state='complete' AND json_extract(result,'$.proposal_id')=?",(identifier,)).fetchone()
-        return {'provider':'mistral','model':MODEL} if row else None
-
 
 class PreviewIn(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -233,7 +239,6 @@ def register(app, guard, data_dir):
                 value = CloudWorkflowLearning(app,data_dir())
                 app.state.cloud_workflow_learning = value
             return value
-    app.state.procedure_cloud_origin = lambda identifier: manager().origin(identifier)
     def invoke(fn):
         try:
             return fn(manager())

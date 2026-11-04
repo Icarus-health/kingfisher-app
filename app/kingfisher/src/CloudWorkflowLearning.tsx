@@ -6,7 +6,7 @@ import { listenForCloudAccessChange } from "./cloudAccessEvents";
 type Area = "mail" | "planning" | "analysis";
 type Job = {
   id: string; state: "running" | "complete" | "failed" | "cancelled" | "interrupted";
-  result: { status?: string; proposal_id?: string; count?: number } | null; message?: string;
+  result: { status?: string; proposal_id?: string; count?: number; reused?: boolean; synthesis?: { provider: "mistral"; model: string } } | null; message?: string;
 };
 type Status = {
   provider: "mistral"; model: string; available: boolean; budget: MistralSourceBudget;
@@ -24,7 +24,7 @@ const sameBudget = (first: MistralSourceBudget, second: MistralSourceBudget) => 
   && first.revision === second.revision && first.price_id === second.price_id;
 
 /** Preview is local; only the explicitly consented start may use the provider. */
-export function CloudWorkflowLearning({ onProposed }: { onProposed: () => void }) {
+export function CloudWorkflowLearning({ onProposed, refreshKey = 0 }: { onProposed: () => void; refreshKey?: number }) {
   const [opened, setOpened] = useState(false);
   const [area, setArea] = useState<Area>("mail");
   const [status, setStatus] = useState<Status | null>(null);
@@ -47,9 +47,13 @@ export function CloudWorkflowLearning({ onProposed }: { onProposed: () => void }
   }
   function observeJob(job: Job | null) {
     if (job?.state === "running") setOpened(true);
-    if (job?.state === "complete" && job.result?.proposal_id && notified.current !== job.id) {
-      notified.current = job.id;
-      notify.current();
+    if (job?.state === "complete") {
+      const projection = `${job.id}:${job.result?.status}:${job.result?.proposal_id || ""}`;
+      const withdrawn = job.result?.status === "changed" && notified.current?.startsWith(`${job.id}:`);
+      if ((job.result?.proposal_id || withdrawn) && notified.current !== projection) {
+        notified.current = projection;
+        notify.current();
+      }
     }
   }
   async function loadStatus() {
@@ -68,12 +72,13 @@ export function CloudWorkflowLearning({ onProposed }: { onProposed: () => void }
   }
   useEffect(() => {
     mounted.current = true;
+    invalidatePreview();
     void loadStatus();
     const refresh = () => { invalidatePreview(); void loadStatus(); };
     const stop = listenForCloudAccessChange(refresh);
     window.addEventListener("focus", refresh);
     return () => { mounted.current = false; readVersion.current++; previewVersion.current++; stop(); window.removeEventListener("focus", refresh); };
-  }, []);
+  }, [refreshKey]);
   useEffect(() => {
     if (status?.job?.state !== "running") return;
     let cancelled = false;
@@ -164,7 +169,14 @@ export function CloudWorkflowLearning({ onProposed }: { onProposed: () => void }
           if (mounted.current) { setStatus(next); setVerified(true); }
         })}>Prüfung abbrechen</button></>
         : job.state === "complete" ? job.result?.status === "changed" ? <p>Die Grundlage hat sich verändert. Der vorhandene Vorschlag ist nicht mehr verwendbar. Bitte die Korrekturen prüfen und eine neue Vorschau erstellen.</p>
-          : job.result?.proposal_id ? <p>Ein Vorschlag liegt in deiner Bibliothek zur Prüfung. Noch nicht aktiv. Mit Mistral entworfen · lokal gespeichert.</p>
+          : job.result?.proposal_id ? <>
+            {job.result.reused ? <p>Ein vorhandener Ablauf wurde wiedergefunden.</p> : null}
+            <p>{job.result.status === "active" ? "Der zugehörige Ablauf ist übernommen und kann bei passenden Anfragen verwendet werden."
+              : job.result.status === "dismissed" ? "Der zugehörige Ablauf wird nicht verwendet (nicht übernommen oder zurückgenommen)."
+              : job.result.reused ? "Den aktuellen Stand und die Übernahme prüfst du in der Bibliothek."
+              : "Ein Ablauf wurde als Vorschlag gespeichert. Den aktuellen Stand und die Übernahme prüfst du in der Bibliothek."}</p>
+            {job.result.synthesis?.provider === "mistral" ? <p className="source-hint">Mit Mistral entworfen · lokal gespeichert.</p> : null}
+          </>
           : job.result?.status === "no_pattern" ? <p>Kein neuer Ablaufvorschlag. Aus diesen Korrekturen wurde kein geeigneter neuer Ablauf abgeleitet.</p>
           : <p>Die Prüfung ist beendet. Bitte den aktuellen Stand in der Bibliothek prüfen.</p>
         : job.state === "cancelled" ? <p>Prüfung abgebrochen. Bereits entstandene Kosten bleiben bestehen.</p>

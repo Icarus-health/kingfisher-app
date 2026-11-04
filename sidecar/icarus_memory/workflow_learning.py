@@ -213,7 +213,7 @@ def _review(app, row):
         return {'status':'unavailable'}
 
 
-def synthesize(app, packet, generate, permitted, on_result=None):
+def synthesize(app, packet, generate, permitted, on_result=None, synthesis=None):
     """Same validation for local and separately authorized cloud generation."""
     messages = packet.messages
     records, sources, area, key = packet.records, packet.sources, packet.area, packet.key
@@ -252,8 +252,10 @@ def synthesize(app, packet, generate, permitted, on_result=None):
                 result = {'status':'no_pattern'}
             else:
                 support = {PREFIX+i:sources[PREFIX+i] for i in identifiers}
-                item = app.state.procedures.propose(data,sources=support,request_key=key)
-                result = {'status':'proposed','proposal_id':item['id'],'count':len(chosen)}
+                prior = {item['id'] for item in app.state.procedures.items()}
+                item = app.state.procedures.propose(data,sources=support,request_key=key,synthesis=synthesis)
+                result = {'status':'active' if item['state']=='active' else 'proposed',
+                          'proposal_id':item['id'],'count':len(chosen),'reused':item['id'] in prior}
             app.state.rueckmeldungen.save_workflow_result(key,result)
             if on_result is not None:
                 on_result(result)
