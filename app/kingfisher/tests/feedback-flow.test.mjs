@@ -14,12 +14,12 @@ const text=n=>n==null?'':typeof n==='object'?[n.props?.children].flat(30).map(te
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);for(const c of [n.props?.children].flat(30))nodes(c,p,out);return out;}
 const button=(tree,label)=>nodes(tree,n=>n.type==='button'&&text(n)===label)[0];
 const tick=async()=>{for(let i=0;i<4;i++)await new Promise(setImmediate);};
-async function fixture(run){const states=[],refs=[],effects=[],pending=[];let s=0,r=0,e=0;
+async function fixture(run,saved){const states=[],refs=[],effects=[],pending=[];let s=0,r=0,e=0;
  const old={fetch:globalThis.fetch,raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame};const frames=new Map();let nextFrame=0;
  globalThis.requestAnimationFrame=fn=>{frames.set(++nextFrame,fn);return nextFrame;};globalThis.cancelAnimationFrame=id=>frames.delete(id);
  const calls=[];let fail=false,release;
  globalThis.fetch=async(path,init)=>{calls.push({path,body:JSON.parse(init.body)});if(release)await release.promise;return new Response(JSON.stringify(fail?{detail:'Speichern nicht möglich'}:{meldung:{id:'feedback-a'}}),{status:fail?503:201});};
- const d={state(v){const i=s++;if(!(i in states))states[i]=typeof v==='function'?v():v;return[states[i],n=>states[i]=typeof n==='function'?n(states[i]):n];},ref(v){return refs[r++]??={current:v};},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__feedbackDriver=d;return StimmtNicht({conversationId:'chat-a',messageId:'message-a'});},run(){pending.splice(0).forEach(fn=>fn());const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn());}};
+ const d={state(v){const i=s++;if(!(i in states))states[i]=typeof v==='function'?v():v;return[states[i],n=>states[i]=typeof n==='function'?n(states[i]):n];},ref(v){return refs[r++]??={current:v};},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__feedbackDriver=d;return StimmtNicht({conversationId:'chat-a',messageId:'message-a',saved});},run(){pending.splice(0).forEach(fn=>fn());const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn());}};
  try{d.render();d.run();await run({d,calls,fail(v){fail=v;},hold(){let resolve;const promise=new Promise(r=>resolve=r);release={promise};return resolve;}});}
  finally{effects.forEach(x=>x.cleanup?.());delete globalThis.__feedbackDriver;globalThis.fetch=old.fetch;globalThis.requestAnimationFrame=old.raf;globalThis.cancelAnimationFrame=old.caf;}
 }
@@ -53,3 +53,29 @@ test('a save in flight cannot be dismissed as though it had been cancelled',()=>
  assert.equal(d.render().type,'form');assert.equal(button(d.render(),'Abbrechen').props.disabled,true);
  release();await tick();assert.equal(calls.length,1);assert.equal(d.render().props.role,'status');
 }));
+
+test('workflow learning is explicit and can be withdrawn after saving',()=>fixture(async({d,calls})=>{
+ button(d.render(),'Stimmt nicht?').props.onClick();let tree=d.render();d.run();button(tree,'Etwas anderes').props.onClick();
+ nodes(tree,n=>n.type==='input'&&n.props.type==='text')[0].props.onChange({target:{value:'Vor dem Entwurf den Empfänger prüfen.'}});
+ tree=d.render();const learning=nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0];
+ assert.ok(learning,'Arbeitsweise muss gesondert gekennzeichnet werden');assert.equal(learning.props.checked,false);
+ learning.props.onChange({target:{checked:true}});assert.equal(calls.length,0);
+ d.render().props.onSubmit({preventDefault(){}});await tick();tree=d.render();
+ assert.equal(calls[0].body.arbeitsweise,true);
+ assert.match(text(tree),/noch nicht aktiv|Kein Ablauf aktiviert/);
+ const undo=button(tree,'Arbeitsweise zurücknehmen');assert.ok(undo);
+ undo.props.onClick();await tick();assert.equal(calls[1].path,'/api/v1/rueckmeldungen/feedback-a/arbeitsweise-zuruecknehmen');
+ assert.match(text(d.render()),/zurückgenommen/);
+}));
+
+test('reopening restores proposal and withdrawal; failed withdrawal remains retryable',()=>fixture(async({d,calls,fail})=>{
+ let tree=d.render();assert.match(text(tree),/Vorschlag|Ablaufvorschlag/);
+ assert.equal(nodes(tree,n=>n.type==='a')[0].props.href,'/settings?ablauf=proc-saved#ich-ablaeufe');
+ assert.equal(calls.length,0,'Wiederöffnen darf keine Modellprüfung oder Speicherung starten');
+ fail(true);button(tree,'Arbeitsweise zurücknehmen').props.onClick();await tick();tree=d.render();
+ assert.match(text(tree),/noch nicht zurückgenommen/);assert.ok(button(tree,'Arbeitsweise zurücknehmen'));
+ fail(false);button(tree,'Arbeitsweise zurücknehmen').props.onClick();await tick();
+ assert.match(text(d.render()),/Diese Korrektur wird nicht mehr zum Lernen verwendet/);
+ assert.ok(calls.every(c=>c.path==='/api/v1/rueckmeldungen/saved-feedback/arbeitsweise-zuruecknehmen'));
+ assert.ok(calls.every(c=>Object.keys(c.body).length===0),'Rücknahme braucht keine erneute Übermittlung des Korrekturtexts');
+},{id:'saved-feedback',art:'sonstiges',richtig:'Erst Empfänger prüfen.',arbeitsweise:true,lernen:{status:'proposed',proposal_id:'proc-saved'}}));

@@ -108,7 +108,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { workflow_feedback?:WorkflowFeedback; resolved_approval_id?: string; context?: { original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -1249,6 +1249,8 @@ export type RueckmeldungArt = "falsch" | "unvollstaendig" | "veraltet" | "zu_lan
 export type Rueckmeldung = { id: string; erstellt: string; frage: string; antwort: string; art: RueckmeldungArt; art_text: string;
   richtig: string; belege: string[]; status: "offen" | "erledigt"; erledigt_am: string; gespraech_id: string; nachricht_id: string };
 export type RueckmeldungZaehlung = { gesamt: number; offen: number; erledigt: number };
+export type WorkflowLearning = {status: "recorded"|"collecting"|"proposed"|"active"|"dismissed"|"changed"|"not_workflow"|"no_pattern"|"local_required"|"busy"|"too_long"|"unavailable"; count?:number; proposal_id?:string};
+export type WorkflowFeedback = {id:string;art:RueckmeldungArt;richtig:string;arbeitsweise:boolean;lernen?:WorkflowLearning|null};
 export type RueckmeldungenListe = { meldungen: Rueckmeldung[]; zaehlung: RueckmeldungZaehlung; arten: Array<{ id: RueckmeldungArt; text: string }> };
 
 /** Befunde des Lint über alle Akten (sidecar: lint.py, lint_routes.py). */
@@ -1713,8 +1715,9 @@ export const api = {
     request<{ befund: Befund; aussage: { id: string; statement: string } | null; zusammenfassung: BefundZusammenfassung }>(
       `/api/v1/lint/befunde/${encodeURIComponent(id)}/entscheiden`, { method: "POST", body: JSON.stringify({ wahl, stand }) }),
   rueckmeldungen: () => request<RueckmeldungenListe>("/api/v1/rueckmeldungen"),
-  rueckmeldungMelden: (body: { conversation_id: string; message_id: string; art: RueckmeldungArt; richtig: string }) =>
-    request<{ meldung: Rueckmeldung } & RueckmeldungZaehlung>("/api/v1/rueckmeldungen", { method: "POST", body: JSON.stringify(body) }),
+  rueckmeldungArbeitsweiseZuruecknehmen: (id:string) => request(`/api/v1/rueckmeldungen/${encodeURIComponent(id)}/arbeitsweise-zuruecknehmen`,{method:"POST",body:"{}"}),
+  rueckmeldungMelden: (body: { conversation_id: string; message_id: string; art: RueckmeldungArt; richtig: string; arbeitsweise?:boolean }) =>
+    request<{ meldung: Rueckmeldung; lernen?:WorkflowLearning } & RueckmeldungZaehlung>("/api/v1/rueckmeldungen", { method: "POST", body: JSON.stringify(body) }),
   rueckmeldungErledigt: (id: string) =>
     request<{ meldung: Rueckmeldung } & RueckmeldungZaehlung>(`/api/v1/rueckmeldungen/${encodeURIComponent(id)}/erledigt`, { method: "PATCH" }),
   /** Die Fälle als Text der Datei (Fragenformat der Messlatte). Enthält Frage- und Antworttexte, nur zum Speichern auf diesem Rechner. */

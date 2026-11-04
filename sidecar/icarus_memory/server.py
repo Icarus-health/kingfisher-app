@@ -4434,6 +4434,11 @@ def create_app(
                     resolved_knowledge_turns += 1
                 projected.append(value)
             projected.reverse()
+            from .workflow_learning import conversation_feedback
+            feedback = conversation_feedback(app,conversation_id)
+            for message in projected:
+                if message['id'] in feedback:
+                    message['metadata'] = {**message.get('metadata',{}), 'workflow_feedback':feedback[message['id']]}
             latest_context = next((item['metadata']['context'] for item in reversed(projected)
                 if item.get('role') == 'assistant'
                 and isinstance(item.get('metadata', {}).get('context'), dict)

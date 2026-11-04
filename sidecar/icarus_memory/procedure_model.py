@@ -69,8 +69,6 @@ def local_context_allowed(provider):
 def draft(provider, messages, schema, *, permitted=None):
     from .procedures import ProcedureError, Spec, validate
     from .working_profile import task_for
-    if schema != Spec.model_json_schema():
-        return _draft_once(provider, messages, schema)
     # Eine lokale Kopie erhält die zusätzliche Quellbindung. Bestehende
     # Freigabeprüfungen bleiben erhalten; der genaue Anbietertyp bleibt gleich.
     local = copy(provider)
@@ -78,6 +76,12 @@ def draft(provider, messages, schema, *, permitted=None):
     local._verified_local_permitted = lambda: (
         bool(getattr(provider, 'is_local', False)) and previous()
         and (permitted is None or permitted()))
+    if schema != Spec.model_json_schema():
+        with json_request_deadline(time.monotonic() + 60.0):
+            _allowed(local)
+            response = _draft_once(local, messages, schema)
+            _allowed(local)
+            return response
     original = _instructions(messages, _TRIGGER_GUIDANCE)
     attempt = original
     # Beide Versuche teilen das bisherige 60s-Budget. Eine schon laufende
