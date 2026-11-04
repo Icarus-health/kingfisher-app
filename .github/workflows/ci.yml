@@ -37,7 +37,11 @@ jobs:
 
       - name: Tests
         # Auf vier Kernen rund ein Viertel der Zeit; jeder Test bleibt in seinem eigenen Prozess unverändert.
-        run: python -m pytest sidecar/tests -q -n auto
+        # Die strenge Ein-Sekunden-Messung folgt separat ohne konkurrierende Testworker.
+        run: python -m pytest sidecar/tests -q -n auto -k 'not test_jede_serie_ist_in_unter_einer_sekunde_entschieden'
+
+      - name: Kalender-Laufzeit ohne parallele Testlast
+        run: python -m pytest sidecar/tests/test_ical_termine.py -q -k test_jede_serie_ist_in_unter_einer_sekunde_entschieden
 
       - name: Synthetische Gedächtnisdiagnostik ohne Modell
         run: python -m pytest scripts/test_memory_probe_support.py scripts/test_memory_probe_agent.py scripts/test_probe_memory_pipeline.py scripts/test_probe_hybrid_memory.py scripts/test_memory_probe_catalog.py scripts/test_memory_answer_comparison.py scripts/test_probe_everyday_memory.py scripts/test_probe_working_memory_paraphrase.py scripts/test_probe_working_memory_scale.py scripts/test_probe_working_memory_models.py scripts/test_probe_intake_precision.py scripts/test_probe_harness_isolation.py -q

@@ -30,3 +30,11 @@ This is **not persistent offline calendar support after restart**, and arbitrary
 Browser plugin not available; used existing local Playwright with headless Chrome and an isolated Vite page at 127.0.0.1:5197, exclusively synthetic data. Initial QA attempts exposed test setup errors (case-sensitive close-button name, tab role, and missing fixture asset directory), corrected using actual source/rendered evidence. Those failures were not product regressions. Final server and QA browser closed in cleanup.
 
 No Mistral key, paid call, private data upload, bulk import, personal settings change, native installation or live-calendar mutation occurred. The separate native test window has an existing unsaved draft; it was not reloaded. Independent review did not cover unchanged shared account-status bookkeeping or persistent offline snapshots; those remain separately scoped work.
+
+## CI timing follow-up
+
+Run `41887449067` passed Python 3.10 and the UI job; its Python 3.12 job failed only the unchanged recurrence timing case beginning in 1975 (`FREQ=MINUTELY;INTERVAL=30`): 1.39 seconds against its one-second limit. The other 10,031 tests passed, two skipped. Neither the recurrence parser nor this test changed in this PR.
+
+All 33 parametrized recurrence timing cases passed locally with the original one-second assertions. A separate profile of the reported parser case returned 1,439 occurrences in 0.147 seconds; that local observation does not establish the cause of the slower CI measurement. The full test duration also includes a dateutil reference calculation outside the timed block and is not the parser measurement.
+
+CI now runs these 33 strict timing cases in a separate sequential step after the parallel functional suite. The test budget, hard timeout, expected occurrences and parser remain unchanged; no test is omitted. Collection verifies 10,001 of 10,034 cases in the parallel selection and exactly the complementary 33 cases in the timing selection. This removes concurrent pytest-worker load from that measurement without weakening its threshold. The earlier failed run remains failed; no manual retry was requested.
