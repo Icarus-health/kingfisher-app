@@ -120,3 +120,18 @@ und höchstens 1.200 Ausgabetokens. Vor persönlichem Verfahrenskontext wird ein
 konfigurierbares lokales Modell zusätzlich anhand installierter Gewichte geprüft.
 Lokale Modellaufrufe übernehmen keine Systemproxys. Das verhindert, dass ein
 Loopback-Name oder eine Proxyvariable die zugesagte lokale Verarbeitung umgeht.
+
+## Einmalige Auswahl bei mehreren passenden Abläufen
+
+Gespräch und lokaler Mailentwurf fragen vor dem Modellaufruf nach, wenn mehrere
+bestätigte persönliche Abläufe passen. Wähle den Titel oder ausdrücklich
+„Diesmal ohne persönlichen Ablauf“. Die Wahl gilt nur für diese Antwort.
+Abbrechen erhält die Eingabe; eine dauerhafte Priorität wird nicht angelegt.
+
+Die Auswahl läuft nach zehn Minuten ab und wird bei Änderungen an Auftrag,
+Mail, Quellen, Modellfreigabe oder Abläufen verworfen. Kingfisher bittet dann um
+eine neue Prüfung, statt eine alte Wahl still weiterzuverwenden. Auch die
+Hintergrundeinordnung wartet: Ein ungeklärter Auftrag und der Auswahlknopf
+werden nicht als neue Wissensaussagen verarbeitet.
+
+[Prüfnachweis und Grenzen](runs/2026-11-04-procedure-choice/README.md).

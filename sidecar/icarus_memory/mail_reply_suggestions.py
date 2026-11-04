@@ -18,10 +18,12 @@ from .working_memory_context import reports
 from .working_memory_answers import prepare as select_working_sources, _fresh as selection_fresh
 from .lexical import terms_v1
 from .model import SourceType, readable_time
+from .procedure_choices import ProcedureChoiceIn
 
 
 class SuggestionIn(BaseModel):
     instruction: str = Field(default="", max_length=1500)
+    procedure_choice: ProcedureChoiceIn | None = None
 
 
 class ContextValidationIn(BaseModel):
@@ -269,9 +271,24 @@ def register_reply_suggestions(app, guard):
         if getattr(message, "truncated", False) or len(text) > 8000:
             raise HTTPException(422, "Die Mail ist für einen sicheren Entwurf zu lang.")
         original = _fingerprint(message)
-        procedures = getattr(app.state, 'procedures', None)
-        procedure_selection = (procedures.select_for(body.instruction, provider, area='mail') if procedures else None)
         with lock:
+            from .procedure_choices import offer, take, provider_state
+            from .procedures import ProcedureError
+            procedures = getattr(app.state, 'procedures', None)
+            owners = {'mail':mail, 'provider':provider, 'procedures':procedures}
+            choice_state = {'mail':original, 'provider':provider_state(provider)}
+            choice = None
+            try:
+                if body.procedure_choice is not None:
+                    _, choice = take(app, body.procedure_choice, scope=('mail',uid),
+                        request=body.instruction, owners=owners, state=choice_state)
+                procedure_selection = (procedures.select_for(body.instruction, provider, area='mail', choice=choice)
+                                       if procedures else None)
+            except ProcedureError as exc:
+                raise HTTPException(409, str(exc)) from exc
+            if procedure_selection and procedure_selection['conflicts']:
+                return {'procedure_choice':offer(app, procedure_selection, scope=('mail',uid),
+                    request=body.instruction, owners=owners, state=choice_state)}
             style = effective_style(app, message)
             stil = tone_hint(app, message)
         source_items, source_stamps, source_status, selection_proof = _source_context(app, message, body.instruction, provider)

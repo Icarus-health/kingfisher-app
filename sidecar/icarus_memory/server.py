@@ -240,6 +240,9 @@ class CalendarFollowupStatusIn(BaseModel):
     nichts: bool
 
 
+from .procedure_choices import ProcedureChoiceIn
+
+
 class ConversationMessageIn(BaseModel):
     message: str = Field(min_length=1, max_length=20_000)
     answer_mode: Literal['auto', 'chat', 'memory_evidence'] = 'auto'
@@ -248,6 +251,7 @@ class ConversationMessageIn(BaseModel):
     clarification_choice: int | None = Field(default=None, ge=0, le=5)
     # Vom Nutzer gewähltes Datum der Nachricht auf eine Zeitrückfrage.
     clarification_date: date | None = None
+    procedure_choice: ProcedureChoiceIn | None = None
 
 
 class KnowledgeEvidenceIn(BaseModel):
@@ -4660,6 +4664,40 @@ def create_app(
             learning_request = explicit_learning(body.message)
             if learning_request:
                 mode = 'chat'
+            from .procedure_choices import offer as offer_procedure, take as take_procedure, chat_state
+            from .procedures import ProcedureError
+            from .working_profile import task_for
+            procedure_request = body.message
+            procedure_choice = None
+            procedure_turn = None
+            procedure_owners = {'agent':app.state.agent, 'provider':getattr(app.state.agent, 'provider', None),
+                                'procedures':app.state.procedures}
+            if body.procedure_choice is not None:
+                if (body.clarification_choice is not None or body.clarification_date is not None
+                        or body.new_question or body.answer_mode == 'memory_evidence'):
+                    raise HTTPException(422, 'Bitte nur eine Ablaufwahl für diese Antwort senden.')
+                pending = last.metadata.get('context', {}).get('procedure_choice') if (
+                    last is not None and last.role == 'assistant' and last.status == 'complete') else None
+                if (not isinstance(pending, dict) or pending.get('token') != body.procedure_choice.token
+                        or not previous or previous[-1].id != last.id):
+                    raise HTTPException(409, 'Diese Ablaufwahl gehört nicht zur aktuellen Rückfrage.')
+                try:
+                    procedure_request, procedure_choice = take_procedure(app, body.procedure_choice,
+                        scope=('chat',conversation_id), owners=procedure_owners, state=chat_state(app),
+                        label=body.message.strip())
+                    app.state.procedures.select_for(procedure_request, app.state.agent.provider,
+                        area=task_for(procedure_request), choice=procedure_choice)
+                except ProcedureError as exc:
+                    raise HTTPException(409, str(exc)) from exc
+                learning_request = False
+                mode, fresh_question = 'chat', False
+            elif (not learning_request and mode in {'auto','chat'} and task_for(body.message)
+                    and procedure_owners['provider'] is not None):
+                selected = app.state.procedures.select_for(body.message, app.state.agent.provider,
+                    area=task_for(body.message))
+                if selected['conflicts']:
+                    procedure_turn = app.state.agent.procedure_choice_turn(body.message, selected)
+                    mode = 'chat'  # Konflikt vor Fragenmodell und Kontextrecherche klären.
             choice_answer = None
             date_answer = None
             if body.clarification_choice is not None and body.clarification_date is not None:
@@ -4765,17 +4803,18 @@ def create_app(
                 and isinstance(last_context.get('answer_contract'), dict)
                 and last_context['answer_contract'].get('status') in {'clarify', 'working_unclear'})
             # Ein Klick auf eine Auswahl ist keine neue Aussage des Nutzers.
-            clicked = choice_answer is not None or meaning_pending is not None
+            clicked = choice_answer is not None or meaning_pending is not None or procedure_choice is not None
             # Verfahrensunterricht bleibt korrigierbares Original, ist aber
             # weder ein eigener Arbeitsauftrag noch eine Wissensaussage.
-            lookup_only = (learning_request or (mode == 'memory_evidence' and not followup)
+            lookup_only = (learning_request or procedure_turn is not None
+                           or (mode == 'memory_evidence' and not followup)
                            or clicked or date_answer is not None)
             source = app.state.conversations.add_message(conversation_id, "user", body.message,
                 metadata={'answer_mode': mode, 'new_question': fresh_question,
                           'source_capture_expected': True,
                           'memory_lookup_only': lookup_only,
                           **({'clarification_choice': body.clarification_choice}
-                             if clicked else {}),
+                             if body.clarification_choice is not None else {}),
                           **({'clarification_date': body.clarification_date.isoformat()}
                              if date_answer is not None else {})})
             source_episode, created = conversation_memory.capture(
@@ -4789,12 +4828,17 @@ def create_app(
             source_stamp = conversation_memory.stamp(app.state.episodes, source_episode.id)
             source_captured = conversation_memory.usable(app.state.episodes, source_stamp)
             input_sources[source_episode.id] = source_stamp
-            if mode == 'memory_evidence' and last is not None:
+            # Eine geänderte Gedächtnisrevision kann den Modellverlauf leeren.
+            # Die Einmalwahl führt trotzdem den ursprünglichen Auftrag fort.
+            if (mode == 'memory_evidence' or procedure_choice is not None) and last is not None:
                 input_sources.update({entry["episode_id"]: entry for entry in previous_lineages[last.id]})
             try:
                 if learning_request:
                     routing = None
                     turn = learn_procedure(app, body.message, source_episode)
+                elif procedure_turn is not None:
+                    routing = None
+                    turn = procedure_turn
                 elif mode == 'memory_evidence':
                     routing = None
                     execution_agent = app.state.agent
@@ -4820,10 +4864,15 @@ def create_app(
                         turn.reply = REFRESHED + '\n\n' + turn.reply
                 else:
                     from .routing_runtime import scoped_agent
-                    execution_agent, routing = scoped_agent(app, body.message)
+                    execution_agent, routing = scoped_agent(app, procedure_request)
                     execution_agent.load_history(history if not routing or routing['history_shared'] else [])
                     turn = execution_agent.send(
-                        body.message, conversation_source_captured=source_captured)
+                        procedure_request, conversation_source_captured=source_captured,
+                        **({'procedure_choice':procedure_choice} if procedure_choice is not None else {}))
+                if turn.context.get('procedure_choice'):
+                    turn.context['procedure_choice'] = offer_procedure(app, turn.context['procedure_choice'],
+                        scope=('chat',conversation_id), request=procedure_request,
+                        owners=procedure_owners, state=chat_state(app))
                 if routing:
                     turn.context['routing'] = routing
                     app.state.audit.record('agent_handoff', 'read', 'notify', 'executed',
@@ -4853,7 +4902,7 @@ def create_app(
                 # ein nachweislich ausdrückliches „Merke …" in genau dieser
                 # Nutzerzeile darf seinen strukturierten Entwurf in den
                 # bestehenden Kandidatenpfad überführen.
-                if _explicit_memory_request(source.content):
+                if procedure_choice is None and _explicit_memory_request(source.content):
                     same_turn_messages = [assistant_message.id]
                     for draft in getattr(turn, "memory_candidate_drafts", []):
                         try:

@@ -1403,8 +1403,16 @@ class Agent:
 
     # -- Gesprächsrunde ----------------------------------------------------
 
+    def procedure_choice_turn(self, message, selection):
+        """Rückfrage ohne Kontextrecherche, Modellaufruf oder Werkzeugfreigabe."""
+        return Turn(reply='Mehrere bestätigte Abläufe passen. Welchen soll ich diesmal verwenden?',
+            context={'items':[], 'memory_revision':self._knowledge.revision if self._knowledge else 0,
+                'history_egress':'local_only', 'original_question':message,
+                'procedure_choice':{key:selection[key] for key in ('choices','choice_signature')},
+                'procedures':{key:selection[key] for key in ('refs','signature','conflicts','missing')}})
+
     @guarded
-    def send(self, message: str, *, conversation_source_captured: bool = False) -> Turn:
+    def send(self, message: str, *, conversation_source_captured: bool = False, procedure_choice=None) -> Turn:
         if self._provider is None:
             reset = (self._history_lineage_unknown or not self._knowledge_history_available()
                      or self._history_self_model_unknown or not self._self_model_history_available())
@@ -1428,8 +1436,11 @@ class Agent:
         from .working_profile import resolve as resolve_profile, task_for
         self._working_profile_task = task_for(message)
         self._working_profile_message = message
-        procedures = (self._procedures.select_for(message, self._provider, area=self._working_profile_task)
+        procedures = (self._procedures.select_for(message, self._provider, area=self._working_profile_task,
+                                                 choice=procedure_choice)
                       if self._procedures else None)
+        if procedures and procedures['conflicts']:
+            return self.procedure_choice_turn(message, procedures)
         procedure_reset = bool(self._history and self._procedures and
             (not self._procedures_current() or (self._history_procedures and
              self._history_procedures.get('signature') != procedures['signature'])))
@@ -1507,8 +1518,6 @@ class Agent:
         if procedures:
             turn.context['procedures'] = {key:procedures[key] for key in ('refs','signature','conflicts','missing')}
             turn.context['procedures']['history_reset'] = procedure_reset
-            if procedures['conflicts']:
-                turn.notices.append('Mehrere bestätigte Abläufe passen. Ich verwende das Grundverfahren, bis die Zuordnung geklärt ist.')
         if style_reset or procedure_reset:
             turn.context['history_omitted'] = True
         selected_knowledge = knowledge_history.from_items(turn.context['items'])

@@ -2,6 +2,7 @@ import {useConversationVoice, VoiceDraftStatus, VoiceReply} from "./Conversation
 import {CommandBar} from "./CommandBar";
 import {ConversationCapture} from "./ConversationCapture";
 import {ConversationNavigation} from "./ConversationNavigation";
+import {ProcedureChoice, type ProcedureChoiceValue} from './ProcedureChoice';
 import {MessageText} from "./MessageText";
 import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
 import { FassungHeute } from "./Fassung";
@@ -339,7 +340,8 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     [data],
   );
 
-  async function send(message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean }) {
+  const [cancelledProcedure, setCancelledProcedure] = useState<string|null>(null);
+  async function send(message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }) {
     if (!message.trim() || !chatAvailable) return;
     setSending(true);
     setAusstehend(message);
@@ -354,6 +356,11 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
       // nicht mehr. Statt eines Fehlers wird die ursprüngliche Frage mit dem
       // aktuellen Stand neu gestellt; der Nutzer muss nichts wiederholen.
       const original = data?.messages[data.messages.length - 1]?.metadata?.context?.original_question;
+      if (problem instanceof ApiError && problem.status === 409 && clarification?.procedure) {
+        setCancelledProcedure(clarification.procedure.token);
+        setRefreshNotice('Die Ablaufwahl ist nicht mehr aktuell. Bitte den Auftrag erneut prüfen.');
+        return;
+      }
       const stale = problem instanceof ApiError && problem.status === 409
         && (clarification?.choice !== undefined || clarification?.date !== undefined) && original;
       if (stale) {
@@ -505,7 +512,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {beleg.art === "quellenlinks" ? <div className="beleg-links" role="group" aria-label="Worauf die Antwort sich stützt"><p className="beleg-kopf">{GESTUETZT_AUF}</p>
                   {message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet={false} />)}
                 </div> : null}
-                {beleg.art === "ohne" && !procedureProposal ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
+                {beleg.art === "ohne" && !procedureProposal && !message.metadata?.context?.procedure_choice ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
                 {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate(`/settings?ablauf=${encodeURIComponent(procedureProposal.id)}#ich-ablaeufe`)}>Ablauf prüfen</button> : null}
                 {meldbar(message) ? <div className="antwort-rueckkanal">
                   <StimmtNicht conversationId={data.conversation.id} messageId={message.id} />
@@ -514,6 +521,16 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_choices?.length ? <div className="memory-actions clarification-choices" role="group" aria-label="Antwort auswählen">
                   {message.metadata.context.clarification_choices.map((choice, index) => <button className="memory-reject" disabled={sending || !chatAvailable} key={choice.label} onClick={() => void send(choice.label, { choice: index }).catch(() => undefined)} type="button">{choice.label}</button>)}
                 </div> : null}
+                {messageIndex === data.messages.length - 1 && message.metadata?.context?.procedure_choice
+                  && message.metadata.context.procedure_choice.token !== cancelledProcedure ? <ProcedureChoice
+                    prompt={message.metadata.context.procedure_choice} busy={sending||!chatAvailable}
+                    onChoose={option=>send(option.label,{procedure:{token:message.metadata!.context!.procedure_choice!.token,id:option.id}}).catch(()=>undefined)}
+                    onCancel={()=>setCancelledProcedure(message.metadata!.context!.procedure_choice!.token)} />:null}
+                {messageIndex === data.messages.length - 1 && message.metadata?.context?.procedure_choice
+                  && message.metadata.context.procedure_choice.token === cancelledProcedure
+                  && message.metadata.context.original_question ? <button className="g-knopf-schlicht" type="button"
+                    disabled={sending||!chatAvailable} onClick={()=>void send(message.metadata!.context!.original_question!,{newQuestion:true}).catch(()=>undefined)}>
+                    Auftrag erneut prüfen</button>:null}
                 {/* Nur unter der letzten Antwort: Ältere Antworten sind Verlauf, danach wurde schon weitergefragt. */}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.refresh_available && message.metadata.context.original_question ? <div className="memory-actions"><button className="memory-reject" disabled={sending || !chatAvailable} onClick={() => void send(message.metadata!.context!.original_question!, { newQuestion: true }).catch(() => undefined)} type="button">Mit aktuellem Stand neu beantworten</button></div> : null}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_date ? <SourceDateForm busy={sending || !chatAvailable} onSubmit={(value) => { const [year, month, day] = value.split("-"); void send(`Die Nachricht stammt vom ${day}.${month}.${year}.`, { date: value }).catch(() => undefined); }} /> : null}
