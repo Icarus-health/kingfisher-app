@@ -69,7 +69,8 @@ def test_unaufmerksam_mit_pruefmodell_wird_der_falsche_satz_verworfen_und_getren
 def test_sorgfaeltig_mit_pruefmodell_verwirft_keinen_richtigen_satz(welt_mit_skript):
     ergebnis = lauf(welt_mit_skript, 'skript:sorgfaeltig', 'skript:pruefung')
     [f] = ergebnis.fragen
-    assert f.antwort.text.startswith(RICHTIG) and f.antwort_bewertung.klasse == 'richtig'
+    assert f.antwort.text.startswith('Sabine Becker: ' + RICHTIG)
+    assert f.antwort_bewertung.klasse == 'richtig' and f.antwort.belege == ('mainz-008',)
     assert (f.antwort.verworfen_satzpruefung, f.antwort.verworfen_pruefmodell) == (0, 0)
     assert 'Keine Antwort mit verworfenen Sätzen.' in bericht.markdown(ergebnis)
 

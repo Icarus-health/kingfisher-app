@@ -56,3 +56,25 @@ Unabhängiger Diff-Review bestätigte unveränderte Schutzprüfungen und identis
 Musterverhalten. Anschließend bestanden alle 179 Tests der betroffenen fünf
 Dateien in 30,87 Sekunden, mit einer bestehenden Warnung. Ein grüner vollständiger
 Lauf auf dem abschließenden Commit ist weiterhin Voraussetzung für die Freigabe.
+
+Der folgende CI-Lauf auf `efc306f` bestand unter Python 3.10 alle 9.978
+Backendtests (2 übersprungen, 26 bestandene Untertests) sowie 275 Diagnose-,
+72 Modul-/Gateway- und 31 Mistral-Offlineprüfungen. Die danach ausgeführte
+Messlatte meldete sechs Fehler. Lokal wurden dieselben sechs Fehler bei elf
+bestandenen Tests reproduziert: Ihre Testattrappe erkannte nur den früheren
+Satzprompt und übersprang den neuen Originalstellenvertrag. Ein positiver Test
+erwartete zudem einen entfernten Sprecher statt des erhaltenen Originals.
+
+Die Attrappe erkennt jetzt beide echten Verträge. Die sorgfältige Regel wählt
+die angebotenen Originalpaare für Verschiebung und Frist; beide Aussagen,
+korrekter Sprecher und Quellenbezug werden weiterhin ausdrücklich geprüft.
+Die Tests verlangen zusätzlich den tatsächlichen Aufruf der Satzregel.
+Ein unabhängiger Review instrumentierte die drei negativen Fristkontrollen:
+Alle Fehlkandidaten erreichten die primäre Prüfung und wurden dort verworfen,
+statt wegen eines unerkannten Prompts nur scheinbar zu bestehen.
+
+Abschließend bestanden die vollständigen 327 Messlatte-Tests in 57,62 Sekunden
+(eine bestehende Warnung). Die 33 Mac-Prüfungen bestanden, eine wurde
+plattformbedingt übersprungen; Schema und Beispielprofil waren valide.
+Der lokale Swift-Cache lag dabei im erlaubten temporären Verzeichnis.
+Diese letzte Korrektur ändert nur Tests, keinen Produktcode und keine Modelle.

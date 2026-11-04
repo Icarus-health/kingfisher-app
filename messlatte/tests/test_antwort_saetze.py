@@ -24,9 +24,13 @@ FRAGE = 'Bis wann muss das Angebot für das Klinikum Mainz raus?'
 
 def sorgfaeltig(nutzer):
     neu = next(b for b in nutzer['belege'] if 'Neue Frist' in b['quelle'])
-    # Die Quelle formuliert eine Bitte, keine erkannte Muss-/Darf-Regel. Im
-    # normalen Textvertrag bleibt der vollständige Originalabsatz erhalten;
-    # aus „Bitte senden“ wird keine vom Modell erfundene Muss-Aussage.
+    # Personenbezogene Originaleinheiten werden anhand ihrer angebotenen IDs
+    # gewählt. Aus „Bitte senden“ wird keine erfundene Muss-Aussage.
+    if 'originalsaetze' in neu:
+        originale = [satz for satz in neu['originalsaetze']
+                     if 'Frist für das Angebot' in satz['text'] or '26. Oktober' in satz['text']]
+        return {'status': 'antwort', 'originalstellen': [{'beleg': neu['nr'], 'satz': satz['nr']}
+                                                        for satz in originale]}
     original = next(absatz for absatz in neu['text'].split('\n\n') if '26. Oktober' in absatz)
     return {'status': 'antwort', 'saetze': [{'text': original, 'belege': [neu['nr']]}]}
 
@@ -58,8 +62,10 @@ def stufe():
 
 def fragen(stufe, regel):
     stufe.modell.saetze = {'Angebot für das Klinikum Mainz raus': regel}
+    stufe.modell.satzanfragen.clear()
     frage = stufe.frage('mainz-01')
     ergebnis = antworten(stufe.instanz, frage, stufe.rueck)
+    assert stufe.modell.satzanfragen, 'Die Satzregel muss tatsächlich aufgerufen werden'
     return ergebnis, bewerte_antwort(frage, ergebnis)
 
 
@@ -73,8 +79,10 @@ def test_sorgfaeltiges_modell_ergibt_einen_satz_mit_beleg_und_keine_falsche_auss
         ergebnis, bewertung = fragen(stufe, sorgfaeltig)
     finally:
         stufe.modell.regeln = vorher
-    assert ergebnis.status == 'working_reports' and ergebnis.text.startswith('Quelle berichtet')
-    assert 'die Frist für das Angebot verschiebt sich. Bitte senden Sie es bis zum 26. Oktober.' in ergebnis.text
+    assert ergebnis.status == 'working_reports'
+    assert 'die Frist für das Angebot verschiebt sich.' in ergebnis.text
+    assert 'Quelle berichtet: „Bitte senden Sie es bis zum 26. Oktober.“ [1]' in ergebnis.text
+    assert ergebnis.verworfen_satzpruefung == 0
     assert '12. Oktober' not in ergebnis.text and '12.10.' not in ergebnis.text
     assert bewertung.klasse == 'richtig' and not bewertung.falsche_aussage, (ergebnis.text, bewertung)
     assert ergebnis.belege == ('mainz-003',), 'Nur die aktuelle Fristquelle darf die Antwort tragen'
