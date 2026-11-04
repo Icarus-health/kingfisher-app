@@ -1,0 +1,75 @@
+{
+  "scope": "synthetic native recovery integration; no personal installation or native GUI acceptance",
+  "base_commit": "93698ef587688b7cbc2ba227e88e288b6f71c856",
+  "backend_helper_tests": 108,
+  "native_affected_tests": 37,
+  "native_skipped": 1,
+  "independent_review": "CI fixes, Docker socket pin, atomic target publication, draft-close and reload-focus findings reviewed; two native findings corrected and rechecked",
+  "swift_typecheck": true,
+  "docker_probe": {
+    "synthetic_only": true,
+    "image": "sha256:c5081eaad5d4270a43432a2667f15c1c534eb3739082f58a8d3225876c286ba3",
+    "helper_sha256": "c78183671a6f7c13e379a3d7271ea63e0d3a6e78f9006fb0fc00e18ea48c4a22",
+    "stages": [
+      {
+        "operation": "extract",
+        "seconds": 1.7,
+        "ok": true,
+        "exit": 0
+      },
+      {
+        "operation": "inspect",
+        "seconds": 1.64,
+        "ok": true,
+        "exit": 0
+      },
+      {
+        "operation": "prepare",
+        "seconds": 1.88,
+        "ok": true,
+        "exit": 0
+      },
+      {
+        "operation": "open",
+        "seconds": 3.82,
+        "ok": true,
+        "exit": 0
+      },
+      {
+        "operation": "open",
+        "seconds": 3.29,
+        "ok": true,
+        "exit": 0
+      }
+    ],
+    "source_unchanged": true,
+    "task_persisted_after_stop_reopen": true,
+    "stable_instance_and_image": true,
+    "native_window": false
+  },
+  "cloud_calls": 0,
+  "model_calls": 0,
+  "bulk_import_resumed": false,
+  "native_window_test": false,
+  "personal_installation": false,
+  "source_sha256": {
+    "macos/App/AppDelegate.swift": "8d77d3d6213c56a944c03a6dd886d4325b393c845c7e492e0cf02c3b4164d0f7",
+    "macos/App/Logic/RecoverySelection.swift": "108c7ab639f1c3d4c70b272e8e63f41d88bdfc68b9f469b2d32fe580de2f6ed2",
+    "macos/App/RecoveryHelperClient.swift": "2944525cad7a59141cd06c811a256065fd4bdcae02d0a353dee2bc030427cfa2",
+    "macos/App/RecoveryWindowController.swift": "5560e6d9cceb8a6c8c32aa525d6989bddd380caefc28696158e15c6895385515",
+    "macos/build_dmg.sh": "87e09cbdfaa005944313af5b5cbed434563a1dc4aae4167a95e34a9dc82cb8d2",
+    "scripts/recovery_native.py": "c78183671a6f7c13e379a3d7271ea63e0d3a6e78f9006fb0fc00e18ea48c4a22",
+    "sidecar/icarus_memory/recovery_bundle.py": "c2cdc665f1e8026b528cdc8d391ca7d87130797c8fb98458b3ebcfb3b2e959da",
+    "sidecar/icarus_memory/recovery_workspace.py": "26bd0b87831bc842760d3ecce5845effb4af56dc6f8d390660d9f5da9a01facb",
+    "sidecar/icarus_memory/recovery_workspace_cli.py": "c996e78300a82d78e954d52ee6a7924114c143d934a61ff704f84bb33c923f21",
+    "sidecar/icarus_memory/server.py": "f29c1dd5e8a9cb37f424f3af5ade55639a67cc466a95cbb17008661ed3a8ef8f"
+  },
+  "local_arm64_package": {
+    "build": true,
+    "signature_verified": true,
+    "bundled_helper_matches": true,
+    "version_label": "1.0.44",
+    "release": false,
+    "dmg_sha256": "7300d819d532e196bdbf2e00231c2cb2fd3a75478884ee7140181baebd9c4381"
+  }
+}

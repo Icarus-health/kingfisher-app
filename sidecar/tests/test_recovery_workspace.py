@@ -349,6 +349,15 @@ def test_invalid_working_contract_never_grants_boot(rich, tmp_path, fault):
     assert not module.boot_allowed(data, env)
 
 
+def test_decoder_recursion_failure_stays_closed(tmp_path, monkeypatch):
+    module = api()
+    (tmp_path / 'restore-state.json').write_text('{}')
+    def exhausted(*args, **kwargs):
+        raise RecursionError('synthetic decoder limit')
+    monkeypatch.setattr(module.json, 'loads', exhausted)
+    assert module.read_working_contract(tmp_path) is None
+
+
 def test_launch_file_is_closed_private_and_never_shell_evaluated(rich, tmp_path):
     module = api(); target = prepare(rich, tmp_path / 'working')
     settings = target / 'settings.env'; original = settings.read_text()

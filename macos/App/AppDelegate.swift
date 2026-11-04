@@ -6,7 +6,7 @@ import WebKit
 // Keine Fachlogik: Die steckt im Container.
 
 @available(macOS 11.3, *)
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemValidation {
     private var window: NSWindow!
     private var surface: WebSurface!
     private var voice: NativeVoiceEngine?
@@ -26,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var powerReporter: PowerReporter?
     private var calendarReporter: CalendarReporter?
     private var notificationReporter: NotificationReporter?
+    private var recoveryWindows: [RecoveryWindowController] = []
+    private var recoveryQuitConfirmed = false
     /// Start oder Update laufen; dann gelten weder Neu laden noch eine zweite Anfrage.
     private var busy = false
     private var updating = false
@@ -123,6 +125,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         main.addItem(appItem)
         let appMenu = NSMenu()
         appItem.submenu = appMenu
+        let restore = appMenu.addItem(withTitle: "Sicherung wiederherstellen …", action: #selector(restoreBackup), keyEquivalent: "")
+        restore.target = self
+        let reopen = appMenu.addItem(withTitle: "Arbeitskopie öffnen …", action: #selector(openRecoveryCopy), keyEquivalent: "")
+        reopen.target = self
+        appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Kingfisher beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         let editItem = NSMenuItem()
         main.addItem(editItem)
@@ -142,7 +149,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.mainMenu = main
     }
 
-    @objc private func reloadPage() { if !busy { surface.reload(fallbackPath: AppPaths.startPage) } }
+    private var activeReloadTarget: RecoveryReloadTarget {
+        guard let active = NSApp.keyWindow, active.attachedSheet == nil else { return .none }
+        let recovery = recoveryWindows.first { $0.window === active }
+        return RecoveryReloadTarget.resolve(mainIsKey: active === window, mainBusy: busy,
+            recoveryID: recovery?.identifier, recoveryReady: recovery?.canReload == true)
+    }
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(reloadPage) { return activeReloadTarget != .none }
+        return true
+    }
+    @objc private func reloadPage() {
+        switch activeReloadTarget {
+        case .main: surface.reload(fallbackPath: AppPaths.startPage)
+        case .recovery(let identifier): recoveryWindows.first { $0.identifier == identifier }?.reloadPage()
+        case .none: break
+        }
+    }
+
+    @objc private func restoreBackup() { beginRecovery(reopen: false) }
+    @objc private func openRecoveryCopy() { beginRecovery(reopen: true) }
+    private func beginRecovery(reopen: Bool) {
+        guard !updating, let paths = paths else {
+            let alert = NSAlert(); alert.messageText = "Wiederherstellung noch nicht möglich"
+            alert.informativeText = updating ? Satz.updateLaeuft : "Bitte die Kingfisher-Installation prüfen."
+            alert.beginSheetModal(for: window); return
+        }
+        let controller = RecoveryWindowController(paths: paths)
+        let identifier = controller.identifier
+        controller.onClose = { [weak self] in self?.recoveryWindows.removeAll { $0.identifier == identifier } }
+        recoveryWindows.append(controller)
+        controller.begin(reopen: reopen)
+    }
 
     // MARK: Start
 
@@ -294,6 +332,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: Programm
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if recoveryWindows.contains(where: { $0.isWorking }) {
+            let alert = NSAlert(); alert.messageText = "Wiederherstellung läuft"
+            alert.informativeText = "Bitte warte, bis der aktuelle Schritt beendet ist. Die angelegten Ordner bleiben erhalten."
+            alert.beginSheetModal(for: window)
+            return .terminateCancel
+        }
+        if !recoveryQuitConfirmed && recoveryWindows.contains(where: { $0.needsDraftQuitConfirmation }) {
+            let alert = NSAlert(); alert.messageText = "Arbeitskopie und Kingfisher schließen?"
+            alert.informativeText = "Ungesendete Gesprächsentwürfe in den Arbeitskopien können beim Beenden verloren gehen. Bereits gespeicherte Daten bleiben erhalten."
+            alert.addButton(withTitle: "Offen lassen"); alert.addButton(withTitle: "Schließen")
+            alert.beginSheetModal(for: window) { [weak self] response in
+                if response == .alertSecondButtonReturn {
+                    self?.recoveryQuitConfirmed = true
+                    NSApp.terminate(nil)
+                    // A different guard may cancel quitting. Do not waive a
+                    // later confirmation or this window's own close warning.
+                    self?.recoveryQuitConfirmed = false
+                }
+            }
+            return .terminateCancel
+        }
         guard updating else {
             guard moduleManager != nil else { return .terminateNow }
             if moduleTerminationPending { return .terminateLater }

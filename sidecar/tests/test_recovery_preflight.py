@@ -2,6 +2,7 @@
 import hashlib
 import json
 import sqlite3
+import sys
 from datetime import datetime, timezone
 
 import pytest
@@ -86,7 +87,10 @@ def test_absent_comparison_is_unknown_not_no_changes(tmp_path, monkeypatch):
     assert 'private-content' not in response.text and 'private-key' not in response.text
 
 
-@pytest.mark.parametrize('fault,expected', [('symlink','symlink'), ('corrupt','corrupt'),
+# sqlite_errorcode was added in Python 3.11. On 3.10 the same database
+# remains blocked as unreadable; do not infer corruption from error prose.
+@pytest.mark.parametrize('fault,expected', [('symlink','symlink'),
+    ('corrupt','corrupt' if sys.version_info >= (3, 11) else 'unreadable'),
     ('wal','sidecar_present'), ('new_schema','unsupported_schema')])
 def test_unreadable_or_ambiguous_database_never_counts_as_unchanged(tmp_path, monkeypatch, fault, expected):
     data = tmp_path / 'data'

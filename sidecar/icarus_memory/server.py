@@ -143,6 +143,7 @@ EIGENE_FRAGE_ANSEHEN = "So ist deine Nachricht gespeichert"
 #: gesamte persönliche Gedächtnis im lokalen Netz.
 HOST_ENV = "ICARUS_SIDECAR_HOST"
 DEFAULT_HOST = "127.0.0.1"
+PACKAGED_UI_DIR = Path('/opt/kingfisher/ui')
 
 
 def _ui_dir() -> Path | None:
@@ -160,7 +161,11 @@ def _ui_dir() -> Path | None:
     # Arbeitskopie: sidecar/icarus_memory/server.py → ../../app/dist
     # (Ausgabeordner von `npm run build` in app/kingfisher, siehe vite.config.ts)
     candidate = Path(__file__).resolve().parents[2] / "app" / "dist"
-    return candidate if candidate.is_dir() else None
+    if candidate.is_dir():
+        return candidate
+    # The recovered child intentionally inherits no ICARUS_UI_DIR. The image's
+    # fixed, packaged assets are still available without widening boot authority.
+    return PACKAGED_UI_DIR if PACKAGED_UI_DIR.is_dir() else None
 
 
 def _data_dir() -> Path:

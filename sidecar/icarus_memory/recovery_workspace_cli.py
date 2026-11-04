@@ -15,6 +15,8 @@ from .backup import BackupError
 from .recovery_preflight import preflight
 from .recovery_workspace import launch_environment, prepare_working_copy
 
+CONTAINER_MARKER = Path('/.dockerenv')
+
 
 def port(value):
     value = int(value)
@@ -37,6 +39,7 @@ def main(argv=None):
     serve = commands.add_parser('serve', help='Vorhandene Arbeitskopie mit neuer Startumgebung öffnen.')
     serve.add_argument('--folder', type=Path, required=True)
     serve.add_argument('--port', type=port, default=8895)
+    serve.add_argument('--container', action='store_true', help='Nur im Docker-Container: interner Listener; Host muss auf Loopback veröffentlichen.')
     args = parser.parse_args(argv)
     try:
         if args.command == 'check':
@@ -47,9 +50,12 @@ def main(argv=None):
             print('Getrennte Arbeitskopie vorbereitet. Noch nicht gestartet: ' + str(result))
         else:
             environment = launch_environment(args.folder)
-            print('Lokaler Start auf http://127.0.0.1:' + str(args.port) + ' · keine Verbindungen automatisch übernommen.', flush=True)
+            if args.container and not CONTAINER_MARKER.is_file():
+                raise ValueError('Der Container-Start ist nur innerhalb von Docker erlaubt.')
+            host = '0.0.0.0' if args.container else '127.0.0.1'
+            print('Arbeitskopie startet · keine Verbindungen automatisch übernommen.', flush=True)
             return subprocess.run([sys.executable, '-m', 'uvicorn', 'icarus_memory.server:create_app',
-                '--factory', '--host', '127.0.0.1', '--port', str(args.port), '--log-level', 'warning'],
+                '--factory', '--host', host, '--port', str(args.port), '--log-level', 'warning'],
                 env=environment, check=False).returncode
     except (OSError, ValueError, BackupError, KeyError):
         print('Nicht abgeschlossen. Prüfbefund, ausdrückliche Auswahl und neuen Zielordner beziehungsweise Startdatei prüfen.')

@@ -90,3 +90,5 @@ Mac-Bedienung müssen noch im Produktweg zusammengeführt und abgenommen werden.
 Stromausfall-/Crash-Durabilität wurde hier nicht geprüft. P5, persönliche
 Installation und Nutzungswoche sind nicht abgeschlossen; Großimport bleibt
 pausiert.
+
+Nachtrag: Der anschließende [native Wiederherstellungslauf](../2026-11-04-native-recovery/README.md) ergänzt den Menüweg und einen echten getrennten Dockerablauf. Die Python-3.10-CI fand dabei einen fehlenden RecursionError-Catch und eine abweichende SQLite-Statusannahme. Beide sind dort ausdrücklich dokumentiert und korrigiert; der historische lokale 3.12-Lauf ersetzt diese Prüfung nicht.

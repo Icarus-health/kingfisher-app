@@ -39,3 +39,38 @@ def test_launcher_refuses_unbound_configuration_without_starting(tmp_path, monke
     monkeypatch.setattr(cli.subprocess, 'run', forbidden)
     assert cli.main(['serve', '--folder', str(tmp_path)]) != 0
     assert 'private-value' not in capsys.readouterr().out
+
+
+def test_explicit_container_mode_binds_inside_container_only(tmp_path, monkeypatch):
+    from icarus_memory import recovery_workspace_cli as cli
+    data = working_data(tmp_path)
+    marker = tmp_path / '.dockerenv'
+    marker.touch()
+    monkeypatch.setattr(cli, 'CONTAINER_MARKER', marker, raising=False)
+    calls = []
+    monkeypatch.setattr(cli.subprocess, 'run', lambda argv, **kwargs: calls.append(argv) or SimpleNamespace(returncode=0))
+    assert cli.main(['serve', '--folder', str(data.parent), '--port', '8890', '--container']) == 0
+    assert calls[0][calls[0].index('--host') + 1] == '0.0.0.0'
+
+
+def test_container_bind_on_native_host_refuses_without_child(tmp_path, monkeypatch):
+    from icarus_memory import recovery_workspace_cli as cli
+    data = working_data(tmp_path)
+    monkeypatch.setattr(cli, 'CONTAINER_MARKER', tmp_path / 'absent-marker', raising=False)
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Container bind must never run on the native host')
+    monkeypatch.setattr(cli.subprocess, 'run', forbidden)
+    assert cli.main(['serve', '--folder', str(data.parent), '--container']) == 1
+
+
+def test_clean_container_start_finds_packaged_ui_without_inherited_environment(tmp_path, monkeypatch):
+    from icarus_memory import server
+    monkeypatch.delenv(server.UI_ENV, raising=False)
+    # Simulate an installed wheel, without the repository's Vite build fallback.
+    module = tmp_path / 'wheel' / 'icarus_memory' / 'server.py'
+    monkeypatch.setattr(server, '__file__', str(module))
+    assets = tmp_path / 'packaged-ui'
+    assets.mkdir()
+    (assets / 'index.html').write_text('<main>Kingfisher</main>')
+    monkeypatch.setattr(server, 'PACKAGED_UI_DIR', assets, raising=False)
+    assert server._ui_dir() == assets

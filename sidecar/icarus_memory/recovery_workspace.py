@@ -21,6 +21,7 @@ import tempfile
 import uuid
 
 MARKER = 'restore-state.json'
+CAPABILITY = 1
 CONTRACT_KEYS = frozenset({'version', 'mode', 'policy_version', 'restore_id', 'source_fingerprint',
                            'selection', 'unknown_history_acknowledged', 'permissions_reset', 'operational'})
 HOST_KEYS = frozenset({'PATH', 'HOME', 'USER', 'LOGNAME', 'TMPDIR', 'LANG', 'TZ'})
@@ -74,7 +75,7 @@ def read_working_contract(directory) -> dict | None:
                 or value['selection'] != 'restored' and not _GROUP.fullmatch(value['selection'])):
             return None
         return value
-    except (OSError, ValueError, TypeError, UnicodeError):
+    except (OSError, ValueError, TypeError, UnicodeError, RecursionError):
         return None
 
 
