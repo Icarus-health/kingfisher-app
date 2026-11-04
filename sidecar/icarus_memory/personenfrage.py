@@ -86,11 +86,19 @@ _ADRESSFRAGE_ANFANG = re.compile(
     r'\s*(?:hat|hatte|kann|soll|muss|wird|ist|(?:erzähl|erzaehl)\s+mir\s+(?:etwas\s+)?(?:über|ueber))\s+', re.I)
 _AUFGABENFRAGE_ANFANG = re.compile(r'\s*(?:hat|hatte)\s+', re.I)
 _AUFGABENFRAGE_ENDE = re.compile(r'\s+(?:die|diese|seine|eine)\s+aufgaben?\b', re.I)
-# Weitere Klauseln/Alternativen sind nicht Teil des eindeutig angebundenen
-# Merkmals. Auch ohne korrekte Kommasetzung nicht aus einem Halbsatz wählen.
-_AUSWAHL_FORTSETZUNG = re.compile(
-    r'[,;:/\n–—]|\s-\s|\b(?:und|oder|bzw|beziehungsweise|sowie|aber|sondern|statt|'
-    r'falls|wenn|ob|obwohl|sofern|wobei|überhaupt|ueberhaupt)\b', re.I)
+# Nur vollständige, bekannte Fortsetzungen akzeptieren. Das Fehlen eines
+# Wortes aus einer Sperrliste belegt keine eindeutige Zuordnung: Zusätze wie
+# „Diese Zuordnung ist unbestätigt“ oder neue Alternativformulierungen müssen
+# zurückfragen. Eine verneinte Aufgabenhandlung bleibt dagegen unterstützt.
+_AUFGABENHANDLUNG = (
+    r'(?:noch\s+)?(?:nicht\s+)?(?:erledigt|zugesagt|übernommen|uebernommen|'
+    r'gesendet|geschickt|geschrieben|geliefert|abgeschlossen)')
+_AUSWAHL_ENDE = re.compile(
+    r'\s*(?:' + _AUFGABENHANDLUNG +
+    r'|(?:die|diese|seine|eine)\s+aufgaben?\s+' + _AUFGABENHANDLUNG +
+    r'|(?:den|die|das)\s+[\w-]{1,80}\s+(?:liefern|senden|schicken|erledigen|abgeben)'
+    r'|feedback(?:\s+(?:zu|zum|zur)\s+[\w-]{1,80})?\s+geben'
+    r'|pro\s+person)?\s*[?!.]?\s*', re.I)
 
 
 @dataclass
@@ -308,7 +316,7 @@ def _auswahltext(frage: str, erwaehnung: Erwaehnung) -> str:
                     and _AUFGABENFRAGE_ENDE.match(frage[ende:]))
     if not _AUSWAHL_ANFANG.fullmatch(anfang) and not adressfrage and not aufgabenfrage:
         return ''
-    if _AUSWAHL_FORTSETZUNG.search(frage[ende:]):
+    if not _AUSWAHL_ENDE.fullmatch(frage[ende:]):
         return ''
     # „Was kostet das Catering von Alex?“ benennt die Leistung bereits vor
     # dem Namen. Nur diese bestehende positive Preisfrage darf das ergänzen.

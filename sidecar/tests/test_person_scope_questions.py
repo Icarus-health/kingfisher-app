@@ -28,6 +28,10 @@ def contacts(app):
     'Wo erreiche ich Alex Winter aus dem Einkauf – oder aus der Schule?',
     'Wo erreiche ich Alex Winter aus dem Einkauf / aus der Schule?',
     'Wo erreiche ich Alex Winter <winter@alpha.example> / <winter@beta.example>?',
+    'Wo erreiche ich Alex Winter aus dem Einkauf? Diese Zuordnung ist unbestätigt.',
+    'Wo erreiche ich Alex Winter aus dem Einkauf? Gemeint ist ausdrücklich die Person aus der Schule.',
+    'Wo erreiche ich Alex Winter aus dem Einkauf respektive aus der Schule?',
+    'Welche Aufgaben hat Alex Winter aus dem Einkauf noch nicht erledigt? Die Zuordnung ist unklar.',
 ])
 def test_disputed_or_negative_qualifier_does_not_silently_choose_person(bestand, question):
     app, provider = bestand

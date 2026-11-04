@@ -22,6 +22,7 @@ die neueste Korrektur betrifft die Auswahl unveränderter Personen-Originalsätz
 - [Suchkontext und bewusst offener Gegenfall](2026-11-04-retrieval-precision/README.md)
 - [Personenwahl: Fehler, Ressourcenabbruch und vollständig bestandener Folgelauf](2026-11-04-person-choice/README.md)
 - [Im Mac-Fenster gefundener Paraphrasefehler und korrigierte Originalauswahl](2026-11-04-person-original-answer/README.md)
+- [Abschlussreview: widersprüchliche Zusätze verlangen eine Personenwahl](2026-11-04-person-continuation/README.md)
 - [Verbindlicher Produktplan P0–P6](../superpowers/plans/2026-11-04-kingfisher-product-completion.md)
 
 Die Testzahlen stammen aus unterschiedlichen abgegrenzten Läufen und werden
