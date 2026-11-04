@@ -16,7 +16,7 @@ Mac-Fassung und aktuelle Prüffassung sind weiterhin verschiedene Stände.
 | Speicher und Hintergrundlast | Unveränderte Probegrenzen, sichere Unterbrechung bei zu wenig Reserve | Ressourcenabbrüche bleiben dokumentiert; letzte drei Antworten Minimum 31% frei, Druck maximal 2, je 4–11 Sekunden | Kalender/Rückweg und Entwurf im Testfenster geprüft; zusammenhängender Mail-/Kalender-/Eingabeablauf während Dauerlast noch offen | Dauerbetrieb offen |
 | Skillbibliothek und CoS-Abläufe | Einmalige Konfliktauswahl, inaktive Lernvorschläge, begrenzte Mistral-Prüfung, gemeinsame Mailaufgabe/Projekt und Kalender-Ausfallvorschau in PR124 zusammengeführt; 857 betroffene Backendtests, nach weiterer Mistral-Aufgabenergänzung 1.076 UI-Tests bestanden | Begrenzte echte Qwen-Lernprobe dokumentiert; kein Mistral-Schlüssel/keine echte Mistral-Probe | Künstlicher gemeinsamer Browserablauf geprüft; jüngste Anzeige-Nacharbeit und separates natives Gesamtfenster noch nicht abgenommen | Offen |
 | Mistral-Aufgabenpakete | Ausdrücklicher Aufgabenumfang, vorhandene Extraktion/Gegenprüfung, lokale Belegregeln, erhaltene Ablehnung und passende Pilot-Schranke; 217 betroffene plus 57 angrenzende Tests bestanden | Kein Schlüssel, keine echte Modellqualität; nur simulierte Anbieterantworten | Noch nicht installiert oder nativ geprüft | Offen |
-| Sicherung und Wiederherstellung | Verschlüsselter Roundtrip erhält Skills, Korrekturen und Lernprüfergebnisse; historischer Zugriff auf Skills/Korrekturen ergänzt, 57 betroffene Tests und unabhängiges Review bestanden | Keine Modellarbeit beim Restore; alte Aktionsrechte bleiben gesperrt | Normale Update-Sicherung bei 1.0.44 nachgewiesen; neue historische Leseansicht noch nicht nativ geprüft | Vollständige Arbeitswiederherstellung und Nutzungswoche offen |
+| Sicherung und Wiederherstellung | Verschlüsselter Roundtrip erhält alle Bereiche; neue lesende Vorprüfung erkennt Unterschiede und ungeklärte Stände ohne Aktivierung. 82 betroffene Tests, abschließend 20 direkte/angrenzende Tests und 1.083 UI-Tests bestanden; Befunde aus Backend- und UI-Review korrigiert | Keine Modellarbeit beim Restore; alte Aktionsrechte bleiben gesperrt | Normale Update-Sicherung bei 1.0.44 nachgewiesen; neue Prüf-/Leseansicht noch nicht nativ geprüft | Vollständige Arbeitswiederherstellung und Nutzungswoche offen |
 | Erweiterungsplattform | Vorhandene begrenzte Laufzeit; voller P6-Modulvertrag ist weiterhin Planarbeit | Isolierte Rollenprobe ist kein Nachweis einer vollständigen Pluginplattform | Offen | Offen |
 
 ## Nachweise
@@ -28,6 +28,7 @@ Mac-Fassung und aktuelle Prüffassung sind weiterhin verschiedene Stände.
 - [Abschlussreview: widersprüchliche Zusätze verlangen eine Personenwahl](2026-11-04-person-continuation/README.md)
 - [Gemeinsamer Ablauf und weiterhin offene Auslieferung](2026-11-04-product-integration/README.md)
 - [Historischer Zugriff auf gesicherte Skills und Korrekturen](2026-11-04-workflow-recovery/README.md)
+- [Lesende Sicherungsprüfung, unabhängige Reviews und verbleibende P5-Lücke](2026-11-04-recovery-preflight/README.md)
 - [Verbindlicher Produktplan P0–P6](../superpowers/plans/2026-11-04-kingfisher-product-completion.md)
 
 Die Testzahlen stammen aus unterschiedlichen abgegrenzten Läufen und werden

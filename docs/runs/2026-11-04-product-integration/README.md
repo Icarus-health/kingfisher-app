@@ -55,3 +55,12 @@ Ablehnungen bleiben bestehen und Bulk verlangt einen passenden Pilot.
 [Änderung, Tests und Grenzen](../2026-11-04-mistral-task-package/README.md).
 Zusätzlich bestand ein [modellfreier 50.000-Quellen-Ablagetest](../2026-11-04-memory-area-scale/README.md).
 Beides ersetzt weder echte Mistral-Qualität noch native Bedienabnahme.
+
+## Anschlussprüfung Sicherungsstände
+
+Die historische Ansicht hat einen authentifizierten, ausschließlich lesenden
+Prüfweg mit aufklappbaren Befunden. Bekannte Vergleichsstände werden getrennt
+untersucht; eine alte Quellen-/Skillfreigabe wird dabei nicht reaktiviert.
+Backend- und UI-Review fanden konkrete Randfehler, die mit Gegenproben korrigiert
+wurden. [Nachweis, 82 betroffene Tests und ausdrücklich offene Arbeitswiederherstellung](../2026-11-04-recovery-preflight/README.md).
+Die aktuelle Oberfläche wurde noch nicht im nativen Testfenster geprüft.

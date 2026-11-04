@@ -116,6 +116,12 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     tasks.close()
     newer=database_contents(data/'tasks.sqlite3')
     result=restore_bundle(bundle,tmp_path/'restored','synthetic-backup-password')
+    from icarus_memory.recovery_preflight import preflight
+    inspection = preflight(result / 'data')
+    assert {entry['name']: entry['status'] for entry in inspection['restored']['files']} == {
+        name: 'verified' for name in BACKUP_DATA_FILES}
+    assert not inspection['activation_allowed'] and not inspection['comparison_complete']
+    assert 'no_comparison_state' in inspection['unresolved']
     assert {name:database_contents(result/'data'/name) for name in SQLITE_DATA_FILES}==before
     assert database_contents(data/'tasks.sqlite3')==newer
     for name in ('einstellungen.json','schluessel.icarus'):
