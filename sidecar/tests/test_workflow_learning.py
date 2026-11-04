@@ -10,6 +10,14 @@ from tests.test_procedures import spec
 from tests.test_conversation_retraction import _close_app
 
 CORRECTION = 'Bitte zuerst Anlass und Empfänger prüfen, danach den Entwurf gegenlesen.'
+# Unveränderte Form der zweiten echten Qwen-Probe: nominale Trigger und ein
+# Positivbeispiel, das unser Router nicht als tatsächlichen Mailauftrag erkennt.
+QWEN_NOMINAL_SPEC = {'name':'zunft-mail-erstellung', 'title':'Vorgehen zur Erstellung von Mails für die Zunft',
+    'description':'Dieser Ablauf regelt die Erstellung von Mails für die Zunft, um Fehlsendungen zu vermeiden.',
+    'area':'mail', 'triggers':['Erstellung einer Mail für die Zunft','Entwurf einer Mail für die Zunft','Schreiben einer Mail für die Zunft'],
+    'steps':['Prüfe den Anlass der Mail.','Prüfe die Empfänger der Mail.','Schreibe den Entwurf der Mail.','Gegenlese den Entwurf.'],
+    'positive':'Nutzerauftrag zur Erstellung einer Mail für die Zunft.',
+    'negative':'Auftrag zur Erstellung einer Mail für eine andere Organisation.'}
 
 
 @pytest.fixture
@@ -220,3 +228,102 @@ def test_withdrawn_conversation_evidence_is_not_rehydrated_as_feedback_text(flow
     saved=next(m for m in messages if m['id']==body['message_id'])['metadata']['workflow_feedback']
     assert saved['richtig']=='' and saved['arbeitsweise'] is True
     assert saved['lernen']['status']=='changed'
+
+
+@pytest.mark.parametrize('repaired',[True,False])
+@pytest.mark.parametrize('incomplete',[None,QWEN_NOMINAL_SPEC])
+def test_real_qwen_workflow_without_spec_gets_one_bounded_completion(flow,repaired,incomplete):
+    app,_,p=flow
+    from icarus_memory.providers import _JSON_DEADLINE
+    deadlines=[]
+    original=p.complete
+    def complete(messages,tools):
+        deadlines.append(_JSON_DEADLINE.get())
+        answer=original(messages,tools)
+        if len(p.seen)==1 or not repaired:
+            data=json.loads(answer.text);data['spec']=incomplete
+            return Reply(text=json.dumps(data))
+        return answer
+    p.complete=complete
+    for n in range(3): result,_=feedback(flow,n)
+    assert len(p.seen)==2
+    assert deadlines[0] is not None and deadlines[0]==deadlines[1]
+    assert result['lernen']['status']==('proposed' if repaired else 'unavailable')
+    assert p.seen[0][-1]==p.seen[1][-1], 'Originalbelege bleiben unverändert'
+    assert 'spec' in p.seen[1][0]['content'] and 'null' in p.seen[1][0]['content']
+    assert len(app.state.procedures.items())==int(repaired)
+
+
+def test_missing_spec_never_retries_after_permission_change(flow):
+    app,_,p=flow;original=p.complete
+    def complete(messages,tools):
+        answer=original(messages,tools);data=json.loads(answer.text);data['spec']=None
+        p.is_local=False
+        return Reply(text=json.dumps(data))
+    p.complete=complete
+    for n in range(3):result,_=feedback(flow,n)
+    assert len(p.seen)==1 and result['lernen']['status']=='unavailable'
+    assert not app.state.procedures.items()
+
+
+@pytest.mark.parametrize('corrections',[
+    ['Prüfe die Frist: Abgabe ist am 7. November 2026, nicht am 8. November.',
+     'Prüfe den Namen: Der Empfänger heißt Alex Berger, nicht Alex Winter.',
+     'Prüfe den Termin: Die Sitzung findet am 12. November um 18 Uhr statt.'],
+    ['Prüfe den Namen: Der Empfänger heißt Alex Berger, nicht Alex Winter.']*3,
+    ['Prüfe die Frist: Abgabe ist morgen, nicht heute.']*3,
+    ['Prüfe die Abgabefrist: morgen statt heute.']*3,
+    ['Prüfe den Anlass der Mail.', 'Prüfe die Rechnungsnummer.', 'Prüfe die Anfahrt.'],
+])
+def test_concrete_or_unrelated_corrections_cannot_be_synthesized_into_workflow(flow,corrections):
+    for n,text in enumerate(corrections):result,_=feedback(flow,n,correction=text)
+    assert result['lernen']['status'] != 'proposed'
+    assert not flow[2].seen, 'Ohne wiederholtes Verfahrensmerkmal keine Modellsynthese'
+    assert not flow[0].state.procedures.items()
+
+
+@pytest.mark.parametrize('detail',[
+    'Prüfe die Frist: Abgabe ist am 7. November 2026.',
+    'Prüfe den Namen: Der Empfänger heißt Alex Berger.',
+    'Prüfe den Empfänger: alex@example.invalid.',
+])
+def test_synthesized_concrete_facts_never_become_a_workflow(flow,detail):
+    original=flow[2].complete
+    def complete(messages,tools):
+        answer=original(messages,tools);data=json.loads(answer.text)
+        data['spec']['steps']=[detail]
+        return Reply(text=json.dumps(data))
+    flow[2].complete=complete
+    for n in range(3):result,_=feedback(flow,n)
+    assert result['lernen']['status']=='unavailable'
+    assert not flow[0].state.procedures.items()
+
+
+def test_repeated_workflow_with_generic_numeric_check_remains_eligible(flow):
+    for n in range(3):result,_=feedback(flow,n,correction='Bitte mindestens 2 Belege prüfen und danach vergleichen.')
+    assert result['lernen']['status']=='proposed'
+
+
+@pytest.mark.parametrize('state',['pending','active'])
+def test_legacy_factual_skill_is_not_reused_accepted_or_selected(flow,monkeypatch,state):
+    from icarus_memory import procedures
+    from icarus_memory.workflow_learning import PREFIX,dependency,review,_hash
+    app,client,p=flow;p.is_local=False;records=[]
+    for n in range(3):
+        result,_=feedback(flow,n);records.append(result['meldung'])
+    sources={PREFIX+r['id']:dependency(app,PREFIX+r['id']) for r in records}
+    key='corrections-v1:'+_hash(sources)
+    # Alter persistierter Stand, damals noch ohne Inhaltsgrenze.
+    with monkeypatch.context() as previous:
+        previous.setattr(procedures,'has_concrete_values',lambda data:False,raising=False)
+        old=app.state.procedures.propose({**spec(), 'steps':['Der Empfänger heißt Alex Berger.']},
+            sources=sources,request_key=key)
+        if state=='active':app.state.procedures.accept(old['id'])
+    app.state.rueckmeldungen.save_workflow_result(key,{'status':'proposed','proposal_id':old['id']})
+    p.is_local=True
+    result=review(app,records[-1])
+    assert result.get('proposal_id')!=old['id'] or result['status']=='changed'
+    assert app.state.procedures.get(old['id'])['current'] is False
+    assert client.post('/api/v1/procedures/'+old['id']+'/accept').status_code==409
+    assert not app.state.procedures.select('Schreibe eine Mail für die Zunft.',area='mail')['contextual']
+    assert 'Alex Berger' in app.state.procedures.export(old['id']), 'Historie bleibt erhalten'

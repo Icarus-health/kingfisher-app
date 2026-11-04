@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .migrations import Migration, run_migrations, validate_legacy_or_empty, verify_schema
 from .model import now
+from .workflow_guards import has_concrete_values
 
 
 class ProcedureError(ValueError):
@@ -197,7 +198,17 @@ class ProcedureStore:
             ('id', 'name', 'version', 'state', 'base_version', 'created_at', 'request_key')}}
         sources = json.loads(row['sources'])
         result.update(classification(result))
-        result.update(sources=sources, current=self._fresh(sources), local_only=True,
+        current = self._fresh(sources)
+        if current and row['request_key'].startswith('corrections-'):
+            # Auch ältere automatisch gelernte Fassungen werden bei Anzeige,
+            # Annahme und Abruf geprüft. Ihre Historie wird nicht überschrieben.
+            stored = row['body'] if 'body' in row.keys() else self._conn.execute(
+                'SELECT body FROM procedures WHERE id=?', (row['id'],)).fetchone()['body']
+            try:
+                current = not has_concrete_values(parse_markdown(stored))
+            except ProcedureError:
+                current = False
+        result.update(sources=sources, current=current, local_only=True,
             checks={'structure': True, 'routing_examples': True, 'human_review_required': row['state'] == 'pending'})
         if body:
             result['markdown'] = row['body']
@@ -256,6 +267,8 @@ class ProcedureStore:
 
     def propose(self, spec, *, sources=None, request_key=''):
         data = validate(spec)
+        if request_key.startswith('corrections-') and has_concrete_values(data):
+            raise ProcedureError('Konkrete Angaben gehören nicht in automatisch gelernte Arbeitsverfahren.')
         sources = sources or {}
         if (not isinstance(sources, dict) or len(sources) > 8
                 or any(not isinstance(k, str) or not isinstance(v, str) or not v for k, v in sources.items())
@@ -264,12 +277,12 @@ class ProcedureStore:
         key = request_key or _hash({'spec':data, 'sources':sources})
         with self._lock, self._conn:
             duplicates = self._conn.execute("SELECT * FROM procedures WHERE request_key=? AND state IN ('pending','active') ORDER BY version DESC", (key,)).fetchall()
-            duplicate = next((row for row in duplicates if self._fresh(json.loads(row['sources']))), None)
+            duplicate = next((row for row in duplicates if self._item(row)['current']), None)
             if duplicate is not None:
                 return self._item(duplicate, body=True)
             known = self._conn.execute("SELECT * FROM procedures WHERE name=? AND state IN ('pending','active') ORDER BY version DESC",
                                        (data['name'],)).fetchall()
-            reusable = next((row for row in known if self._fresh(json.loads(row['sources']))
+            reusable = next((row for row in known if self._item(row)['current']
                              and parse_markdown(row['body']) == data), None)
             if reusable is not None:
                 return self._item(reusable, body=True)

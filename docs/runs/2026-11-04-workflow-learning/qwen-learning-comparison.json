@@ -1,0 +1,325 @@
+{
+  "synthetic_only": true,
+  "cloud_calls": 0,
+  "runs": [
+    {
+      "run": "first",
+      "status": "failed",
+      "seconds": 12.209,
+      "resource_stop": "memory_pressure",
+      "model": "kingfisher-qwen3.5:9b-8k",
+      "digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+      "dataset_sha256": "9fd82e8be5e882ce5ba1caece3808128a65f7369ed8c6dde888272b532a9cb1c",
+      "code_sha256": {
+        "sidecar/icarus_memory/workflow_learning.py": "675350e8903ea3b7292c8a2c7c34dee45584e2cd2eaf04f62442e884615fea11",
+        "sidecar/icarus_memory/procedure_model.py": "ee9dd1e08de8fbb5dc150bc54ab6e4736d44c7590a63e429434df724e3b99afa",
+        "sidecar/icarus_memory/local_context_profile.py": "86f16d9e2aecd73d618e9b12c995d066e710d6ae027f0cc152937da3431d1167"
+      },
+      "model_calls": 1,
+      "minimum_free_percent": 22,
+      "maximum_pressure": 4,
+      "cases": [
+        {
+          "name": "workflow",
+          "learning": "unavailable",
+          "passed": false,
+          "checks": {
+            "http": true,
+            "proposed": false
+          },
+          "seconds": 12.086,
+          "model_calls": 1
+        }
+      ],
+      "answers": [
+        "{\n  \"kind\": \"workflow\",\n  \"supporting_ids\": [\"85877532d38d46b7a820a2d3c4d26fb4\", \"2f244ddf97f74adcbe01180b93c9e0bf\", \"7d97e77b96a640049d860c26ac3099dd\"],\n  \"reason\": \"Drei verschiedene Aufträge zur Zunft-Mitteilung tragen dieselbe wiederverwendbare Vorgehenskorrektur.\",\n  \"spec\": null\n}"
+      ],
+      "lifecycle_calls": []
+    },
+    {
+      "run": "second",
+      "status": "failed",
+      "seconds": 21.104,
+      "resource_stop": "memory_reserve",
+      "model": "kingfisher-qwen3.5:9b-8k",
+      "digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+      "dataset_sha256": "9fd82e8be5e882ce5ba1caece3808128a65f7369ed8c6dde888272b532a9cb1c",
+      "code_sha256": {
+        "sidecar/icarus_memory/workflow_learning.py": "f44320f8482462c6ff619e30e25dfad679446bb4ee101b11f0a83041f10a0195",
+        "sidecar/icarus_memory/procedure_model.py": "ee9dd1e08de8fbb5dc150bc54ab6e4736d44c7590a63e429434df724e3b99afa",
+        "sidecar/icarus_memory/local_context_profile.py": "86f16d9e2aecd73d618e9b12c995d066e710d6ae027f0cc152937da3431d1167"
+      },
+      "model_calls": 1,
+      "minimum_free_percent": 24,
+      "maximum_pressure": 2,
+      "cases": [
+        {
+          "name": "workflow",
+          "learning": "unavailable",
+          "passed": false,
+          "checks": {
+            "http": true,
+            "proposed": false
+          },
+          "seconds": 20.965,
+          "model_calls": 1
+        }
+      ],
+      "answers": [
+        "{\n  \"kind\": \"workflow\",\n  \"supporting_ids\": [\n    \"bf97d13ae0db41468d7754adc2159d78\",\n    \"d125ac7a22964ca0b93842d84f89d440\",\n    \"d01041f95e5542aba36ee8bb17bdffc8\"\n  ],\n  \"reason\": \"Drei verschiedene Aufträge zur Erstellung von Mails für die Zunft tragen dieselbe wiederverwendbare Vorgehenskorrektur.\",\n  \"spec\": {\n    \"name\": \"zunft-mail-erstellung\",\n    \"title\": \"Vorgehen zur Erstellung von Mails für die Zunft\",\n    \"description\": \"Dieser Ablauf regelt die Erstellung von Mails für die Zunft, um Fehlsendungen zu vermeiden.\",\n    \"area\": \"mail\",\n    \"triggers\": [\n      \"Erstellung einer Mail für die Zunft\",\n      \"Entwurf einer Mail für die Zunft\",\n      \"Schreiben einer Mail für die Zunft\"\n    ],\n    \"steps\": [\n      \"Prüfe den Anlass der Mail.\",\n      \"Prüfe die Empfänger der Mail.\",\n      \"Schreibe den Entwurf der Mail.\",\n      \"Gegenlese den Entwurf.\"\n    ],\n    \"positive\": \"Nutzerauftrag zur Erstellung einer Mail für die Zunft.\",\n    \"negative\": \"Auftrag zur Erstellung einer Mail für eine andere Organisation.\"\n  }\n}"
+      ],
+      "lifecycle_calls": []
+    },
+    {
+      "run": "third",
+      "status": "failed",
+      "seconds": 42.931,
+      "resource_stop": null,
+      "model": "kingfisher-qwen3.5:9b-8k",
+      "digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+      "dataset_sha256": "9fd82e8be5e882ce5ba1caece3808128a65f7369ed8c6dde888272b532a9cb1c",
+      "code_sha256": {
+        "sidecar/icarus_memory/workflow_learning.py": "ad8a386daa3d3c2a644684544a735ddc50019e4585ed44d6f6121e8c61fffc26",
+        "sidecar/icarus_memory/procedure_model.py": "ee9dd1e08de8fbb5dc150bc54ab6e4736d44c7590a63e429434df724e3b99afa",
+        "sidecar/icarus_memory/local_context_profile.py": "86f16d9e2aecd73d618e9b12c995d066e710d6ae027f0cc152937da3431d1167"
+      },
+      "model_calls": 2,
+      "minimum_free_percent": 25,
+      "maximum_pressure": 2,
+      "cases": [
+        {
+          "name": "workflow",
+          "learning": "proposed",
+          "passed": true,
+          "checks": {
+            "http": true,
+            "proposed": true,
+            "pending": true,
+            "accept": true,
+            "appropriate": true,
+            "private_excluded": true,
+            "withdrawal": true
+          },
+          "seconds": 22.388,
+          "model_calls": 1
+        },
+        {
+          "name": "facts",
+          "learning": "proposed",
+          "passed": false,
+          "checks": {
+            "http": true,
+            "proposed": false,
+            "no_procedure": false
+          },
+          "seconds": 20.352,
+          "model_calls": 1
+        }
+      ],
+      "answers": [
+        "{\n  \"kind\": \"workflow\",\n  \"supporting_ids\": [\n    \"06eccb2004d04423a60fed4ca3e0d3d3\",\n    \"5b63deabf0294fadafb07e34eb271ec0\",\n    \"d53bdf301b3f42ee8d0c0378526191e2\"\n  ],\n  \"reason\": \"Drei verschiedene Aufträge (Rückmeldung, Einladung, Sitzung) für die Zunft tragen dieselbe wiederverwendbare Vorgehenskorrektur.\",\n  \"spec\": {\n    \"name\": \"zunftmail\",\n    \"title\": \"Zunftmail-Auftrag: Anlass prüfen, Entwurf schreiben, gegenlesen\",\n    \"description\": \"Dieser Workflow regelt das Verfassen von Mails für die Zunft. Zuerst werden Anlass und Empfänger geprüft, dann wird der Entwurf verfasst und abschließend gegengelesen.\",\n    \"area\": \"mail\",\n    \"triggers\": [\n      \"zunftmail\",\n      \"zunftmails\",\n      \"zunft\"\n    ],\n    \"steps\": [\n      \"Bitte zuerst den Anlass und die Empfänger prüfen.\",\n      \"Schreibe den Entwurf.\",\n      \"Gegenlese den Entwurf.\"\n    ],\n    \"positive\": \"Schreibe eine Mail für die Zunft.\",\n    \"negative\": \"Schreibe eine Mail für den Verein.\"\n  }\n}",
+        "{\n  \"kind\": \"workflow\",\n  \"supporting_ids\": [\"f7f7c81874fd4779b19de14ae6757f9a\", \"2cccb8cab7c244a58c0aaec531aa63fa\", \"8bcda911bcff4989bdc7f54b5dbb4d67\"],\n  \"reason\": \"Drei verschiedene Aufträge (Entwurf, Einladung, Sitzungsmail) für die Zunft tragen dieselbe wiederverwendbare Vorgehenskorrektur: Vor dem Schreiben der Mail müssen Termin, Name und Frist geprüft werden.\",\n  \"spec\": {\n    \"name\": \"zunftmail\",\n    \"title\": \"Zunftmail: Vorabprüfung von Termin, Name und Frist\",\n    \"description\": \"Bei der Erstellung von Mails für die Zunft (Entwürfe, Einladungen, Sitzungsmails) müssen vor dem Schreiben folgende Daten explizit geprüft werden: Der Termin der Sitzung (Datum und Uhrzeit), der korrekte Name des Empfängers und die korrekte Abgabefrist.\",\n    \"area\": \"mail\",\n    \"triggers\": [\n      \"zunftmail\",\n      \"zunftmails\",\n      \"zunft\"\n    ],\n    \"steps\": [\n      \"Prüfe den Termin: Die Sitzung findet am 12. November um 18 Uhr statt.\",\n      \"Prüfe den Namen: Der Empfänger heißt Alex Berger, nicht Alex Winter.\",\n      \"Prüfe die Frist: Abgabe ist am 7. November 2026, nicht am 8. November.\"\n    ],\n    \"positive\": \"Schreibe eine Mail für die Zunft.\",\n    \"negative\": \"Analysiere diesen Vergleich für analysis.\"\n  }\n}"
+      ],
+      "lifecycle_calls": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 1.046,
+          "http": 200,
+          "seconds_end": 1.047
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 19.46,
+          "http": 200,
+          "seconds_end": 19.463
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:11434/api/generate",
+          "seconds_start": 19.463,
+          "model": "kingfisher-qwen3.5:9b-8k",
+          "keep_alive": "15s",
+          "error": "ReadTimeout",
+          "seconds_end": 22.464
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 23.039,
+          "http": 200,
+          "seconds_end": 23.04
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 39.868,
+          "http": 200,
+          "seconds_end": 39.869
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:11434/api/generate",
+          "seconds_start": 39.869,
+          "model": "kingfisher-qwen3.5:9b-8k",
+          "keep_alive": "15s",
+          "error": "ReadTimeout",
+          "seconds_end": 42.87
+        }
+      ]
+    },
+    {
+      "run": "fourth",
+      "status": "passed",
+      "seconds": 23.117,
+      "resource_stop": null,
+      "model": "kingfisher-qwen3.5:9b-8k",
+      "digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+      "dataset_sha256": "9fd82e8be5e882ce5ba1caece3808128a65f7369ed8c6dde888272b532a9cb1c",
+      "code_sha256": {
+        "sidecar/icarus_memory/workflow_learning.py": "7626468666267104626e50599cae4d8382cc11e9a63f5908e046eb564dd94b88",
+        "sidecar/icarus_memory/procedure_model.py": "ee9dd1e08de8fbb5dc150bc54ab6e4736d44c7590a63e429434df724e3b99afa",
+        "sidecar/icarus_memory/local_context_profile.py": "86f16d9e2aecd73d618e9b12c995d066e710d6ae027f0cc152937da3431d1167"
+      },
+      "model_calls": 1,
+      "minimum_free_percent": 26,
+      "maximum_pressure": 2,
+      "cases": [
+        {
+          "name": "workflow",
+          "learning": "proposed",
+          "passed": true,
+          "checks": {
+            "http": true,
+            "proposed": true,
+            "pending": true,
+            "accept": true,
+            "appropriate": true,
+            "private_excluded": true,
+            "withdrawal": true
+          },
+          "seconds": 22.286,
+          "model_calls": 1
+        },
+        {
+          "name": "facts",
+          "learning": "no_pattern",
+          "passed": true,
+          "checks": {
+            "http": true,
+            "proposed": true,
+            "no_procedure": true
+          },
+          "seconds": 0.518,
+          "model_calls": 0
+        }
+      ],
+      "answers": [
+        "{\n  \"kind\": \"workflow\",\n  \"supporting_ids\": [\n    \"7ed4a666f89d4e1ab910ce0427939aa1\",\n    \"c2f4a16d716f48f6b6bcff0dd85f24f7\",\n    \"f59a83d07e594a0aac90e7c5ace4f0de\"\n  ],\n  \"reason\": \"Drei verschiedene Aufträge (Rückmeldung, Einladung, Sitzung) für die Zunft tragen dieselbe wiederverwendbare Vorgehenskorrektur.\",\n  \"spec\": {\n    \"name\": \"zunftmail\",\n    \"title\": \"Zunftmail-Auftrag: Anlass prüfen, Entwurf schreiben, gegenlesen\",\n    \"description\": \"Dieser Workflow regelt das Verfassen von Mails für die Zunft. Zuerst werden Anlass und Empfänger geprüft, dann wird der Entwurf verfasst und abschließend gegengelesen.\",\n    \"area\": \"mail\",\n    \"triggers\": [\n      \"zunftmail\",\n      \"zunftmails\",\n      \"zunft\"\n    ],\n    \"steps\": [\n      \"Bitte zuerst den Anlass und die Empfänger prüfen.\",\n      \"Schreibe den Entwurf.\",\n      \"Gegenlese den Entwurf.\"\n    ],\n    \"positive\": \"Schreibe eine Mail für die Zunft.\",\n    \"negative\": \"Schreibe eine Mail für den Verein.\"\n  }\n}"
+      ],
+      "lifecycle_calls": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 0.995,
+          "http": 200,
+          "seconds_end": 0.996
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 19.301,
+          "http": 200,
+          "seconds_end": 19.302
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:11434/api/generate",
+          "seconds_start": 19.302,
+          "model": "kingfisher-qwen3.5:9b-8k",
+          "keep_alive": "15s",
+          "error": "ReadTimeout",
+          "seconds_end": 22.305
+        }
+      ]
+    },
+    {
+      "run": "final",
+      "status": "passed",
+      "seconds": 22.959,
+      "resource_stop": null,
+      "model": "kingfisher-qwen3.5:9b-8k",
+      "digest": "8a5919e3ddda74b7729b65ca0bad9896d36615d872756ca98b17ec8a80374b17",
+      "dataset_sha256": "9fd82e8be5e882ce5ba1caece3808128a65f7369ed8c6dde888272b532a9cb1c",
+      "code_sha256": {
+        "sidecar/icarus_memory/workflow_learning.py": "7f7f36a6ab6614c9f2b0c9820cc8a1ea40c2ddb9a8f8bf8bdd8c10c94650ea38",
+        "sidecar/icarus_memory/procedure_model.py": "ee9dd1e08de8fbb5dc150bc54ab6e4736d44c7590a63e429434df724e3b99afa",
+        "sidecar/icarus_memory/local_context_profile.py": "86f16d9e2aecd73d618e9b12c995d066e710d6ae027f0cc152937da3431d1167",
+        "sidecar/icarus_memory/workflow_guards.py": "57869688d2f65e432f23865d8a935655f43d133381f0274ffd27821eda91718a",
+        "sidecar/icarus_memory/procedures.py": "93f3839437df6babd56703fbb5c560a9d5f2576566fd699e38bb94fadf3567fb"
+      },
+      "model_calls": 1,
+      "minimum_free_percent": 28,
+      "maximum_pressure": 2,
+      "cases": [
+        {
+          "name": "workflow",
+          "learning": "proposed",
+          "passed": true,
+          "checks": {
+            "http": true,
+            "proposed": true,
+            "pending": true,
+            "accept": true,
+            "appropriate": true,
+            "private_excluded": true,
+            "withdrawal": true
+          },
+          "seconds": 22.333,
+          "model_calls": 1
+        },
+        {
+          "name": "facts",
+          "learning": "no_pattern",
+          "passed": true,
+          "checks": {
+            "http": true,
+            "proposed": true,
+            "no_procedure": true
+          },
+          "seconds": 0.425,
+          "model_calls": 0
+        }
+      ],
+      "answers": [
+        "{\n  \"kind\": \"workflow\",\n  \"supporting_ids\": [\n    \"7763de4a8ef74d9f9ca8648d9bd4512a\",\n    \"93faa8ed3305471aa8b554963e53397d\",\n    \"d4f6100f201a4c749a57cbc9a05747b3\"\n  ],\n  \"reason\": \"Drei verschiedene Aufträge (Rückmeldung, Einladung, Sitzung) für die Zunft tragen dieselbe wiederverwendbare Vorgehenskorrektur: Anlass/Empfänger prüfen, Entwurf schreiben, Entwurf gegenlesen.\",\n  \"spec\": {\n    \"name\": \"zunftmail\",\n    \"title\": \"Zunftmail-Auftrag: Anlass prüfen, Entwurf erstellen, gegenlesen\",\n    \"description\": \"Dieser Workflow regelt das Verfassen von Mails für die Zunft. Zuerst werden Anlass und Empfänger geprüft, dann wird der Entwurf geschrieben und abschließend gegengelesen.\",\n    \"area\": \"mail\",\n    \"triggers\": [\n      \"zunftmail\",\n      \"zunftmails\",\n      \"zunft\"\n    ],\n    \"steps\": [\n      \"Bitte zuerst den Anlass und die Empfänger prüfen.\",\n      \"Schreibe den Entwurf.\",\n      \"Gegenlese den Entwurf.\"\n    ],\n    \"positive\": \"Schreibe eine Mail für die Zunft.\",\n    \"negative\": \"Schreibe eine Mail für den Verein.\"\n  }\n}"
+      ],
+      "lifecycle_calls": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 0.946,
+          "http": 200,
+          "seconds_end": 0.947
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:11434/api/ps",
+          "seconds_start": 19.401,
+          "http": 200,
+          "seconds_end": 19.402
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:11434/api/generate",
+          "seconds_start": 19.402,
+          "model": "kingfisher-qwen3.5:9b-8k",
+          "keep_alive": "15s",
+          "error": "ReadTimeout",
+          "seconds_end": 22.403
+        }
+      ]
+    }
+  ]
+}
