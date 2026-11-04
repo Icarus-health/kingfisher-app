@@ -10,10 +10,10 @@ Die Übernahme verwendet die aktuellen eigenen Kontoadressen, damit eine eigene 
 
 ## Umsetzung
 
-- [ ] Backend-Gegenproben für Fristanzeige, eigene Zusage, Identitätsänderung und Quellenentzug.
-- [ ] Bestehende Vorbefüllung wiederverwenden; Identität an Bestätigung binden.
-- [ ] Oberfläche mit kompaktem Personen-/Fristhinweis und aufklappbaren Änderungsfeldern; Änderungen und Fehler erhalten den Entwurf.
-- [ ] Betroffene Tests, unabhängiges Review und gerenderte künstliche Bedienprüfung.
+- [x] Backend-Gegenproben für Fristanzeige, eigene Zusage, Identitätsänderung und Quellenentzug.
+- [x] Bestehende Vorbefüllung wiederverwenden; Identität an Bestätigung binden.
+- [x] Oberfläche mit kompaktem Personen-/Fristhinweis und aufklappbaren Änderungsfeldern; Änderungen und Fehler erhalten den Entwurf.
+- [x] Betroffene Tests, unabhängiges Review und gerenderte künstliche Bedienprüfung.
 - [ ] Auf GitHub liefern. Native Macprüfung und normaler Updateweg bleiben getrennt nachzuweisen.
 
 ## Review Focus
@@ -23,3 +23,5 @@ Eigene Nachricht wird als fremde Bitte verknüpft; historische Frist wird heute 
 ## Ruling
 
 Dieses Paket vereinheitlicht den vorhandenen Aufgabenweg, statt einen neuen Modellaufruf oder eine neue Fristerkennung einzubauen. Große Gedächtnis-/Importqualität wird damit nicht behauptet. Der Großimport bleibt pausiert.
+
+Ergebnisse und Grenzen: [Prüfprotokoll](../../runs/2026-11-04-saved-mail-task-confirmation/README.md).
