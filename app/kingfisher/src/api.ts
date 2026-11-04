@@ -1079,11 +1079,14 @@ export type MacCalendarState = {
 
 export type CalendarOverview = {
   configured: boolean; errors: string[];
+  read_context?: string; failed_sources?: string[]; read_at?: string;
   warnings?: string[];
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[];
     source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>;
+    /** Client-only reading preview; never an authority for calendar actions. */
+    stale_since?: string;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string;
     /** Bereich des Kalenders (Paket K, `bereiche.py`); fehlt oder null ohne bestätigten Bereich. */

@@ -1,0 +1,237 @@
+{
+  "passed": true,
+  "syntheticOnly": true,
+  "providerCalls": 0,
+  "viewports": [
+    900,
+    1280,
+    1440,
+    390
+  ],
+  "cssZoom": 200,
+  "checks": [
+    "page identity",
+    "nonblank",
+    "no overlay",
+    "no unexpected console errors",
+    "edit draft preserved",
+    "write disabled",
+    "stale event readable",
+    "stale actions absent",
+    "fresh calendar survives",
+    "responsive",
+    "css zoom",
+    "empty success replaces",
+    "changed authority clears",
+    "changed period clears",
+    "409 clears",
+    "no POST/model",
+    "month stale accessible label",
+    "month fresh event unmarked"
+  ],
+  "requests": [
+    {
+      "path": "/api/v1/konten",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/konten",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/integrations",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/mac-calendar",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar-actions/sources",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/calendar",
+      "method": "GET"
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 409 (Conflict)"
+  ]
+}

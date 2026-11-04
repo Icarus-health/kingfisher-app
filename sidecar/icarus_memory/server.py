@@ -3373,6 +3373,7 @@ def create_app(
 
     def _calendar_overview(days: int = 7, year_view: bool = False, *, start: datetime | None = None,
                            finish: datetime | None = None, zone=None) -> dict[str, Any]:
+        from .connectors.collections import CalendarReadChanged
         calendar = getattr(app.state, "calendar", None)
         result: dict[str, Any] = {"items": [], "errors": [], "warnings": [], "configured": calendar is not None}
         # Bestätigte Geburtstage stehen jedes Jahr wieder im Kalender, auch ohne verbundenen Kalender; nur in dieser
@@ -3397,13 +3398,24 @@ def create_app(
             elif not (start and finish):
                 start = datetime.now(timezone.utc)
                 finish = start + timedelta(days=days)
-            events, unknown = display_events(
-                calendar.events(days=(finish - start).total_seconds() / 86400, at=start), start, finish, zone=zone)
+            duration = (finish - start).total_seconds() / 86400
+            if isinstance(calendar, CalendarCollection):
+                read, errors, context = calendar.display_events(days=duration, at=start)
+                result.update(read_context=context, failed_sources=list(errors),
+                              read_at=datetime.now(timezone.utc).isoformat())
+            else:
+                read = calendar.events(days=duration, at=start)
+                errors = dict(getattr(calendar, 'last_errors', {}))
+            if getattr(app.state, 'calendar', None) is not calendar:
+                raise CalendarReadChanged('Die verbundenen Kalender haben sich während des Lesens geändert.')
+            events, unknown = display_events(read, start, finish, zone=zone)
             result["items"] = [event.to_dict() for event in events]
-            result["errors"] = list(getattr(calendar, "last_errors", {}).values())
+            result["errors"] = list(errors.values())
             konten_routes.nach_kalenderabruf(app, calendar, result)  # Stand je Kalender, Bereich je Termin
             if unknown:
                 result["warnings"].append(display_warning(unknown))
+        except CalendarReadChanged as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
         except Exception as exc:
             result["errors"] = [str(exc)]
         result["items"] = sorted([*result["items"], *geburtstage], key=lambda e: str(e.get("start") or ""))

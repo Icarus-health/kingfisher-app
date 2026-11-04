@@ -221,3 +221,6 @@
   #root .calendar-page .calendar-preparation-heading { flex-direction:column-reverse; align-items:stretch; }
   #root .calendar-page .calendar-preparation-heading > button { align-self:flex-end; }
 }
+
+.calendar-month-stale{font-size:0.7rem;color:var(--g-leise);}
+@media(max-width:700px){.calendar-month-stale{display:none;}}
