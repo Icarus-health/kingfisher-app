@@ -1,0 +1,19 @@
+{
+  "suite": "memory-acceptance-independent-pilot-20261104-v2",
+  "frozen_at_utc": "2026-11-04T22:20:36.519557+00:00",
+  "scenario_clock": "2026-11-04T16:00:00+01:00",
+  "frozen_before_any_run": true,
+  "model_calls_to_construct": 0,
+  "implementation_read_for_design": false,
+  "source_count": 10,
+  "question_count": 5,
+  "relevant_task_count": 4,
+  "files": {
+    "README.md": "b053e3abf6425a783c295ed93a09fc5d3399a328e2ad05361d0f0f76de4f5f5c",
+    "catalog.json": "036fbf45fe33b7329f49c60e6183d13126daa8731bc922545cd7333d2a63f388",
+    "reference.json": "17626a79cf3f26cdca3524ef14b9b14aba265225c7d6a6bc7fc41deae08ec505",
+    "sources.json": "d77f0f45dd8b38733485e81e43a3d21d8923b03d31ea4be8061f89503b2b3241"
+  },
+  "predecessor_catalog_sha256": "d3efe3cc6941557008a5b81c86a748f1a9e5f07d2a3bb013cedcbb56d246993a",
+  "pre_run_revision_reason": "independent semantic gold correction and explicit Sent transport"
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from contextlib import closing
 from datetime import date, datetime, timezone
 
 import pytest
@@ -72,25 +73,40 @@ class MemoryIntentStub(StubAgent):
 
 def test_conversation_migration_and_restart(tmp_path) -> None:
     path = tmp_path / "conversations.sqlite3"
-    store = ConversationStore(path)
-    conversation = store.create()
-    store.add_message(conversation.id, "user", "Was ist heute wichtig?")
-    store.add_message(conversation.id, "assistant", "Zwei Punkte.")
-    store.close()
+    with closing(ConversationStore(path)) as store:
+        conversation = store.create()
+        messages = [
+            store.add_message(conversation.id, "user", "Was ist heute wichtig?"),
+            store.add_message(conversation.id, "assistant", "Zwei Punkte.",
+                              metadata={"fixture": "gespeicherte Antwort"}),
+        ]
+        saved_conversation = store.get(conversation.id)
+        store.draft_put(conversation.id, "  Ungesendete Rückfrage\n", 0)
+        store.draft_put("new", "  Anderer Gesprächsentwurf\n", 0)
 
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 1
+        # v2 adds separate drafts; v3 adds durable first-message handoffs.
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert connection.execute("SELECT COUNT(*) FROM conversation_draft_handoffs").fetchone()[0] == 0
 
-    reopened = ConversationStore(path)
-    assert reopened.get(conversation.id).title == "Was ist heute wichtig?"
-    assert [message.content for message in reopened.messages(conversation.id)] == [
-        "Was ist heute wichtig?", "Zwei Punkte."
-    ]
-    reopened.close()
+    with closing(ConversationStore(path)) as reopened:
+        assert reopened.get(conversation.id) == saved_conversation
+        assert reopened.get(conversation.id).title == "Was ist heute wichtig?"
+        assert reopened.messages(conversation.id) == messages
+        assert reopened.draft_get(conversation.id) == {"text": "  Ungesendete Rückfrage\n", "revision": 1}
+        assert reopened.draft_get("new") == {"text": "  Anderer Gesprächsentwurf\n", "revision": 1}
+        assert reopened.history(conversation.id) == [
+            {"role": "user", "content": "Was ist heute wichtig?"},
+            {"role": "assistant", "content": "Zwei Punkte."},
+        ]
+        assert [item.id for item in reopened.list()] == [conversation.id]
 
 
 def test_known_unversioned_conversation_schema_is_upgraded(tmp_path) -> None:
     path = tmp_path / "conversations.sqlite3"
+    legacy_conversation = ("legacy", "Alt", "2026-01-01T10:00:00+00:00", "2026-01-01T10:00:00+00:00")
+    legacy_message = ("m-legacy", "legacy", "assistant", "Alte Antwort", "error",
+                      "2026-01-01T10:00:00+00:00", '{"fixture": "alter Kontext"}')
     with sqlite3.connect(path) as connection:
         connection.execute(
             "CREATE TABLE conversations (id TEXT PRIMARY KEY, title TEXT NOT NULL, "
@@ -102,15 +118,33 @@ def test_known_unversioned_conversation_schema_is_upgraded(tmp_path) -> None:
             "role TEXT NOT NULL, content TEXT NOT NULL, status TEXT NOT NULL, "
             "created_at TEXT NOT NULL, metadata TEXT NOT NULL)"
         )
-        connection.execute(
-            "INSERT INTO conversations VALUES ('legacy', 'Alt', "
-            "'2026-01-01T10:00:00+00:00', '2026-01-01T10:00:00+00:00')"
-        )
-    store = ConversationStore(path)
-    assert store.get("legacy").title == "Alt"
+        connection.execute("INSERT INTO conversations VALUES (?, ?, ?, ?)", legacy_conversation)
+        connection.execute("INSERT INTO conversation_messages VALUES (?, ?, ?, ?, ?, ?, ?)", legacy_message)
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 0
+
+    with closing(ConversationStore(path)) as store:
+        assert store.get("legacy").title == "Alt"
+        assert store.draft_get("new") == {"text": "", "revision": 0}
+        store.draft_put("new", "  Noch nicht gesendete erste Frage\n", 0)
+        bound = store.draft_bind(1)
+        assert bound["handoff"]["state"] == "ready"
+
+    # Migration must preserve the exact legacy rows, including IDs, timestamps,
+    # error status and serialized metadata, not merely the conversation title.
     with sqlite3.connect(path) as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 1
-    store.close()
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert connection.execute("SELECT * FROM conversations WHERE id='legacy'").fetchone() == legacy_conversation
+        assert connection.execute("SELECT * FROM conversation_messages").fetchall() == [legacy_message]
+
+    with closing(ConversationStore(path)) as reopened:
+        assert reopened.get("legacy").title == "Alt"
+        assert reopened.messages("legacy")[0].metadata == {"fixture": "alter Kontext"}
+        assert reopened.draft_get("new") == {"text": "", "revision": 2, "binding": bound}
+        assert reopened.draft_get(bound["conversation_id"]) == {
+            "text": "", "revision": 0,
+            "handoff": {"id": bound["handoff"]["id"], "text": "  Noch nicht gesendete erste Frage\n", "state": "ready"},
+        }
+        assert reopened.messages(bound["conversation_id"]) == []
 
 
 def test_failed_write_rolls_back_for_next_transaction(tmp_path) -> None:

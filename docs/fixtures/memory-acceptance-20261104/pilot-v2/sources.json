@@ -1,0 +1,171 @@
+{
+  "suite": "memory-acceptance-independent-pilot-20261104-v2",
+  "clock": "2026-11-04T16:00:00+01:00",
+  "owner": {
+    "name": "Mika Dorn",
+    "address": "mika@studio-fenn.example"
+  },
+  "mails": [
+    {
+      "id": "P01",
+      "sender": {
+        "name": "Nelli Graf",
+        "address": "nelli@pavillon-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Fenn: Leuchtplan zur Freigabe",
+      "body": "Hallo Mika, bitte schicke mir den Leuchtplan für den Pavillon Fenn bis 6. November 2026, 15:00 Uhr Berliner Zeit. Ich prüfe danach die Anschlüsse. Nelli",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P02",
+      "sender": {
+        "name": "Nelli Graf",
+        "address": "nelli@chor-birken.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Chorprobe",
+      "body": "Hallo Mika, ich bin Nelli aus dem Chor Birken. Wir proben am 12. November um 19 Uhr im Gemeindesaal; das ist eine offene Einladung, eine Anmeldung oder Antwort ist nicht nötig.",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P03",
+      "sender": {
+        "name": "Erik Lenz",
+        "address": "erik@archiv-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "FW: Alter Stand 2024, nur zur Ablage",
+      "body": "Mika, nur zur Dokumentation: Diese Sache ist seit 2024 abgeschlossen, bitte nichts veranlassen.\n--- Weitergeleitete Nachricht ---\nVon: Rufus Kern <rufus@historisch.example>\nAn: Anja West <anja@historisch.example>\nDatum: 2. April 2024\nAnja, sende mir bitte die Inventarliste bis 8. April 2024.\nRufus",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P04",
+      "sender": {
+        "name": "Mika Dorn",
+        "address": "mika@studio-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Omar Bey",
+          "address": "omar@textbruecke.example"
+        }
+      ],
+      "title": "Zusage: englische Kurzfassung",
+      "body": "Hallo Omar, ich werde dir die englische Kurzfassung bis zum 7. November 2026 um 12 Uhr Berliner Zeit liefern. Grüße, Mika",
+      "at": "2026-11-03T10:00:00+01:00",
+      "folder": "Sent"
+    },
+    {
+      "id": "P05",
+      "sender": {
+        "name": "Lampenversand Belegdienst",
+        "address": "belege@lampenversand.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Rechnung F-612: Zahlung offen",
+      "body": "Guten Tag Mika Dorn, für Bestellung F-612 sind 74,20 EUR offen. Bitte bezahlen Sie bis 9. November 2026. Kontodaten sind in dieser Nachricht nicht enthalten. Dies ist eine automatische Nachricht; nicht auf diese Adresse antworten.",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P06",
+      "sender": {
+        "name": "Besuchsdienst",
+        "address": "termine@pavillon-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Besichtigung bestätigt",
+      "body": "Ihre Besichtigung des Pavillons Fenn findet am 10. November 2026 von 09:30 bis 10:15 Uhr Berliner Zeit statt. Der Platz ist bestätigt. Sie müssen nichts bestätigen und nichts vorbereiten.",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P07",
+      "sender": {
+        "name": "Paketdienst",
+        "address": "status@paket.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Zustellung F-612",
+      "body": "Das Paket F-612 wurde am 3. November 2026 um 08:14 Uhr zugestellt. Dies ist nur die Zustellquittung. Sie enthält keine Aussage darüber, ob die Rechnung bezahlt ist.",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P08",
+      "sender": {
+        "name": "Omar Bey",
+        "address": "omar@textbruecke.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Rückmeldung zur Schriftgröße",
+      "body": "Mika, bitte sag mir bei Gelegenheit, ob Schriftgröße 14 für die englische Kurzfassung lesbar ist. Dafür gibt es keine Frist; der Liefertermin der Kurzfassung ist davon unabhängig.",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P09",
+      "sender": {
+        "name": "Lichtbrief Redaktion",
+        "address": "redaktion@lichtbrief.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "November-Lichtbrief",
+      "body": "Im November zeigen wir neue Leuchten. Wer möchte, kann bis 20. November freiwillig einen Gestaltungsvorschlag einsenden. Ohne Teilnahme entsteht keinerlei Verpflichtung. Mika, dieser Newsletter ist keine persönliche Aufgabenverteilung.",
+      "at": "2026-11-03T10:00:00+01:00"
+    },
+    {
+      "id": "P10",
+      "sender": {
+        "name": "Tessa Wendt",
+        "address": "tessa@lager-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Materialablage",
+      "body": "Die bernsteinfarbenen Musterfolien liegen im Fach K7. Die grauen Ersatzrahmen stehen im Nebenlager. Diese Nachricht dokumentiert nur den Bestand; nichts nachbestellen.",
+      "at": "2026-11-03T10:00:00+01:00"
+    }
+  ]
+}

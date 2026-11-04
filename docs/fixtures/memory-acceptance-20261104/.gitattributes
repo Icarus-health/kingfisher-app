@@ -1,0 +1,5 @@
+# Frozen source bytes must survive checkout unchanged, including RFC822 CRLF.
+** -text
+**/*.pdf -diff -merge
+**/*.docx -diff -merge
+**/*.eml whitespace=cr-at-eol

@@ -1,0 +1,17 @@
+{
+  "suite": "memory-acceptance-independent-pilot-20261104-v1",
+  "frozen_at_utc": "2026-11-04T22:18:16.417143+00:00",
+  "scenario_clock": "2026-11-04T16:00:00+01:00",
+  "frozen_before_any_run": true,
+  "model_calls_to_construct": 0,
+  "implementation_read_for_design": false,
+  "source_count": 10,
+  "question_count": 5,
+  "relevant_task_count": 4,
+  "files": {
+    "README.md": "e4b9cfe4951d4c6fa29825a90cac01acffb6a02bac697fbec2e022ab2b0468cb",
+    "catalog.json": "d3efe3cc6941557008a5b81c86a748f1a9e5f07d2a3bb013cedcbb56d246993a",
+    "reference.json": "14207926515c6e2b18f6f8f5994ae033cbaf809678d53dea1dfa99a82d6a1a51",
+    "sources.json": "9f9bd319c51a9782be87761b69a7c9fb0e5dec73f6110a3d71fc2857736fc003"
+  }
+}

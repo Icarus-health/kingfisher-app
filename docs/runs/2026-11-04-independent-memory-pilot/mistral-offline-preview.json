@@ -1,0 +1,972 @@
+{
+  "status": "offline_preview",
+  "execution_status": "not_run",
+  "semantic_grade": "requires_review",
+  "questions": "not_run",
+  "synthetic_only": true,
+  "injected_http": false,
+  "live_model_verified": false,
+  "model": "mistral-small-2603",
+  "endpoint": "https://api.eu.mistral.ai/v1",
+  "catalog_sha256": "036fbf45fe33b7329f49c60e6183d13126daa8731bc922545cd7333d2a63f388",
+  "sources_sha256": "d77f0f45dd8b38733485e81e43a3d21d8923b03d31ea4be8061f89503b2b3241",
+  "freeze_sha256": "728f6fdffca11866d2f49b24fbf784b88b858c90c11434503d23076046cffe95",
+  "scenario_clock": "2026-11-04T16:00:00+01:00",
+  "original_store": "temporary",
+  "max_requests": 60,
+  "max_seconds": 600,
+  "cap_microusd": null,
+  "request_limit_semantics": "total HTTP: metadata GET plus inference POSTs",
+  "limits": {
+    "maximum_cap_microusd": 1000000,
+    "maximum_requests": 60,
+    "maximum_seconds": 600
+  },
+  "stages": [
+    "source_classification",
+    "persons_categories",
+    "task_extraction",
+    "task_semantic_review"
+  ],
+  "acceptance": "No retrieval, native, attachment, full acceptance or bulk-import pass.",
+  "timeout_scope": "Preparation, dispatch and HTTP waiting share one monotonic deadline. Local filesystem operations have no OS watchdog.",
+  "timeout_billing": "A remote dispatched request can continue after timeout; unknown usage remains held at the reserved worst-case cost. No server-side cancellation is claimed.",
+  "mail_transport": "synthetic RFC822 IMAP; real MailConnector and Intake; no preclassification",
+  "sources": [
+    {
+      "id": "P01",
+      "sender": {
+        "name": "Nelli Graf",
+        "address": "nelli@pavillon-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Fenn: Leuchtplan zur Freigabe",
+      "body": "Hallo Mika, bitte schicke mir den Leuchtplan für den Pavillon Fenn bis 6. November 2026, 15:00 Uhr Berliner Zeit. Ich prüfe danach die Anschlüsse. Nelli",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-3f43c5a731c2",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-3f43c5a731c2",
+        "kind": "message",
+        "title": "Fenn: Leuchtplan zur Freigabe",
+        "body": "Hallo Mika, bitte schicke mir den Leuchtplan für den Pavillon Fenn bis 6. November 2026, 15:00 Uhr Berliner Zeit. Ich prüfe danach die Anschlüsse. Nelli\n",
+        "digest": "sha256:6a4aed6516e52d47c89ad3621e1ef4c9e479ab0173adb4aedd627780d3d888e6",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P01@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Nelli Graf <nelli@pavillon-fenn.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Nelli Graf",
+            "adresse": "nelli@pavillon-fenn.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:5e34b50f96710b684219f7ce9e31e4b660d5e368196aa3376a01ee7297b032c9",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P02",
+      "sender": {
+        "name": "Nelli Graf",
+        "address": "nelli@chor-birken.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Chorprobe",
+      "body": "Hallo Mika, ich bin Nelli aus dem Chor Birken. Wir proben am 12. November um 19 Uhr im Gemeindesaal; das ist eine offene Einladung, eine Anmeldung oder Antwort ist nicht nötig.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-ea7dbe555c0a",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-ea7dbe555c0a",
+        "kind": "message",
+        "title": "Chorprobe",
+        "body": "Hallo Mika, ich bin Nelli aus dem Chor Birken. Wir proben am 12. November um 19 Uhr im Gemeindesaal; das ist eine offene Einladung, eine Anmeldung oder Antwort ist nicht nötig.\n",
+        "digest": "sha256:1f89d5f2a5b0f0a1ef3e9e5fb43c1cce67f35d77bcbeb2238956fbebcf81a3b4",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P02@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Nelli Graf <nelli@chor-birken.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Nelli Graf",
+            "adresse": "nelli@chor-birken.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:b568d603582a1dd01857b64ac8ebd6e5f2a04c823b55d9b1c61e5e259d8b6fd1",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P03",
+      "sender": {
+        "name": "Erik Lenz",
+        "address": "erik@archiv-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "FW: Alter Stand 2024, nur zur Ablage",
+      "body": "Mika, nur zur Dokumentation: Diese Sache ist seit 2024 abgeschlossen, bitte nichts veranlassen.\n--- Weitergeleitete Nachricht ---\nVon: Rufus Kern <rufus@historisch.example>\nAn: Anja West <anja@historisch.example>\nDatum: 2. April 2024\nAnja, sende mir bitte die Inventarliste bis 8. April 2024.\nRufus",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-d4da43edda24",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-d4da43edda24",
+        "kind": "message",
+        "title": "FW: Alter Stand 2024, nur zur Ablage",
+        "body": "Mika, nur zur Dokumentation: Diese Sache ist seit 2024 abgeschlossen, bitte nichts veranlassen.\n--- Weitergeleitete Nachricht ---\nVon: Rufus Kern <rufus@historisch.example>\nAn: Anja West <anja@historisch.example>\nDatum: 2. April 2024\nAnja, sende mir bitte die Inventarliste bis 8. April 2024.\nRufus\n",
+        "digest": "sha256:7ee7d4dc68edfe314b1fb4b01100e65ed5031c043318e949bad16a8004af3728",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P03@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Erik Lenz <erik@archiv-fenn.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Erik Lenz",
+            "adresse": "erik@archiv-fenn.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:ade55cd888dfe93bae37e865941d5b60906d970e6c4f4e5ffb47983bf1d74820",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P04",
+      "sender": {
+        "name": "Mika Dorn",
+        "address": "mika@studio-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Omar Bey",
+          "address": "omar@textbruecke.example"
+        }
+      ],
+      "title": "Zusage: englische Kurzfassung",
+      "body": "Hallo Omar, ich werde dir die englische Kurzfassung bis zum 7. November 2026 um 12 Uhr Berliner Zeit liefern. Grüße, Mika",
+      "at": "2026-11-03T10:00:00+01:00",
+      "folder": "Sent",
+      "source_id": "e-473c13740c21",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-473c13740c21",
+        "kind": "message",
+        "title": "Zusage: englische Kurzfassung",
+        "body": "Hallo Omar, ich werde dir die englische Kurzfassung bis zum 7. November 2026 um 12 Uhr Berliner Zeit liefern. Grüße, Mika\n",
+        "digest": "sha256:f11e05bcedd544b8ac19ee9bb7ee9c135a3c2d3e1417c08e35261e20de7dffb1",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P04@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Mika Dorn <mika@studio-fenn.example>",
+          "Omar Bey <omar@textbruecke.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "von",
+            "ich": true
+          },
+          {
+            "name": "Omar Bey",
+            "adresse": "omar@textbruecke.example",
+            "rolle": "an",
+            "ich": false
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:c41d128d8815454145b37aa57f880e6fb017925ada9c4ffbf862d89438fc21fc",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P05",
+      "sender": {
+        "name": "Lampenversand Belegdienst",
+        "address": "belege@lampenversand.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Rechnung F-612: Zahlung offen",
+      "body": "Guten Tag Mika Dorn, für Bestellung F-612 sind 74,20 EUR offen. Bitte bezahlen Sie bis 9. November 2026. Kontodaten sind in dieser Nachricht nicht enthalten. Dies ist eine automatische Nachricht; nicht auf diese Adresse antworten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-42e54c67ecc5",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-42e54c67ecc5",
+        "kind": "message",
+        "title": "Rechnung F-612: Zahlung offen",
+        "body": "Guten Tag Mika Dorn, für Bestellung F-612 sind 74,20 EUR offen. Bitte bezahlen Sie bis 9. November 2026. Kontodaten sind in dieser Nachricht nicht enthalten. Dies ist eine automatische Nachricht; nicht auf diese Adresse antworten.\n",
+        "digest": "sha256:c932013ca14c55fe215cd4333d70a38714f79010b51bbe3fa2d44511ee70a363",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P05@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Lampenversand Belegdienst <belege@lampenversand.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Lampenversand Belegdienst",
+            "adresse": "belege@lampenversand.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:e4b6c30236c3c785f9c8b1d0bc790e921f0e59a7c8ebede680bb7da330415f3d",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P06",
+      "sender": {
+        "name": "Besuchsdienst",
+        "address": "termine@pavillon-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Besichtigung bestätigt",
+      "body": "Ihre Besichtigung des Pavillons Fenn findet am 10. November 2026 von 09:30 bis 10:15 Uhr Berliner Zeit statt. Der Platz ist bestätigt. Sie müssen nichts bestätigen und nichts vorbereiten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-73093d49c6c0",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-73093d49c6c0",
+        "kind": "message",
+        "title": "Besichtigung bestätigt",
+        "body": "Ihre Besichtigung des Pavillons Fenn findet am 10. November 2026 von 09:30 bis 10:15 Uhr Berliner Zeit statt. Der Platz ist bestätigt. Sie müssen nichts bestätigen und nichts vorbereiten.\n",
+        "digest": "sha256:5cf60a0cbf806496803c78cc9b33fd2a2c861aa419a1eeeb7e2398316477b1f9",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P06@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Besuchsdienst <termine@pavillon-fenn.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Besuchsdienst",
+            "adresse": "termine@pavillon-fenn.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:eee3d57e978fdec38519423857869476ca2e2378cd22301c7f8a4f9c83b92848",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P07",
+      "sender": {
+        "name": "Paketdienst",
+        "address": "status@paket.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Zustellung F-612",
+      "body": "Das Paket F-612 wurde am 3. November 2026 um 08:14 Uhr zugestellt. Dies ist nur die Zustellquittung. Sie enthält keine Aussage darüber, ob die Rechnung bezahlt ist.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-143daf6b1969",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-143daf6b1969",
+        "kind": "message",
+        "title": "Zustellung F-612",
+        "body": "Das Paket F-612 wurde am 3. November 2026 um 08:14 Uhr zugestellt. Dies ist nur die Zustellquittung. Sie enthält keine Aussage darüber, ob die Rechnung bezahlt ist.\n",
+        "digest": "sha256:da002b92965041888540e0561f59dd0d909230f9c36f55741187e10013924eb7",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P07@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Paketdienst <status@paket.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Paketdienst",
+            "adresse": "status@paket.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:41f5579e0fe932fe0ba3097a43160bd4670be1b5bd344296b714f873cdbed45f",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P08",
+      "sender": {
+        "name": "Omar Bey",
+        "address": "omar@textbruecke.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Rückmeldung zur Schriftgröße",
+      "body": "Mika, bitte sag mir bei Gelegenheit, ob Schriftgröße 14 für die englische Kurzfassung lesbar ist. Dafür gibt es keine Frist; der Liefertermin der Kurzfassung ist davon unabhängig.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-8de2923bd940",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-8de2923bd940",
+        "kind": "message",
+        "title": "Rückmeldung zur Schriftgröße",
+        "body": "Mika, bitte sag mir bei Gelegenheit, ob Schriftgröße 14 für die englische Kurzfassung lesbar ist. Dafür gibt es keine Frist; der Liefertermin der Kurzfassung ist davon unabhängig.\n",
+        "digest": "sha256:4faf3166de47d183db98e508467e17708ca2636a082702cd318d0315979053fd",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P08@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Omar Bey <omar@textbruecke.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Omar Bey",
+            "adresse": "omar@textbruecke.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:03aa8b8eba515175147ad9714dcdb5f97c47dff1b4c8608c6cd62a097a15e2ea",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P09",
+      "sender": {
+        "name": "Lichtbrief Redaktion",
+        "address": "redaktion@lichtbrief.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "November-Lichtbrief",
+      "body": "Im November zeigen wir neue Leuchten. Wer möchte, kann bis 20. November freiwillig einen Gestaltungsvorschlag einsenden. Ohne Teilnahme entsteht keinerlei Verpflichtung. Mika, dieser Newsletter ist keine persönliche Aufgabenverteilung.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-a4b479286d9f",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-a4b479286d9f",
+        "kind": "message",
+        "title": "November-Lichtbrief",
+        "body": "Im November zeigen wir neue Leuchten. Wer möchte, kann bis 20. November freiwillig einen Gestaltungsvorschlag einsenden. Ohne Teilnahme entsteht keinerlei Verpflichtung. Mika, dieser Newsletter ist keine persönliche Aufgabenverteilung.\n",
+        "digest": "sha256:e7f6e784bc1928a978a41acdb71f29e78c9d3eba01209c397ecff5e90052c0bf",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P09@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Lichtbrief Redaktion <redaktion@lichtbrief.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Lichtbrief Redaktion",
+            "adresse": "redaktion@lichtbrief.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:6e930ee931f2a561aa3f8e0984d5376e139068d356c16f9f0cd96254d674c9bb",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    },
+    {
+      "id": "P10",
+      "sender": {
+        "name": "Tessa Wendt",
+        "address": "tessa@lager-fenn.example"
+      },
+      "recipients": [
+        {
+          "name": "Mika Dorn",
+          "address": "mika@studio-fenn.example"
+        }
+      ],
+      "title": "Materialablage",
+      "body": "Die bernsteinfarbenen Musterfolien liegen im Fach K7. Die grauen Ersatzrahmen stehen im Nebenlager. Diese Nachricht dokumentiert nur den Bestand; nichts nachbestellen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "source_id": "e-7e0a5bb2edb1",
+      "planned_request_upper_bound": 5,
+      "original": {
+        "id": "e-7e0a5bb2edb1",
+        "kind": "message",
+        "title": "Materialablage",
+        "body": "Die bernsteinfarbenen Musterfolien liegen im Fach K7. Die grauen Ersatzrahmen stehen im Nebenlager. Diese Nachricht dokumentiert nur den Bestand; nichts nachbestellen.\n",
+        "digest": "sha256:0454077b3dee0eb0d4b2f9e6fe43f3b933e06c0cc4a95106c60e9687e3c2a069",
+        "provenance": {
+          "source_type": "email",
+          "source_ref": "synthetic-pilot:<P10@messlatte.example>",
+          "captured_at": "2026-11-03T09:00:00Z"
+        },
+        "recorded_at": "2026-11-04T16:00:00+01:00",
+        "occurred_at": "2026-11-03T10:00:00+01:00",
+        "state": "new",
+        "project_id": null,
+        "participants": [
+          "Tessa Wendt <tessa@lager-fenn.example>"
+        ],
+        "contacts": [
+          {
+            "name": "Tessa Wendt",
+            "adresse": "tessa@lager-fenn.example",
+            "rolle": "von",
+            "ich": false
+          },
+          {
+            "name": "Mika Dorn",
+            "adresse": "mika@studio-fenn.example",
+            "rolle": "an",
+            "ich": true
+          }
+        ],
+        "produced": [],
+        "consolidated_at": null,
+        "tags": [
+          "mail:message:571e5b7628760d7173ad8485d0e979770a8bfa5cd9575b9114ca1d370ed9582c",
+          "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[],\"doppelt\":0,\"gefunden\":0,\"gelesen\":0,\"geprueft\":true,\"hinweis\":\"Keine benannten Anlagen gefunden.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+        ],
+        "covers": [],
+        "period": ""
+      }
+    }
+  ],
+  "preview": {
+    "preview_id": "f05c65c21853488093a29c7b66370ee5",
+    "purpose": "pilot",
+    "provider": "mistral",
+    "count": 10,
+    "include_tasks": true,
+    "import_model": "mistral-small-2603",
+    "budget": {
+      "provider": "mistral",
+      "currency": "USD",
+      "budget_id": "a744ec10574e46868f32286ddb74d29c",
+      "revision": 1,
+      "price_id": "mistral-small-2603-eu-20261102",
+      "price_valid_until": "2026-12-02",
+      "cap_microusd": 0,
+      "spent_microusd": 0,
+      "held_microusd": 0,
+      "remaining_microusd": 0,
+      "reconciliation_required": false,
+      "ready": false,
+      "blocked_reason": "budget_exhausted"
+    },
+    "budget_id": "a744ec10574e46868f32286ddb74d29c",
+    "budget_revision": 1,
+    "price_id": "mistral-small-2603-eu-20261102",
+    "source_limit": 100,
+    "request_limit": 50,
+    "filtered_count": 0,
+    "review_count": 0,
+    "filtered": [],
+    "sources": [
+      {
+        "id": "e-7e0a5bb2edb1",
+        "title": "Materialablage",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-a4b479286d9f",
+        "title": "November-Lichtbrief",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-8de2923bd940",
+        "title": "Rückmeldung zur Schriftgröße",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-143daf6b1969",
+        "title": "Zustellung F-612",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-73093d49c6c0",
+        "title": "Besichtigung bestätigt",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-42e54c67ecc5",
+        "title": "Rechnung F-612: Zahlung offen",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-d4da43edda24",
+        "title": "FW: Alter Stand 2024, nur zur Ablage",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-ea7dbe555c0a",
+        "title": "Chorprobe",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-3f43c5a731c2",
+        "title": "Fenn: Leuchtplan zur Freigabe",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      },
+      {
+        "id": "e-473c13740c21",
+        "title": "Zusage: englische Kurzfassung",
+        "occurred_at": "2026-11-03T10:00:00+01:00"
+      }
+    ],
+    "candidate_count": 10,
+    "candidate_scan_limit": 2000,
+    "scanned_count": 10,
+    "next_cursor": null,
+    "sampling": "selected source IDs",
+    "sampling_note": "Es werden nur die ausdrücklich ausgewählten Quellen geprüft.",
+    "expires_at": 1793834605.012028
+  },
+  "receipt_errors": {},
+  "inference_requests": 0,
+  "metadata_requests": 0,
+  "originals_unchanged": true,
+  "deadline_exhausted": false,
+  "budget": {
+    "provider": "mistral",
+    "currency": "USD",
+    "budget_id": "a744ec10574e46868f32286ddb74d29c",
+    "revision": 1,
+    "price_id": "mistral-small-2603-eu-20261102",
+    "price_valid_until": "2026-12-02",
+    "cap_microusd": 0,
+    "spent_microusd": 0,
+    "held_microusd": 0,
+    "remaining_microusd": 0,
+    "reconciliation_required": false,
+    "ready": false,
+    "blocked_reason": "budget_exhausted"
+  },
+  "manifest": {
+    "id": "mistral-small-2603-eu-20261102",
+    "model": "mistral-small-2603",
+    "endpoint": "https://api.eu.mistral.ai/v1",
+    "input_microusd_per_million": 165000,
+    "output_microusd_per_million": 660000,
+    "verified_at": "2026-11-02",
+    "valid_until": "2026-12-02"
+  },
+  "verified_context_limits": [],
+  "usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "usage_complete": true,
+  "reservations": [],
+  "results": [
+    {
+      "id": "P01",
+      "source_id": "e-3f43c5a731c2",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-3f43c5a731c2",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "03341866b5805d818031236adde32c845a62f883a95e8148ab831d5aad5ac1c6"
+      }
+    },
+    {
+      "id": "P02",
+      "source_id": "e-ea7dbe555c0a",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-ea7dbe555c0a",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "813448e2e6a1b6c708cae9da9c6839d430647ad1c835b76a992f5e121720a730"
+      }
+    },
+    {
+      "id": "P03",
+      "source_id": "e-d4da43edda24",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-d4da43edda24",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "d052230687c55bb71f4cd2e5ead347f1ff62c15a89efbb90327e5dc8f4dc9225"
+      }
+    },
+    {
+      "id": "P04",
+      "source_id": "e-473c13740c21",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-473c13740c21",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "c30817bf7b0c6e01fffae2938077b0d172526a67e49f5423238ccf862e135e95"
+      }
+    },
+    {
+      "id": "P05",
+      "source_id": "e-42e54c67ecc5",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-42e54c67ecc5",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "c34cbd4876a459d16f66bca6ff11e4a153f279e28eb7670f29c5712bf065eebe"
+      }
+    },
+    {
+      "id": "P06",
+      "source_id": "e-73093d49c6c0",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-73093d49c6c0",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "ff298711f217f05ef3e8e297035cbdf924ec382c46f9c6c867096a45f5306b0a"
+      }
+    },
+    {
+      "id": "P07",
+      "source_id": "e-143daf6b1969",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-143daf6b1969",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "7856b3ef4314a59d4e4c3a37661ac3cfd2b50938dc8b5d6ca894df755d05d175"
+      }
+    },
+    {
+      "id": "P08",
+      "source_id": "e-8de2923bd940",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-8de2923bd940",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "11cf2c4fa6e202fa7657e70de7eb52e54209db0a9964e94443c4a9f4540ba9bc"
+      }
+    },
+    {
+      "id": "P09",
+      "source_id": "e-a4b479286d9f",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-a4b479286d9f",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "0ace399c814a15c404c026c413379244f8872cee415678cf2c56488fd593d600"
+      }
+    },
+    {
+      "id": "P10",
+      "source_id": "e-7e0a5bb2edb1",
+      "integrity": "unchanged",
+      "original_unchanged": true,
+      "working_memory_state": "pending",
+      "classification_refs": {
+        "refs": [],
+        "truncated": false
+      },
+      "persons_categories": {
+        "episode_id": "e-7e0a5bb2edb1",
+        "status": "pending",
+        "categories": [],
+        "entities": [],
+        "correction": null,
+        "automatic": true,
+        "failure_code": null,
+        "revision": "e8b362b7ad8830fca93fd1de2925fcda4fbdc427fa6e128ea9c64653eee3214e"
+      }
+    }
+  ],
+  "task_proposals": [],
+  "deadline_suggestions": [],
+  "automatic_tasks": [],
+  "seconds": 0.898
+}

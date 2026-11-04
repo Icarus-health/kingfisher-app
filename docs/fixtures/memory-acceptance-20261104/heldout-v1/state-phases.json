@@ -1,0 +1,267 @@
+{
+  "suite": "memory-acceptance-independent-heldout-20261104-v1",
+  "clock": "2026-11-04T16:00:00+01:00",
+  "phases": [
+    {
+      "id": "S01",
+      "baseline": "mail_baseline",
+      "actions": [
+        {
+          "operation": "replace_source_same_identity",
+          "source_id": "E09-01",
+          "new_version": "v2",
+          "source_at": "2026-11-05T09:00:00+01:00",
+          "body": "Jona, die Abgabe des Mosaik-Datenblatts wird geändert: Statt 18. November 2026 um 09 Uhr gilt jetzt der 21. November 2026 um 14 Uhr Berliner Zeit. Silas"
+        }
+      ],
+      "clock": "2026-11-05T12:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ01",
+          "question": "Wann ist das Mosaik-Datenblatt jetzt fällig?",
+          "expected": "21November2026 14:00Berlin, supported by E09-01 v2 only; old18November09:00 may be described only as replaced history.",
+          "evidence": [
+            {
+              "source_id": "E09-01",
+              "version": "v2"
+            }
+          ]
+        }
+      ],
+      "invariants": [
+        "Stable source identity and prior original retained; no duplicate current task; dependent current answer/proposal refreshed."
+      ]
+    },
+    {
+      "id": "S02",
+      "baseline": "mail_baseline",
+      "actions": [
+        {
+          "operation": "answer_then_withdraw_source",
+          "source_id": "E09-02",
+          "initial_question_id": "Q33"
+        }
+      ],
+      "clock": "2026-11-04T16:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ02",
+          "question": "Wo liegen die aktuellen Mosaik-Proben von Silas?",
+          "expected": "Current supporting source withdrawn/unavailable. Do not reveal Vireo-7 from cache or old conversation, and do not substitute T18 or H2.",
+          "forbidden_facts": [
+            "Vireo-7",
+            "T18 as current Mosaik location",
+            "H2 as current Mosaik location"
+          ],
+          "evidence": []
+        },
+        {
+          "id": "SQ03",
+          "question": "Was steht in deiner vorherigen Antwort über diese Proben?",
+          "expected": "Prior withdrawn-source fact must not reappear as an active fact or active source link, including answer/history reread; honest unavailable explanation.",
+          "evidence": []
+        }
+      ],
+      "invariants": [
+        "Raw original preservation and withdrawal policy are separate; original may remain stored but cannot actively support answers after withdrawal."
+      ]
+    },
+    {
+      "id": "S03",
+      "baseline": "mail_baseline",
+      "actions": [
+        {
+          "operation": "revoke_source_group",
+          "source_ids": [
+            "E09-01",
+            "E09-02",
+            "E09-04",
+            "E09-06",
+            "E09-07",
+            "E09-08",
+            "E09-10"
+          ],
+          "group": "Mosaik"
+        }
+      ],
+      "clock": "2026-11-04T16:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ04",
+          "question": "Wann muss ich das Mosaik-Datenblatt an Silas senden?",
+          "expected": "No currently authorized supporting source; cannot assert18November09:00 or cite withdrawn Mosaik evidence.",
+          "evidence": []
+        },
+        {
+          "id": "SQ05",
+          "question": "Bleibt mein Transport für Mosaik Plus belegt?",
+          "expected": "Yes, independent MosaikPlus source E09-09 remains available:19November11:00, Empfang Ost.",
+          "evidence": [
+            "E09-09"
+          ]
+        }
+      ],
+      "invariants": [
+        "No cross-project revocation or fallback to historical/cache facts; unrelated authorized sources remain usable."
+      ]
+    },
+    {
+      "id": "S04",
+      "baseline": "mail_baseline",
+      "actions": [
+        {
+          "operation": "user_confirm_task_completion",
+          "task_id": "T29",
+          "text": "Ich habe alle drei Ersatzkisten vollständig beschriftet und markiere diese Aufgabe jetzt als erledigt.",
+          "at": "2026-11-04T16:05:00+01:00"
+        },
+        {
+          "operation": "reprocess_unchanged_sources",
+          "source_ids": [
+            "E08-06",
+            "E08-07"
+          ]
+        }
+      ],
+      "clock": "2026-11-04T16:10:00+01:00",
+      "questions": [
+        {
+          "id": "SQ06",
+          "question": "Sind die Ersatzkisten noch offen?",
+          "expected": "No, user confirmed whole task complete at16:05; old partial source must not silently reopen it. Distinguish user-confirmed state from older mail report.",
+          "evidence": [
+            "user_confirmation:S04"
+          ]
+        }
+      ],
+      "invariants": [
+        "Only T29 completed; no automatic completion of checklist T27 or unrelated tasks."
+      ]
+    },
+    {
+      "id": "S05",
+      "baseline": "mail_baseline",
+      "actions": [
+        {
+          "operation": "user_confirm_owner_correction",
+          "task_id": "T31",
+          "text": "Für die Messreihe im Projekt Mosaik ist Noel Furt <noel@mosaik-werk.example> zuständig, nicht ich, Jona Seidel."
+        },
+        {
+          "operation": "reprocess_unchanged_sources",
+          "source_ids": [
+            "E09-04"
+          ]
+        }
+      ],
+      "clock": "2026-11-04T16:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ07",
+          "question": "Wer ist nach meiner Korrektur für die Mosaik-Messreihe zuständig?",
+          "expected": "Noel Furt per explicit user confirmation; source note previously said Jona and is corrected. Reprocessing must not restore Jona as current owner.",
+          "evidence": [
+            "user_confirmation:S05"
+          ]
+        }
+      ],
+      "invariants": [
+        "Preserve original note/provenance, do not silently replace user-confirmed owner; no deadline invented."
+      ]
+    },
+    {
+      "id": "S06",
+      "baseline": "mail_baseline",
+      "actions": [
+        {
+          "operation": "replace_source_same_identity",
+          "source_id": "E09-01",
+          "new_version": "v2-undated",
+          "source_at": "2026-11-05T09:00:00+01:00",
+          "body": "Jona, bitte sende weiterhin das Mosaik-Datenblatt. Der bisherige Abgabetermin 18. November 2026 um 09 Uhr ist aufgehoben. Ein neuer Abgabetermin ist noch nicht festgelegt. Silas"
+        }
+      ],
+      "clock": "2026-11-05T12:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ08",
+          "question": "Hat das Mosaik-Datenblatt noch eine feste Frist?",
+          "expected": "Task remains open but no current agreed due date.18November09:00 revoked, not silently retained as active deadline.",
+          "evidence": [
+            {
+              "source_id": "E09-01",
+              "version": "v2-undated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "baseline": "mail_baseline_with_explicit_gap",
+      "actions": [
+        {
+          "operation": "withhold_import_and_report_incomplete",
+          "source_ids": [
+            "E10-01"
+          ],
+          "reason": "synthetic import pending; original exists but not yet checked"
+        }
+      ],
+      "clock": "2026-11-04T16:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ09",
+          "question": "Ist die Raumplan-Prüfung im Lesehaus ohne Frist?",
+          "expected": "Cannot establish absence from incomplete checked sources; explicitly state pending/incomplete coverage. No fabricated deadline and no categorical no-deadline conclusion.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "baseline": "native_N01_N02_ingested",
+      "actions": [
+        {
+          "operation": "reimport_identical_original",
+          "source_id": "N02",
+          "same_bytes": true
+        }
+      ],
+      "clock": "2026-11-04T16:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ10",
+          "question": "Wie viele Lizenzbogen-Abgaben habe ich für Erle?",
+          "expected": "One logical obligation T36, not duplicate obligations caused by duplicate import; preserve provenance to actual PDF.",
+          "evidence": [
+            "N02"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "baseline": "native_N01_N02_N05_ingested",
+      "actions": [
+        {
+          "operation": "ingest_update_same_calendar_uid",
+          "source_id": "N06",
+          "replaces": "N05"
+        }
+      ],
+      "clock": "2026-11-04T16:00:00+01:00",
+      "questions": [
+        {
+          "id": "SQ11",
+          "question": "Findet die Sichtprüfung Erle noch statt und entfällt mein Lizenzbogen?",
+          "expected": "Visit cancelled per N06; license obligation from N02 remains due24November16:00. Cancellation is scoped to calendar event.",
+          "evidence": [
+            "N06",
+            "N02"
+          ]
+        }
+      ]
+    }
+  ]
+}

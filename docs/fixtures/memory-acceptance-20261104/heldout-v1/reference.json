@@ -1,0 +1,2955 @@
+{
+  "suite": "memory-acceptance-independent-heldout-20261104-v1",
+  "clock": "2026-11-04T16:00:00+01:00",
+  "phase": "frozen_unrun",
+  "episodes": [
+    {
+      "id": "E01",
+      "title": "Ausstellung Kiesel: Abgabe, Abbau und verschobener Termin"
+    },
+    {
+      "id": "E02",
+      "title": "Gleichnamige Kontakte und bestätigter Adresswechsel"
+    },
+    {
+      "id": "E03",
+      "title": "Weiterleitungen, Stellvertretung und Aufgabenverteiler"
+    },
+    {
+      "id": "E04",
+      "title": "Automatische Nachrichten, Belege und optionale Angebote"
+    },
+    {
+      "id": "E05",
+      "title": "Reise zur Tagung und unabhängige Einreichungen"
+    },
+    {
+      "id": "E06",
+      "title": "Mehrsprachige Zusammenarbeit ohne Rollenwechsel"
+    },
+    {
+      "id": "E07",
+      "title": "Bezugszeit, unklare Fristen und bedingte Vorhaben"
+    },
+    {
+      "id": "E08",
+      "title": "Offen, bestätigt, teilweise erledigt und abgesagt"
+    },
+    {
+      "id": "E09",
+      "title": "Projekt Mosaik: Versionen, Quellenentzug und bestätigte Korrektur"
+    },
+    {
+      "id": "E10",
+      "title": "Originalstellen, sichere Negativfälle und fehlende Anlagen"
+    }
+  ],
+  "source_annotations": [
+    {
+      "source_id": "E01-01",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "request",
+        "deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T01",
+          "action": "Bildauswahl senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-09T17:00:00+01:00",
+          "anchor": "Bildauswahl"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte sende mir die Bildauswahl für die Ausstellung Kiesel bis 9. November 2026 um 17 Uhr Berliner Zeit. Die Hängung besprechen wir später."
+    },
+    {
+      "source_id": "E01-02",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "event_change",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Current event 12 November 11:00; previous event 10 November superseded, T01 deadline unchanged.",
+      "original_evidence_quote": "Die Begehung der Ausstellung Kiesel verschiebt sich vom 10. auf den 12. November 2026, 11 Uhr. Die Abgabe der Bildauswahl am 9. November um 17 Uhr bleibt unverändert. Für die Begehung ist keine Bestätigung nötig."
+    },
+    {
+      "source_id": "E01-03",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "commitment"
+      ],
+      "tasks": [
+        {
+          "id": "T02",
+          "action": "Wandtexte senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-06T14:00:00+01:00",
+          "anchor": "Wandtexte"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Hallo Piet, ich sende dir die Wandtexte für Kiesel bis 6. November 2026 um 14 Uhr. Beste Grüße, Jona"
+    },
+    {
+      "source_id": "E01-04",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "receipt",
+        "no_action",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "No completion evidence for T02.",
+      "original_evidence_quote": "Die Papiermuster für Kiesel sind angekommen. Das bestätigt nur den Eingang der Muster, nicht den Eingang der Wandtexte. Für die Muster ist keine weitere Handlung erforderlich."
+    },
+    {
+      "source_id": "E01-05",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "third_party",
+        "cc",
+        "multiple_owners"
+      ],
+      "tasks": [
+        {
+          "id": "T03",
+          "action": "Weiße Sockel zur Halle bringen",
+          "owner": "bente@halle-kiesel.example",
+          "due": "2026-11-08",
+          "precision": "date"
+        },
+        {
+          "id": "T04",
+          "action": "Stromprüfung übernehmen",
+          "owner": "oda@halle-kiesel.example",
+          "due": null,
+          "event_date": "2026-11-09"
+        }
+      ],
+      "meaning": "Do not assign either task to Jona; event date is not a submission deadline.",
+      "original_evidence_quote": "Jona erhält diese Nachricht zur Kenntnis. Bente, bitte bringe bis 8. November 2026 die weißen Sockel zur Halle. Ich, Oda, übernehme die Stromprüfung am 9. November. Jona hat in dieser Verteilung keine Aufgabe."
+    },
+    {
+      "source_id": "E01-06",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2022-11-05T09:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "completed"
+      ],
+      "tasks": [],
+      "meaning": "Historical completed obligation; not current T01 and no new overdue task.",
+      "original_evidence_quote": "Aus dem abgeschlossenen Projekt Kiesel 2022: Jona musste die Bildauswahl am 4. November 2022 abgeben; sie wurde am 3. November 2022 vollständig abgegeben. Das ist nur ein Archivvermerk."
+    },
+    {
+      "source_id": "E01-07",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "undated_task",
+        "event_not_deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T05",
+          "action": "Abbauplan erstellen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": null,
+          "anchor": "Abbauplan"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte erstelle den Abbauplan für Kiesel. Wir haben dafür noch keinen Abgabetermin vereinbart; der Ausstellungsschluss am 30. November ist kein festgelegter Plantermin."
+    },
+    {
+      "source_id": "E01-08",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "no_action",
+        "schedule"
+      ],
+      "tasks": [],
+      "meaning": "Opening hours only.",
+      "original_evidence_quote": "Die Halle Kiesel ist dienstags bis sonntags von 10 bis 18 Uhr geöffnet. Montags bleibt sie geschlossen. Diese Übersicht ist keine Einladung und keine Aufgabe."
+    },
+    {
+      "source_id": "E01-09",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "optional",
+        "negative_instruction"
+      ],
+      "tasks": [],
+      "meaning": "Conditional possibility, explicit no action; no task to create catalog.",
+      "original_evidence_quote": "Falls ihr einen gedruckten Katalog möchtet, können wir ein Angebot machen. Es wurde noch kein Katalog beauftragt; bitte jetzt keine Druckdaten erstellen."
+    },
+    {
+      "source_id": "E01-10",
+      "episode": "E01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "reference",
+        "distractor"
+      ],
+      "tasks": [],
+      "meaning": "Transport crates N2, glass covers N3.",
+      "original_evidence_quote": "Die gepolsterten Transportkisten der Ausstellung Kiesel stehen in Raum N2. Die Glashauben stehen in Raum N3. Dieser Vermerk ändert keine Lieferfrist."
+    },
+    {
+      "source_id": "E02-01",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "same_name",
+        "deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T06",
+          "action": "Vitrinenetiketten senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-10T16:00:00+01:00",
+          "anchor": "Vitrinenetiketten"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte sende mir die Vitrinenetiketten für das Stadtmuseum Rohr bis 10. November 2026 um 16 Uhr. Dana Voß, Sammlung Rohr"
+    },
+    {
+      "source_id": "E02-02",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "same_name",
+        "event",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Different person context/address; no evidence that she is museum Dana.",
+      "original_evidence_quote": "Hier schreibt Dana Voß aus der Radgruppe Aue. Unsere offene Ausfahrt startet am 15. November um 09 Uhr am Brunnen. Keine Anmeldung, keine Rückmeldung nötig; das hat nichts mit dem Stadtmuseum zu tun."
+    },
+    {
+      "source_id": "E02-03",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "explicit_alias"
+      ],
+      "tasks": [],
+      "meaning": "Explicit same-person alias old/new with sender authorship. Identity relation is supported.",
+      "original_evidence_quote": "Hallo Jona, ich, Deniz Rott aus der Werkstatt Rohr, benutze ab heute deniz.neu@werkstatt-rohr.example. Die alte Adresse deniz.alt@werkstatt-rohr.example gehört weiterhin mir. Bitte ordne beide meinen bisherigen Werkstatt-Absprachen zu."
+    },
+    {
+      "source_id": "E02-04",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "alias",
+        "deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T07",
+          "action": "Drei Leihrahmen zurückgeben",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-13",
+          "anchor": "Leihrahmen",
+          "precision": "date"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, wie über meine alte Werkstatt-Adresse besprochen: Bitte gib mir die drei Leihrahmen bis 13. November 2026 zurück. Deniz"
+    },
+    {
+      "source_id": "E02-05",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "same_name",
+        "cancellation"
+      ],
+      "tasks": [],
+      "meaning": "Separate identity from Werkstatt Deniz despite same name. Cancelled event, no new task.",
+      "original_evidence_quote": "Ich bin Deniz Rott vom Schachverein Ost. Die Partie am Samstag entfällt. Ich bin nicht der gleichnamige Deniz Rott aus der Werkstatt Rohr; wir sind zwei verschiedene Personen. Kein Ersatztermin vereinbart."
+    },
+    {
+      "source_id": "E02-06",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "signature",
+        "service_sender",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Service mailbox and shared signature do not establish that mailbox as Dana personal alias or complete T06.",
+      "original_evidence_quote": "Ihre Nachricht wurde an die Sammlung weitergeleitet. Die Signatur der Poststelle lautet Dana Voß, Verwaltung. Diese automatisch erzeugte Empfangsquittung bestätigt weder einen Auftrag noch die Abgabe der Vitrinenetiketten."
+    },
+    {
+      "source_id": "E02-07",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "identity_evidence"
+      ],
+      "tasks": [],
+      "meaning": "Explicit distinct-person statement confirms separate museum and cycling identities.",
+      "original_evidence_quote": "Zur Orientierung: Dana Voß betreut hier die Sammlung Rohr. Dana Voß aus der Radgruppe Aue ist eine andere Person. Karla Eder"
+    },
+    {
+      "source_id": "E02-08",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "access_notice",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Access granted, no acceptance/completion.",
+      "original_evidence_quote": "Der Vitrinenordner ist für dich freigegeben. Eine Abnahme der Etiketten ist damit nicht verbunden. Keine zusätzliche Aufgabe aus dieser Freigabemail."
+    },
+    {
+      "source_id": "E02-09",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "reference"
+      ],
+      "tasks": [],
+      "meaning": "Reference path Metall/Leihgaben; not a task.",
+      "original_evidence_quote": "Das Rahmenprotokoll der Werkstatt Rohr liegt im Ordner Metall/Leihgaben. Die Schraubenliste gehört nicht dazu und liegt im Ordner Verbrauch."
+    },
+    {
+      "source_id": "E02-10",
+      "episode": "E02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2019-06-12T08:00:00+02:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "identity_unknown"
+      ],
+      "tasks": [],
+      "meaning": "Historical name alone does not bind any present Dana identity; no birth date known.",
+      "original_evidence_quote": "Historische Liste von 2019: Dana Voß war damals Mitglied im Chor Tal. Daraus lässt sich keine heutige E-Mail-Adresse ableiten. Die Liste enthält kein Geburtsdatum."
+    },
+    {
+      "source_id": "E03-01",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "forward",
+        "third_party"
+      ],
+      "tasks": [
+        {
+          "id": "T08",
+          "action": "Messkoffer prüfen",
+          "owner": "uwe@labor-linde.example",
+          "due": "2026-11-08",
+          "precision": "date"
+        }
+      ],
+      "meaning": "Original requester Sina; forwarding Malte and recipient Jona are not task owner.",
+      "original_evidence_quote": "Jona, nur zur Kenntnis, nicht an dich delegiert.\n--- Originalnachricht ---\nVon: Sina Ahr <sina@labor-linde.example>\nAn: Uwe Dorn <uwe@labor-linde.example>\nDatum: 2. November 2026\nUwe, prüfe bitte den Messkoffer bis 8. November 2026.\nSina"
+    },
+    {
+      "source_id": "E03-02",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "delegation",
+        "distinct_tasks"
+      ],
+      "tasks": [
+        {
+          "id": "T09",
+          "action": "Geprüften Messkoffer versenden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-11T10:00:00+01:00",
+          "anchor": "Versand"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, Uwe prüft weiterhin den Messkoffer. Übernimm du bitte nur den Versand des geprüften Koffers bis 11. November 2026 um 10 Uhr. Die Prüfung wird nicht an dich übertragen."
+    },
+    {
+      "source_id": "E03-03",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "multiple_tasks",
+        "multiple_deadlines"
+      ],
+      "tasks": [
+        {
+          "id": "T10",
+          "action": "Abholadresse bestätigen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-06T13:00:00+01:00",
+          "anchor": "Abholadresse"
+        },
+        {
+          "id": "T11",
+          "action": "Versandetikett schicken",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-09T09:00:00+01:00",
+          "anchor": "Versandetikett"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte bestätige mir bis 6. November 2026 um 13 Uhr die Abholadresse. Schicke mir außerdem bis 9. November 2026 um 09 Uhr das Versandetikett. Das sind zwei getrennte Aufgaben."
+    },
+    {
+      "source_id": "E03-04",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "plan_not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Planned action, not completion of T08; source date and plan date distinct.",
+      "original_evidence_quote": "Ich plane, den Messkoffer am 7. November zu prüfen. Er ist noch nicht geprüft. Uwe"
+    },
+    {
+      "source_id": "E03-05",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "forward",
+        "cancelled"
+      ],
+      "tasks": [],
+      "meaning": "Cancelled historical forwarded obligation; no current payment task.",
+      "original_evidence_quote": "Zum Archiv, bitte nichts zahlen.\nVon: Sina Ahr <sina@labor-linde.example>\nDatum: 4. Mai 2021\nJona, die Laborrechnung ist bis 12. Mai 2021 zu zahlen.\n--- Zusatz 2021: Rechnung storniert und Vorgang geschlossen. ---"
+    },
+    {
+      "source_id": "E03-06",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "request_to_other"
+      ],
+      "tasks": [
+        {
+          "id": "T12",
+          "action": "Maße der Mehrwegbox nennen",
+          "owner": "malte@netzwerk-linde.example",
+          "due": "2026-11-05",
+          "precision": "date"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Malte, kannst du mir bis 5. November 2026 die Maße der Mehrwegbox nennen? Ich habe dir damit keine Zusage gemacht, die Box zu beschaffen. Jona"
+    },
+    {
+      "source_id": "E03-07",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "automatic",
+        "absence"
+      ],
+      "tasks": [],
+      "meaning": "Absence and contact substitution do not transfer task ownership/deadlines.",
+      "original_evidence_quote": "Sina Ahr ist bis 12. November abwesend. Uwe Dorn vertritt sie bei allgemeinen Fragen. Diese Notiz überträgt bestehende persönliche Aufgaben nicht automatisch."
+    },
+    {
+      "source_id": "E03-08",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "reference",
+        "address_roles"
+      ],
+      "tasks": [],
+      "meaning": "Shipping gate4 and billing house2 are distinct roles.",
+      "original_evidence_quote": "Der Messkoffer geht an Labor Linde, Tor 4. Die Rechnungsadresse bleibt Haus 2. Tor 4 ist eine Versandadresse, keine Zimmernummer für die Besprechung."
+    },
+    {
+      "source_id": "E03-09",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "conditional",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Hypothetical draft assignment; not approved task.",
+      "original_evidence_quote": "Entwurf für eine mögliche Erweiterung: Jona könnte später die Kalibrierung übernehmen. Das wurde noch nicht vereinbart; die Kalibrierung gehört nicht zu deinen aktuellen Aufgaben."
+    },
+    {
+      "source_id": "E03-10",
+      "episode": "E03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "signature",
+        "identity_negative"
+      ],
+      "tasks": [],
+      "meaning": "Forwarded signature must not merge Sina/Malte.",
+      "original_evidence_quote": "Zur Pflege der Kontaktdaten: Meine alte Signatur enthielt die Adresse von Malte Fink. Sie war ein weitergeleiteter Bürotext, keine Aussage, dass Malte und ich dieselbe Person sind."
+    },
+    {
+      "source_id": "E04-01",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "automatic_important",
+        "invoice"
+      ],
+      "tasks": [
+        {
+          "id": "T13",
+          "action": "Rechnung LK-482 bezahlen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-14",
+          "anchor": "118,70",
+          "precision": "date"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona Seidel, Ihre Rechnung LK-482 über 118,70 EUR ist noch offen. Zahlen Sie bitte bis 14. November 2026. Diese Nachricht wurde automatisch erstellt. Kontodaten werden ausschließlich in Ihrem bestehenden Kundenportal angezeigt."
+    },
+    {
+      "source_id": "E04-02",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "receipt",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Does not complete T13.",
+      "original_evidence_quote": "Die Sendung zur Rechnung LK-482 wurde zugestellt. Der Versanddienst kennt den Zahlungsstatus nicht. Eine Zustellung ist keine Zahlungsbestätigung."
+    },
+    {
+      "source_id": "E04-03",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "automatic_important",
+        "alternative_actions"
+      ],
+      "tasks": [
+        {
+          "id": "T14",
+          "action": "Buch Karten der Küste zurückgeben oder verlängern",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-17",
+          "anchor": "Karten der Küste",
+          "precision": "date",
+          "alternatives": [
+            "return",
+            "renew"
+          ]
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona Seidel, das Buch Karten der Küste, Ausleihe BN-27, ist spätestens am 17. November 2026 zurückzugeben oder zu verlängern. Dies ist eine automatische Erinnerung; genau eine dieser beiden Möglichkeiten genügt."
+    },
+    {
+      "source_id": "E04-04",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "newsletter_important",
+        "conditional_satisfied"
+      ],
+      "tasks": [
+        {
+          "id": "T15",
+          "action": "Sicherheitsnachweis für Materialtage einreichen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-18",
+          "anchor": "Sicherheitsnachweis",
+          "precision": "date"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Hinweis für bereits angemeldete Aussteller der Materialtage: Das Messeteam muss Sicherheitsnachweise bis 18. November 2026 erhalten. Jona Seidel, Ihre Ausstelleranmeldung MT-82 ist bestätigt; reichen Sie Ihren Sicherheitsnachweis bis dahin ein. Für reine Leser gilt das nicht."
+    },
+    {
+      "source_id": "E04-05",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "newsletter_optional",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Elective advertising; no assigned task despite a date.",
+      "original_evidence_quote": "Sie können freiwillig ein Foto bis 19. November 2026 einsenden und einen Kalender gewinnen. Eine Teilnahme ist nicht vorausgesetzt, es besteht kein Auftrag und keine Antwortpflicht."
+    },
+    {
+      "source_id": "E04-06",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "automatic",
+        "no_action",
+        "event"
+      ],
+      "tasks": [],
+      "meaning": "Service availability window, not deadline or task.",
+      "original_evidence_quote": "Das Portal Ost ist am 8. November 2026 von 02 bis 03 Uhr nicht erreichbar. Ihre Daten bleiben gespeichert. Es ist keine Aktion erforderlich."
+    },
+    {
+      "source_id": "E04-07",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "automatic_important",
+        "pickup_deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T16",
+          "action": "Sendung PF-63 abholen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-07T20:00:00+01:00",
+          "anchor": "PF-63"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona Seidel, holen Sie Sendung PF-63 bitte spätestens am 7. November 2026 um 20 Uhr Berliner Zeit aus dem Paketfach ab. Danach wird sie zurückgesendet. Es ist kein Briefporto nachzuzahlen."
+    },
+    {
+      "source_id": "E04-08",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "similar_ids",
+        "cancelled"
+      ],
+      "tasks": [],
+      "meaning": "Cancellation does not erase T13 or mark it done.",
+      "original_evidence_quote": "Die Rechnung LK-479 wurde storniert und muss nicht bezahlt werden. Diese Stornierung betrifft ausschließlich LK-479, nicht die Rechnung LK-482."
+    },
+    {
+      "source_id": "E04-09",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "paid_receipt",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Paid event ticket does not complete T15.",
+      "original_evidence_quote": "Ihre Eintrittskarte für die Materialtage wurde bezahlt. Dieser Beleg betrifft nur die Eintrittskarte, nicht den separat einzureichenden Sicherheitsnachweis."
+    },
+    {
+      "source_id": "E04-10",
+      "episode": "E04",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "newsletter"
+      ],
+      "tasks": [],
+      "meaning": "Historical newsletter deadline must not override E04-04.",
+      "original_evidence_quote": "Ein früheres Heft nannte 2025 eine Abgabe zum 21. November. Diese Archivnotiz gilt nicht für die Materialtage 2026. Sie enthält keine Änderung der aktuellen Frist."
+    },
+    {
+      "source_id": "E05-01",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "deadline",
+        "event"
+      ],
+      "tasks": [
+        {
+          "id": "T17",
+          "action": "Abstract einreichen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-16T12:00:00+01:00",
+          "anchor": "Abstract"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte reiche dein Abstract für die Tagung Schilf bis 16. November 2026 um 12 Uhr Berliner Zeit ein. Die Tagung selbst findet am 3. Dezember statt. Luzia"
+    },
+    {
+      "source_id": "E05-02",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "event_change"
+      ],
+      "tasks": [],
+      "meaning": "Current event Dec4; deadline T17 still Nov16 noon.",
+      "original_evidence_quote": "Die Tagung Schilf wird vom 3. auf den 4. Dezember 2026 verlegt. Die Abstractfrist 16. November bleibt unverändert; ein neues Abstract ist wegen des neuen Veranstaltungstags nicht erforderlich."
+    },
+    {
+      "source_id": "E05-03",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "booking",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Confirmed hotel only, no train reservation.",
+      "original_evidence_quote": "Für Jona Seidel ist ein Zimmer vom 3. bis 5. Dezember 2026 verbindlich gebucht. Buchungsnummer HM-52. Der Zugang zum Zimmer erfolgt an der Rezeption; eine zusätzliche Bestätigung ist nicht erforderlich."
+    },
+    {
+      "source_id": "E05-04",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "booking_cancelled"
+      ],
+      "tasks": [],
+      "meaning": "Cancellation overrides E05-03 current availability; historical booked fact remains historical.",
+      "original_evidence_quote": "Die Zimmerbuchung HM-52 für 3. bis 5. Dezember 2026 wurde kostenfrei storniert. Es gibt aus HM-52 kein gebuchtes Zimmer mehr. Andere Buchungen sind davon nicht betroffen."
+    },
+    {
+      "source_id": "E05-05",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "booking",
+        "similar_entities"
+      ],
+      "tasks": [],
+      "meaning": "Current distinct hotel booking GM18 remains valid.",
+      "original_evidence_quote": "Jona Seidel, bestätigt ist Ihr Zimmer GM-18 für 3. bis 5. Dezember 2026 im Gästehaus Moor. Frühstück ist enthalten. Sie brauchen nicht zu antworten."
+    },
+    {
+      "source_id": "E05-06",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "negative_fact",
+        "optional"
+      ],
+      "tasks": [],
+      "meaning": "Explicit no train booking; optional intention not a firm assigned task.",
+      "original_evidence_quote": "Hallo Luzia, ich habe noch keine Bahnfahrkarte zur Tagung Schilf gekauft. Ich möchte die Verbindung erst prüfen; einen Kauf habe ich niemandem zugesagt. Jona"
+    },
+    {
+      "source_id": "E05-07",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "distinct_deadlines"
+      ],
+      "tasks": [
+        {
+          "id": "T18",
+          "action": "Vortragstitel schicken",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-11T18:00:00+01:00",
+          "anchor": "Vortragstitel"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Bitte schicke mir bis 11. November 2026 um 18 Uhr den endgültigen Vortragstitel, Jona. Das Abstract ist ein eigenes Dokument und hat seine separate Frist."
+    },
+    {
+      "source_id": "E05-08",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "automatic",
+        "not_booking"
+      ],
+      "tasks": [],
+      "meaning": "Timetable is not booking or mandatory task.",
+      "original_evidence_quote": "Auskunft für 3. Dezember: Regionalzug um 08:32 Uhr ab Südtor. Dies ist keine Fahrkarte und keine Reservierung. Es wurde nichts gebucht oder bezahlt."
+    },
+    {
+      "source_id": "E05-09",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2023-12-02T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical"
+      ],
+      "tasks": [],
+      "meaning": "Historical event/deadline not current.",
+      "original_evidence_quote": "Zur historischen Dokumentation: Die Tagung Schilf 2023 fand am 1. Dezember 2023 statt. Damals war der Abstractschluss am 2. November 2023. Beide Daten gehören ausschließlich zum abgeschlossenen Jahr 2023."
+    },
+    {
+      "source_id": "E05-10",
+      "episode": "E05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "reference",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Service hours not a submission deadline.",
+      "original_evidence_quote": "Die Rezeption des Gästehauses Moor ist am Anreisetag bis 22 Uhr besetzt. Spätere Anreise wäre nach gesonderter Vereinbarung möglich. Für Ihre bestätigte Buchung ist derzeit keine weitere Handlung nötig."
+    },
+    {
+      "source_id": "E06-01",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "en",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "english",
+        "request"
+      ],
+      "tasks": [
+        {
+          "id": "T19",
+          "action": "Captions for Sedge approve",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-06T16:00:00+01:00",
+          "anchor": "captions"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, please approve the captions for Sedge by 6 November 2026 at 16:00 Berlin time. I will do the typesetting afterwards. Evelyn"
+    },
+    {
+      "source_id": "E06-02",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "fr",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "french",
+        "request"
+      ],
+      "tasks": [
+        {
+          "id": "T20",
+          "action": "Maquette Roseau transmettre",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-13T17:00:00+01:00",
+          "anchor": "maquette"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Bonjour Jona, merci de me transmettre la maquette Roseau au plus tard le 13 novembre 2026 à 17 h, heure de Paris. Je m’occupe de l’impression. Lucie"
+    },
+    {
+      "source_id": "E06-03",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "es",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "spanish",
+        "ownership"
+      ],
+      "tasks": [
+        {
+          "id": "T21",
+          "action": "Lista de materiales Junco enviar",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-16T14:00:00+01:00",
+          "anchor": "lista de materiales"
+        }
+      ],
+      "meaning": "Inés owns purchasing; Jona only sends list.",
+      "original_evidence_quote": "Jona: envíame la lista de materiales de Junco como máximo el 16 de noviembre de 2026 a las 14:00, hora de Berlín. La compra la haré yo, Inés; no te encargues de comprar."
+    },
+    {
+      "source_id": "E06-04",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "en",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "timezone",
+        "deadline_event"
+      ],
+      "tasks": [
+        {
+          "id": "T22",
+          "action": "Review files send",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-09T09:00:00-05:00",
+          "anchor": "review files",
+          "normalized_due": "2026-11-09T15:00:00+01:00"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Please send the review files for our New York meeting by 9 November 2026 at 09:00 America/New_York, Jona. The video meeting itself starts at 10:30 New York time that day."
+    },
+    {
+      "source_id": "E06-05",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "fr",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "french",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Optional event, no task or new deliverable.",
+      "original_evidence_quote": "Notre échange informel du 18 novembre à 11 h est facultatif. Il n’y a ni document à remettre ni confirmation à envoyer. L’absence ne change pas votre travail convenu."
+    },
+    {
+      "source_id": "E06-06",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "es",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "spanish",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Receipt of draft not approval or completion of T21.",
+      "original_evidence_quote": "He recibido el borrador de Junco, pero aún no lo he aprobado. La recepción no confirma que la lista de materiales esté completa."
+    },
+    {
+      "source_id": "E06-07",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "en",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "ownership",
+        "duplicate_statement"
+      ],
+      "tasks": [],
+      "meaning": "Reiterates T19 and Evelyn typesetting; no duplicate new task and no deadline mutation.",
+      "original_evidence_quote": "Evelyn, I will approve the captions; you will handle typesetting. I am not taking on your typesetting task. This note adds no new due date."
+    },
+    {
+      "source_id": "E06-08",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "fr",
+      "source_at": "2020-11-12T09:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "french",
+        "historical"
+      ],
+      "tasks": [],
+      "meaning": "Closed historical deadline not current T20.",
+      "original_evidence_quote": "Archive 2020: une maquette était attendue le 10 novembre 2020. Ce dossier est clos et ne concerne pas la maquette Roseau de 2026."
+    },
+    {
+      "source_id": "E06-09",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "en",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "reference",
+        "language"
+      ],
+      "tasks": [],
+      "meaning": "Sedge uses British spelling, Junco Spanish separate.",
+      "original_evidence_quote": "The Sedge captions use British spelling. The Junco brochure follows its separate Spanish style guide. This is reference information, not an additional request."
+    },
+    {
+      "source_id": "E06-10",
+      "episode": "E06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "es",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "spanish",
+        "reference"
+      ],
+      "tasks": [],
+      "meaning": "Junco green samples B4, yellow other project B5, no move task.",
+      "original_evidence_quote": "Las muestras verdes de Junco están en el armario B4. Las muestras amarillas pertenecen a otro proyecto y están en B5. No hay que moverlas."
+    },
+    {
+      "source_id": "E07-01",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-10-29T08:15:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "relative_date",
+        "late_import",
+        "historical_unresolved"
+      ],
+      "tasks": [
+        {
+          "id": "T23",
+          "action": "Korrigierte Legende senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-10-30T12:00:00+01:00",
+          "anchor": "Legende",
+          "state": "historical_unresolved",
+          "time_basis": "source sent 2026-10-29, captured2026-11-04"
+        }
+      ],
+      "meaning": "Due Oct30, not tomorrow after import Nov5. Past request unresolved, completion unknown; show age/review instead of new urgency.",
+      "original_evidence_quote": "Jona, bitte sende mir die korrigierte Legende morgen bis 12 Uhr Berliner Zeit. Anouk"
+    },
+    {
+      "source_id": "E07-02",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "undated",
+        "uncertain_deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T24",
+          "action": "Farbprobe erstellen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": null,
+          "anchor": "Farbprobe"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte erstelle eine Farbprobe. Für die Abgabe haben wir nur demnächst gesagt; ein Datum oder Wochentag ist nicht vereinbart."
+    },
+    {
+      "source_id": "E07-03",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "explicit_ambiguity",
+        "no_invented_due"
+      ],
+      "tasks": [
+        {
+          "id": "T25",
+          "action": "Höhenlinien überarbeiten",
+          "owner": "jona@atelier-kiesel.example",
+          "due": null,
+          "anchor": "Höhenlinien",
+          "uncertain": true,
+          "due_options": [
+            "2026-11-06",
+            "2026-11-13"
+          ]
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte überarbeite die Höhenlinien. Ich schrieb kommenden Freitag, weiß aber selbst noch nicht, ob ich den 6. oder den 13. November 2026 meine. Bitte setze dafür noch kein bestimmtes Fälligkeitsdatum."
+    },
+    {
+      "source_id": "E07-04",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "conditional_unmet",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Condition unmet; no authorized print task or inferred due.",
+      "original_evidence_quote": "Der Kartendruck soll nur stattfinden, wenn Anouk die Höhenlinien freigibt. Diese Freigabe ist noch nicht erfolgt. Du hast derzeit keinen Auftrag, die Karten zu drucken, Jona."
+    },
+    {
+      "source_id": "E07-05",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "independent_commitment"
+      ],
+      "tasks": [
+        {
+          "id": "T26",
+          "action": "Nordansicht liefern",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-05T18:00:00+01:00",
+          "anchor": "Nordansicht"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Bela, ich liefere dir die Nordansicht am 5. November 2026 bis 18 Uhr Berliner Zeit. Die Freigabe des separaten Kartendrucks ist keine Voraussetzung für die Nordansicht."
+    },
+    {
+      "source_id": "E07-06",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "event_proposal",
+        "not_deadline"
+      ],
+      "tasks": [],
+      "meaning": "Proposed event, not firm event or clarification of T25 due.",
+      "original_evidence_quote": "Wir können die Höhenlinien am 6. November 2026 um 10 Uhr besprechen. Das ist ein Terminvorschlag, noch nicht bestätigt. Es ist damit keine Entscheidung über ihre Abgabefrist getroffen."
+    },
+    {
+      "source_id": "E07-07",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2018-07-21T10:00:00+02:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "completed"
+      ],
+      "tasks": [],
+      "meaning": "No current open task; historical due vs done dates distinct.",
+      "original_evidence_quote": "Im Projekt von 2018 war die Südansicht bis 20. Juli 2018 abzugeben. Sie wurde am 18. Juli 2018 geliefert. Dieses Dokument ist ein abgeschlossener historischer Vorgang."
+    },
+    {
+      "source_id": "E07-08",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "negated_deadline"
+      ],
+      "tasks": [],
+      "meaning": "T24 due stays unknown; negated tentative date not deadline.",
+      "original_evidence_quote": "Zur Farbprobe: Ende November war nur ein Gedanke, keine gesetzte Frist. Es bleibt dabei, dass wir noch keinen Abgabetermin festgelegt haben."
+    },
+    {
+      "source_id": "E07-09",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "non_temporal_order",
+        "reference"
+      ],
+      "tasks": [],
+      "meaning": "Spatial/order words not temporal deadline.",
+      "original_evidence_quote": "Die Nordansicht steht im Register vor der Südansicht. Das beschreibt die Ablagereihenfolge und keine zeitliche Reihenfolge der Abgaben."
+    },
+    {
+      "source_id": "E07-10",
+      "episode": "E07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "availability",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Availability not deadline.",
+      "original_evidence_quote": "Ich bin montags und mittwochs vormittags im Büro. Daraus ergibt sich keine Frist für deine Farbprobe oder Höhenlinien. Du kannst mir Nachrichten auch außerhalb dieser Zeiten schicken."
+    },
+    {
+      "source_id": "E08-01",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "multiple_tasks"
+      ],
+      "tasks": [
+        {
+          "id": "T27",
+          "action": "Prüfliste senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-12T15:00:00+01:00",
+          "anchor": "Prüfliste"
+        },
+        {
+          "id": "T28",
+          "action": "Bestandsfoto senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-13T10:00:00+01:00",
+          "anchor": "Bestandsfoto"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte sende mir bis 12. November 2026 um 15 Uhr die ausgefüllte Prüfliste. Bitte sende außerdem das Bestandsfoto bis 13. November 2026 um 10 Uhr. Die beiden Lieferungen werden getrennt geprüft."
+    },
+    {
+      "source_id": "E08-02",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "partial_completion",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "T27 incomplete, T28 not received; neither auto-complete.",
+      "original_evidence_quote": "Deine Prüfliste ist eingegangen, aber die Zeile zum Feuerlöscher fehlt. Der Prüflistenauftrag ist noch nicht erledigt. Das Bestandsfoto habe ich noch nicht erhalten."
+    },
+    {
+      "source_id": "E08-03",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "acknowledgement"
+      ],
+      "tasks": [],
+      "meaning": "Acknowledgement not completion.",
+      "original_evidence_quote": "Felia, ich habe deine Rückmeldung zur fehlenden Feuerlöscher-Zeile gelesen. Das bedeutet noch nicht, dass ich die Prüfliste korrigiert habe. Jona"
+    },
+    {
+      "source_id": "E08-04",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "cancelled",
+        "independent_tasks"
+      ],
+      "tasks": [],
+      "meaning": "T28 cancelled, not completed. T27 remains open and due unchanged.",
+      "original_evidence_quote": "Der Auftrag zum Bestandsfoto ist aufgehoben. Bitte fotografiere nicht mehr. Die Korrektur der Prüfliste bleibt bis 12. November 2026 um 15 Uhr offen."
+    },
+    {
+      "source_id": "E08-05",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "third_party",
+        "reported_done"
+      ],
+      "tasks": [],
+      "meaning": "Reported completion of another person only, not Jona checklist.",
+      "original_evidence_quote": "Ich, Timon, habe die Inventarnummern am 2. November 2026 vollständig abgeglichen. Dieser Vorgang ist abgeschlossen; Jona hatte daran keine eigene Aufgabe."
+    },
+    {
+      "source_id": "E08-06",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "task_for_state_change"
+      ],
+      "tasks": [
+        {
+          "id": "T29",
+          "action": "Ersatzkisten beschriften",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-14T16:00:00+01:00",
+          "anchor": "Ersatzkisten"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte beschrifte die Ersatzkisten bis 14. November 2026 um 16 Uhr. Eine Erinnerung an diese Aufgabe ist kein Beleg dafür, dass sie schon erledigt ist."
+    },
+    {
+      "source_id": "E08-07",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "partial_completion",
+        "sent"
+      ],
+      "tasks": [],
+      "meaning": "T29 partial, not done.",
+      "original_evidence_quote": "Felia, eine der drei Ersatzkisten habe ich beschriftet. Zwei fehlen noch, ich melde das Gesamtpaket noch nicht als fertig. Jona"
+    },
+    {
+      "source_id": "E08-08",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "event_past",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Past event not proof any task done.",
+      "original_evidence_quote": "Die Kalenderrunde Inventar vom 2. November 2026 ist beendet. Daraus ergibt sich keine Aussage über Erledigung einzelner Aufgaben oder offener Prüflisten."
+    },
+    {
+      "source_id": "E08-09",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "optional",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Optional improvement not additional obligation or completion criterion.",
+      "original_evidence_quote": "Wenn du irgendwann Zeit und Lust hast, könnte man die Kisten farbig markieren. Das ist kein Auftrag und gehört nicht zur vereinbarten Beschriftung."
+    },
+    {
+      "source_id": "E08-10",
+      "episode": "E08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "reference",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Location W6, original W8; no task.",
+      "original_evidence_quote": "Die drei Ersatzkisten stehen in Regal W6. Die Originalkisten stehen in W8. Beide Gruppen bleiben getrennt; nichts umräumen."
+    },
+    {
+      "source_id": "E09-01",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "version_base",
+        "deadline"
+      ],
+      "tasks": [
+        {
+          "id": "T30",
+          "action": "Mosaik-Datenblatt senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-18T09:00:00+01:00",
+          "anchor": "Datenblatt"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte sende das Mosaik-Datenblatt bis 18. November 2026 um 09 Uhr an mich. Silas"
+    },
+    {
+      "source_id": "E09-02",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "withdrawal_target",
+        "single_evidence"
+      ],
+      "tasks": [],
+      "meaning": "Sole evidence for distinctive location Vireo-7. Later withdrawal must invalidate derived location, not reveal it from history/cache.",
+      "original_evidence_quote": "Die versiegelten Materialproben für Mosaik liegen ausschließlich im Schrank Vireo-7. Diese Standortangabe gilt für Mosaik, nicht für das Projekt Mosaik Plus."
+    },
+    {
+      "source_id": "E09-03",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "project_collision",
+        "distractor"
+      ],
+      "tasks": [],
+      "meaning": "Near-name project distinct; not backup evidence for E09-02.",
+      "original_evidence_quote": "Die Muster von Mosaik Plus liegen im Schrank T18. Mosaik Plus ist ein eigenständiges Projekt; seine Muster und Fristen gehören nicht zum Projekt Mosaik von Silas."
+    },
+    {
+      "source_id": "E09-04",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "unconfirmed_owner",
+        "correction_target"
+      ],
+      "tasks": [
+        {
+          "id": "T31",
+          "action": "Messreihe koordinieren",
+          "owner": "jona@atelier-kiesel.example",
+          "due": null,
+          "anchor": "Messreihe",
+          "uncertain": true,
+          "confirmation": "source_report_only"
+        }
+      ],
+      "meaning": "Source report, not user-confirmed assignment. Later explicit correction must remain authoritative over reprocessing.",
+      "original_evidence_quote": "Die interne Koordinationsnotiz nennt Jona als zuständig für die Messreihe. Diese Zuordnung stammt aus unserer Notiz und wurde von Jona noch nicht bestätigt. Ein Termin ist nicht genannt."
+    },
+    {
+      "source_id": "E09-05",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "scope_negative"
+      ],
+      "tasks": [],
+      "meaning": "Cannot use MosaikPlus identity to resolve Mosaik task owner.",
+      "original_evidence_quote": "Für Mosaik Plus ist Lene die Projektleitung. Diese Nachricht sagt nichts über die Koordination der Messreihe im eigenständigen Projekt Mosaik aus."
+    },
+    {
+      "source_id": "E09-06",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "T30 not completed; permissions not delivery.",
+      "original_evidence_quote": "Ich habe das Mosaik-Datenblatt noch nicht erhalten. Die Erlaubnis, den Projektordner zu lesen, ist keine Empfangsbestätigung. Silas"
+    },
+    {
+      "source_id": "E09-07",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "access_notice",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Access notice only, later group revoke must apply to actual evidence.",
+      "original_evidence_quote": "Jona hat Leserechte für den Projektordner Mosaik. Dieser automatisierte Hinweis enthält keine neue Frist und keine Aufgabenbestätigung."
+    },
+    {
+      "source_id": "E09-08",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2020-12-04T12:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "stale_distractor"
+      ],
+      "tasks": [],
+      "meaning": "Historical stale location cannot replace withdrawn current location.",
+      "original_evidence_quote": "Im abgeschlossenen Mosaik-Vorläufer von 2020 lagen Proben in Fach H2. Das war ein anderer Bestand. H2 ist keine gültige aktuelle Standortangabe für Mosaik 2026."
+    },
+    {
+      "source_id": "E09-09",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "similar_project",
+        "separate_task"
+      ],
+      "tasks": [
+        {
+          "id": "T32",
+          "action": "Mosaik-Plus-Muster transportieren",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-19T11:00:00+01:00",
+          "anchor": "Mosaik Plus"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte bringe die Muster für Mosaik Plus bis 19. November 2026 um 11 Uhr zum Empfang Ost. Dies ist unabhängig vom Datenblatt für Mosaik."
+    },
+    {
+      "source_id": "E09-10",
+      "episode": "E09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "uncertain_fact",
+        "negative_fact"
+      ],
+      "tasks": [],
+      "meaning": "720EUR tentative calculation explicitly not agreed price.",
+      "original_evidence_quote": "Ein Abnahmepreis für Mosaik ist noch nicht vereinbart. Die Zahl 720 EUR aus einer unverbindlichen Kalkulation ist kein bestätigter Preis und darf nicht als solcher verwendet werden."
+    },
+    {
+      "source_id": "E10-01",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "request",
+        "scope"
+      ],
+      "tasks": [
+        {
+          "id": "T33",
+          "action": "Raumplan prüfen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-20T15:00:00+01:00",
+          "anchor": "Raumplan"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte prüfe den Raumplan des Lesehauses bis 20. November 2026 um 15 Uhr. Die Wandfarbe ist nicht Gegenstand dieser Prüfung."
+    },
+    {
+      "source_id": "E10-02",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "missing_attachment",
+        "coverage_gap"
+      ],
+      "tasks": [],
+      "meaning": "Attachment unavailable. Explicit no deadline here; cannot pretend original checked or use T33 due.",
+      "original_evidence_quote": "Zur Abgabe im Lesehaus gehört eine gesonderte Anlage mit dem Brandschutznachweis. Der Export dieser Mail enthält die Anlage nicht und nennt deren Abgabetermin nicht. Bitte leite aus dem Raumplantermin keinen Termin für die fehlende Anlage ab."
+    },
+    {
+      "source_id": "E10-03",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "negation",
+        "reference"
+      ],
+      "tasks": [],
+      "meaning": "Positive location Lesesaal, negated Lesecafé not candidate.",
+      "original_evidence_quote": "Die grüne Pinnwand steht im Lesesaal, nicht im Lesecafé. Die beiden Räume liegen nebeneinander. Das ist nur eine Ortskorrektur."
+    },
+    {
+      "source_id": "E10-04",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "negative_task",
+        "not_cancellation"
+      ],
+      "tasks": [],
+      "meaning": "No new drawing task; does not cancel existing T33 review.",
+      "original_evidence_quote": "Du sollst keinen zweiten Raumplan zeichnen, Jona. Es geht ausschließlich um die Prüfung des bestehenden Plans. Der Wunsch nach einem Neubau wurde verworfen."
+    },
+    {
+      "source_id": "E10-05",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "dependency",
+        "undated"
+      ],
+      "tasks": [
+        {
+          "id": "T34",
+          "action": "Akustikprobe vorbereiten",
+          "owner": "jona@atelier-kiesel.example",
+          "due": null,
+          "anchor": "Akustikprobe"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Jona, bitte bereite eine Akustikprobe vor. Wir legen den Termin erst nach der Raumplanprüfung fest; du hast dafür heute keine feste Frist."
+    },
+    {
+      "source_id": "E10-06",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "no_action",
+        "newsletter",
+        "event"
+      ],
+      "tasks": [],
+      "meaning": "Optional event, explicit exclusion of moderation task.",
+      "original_evidence_quote": "Am 21. November um 18 Uhr findet ein offener Vorleseabend statt. Wer kommen möchte, kommt einfach. Jona muss weder moderieren noch eine Lesung vorbereiten."
+    },
+    {
+      "source_id": "E10-07",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2017-09-08T14:00:00+02:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "historical",
+        "paid",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Historical paid invoice not present payable item.",
+      "original_evidence_quote": "Archivvermerk: Die Rechnung zum alten Lesehaus von 2017 wurde bezahlt und der Vorgang abgeschlossen. Der damalige Betrag von 265 EUR ist keine neue Forderung."
+    },
+    {
+      "source_id": "E10-08",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "sent",
+        "commitment"
+      ],
+      "tasks": [
+        {
+          "id": "T35",
+          "action": "Fotofreigabe senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-23T10:00:00+01:00",
+          "anchor": "Fotofreigabe"
+        }
+      ],
+      "meaning": "",
+      "original_evidence_quote": "Hedda, ich sende dir die Fotofreigabe bis 23. November 2026 um 10 Uhr Berliner Zeit. Das ist meine eigene Zusage, keine Bitte an dich. Jona"
+    },
+    {
+      "source_id": "E10-09",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "quotation",
+        "no_action"
+      ],
+      "tasks": [],
+      "meaning": "Quoted sample imperative not real request; no relative date conversion.",
+      "original_evidence_quote": "Im Gestaltungsbuch steht: \"Bitte reichen Sie alle Pläne bis morgen ein.\" Das ist ein Beispieltext aus dem Buch, kein Auftrag des Lesehauses und keine Frist für Jona."
+    },
+    {
+      "source_id": "E10-10",
+      "episode": "E10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tags": [
+        "uncertainty",
+        "not_completion"
+      ],
+      "tasks": [],
+      "meaning": "Rumor explicitly contradicted; not approval or completion T34.",
+      "original_evidence_quote": "Es gibt das Gerücht, die Akustikprobe sei schon freigegeben. Ich habe keine Freigabe erteilt und keinen Nachweis dafür. Bitte behandle das nicht als bestätigten Sachstand."
+    }
+  ],
+  "native_annotations": [
+    {
+      "id": "N01",
+      "source_kind": "mail_with_attachment",
+      "file": "native/erle-parent.eml",
+      "title": "Erle: Lizenzbogen in Anlage",
+      "text_reference": "From: Leona Kahl <leona@werkhaus-erle.example>\nTo: Jona Seidel <jona@atelier-kiesel.example>\nDate: Tue, 3 Nov 2026 11:00:00 +0100\nSubject: Erle: Lizenzbogen in Anlage\n\nJona, beigefügt ist der verbindliche Lizenzbogen für Werkhaus Erle. Die konkrete Abgabefrist steht nur in der Anlage. Der Anhang gehört zu Werkhaus Erle, nicht zum Projekt Erlenhof.",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "attachments": [
+        "N02"
+      ],
+      "tasks": [],
+      "meaning": "No due in parent body; attachment must actually be read."
+    },
+    {
+      "id": "N02",
+      "source_kind": "pdf_attachment",
+      "file": "native/erle-lizenzbogen.pdf",
+      "parent_id": "N01",
+      "title": "Lizenzbogen Erle",
+      "text_reference": "Werkhaus Erle - Lizenzbogen 2026\nEmpfänger: Jona Seidel\nBitte den ausgefüllten Lizenzbogen bis 24. November 2026\num 16:00 Uhr Berliner Zeit an Leona Kahl zurücksenden.\nDie Sichtprüfung findet am 27. November 2026 um 10:00 Uhr statt.\nDie Sichtprüfung ist keine Abgabefrist.\nNur Werkhaus Erle, nicht Erlenhof.",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tasks": [
+        {
+          "id": "T36",
+          "action": "Lizenzbogen Erle zurücksenden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-24T16:00:00+01:00"
+        }
+      ],
+      "meaning": "Deadline in genuine PDF attachment only; event27November separate. Must preserve parent/file provenance."
+    },
+    {
+      "id": "N03",
+      "source_kind": "mail_with_attachment",
+      "file": "native/erlenhof-parent.eml",
+      "title": "Erlenhof: Aufgabenblatt",
+      "text_reference": "From: Hanno Reim <hanno@erlenhof.example>\nTo: Jona Seidel <jona@atelier-kiesel.example>\nDate: Tue, 3 Nov 2026 12:00:00 +0100\nSubject: Erlenhof: Aufgabenblatt\n\nDas Aufgabenblatt für Erlenhof hängt an. Werkhaus Erle ist ein anderes Vorhaben. Bitte lies die Verantwortlichkeiten in der Anlage, statt mir alle Aufgaben zuzuordnen.",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "attachments": [
+        "N04"
+      ],
+      "tasks": [],
+      "meaning": "Parent does not contain task owners/due; do not infer sender owns all attachment tasks."
+    },
+    {
+      "id": "N04",
+      "source_kind": "pdf_attachment",
+      "file": "native/erlenhof-aufgaben.pdf",
+      "parent_id": "N03",
+      "title": "Aufgabenblatt Erlenhof",
+      "text_reference": "Erlenhof - Aufgabenblatt, Stand 3. November 2026\nJona Seidel: Farbmuster bis 25. November 2026, 12 Uhr zurückgeben.\nHanno Reim: Transportkiste bis 26. November 2026, 09 Uhr liefern.\nAlle Zeiten sind Berliner Zeit.\nDas sind zwei verschiedene Aufgaben und Verantwortliche.",
+      "source_at": "2026-11-03T12:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tasks": [
+        {
+          "id": "T37",
+          "action": "Erlenhof-Farbmuster zurückgeben",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-25T12:00:00+01:00"
+        },
+        {
+          "id": "T38",
+          "action": "Erlenhof-Transportkiste liefern",
+          "owner": "hanno@erlenhof.example",
+          "due": "2026-11-26T09:00:00+01:00"
+        }
+      ],
+      "meaning": "Different owner/due within one attachment; parent sender not universal owner."
+    },
+    {
+      "id": "N05",
+      "source_kind": "calendar_ics",
+      "file": "native/erle-sichtpruefung.ics",
+      "title": "Sichtprüfung Erle",
+      "text_reference": "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Synthetic Acceptance//EN\nBEGIN:VEVENT\nUID:erle-visit-1@fixtures.example\nDTSTAMP:20261103T100000Z\nSEQUENCE:0\nDTSTART:20261127T090000Z\nDTEND:20261127T100000Z\nSUMMARY:Sichtprüfung Werkhaus Erle\nDESCRIPTION:Bestätigter Termin\\, keine Abgabefrist und keine Vorbereitung.\nSTATUS:CONFIRMED\nEND:VEVENT\nEND:VCALENDAR",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "event": {
+        "uid": "erle-visit-1@fixtures.example",
+        "start": "2026-11-27T10:00:00+01:00",
+        "end": "2026-11-27T11:00:00+01:00",
+        "status": "confirmed"
+      },
+      "tasks": [],
+      "meaning": "Calendar event not task deadline; native phase initial calendar input."
+    },
+    {
+      "id": "N06",
+      "source_kind": "calendar_ics_update",
+      "file": "native/erle-sichtpruefung-absage.ics",
+      "title": "Absage Sichtprüfung Erle",
+      "text_reference": "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Synthetic Acceptance//EN\nBEGIN:VEVENT\nUID:erle-visit-1@fixtures.example\nDTSTAMP:20261104T100000Z\nSEQUENCE:1\nDTSTART:20261127T090000Z\nDTEND:20261127T100000Z\nSUMMARY:Sichtprüfung Werkhaus Erle\nDESCRIPTION:Abgesagter Termin\\, keine Abgabefrist und keine Vorbereitung.\nSTATUS:CANCELLED\nEND:VEVENT\nEND:VCALENDAR",
+      "source_at": "2026-11-04T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "event": {
+        "uid": "erle-visit-1@fixtures.example",
+        "status": "cancelled",
+        "replaces": "N05"
+      },
+      "tasks": [],
+      "meaning": "Apply after N05. Cancels event only, not N02 license obligation."
+    },
+    {
+      "id": "N07",
+      "source_kind": "text_document",
+      "file": "native/besprechung-tanne.txt",
+      "title": "Besprechungsnotiz Tanne",
+      "text_reference": "Besprechungsnotiz Tanne, 3. November 2026. Jona Seidel schreibt: Ich sende die Checkliste bis 26. November 2026 um 15 Uhr Berliner Zeit. Mira Feld <mira@tanne.example> übernimmt bis 27. November 2026 um 11 Uhr die Einladung. Das nächste Treffen ist am 30. November und setzt keine neue Abgabefrist.",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tasks": [
+        {
+          "id": "T39",
+          "action": "Tanne-Checkliste senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-26T15:00:00+01:00"
+        },
+        {
+          "id": "T40",
+          "action": "Tanne-Einladung übernehmen",
+          "owner": "mira@tanne.example",
+          "due": "2026-11-27T11:00:00+01:00"
+        }
+      ],
+      "meaning": "Two owners/deadlines plus separate meeting date."
+    },
+    {
+      "id": "N08",
+      "source_kind": "provided_transcript",
+      "file": "native/transkript-weiler.txt",
+      "title": "Bereitgestelltes Transkript Weiler",
+      "text_reference": "Bereitgestelltes, manuell freigegebenes Gesprächstranskript, 3. November 2026.\nJona Seidel [bestätigte Sprecherzuordnung]: Ich bringe die Stellwand bis zum 28. November 2026 um 12 Uhr Berliner Zeit nach Weiler.\nEda Korn <eda@weiler.example> [bestätigte Sprecherzuordnung]: Ich kümmere mich um den Aufbau, das ist nicht Jonas Aufgabe.",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tasks": [
+        {
+          "id": "T41",
+          "action": "Stellwand nach Weiler bringen",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-28T12:00:00+01:00"
+        },
+        {
+          "id": "T42",
+          "action": "Stellwand aufbauen",
+          "owner": "eda@weiler.example",
+          "due": null
+        }
+      ],
+      "meaning": "Text transcript ingestion only. No audio exists, so never count ASR, diarization, or audio ingestion as passed."
+    },
+    {
+      "id": "N09",
+      "source_kind": "provided_transcript_uncertain",
+      "file": "native/transkript-stimme-unklar.txt",
+      "title": "Transkript mit unklarer Stimme",
+      "text_reference": "Automatisches Transkript, 3. November 2026; Sprecherzuordnung ungeprüft.\nSprecher unbekannt: Ich übernehme das Plakat bis 29. November 2026.\nAnwesend waren Jona Seidel und Eda Korn. Es ist unklar, wer diesen Satz gesprochen hat.",
+      "source_at": "2026-11-03T11:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tasks": [
+        {
+          "id": "T43",
+          "action": "Plakat übernehmen",
+          "owner": null,
+          "due": "2026-11-29",
+          "precision": "date",
+          "uncertain": true,
+          "owner_options": [
+            "Jona Seidel",
+            "Eda Korn"
+          ]
+        }
+      ],
+      "meaning": "No assignment to Jona or Eda without clarification. Spoken day is supported, ownership is not. No ASR quality claim."
+    },
+    {
+      "id": "N10",
+      "source_kind": "docx_document",
+      "file": "native/birkensteg-auftrag.docx",
+      "title": "Auftrag Birkensteg",
+      "text_reference": "Auftrag Birkensteg, Stand 3. November 2026\nJona Seidel soll die Materialliste bis 30. November 2026 um 14 Uhr Berliner Zeit senden.\nEine Bestellung ist noch nicht freigegeben. Bitte keine Materialien bestellen.\nDie Notiz betrifft Birkensteg, nicht Werkhaus Erle.",
+      "source_at": "2026-11-03T10:00:00+01:00",
+      "captured_at": "2026-11-04T16:00:00+01:00",
+      "tasks": [
+        {
+          "id": "T44",
+          "action": "Birkensteg-Materialliste senden",
+          "owner": "jona@atelier-kiesel.example",
+          "due": "2026-11-30T14:00:00+01:00"
+        }
+      ],
+      "meaning": "Document upload through real path needed; no material order authorized."
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "question": "Ändert die verschobene Kiesel-Begehung auch meine Bildauswahl-Abgabe?",
+      "kind": "supported",
+      "evidence": [
+        "E01-01",
+        "E01-02"
+      ],
+      "allowed_evidence": [
+        "E01-01",
+        "E01-02"
+      ],
+      "expected": "No. Bildauswahl remains due 9 November 2026 17:00 Berlin; only the visit changed to 12 November 11:00.",
+      "forbidden": [
+        "T01 due 12 November",
+        "Begehung as task deadline"
+      ],
+      "critical": true
+    },
+    {
+      "id": "Q02",
+      "question": "Habe ich Piet die Wandtexte schon geliefert oder nur zugesagt?",
+      "kind": "supported",
+      "evidence": [
+        "E01-03",
+        "E01-04"
+      ],
+      "allowed_evidence": [
+        "E01-03",
+        "E01-04"
+      ],
+      "expected": "Only a commitment by Jona, due 6 November 14:00. Receipt covers paper samples, not wall texts; no evidence delivery completed.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q03",
+      "question": "Bis wann ist mein Kiesel-Abbauplan fällig?",
+      "kind": "supported",
+      "evidence": [
+        "E01-07"
+      ],
+      "allowed_evidence": [
+        "E01-07"
+      ],
+      "expected": "No deadline has been agreed for the plan. Exhibition ends 30 November, but that is not the plan deadline.",
+      "forbidden": [
+        "30 November as plan deadline"
+      ],
+      "critical": true
+    },
+    {
+      "id": "Q04",
+      "question": "Wer bringt die Sockel zur Halle Kiesel?",
+      "kind": "supported",
+      "evidence": [
+        "E01-05"
+      ],
+      "allowed_evidence": [
+        "E01-05"
+      ],
+      "expected": "Bente Jung, by 8 November 2026. Jona was copied for information, not assigned.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q05",
+      "question": "Welche E-Mail-Adresse hat Dana Voß?",
+      "kind": "ambiguous",
+      "evidence": [],
+      "allowed_evidence": [
+        "E02-01",
+        "E02-02",
+        "E02-07"
+      ],
+      "expected": "Clarify museum Dana versus cycling Dana OR return both context-labelled addresses without merging/selecting. E02-07 explicitly confirms distinct people. Presenting both is a valid supported answer; unnecessary follow-up is not required.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q06",
+      "question": "Sind die alte und neue Werkstatt-Adresse von Deniz zwei Personen?",
+      "kind": "supported",
+      "evidence": [
+        "E02-03"
+      ],
+      "allowed_evidence": [
+        "E02-03",
+        "E02-04",
+        "E02-05"
+      ],
+      "expected": "No, Deniz explicitly states both old/new werkstatt-rohr addresses are his. Do not include deniz@schachverein-ost.example.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q07",
+      "question": "Wo finde ich das Protokoll der geliehenen Rahmen von Deniz aus der Werkstatt?",
+      "kind": "supported",
+      "evidence": [
+        "E02-09"
+      ],
+      "allowed_evidence": [
+        "E02-09"
+      ],
+      "expected": "In Metall/Leihgaben, not Verbrauch; Werkstatt Deniz only.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q08",
+      "question": "An welchem Tag wurde Dana vom Stadtmuseum geboren?",
+      "kind": "absent",
+      "evidence": [],
+      "allowed_evidence": [
+        "E02-10"
+      ],
+      "expected": "Date of birth is absent; historical name list gives none. Do not infer identity or birth date.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q09",
+      "question": "Muss ich den Messkoffer selbst prüfen oder nur versenden?",
+      "kind": "supported",
+      "evidence": [
+        "E03-01",
+        "E03-02"
+      ],
+      "allowed_evidence": [
+        "E03-01",
+        "E03-02"
+      ],
+      "expected": "Uwe owns inspection due 8 November; Jona owns shipping due 11 November 10:00. Malte forwarded/delegated only shipping.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q10",
+      "question": "Welche zwei Rückmeldungen erwartet Sina von mir und mit welchen Fristen?",
+      "kind": "supported",
+      "evidence": [
+        "E03-03"
+      ],
+      "allowed_evidence": [
+        "E03-03"
+      ],
+      "expected": "Confirm pickup address by 6 November 13:00; send shipping label by 9 November 09:00, both owned by Jona.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q11",
+      "question": "Hat Uwe den Messkoffer schon geprüft?",
+      "kind": "supported",
+      "evidence": [
+        "E03-04"
+      ],
+      "allowed_evidence": [
+        "E03-04"
+      ],
+      "expected": "No completion evidence; he explicitly says not yet checked and plans 7 November. Do not mark done.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q12",
+      "question": "An welches Tor soll der Messkoffer gehen?",
+      "kind": "supported",
+      "evidence": [
+        "E03-08"
+      ],
+      "allowed_evidence": [
+        "E03-08"
+      ],
+      "expected": "Tor 4 at Labor Linde; Haus 2 is the billing address, not shipping.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q13",
+      "question": "Ist LK-482 erledigt, weil das Paket da ist und eine Rechnung storniert wurde?",
+      "kind": "supported",
+      "evidence": [
+        "E04-01",
+        "E04-02",
+        "E04-08"
+      ],
+      "allowed_evidence": [
+        "E04-01",
+        "E04-02",
+        "E04-08"
+      ],
+      "expected": "No. LK-482 remains reported open for EUR118.70 due 14 November; delivery says nothing about payment and cancellation applies LK-479 only.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q14",
+      "question": "Muss ich als angemeldeter Aussteller auf den Materialkunde-Fachbrief reagieren?",
+      "kind": "supported",
+      "evidence": [
+        "E04-04"
+      ],
+      "allowed_evidence": [
+        "E04-04"
+      ],
+      "expected": "Yes: Jona is explicitly registered MT-82 and must submit the safety certificate by 18 November 2026. Automated/newsletter format does not remove duty.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q15",
+      "question": "Muss ich das Buch Karten der Küste sowohl zurückgeben als auch verlängern?",
+      "kind": "supported",
+      "evidence": [
+        "E04-03"
+      ],
+      "allowed_evidence": [
+        "E04-03"
+      ],
+      "expected": "No, return OR renew by 17 November is sufficient; a single obligation with alternatives, not two mandatory actions.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q16",
+      "question": "Welche IBAN gehört zur offenen Rechnung LK-482?",
+      "kind": "absent",
+      "evidence": [],
+      "allowed_evidence": [
+        "E04-01"
+      ],
+      "expected": "Not present. The source refers to existing customer portal but gives no bank details; do not invent an IBAN.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q17",
+      "question": "Wann muss mein Abstract für Schilf fertig sein und wann findet die Tagung aktuell statt?",
+      "kind": "supported",
+      "evidence": [
+        "E05-01",
+        "E05-02"
+      ],
+      "allowed_evidence": [
+        "E05-01",
+        "E05-02"
+      ],
+      "expected": "Abstract due 16 November 2026 noon Berlin; event now4 December2026, not3 December. Separate date types.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q18",
+      "question": "Wo habe ich für die Tagung Schilf aktuell ein Zimmer?",
+      "kind": "supported",
+      "evidence": [
+        "E05-04",
+        "E05-05"
+      ],
+      "allowed_evidence": [
+        "E05-04",
+        "E05-05"
+      ],
+      "expected": "Gästehaus Moor GM-18,3–5 December. Hotel Moos HM-52 cancelled; not currently booked there.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q19",
+      "question": "Habe ich schon eine Zugfahrkarte für Schilf?",
+      "kind": "supported",
+      "evidence": [
+        "E05-06",
+        "E05-08"
+      ],
+      "allowed_evidence": [
+        "E05-06",
+        "E05-08"
+      ],
+      "expected": "No booked train ticket in available records; Jona explicitly says not bought and itinerary is not a ticket. Do not infer from hotel booking.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q20",
+      "question": "Sind Vortragstitel und Abstract ein und dieselbe Abgabe?",
+      "kind": "supported",
+      "evidence": [
+        "E05-01",
+        "E05-07"
+      ],
+      "allowed_evidence": [
+        "E05-01",
+        "E05-07"
+      ],
+      "expected": "Two separate deliverables: title11 November18:00, abstract16 November12:00, both Berlin.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q21",
+      "question": "Was schulde ich Lucie für Roseau und bis wann?",
+      "kind": "supported",
+      "evidence": [
+        "E06-02"
+      ],
+      "allowed_evidence": [
+        "E06-02"
+      ],
+      "expected": "Jona sends the Roseau mockup by13 November2026 at17:00 Paris, equivalent Berlin. Lucie handles printing.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q22",
+      "question": "Muss ich für Junco selbst einkaufen?",
+      "kind": "supported",
+      "evidence": [
+        "E06-03"
+      ],
+      "allowed_evidence": [
+        "E06-03"
+      ],
+      "expected": "No. Jona sends materials list by16 November14:00 Berlin; Inés handles purchase.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q23",
+      "question": "Wann muss ich die New-York-Unterlagen nach Berliner Zeit schicken?",
+      "kind": "supported",
+      "evidence": [
+        "E06-04"
+      ],
+      "allowed_evidence": [
+        "E06-04"
+      ],
+      "expected": "9 November2026 at15:00 Europe/Berlin equals09:00 America/New_York. Meeting10:30 NewYork is16:30Berlin and is not deadline.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q24",
+      "question": "Wo liegen die grünen Junco-Muster?",
+      "kind": "supported",
+      "evidence": [
+        "E06-10"
+      ],
+      "allowed_evidence": [
+        "E06-10"
+      ],
+      "expected": "Cabinet B4, not B5; no instruction to move them.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q25",
+      "question": "Auf welchen Tag bezieht sich Anouks morgen in der spät importierten Legenden-Mail?",
+      "kind": "supported",
+      "evidence": [
+        "E07-01"
+      ],
+      "allowed_evidence": [
+        "E07-01"
+      ],
+      "expected": "Source sent29 October2026; morgen is30 October2026 at12:00 Berlin. Capture4November does not shift it. Historical unresolved obligation, no completion evidence.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q26",
+      "question": "Ist die Farbprobe bis Ende November fällig?",
+      "kind": "supported",
+      "evidence": [
+        "E07-02",
+        "E07-08"
+      ],
+      "allowed_evidence": [
+        "E07-02",
+        "E07-08"
+      ],
+      "expected": "No agreed due date. EndNovember was only a rejected tentative thought; do not set a deadline.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q27",
+      "question": "Welcher Freitag ist für meine Höhenlinien gemeint?",
+      "kind": "ambiguous",
+      "evidence": [],
+      "allowed_evidence": [
+        "E07-03",
+        "E07-06"
+      ],
+      "expected": "Genuinely unresolved between6 and13 November2026 per author; ask to clarify or explicitly present unresolved alternatives. Do not choose6November from meeting proposal.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q28",
+      "question": "Darf ich den Kartendruck schon als freigegeben ansehen?",
+      "kind": "supported",
+      "evidence": [
+        "E07-04"
+      ],
+      "allowed_evidence": [
+        "E07-04"
+      ],
+      "expected": "No. Anouk has not approved; condition unmet. Do not convert tentative future printing into an approved task.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q29",
+      "question": "Sind meine Prüfliste und das Bestandsfoto beide erledigt?",
+      "kind": "supported",
+      "evidence": [
+        "E08-02",
+        "E08-04"
+      ],
+      "allowed_evidence": [
+        "E08-02",
+        "E08-04"
+      ],
+      "expected": "Checklist still open/incomplete due12November15:00; photo task cancelled, not completed. No blanket done state.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q30",
+      "question": "Reicht meine Lesebestätigung an Felia als Abschluss der Prüfliste?",
+      "kind": "supported",
+      "evidence": [
+        "E08-03"
+      ],
+      "allowed_evidence": [
+        "E08-03"
+      ],
+      "expected": "No, it explicitly says correction not completed.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q31",
+      "question": "Wie weit bin ich mit den Ersatzkisten?",
+      "kind": "supported",
+      "evidence": [
+        "E08-06",
+        "E08-07"
+      ],
+      "allowed_evidence": [
+        "E08-06",
+        "E08-07"
+      ],
+      "expected": "One of three labelled, two remain. Task not complete and due14November16:00 remains.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q32",
+      "question": "Sind durch die vergangene Inventarrunde alle Aufgaben im Team erledigt?",
+      "kind": "supported",
+      "evidence": [
+        "E08-08"
+      ],
+      "allowed_evidence": [
+        "E08-08",
+        "E08-02",
+        "E08-04",
+        "E08-07"
+      ],
+      "expected": "No. End of calendar event proves no task completion; do not mark unrelated tasks done.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q33",
+      "question": "Wo liegen die aktuellen Mosaik-Proben von Silas?",
+      "kind": "supported",
+      "evidence": [
+        "E09-02"
+      ],
+      "allowed_evidence": [
+        "E09-02"
+      ],
+      "expected": "Schrank Vireo-7, solely based on E09-02; not T18 from MosaikPlus or H2 historical.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q34",
+      "question": "Wer soll laut unbestätigter Notiz die Mosaik-Messreihe koordinieren?",
+      "kind": "supported",
+      "evidence": [
+        "E09-04"
+      ],
+      "allowed_evidence": [
+        "E09-04"
+      ],
+      "expected": "Source note names Jona, explicitly not yet user-confirmed; no date. Do not describe as user-confirmed.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q35",
+      "question": "Ist der Transport für Mosaik Plus meine Datenblatt-Abgabe für Mosaik?",
+      "kind": "supported",
+      "evidence": [
+        "E09-01",
+        "E09-09"
+      ],
+      "allowed_evidence": [
+        "E09-01",
+        "E09-09"
+      ],
+      "expected": "No: separate projects/tasks. Data sheet to Silas18November09:00; Plus samples to Empfang Ost19November11:00.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q36",
+      "question": "Ist für Mosaik ein Preis von 720 EUR verbindlich vereinbart?",
+      "kind": "supported",
+      "evidence": [
+        "E09-10"
+      ],
+      "allowed_evidence": [
+        "E09-10"
+      ],
+      "expected": "No. 720EUR is unconfirmed estimate; no agreed acceptance price. Do not assert exact agreed cost.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q37",
+      "question": "Welche Frist steht in der fehlenden Brandschutz-Anlage zum Lesehaus?",
+      "kind": "unavailable",
+      "evidence": [],
+      "allowed_evidence": [
+        "E10-02"
+      ],
+      "expected": "Cannot determine: attachment is absent/not inspected. Not claim document contains no deadline; no borrowing20November Raumplan due.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q38",
+      "question": "Steht die grüne Pinnwand im Lesecafé?",
+      "kind": "supported",
+      "evidence": [
+        "E10-03"
+      ],
+      "allowed_evidence": [
+        "E10-03"
+      ],
+      "expected": "No, Lesesaal; Lesecafé explicitly excluded.",
+      "forbidden": [],
+      "critical": false
+    },
+    {
+      "id": "Q39",
+      "question": "Muss ich für das Lesehaus einen neuen Raumplan zeichnen?",
+      "kind": "supported",
+      "evidence": [
+        "E10-01",
+        "E10-04"
+      ],
+      "allowed_evidence": [
+        "E10-01",
+        "E10-04"
+      ],
+      "expected": "No new drawing. Existing plan review remains assigned to Jona due20November15:00.",
+      "forbidden": [],
+      "critical": true
+    },
+    {
+      "id": "Q40",
+      "question": "Ist die Akustikprobe bereits bestätigt oder abgeschlossen?",
+      "kind": "supported",
+      "evidence": [
+        "E10-05",
+        "E10-10"
+      ],
+      "allowed_evidence": [
+        "E10-05",
+        "E10-10"
+      ],
+      "expected": "No approval/completion evidence; rumor explicitly not approved. Preparation task exists without fixed due.",
+      "forbidden": [],
+      "critical": true
+    }
+  ],
+  "native_questions": [
+    {
+      "id": "NQ01",
+      "question": "Bis wann muss ich den Lizenzbogen Erle zurücksenden und wo steht das?",
+      "evidence": [
+        "N02"
+      ],
+      "expected": "24November2026 16:00Berlin, in actual PDF attachment bound to N01. Cite attachment/original location, not invented body quote."
+    },
+    {
+      "id": "NQ02",
+      "question": "Ist die Sichtprüfung die Abgabefrist für den Lizenzbogen?",
+      "evidence": [
+        "N02",
+        "N05"
+      ],
+      "expected": "No: deadline24November16:00, visit27November10:00. Before N06 visit confirmed; after N06 visit cancelled, deadline unchanged."
+    },
+    {
+      "id": "NQ03",
+      "question": "Wer liefert am Erlenhof die Kiste und wer gibt die Farben zurück?",
+      "evidence": [
+        "N04"
+      ],
+      "expected": "Hanno delivers crate26November09:00; Jona returns colour samples25November12:00. Preserve separate people and project."
+    },
+    {
+      "id": "NQ04",
+      "question": "Welche Termine für Tanne sind Abgaben, welcher ist das Treffen?",
+      "evidence": [
+        "N07"
+      ],
+      "expected": "Jona checklist26November15:00; Mira invitation27November11:00; meeting30November, no task deadline derived from it."
+    },
+    {
+      "id": "NQ05",
+      "question": "Habe ich in Weiler den Aufbau der Stellwand zugesagt?",
+      "evidence": [
+        "N08"
+      ],
+      "expected": "Jona only transport by28November12:00; Eda owns assembly, no due stated for assembly."
+    },
+    {
+      "id": "NQ06",
+      "question": "Wer hat im ungeprüften Transkript das Plakat übernommen?",
+      "evidence": [
+        "N09"
+      ],
+      "expected": "Unknown speaker; Jona/Eda unresolved, ask clarification or explicitly state uncertain. Do not assign based on first participant."
+    },
+    {
+      "id": "NQ07",
+      "question": "Soll ich für Birkensteg bereits Material bestellen?",
+      "evidence": [
+        "N10"
+      ],
+      "expected": "No. Only material list assigned by30November14:00; ordering explicitly not approved."
+    }
+  ],
+  "identity_assertions": [
+    {
+      "addresses": [
+        "dana@stadtmuseum-rohr.example",
+        "dana@radgruppe-aue.example"
+      ],
+      "relation": "different_people",
+      "evidence": [
+        "E02-07"
+      ]
+    },
+    {
+      "addresses": [
+        "deniz.alt@werkstatt-rohr.example",
+        "deniz.neu@werkstatt-rohr.example"
+      ],
+      "relation": "same_person",
+      "evidence": [
+        "E02-03"
+      ]
+    },
+    {
+      "addresses": [
+        "deniz.alt@werkstatt-rohr.example",
+        "deniz@schachverein-ost.example"
+      ],
+      "relation": "different_people",
+      "evidence": [
+        "E02-05"
+      ]
+    }
+  ],
+  "rules": [
+    "Absent due is not missing task: recognize required undated obligations without invented dates.",
+    "Unknown/optional/historical/cancelled tasks may be proposed for review with correct state; never silently treat them as live current due obligations.",
+    "Sender/requester/recipient/assignee are distinct roles. Multiple tasks in one source must be scored independently.",
+    "Automated/no-reply/newsletter headers never justify dropping explicitly assigned important obligations.",
+    "Task deadline and event date require separate evidence; date-only values do not support invented exact times.",
+    "Historical stated completion can be reported as a source fact, but cannot automatically complete an unrelated existing user task.",
+    "Correct answer may paraphrase; word/anchor match is only diagnostic. Assess all asserted facts and quoted original evidence.",
+    "Contacts with same name remain unmerged absent explicit alias evidence; do not assert different humans solely from two addresses."
+  ],
+  "current_state_overrides": [
+    {
+      "task_id": "T28",
+      "state": "cancelled",
+      "evidence": [
+        "E08-04"
+      ]
+    },
+    {
+      "task_id": "T27",
+      "state": "open_incomplete",
+      "evidence": [
+        "E08-02",
+        "E08-04"
+      ]
+    },
+    {
+      "task_id": "T29",
+      "state": "open_partial",
+      "evidence": [
+        "E08-07"
+      ]
+    },
+    {
+      "task_id": "T23",
+      "state": "historical_unresolved",
+      "evidence": [
+        "E07-01"
+      ]
+    },
+    {
+      "task_id": "T25",
+      "state": "open_due_ambiguous",
+      "evidence": [
+        "E07-03"
+      ]
+    },
+    {
+      "task_id": "T31",
+      "state": "source_report_unconfirmed",
+      "evidence": [
+        "E09-04"
+      ]
+    }
+  ],
+  "coverage_denominator": {
+    "unit": "unique annotated logical obligation, not number of source rows or model suggestions",
+    "mail_task_ids": [
+      "T01",
+      "T02",
+      "T03",
+      "T04",
+      "T05",
+      "T06",
+      "T07",
+      "T08",
+      "T09",
+      "T10",
+      "T11",
+      "T12",
+      "T13",
+      "T14",
+      "T15",
+      "T16",
+      "T17",
+      "T18",
+      "T19",
+      "T20",
+      "T21",
+      "T22",
+      "T23",
+      "T24",
+      "T25",
+      "T26",
+      "T27",
+      "T28",
+      "T29",
+      "T30",
+      "T31",
+      "T32",
+      "T33",
+      "T34",
+      "T35"
+    ],
+    "native_task_ids": [
+      "T36",
+      "T37",
+      "T38",
+      "T39",
+      "T40",
+      "T41",
+      "T42",
+      "T43",
+      "T44"
+    ],
+    "exclude_from_clear_active_due_recall": [
+      "T23",
+      "T25",
+      "T28",
+      "T31",
+      "T43"
+    ],
+    "score_separately": [
+      "explicit current obligations",
+      "historical unresolved",
+      "ambiguous due/owner",
+      "cancelled obligations",
+      "undated obligations",
+      "third-party ownership",
+      "multiple tasks in one source"
+    ],
+    "rationale": "T23 old unresolved, T25 intentionally ambiguous deadline, T28 subsequently cancelled, T31 unconfirmed owner, T43 unknown speaker. Do not hide them: correct state/uncertainty and zero-critical-error checks still mandatory. Recall gate applies to all unambiguous active obligations, including undated and other-person obligations; report own-task subset separately."
+  },
+  "gates": {
+    "critical": "0 observed wrong person, wrong task owner, invented deadline or unsupported completion; additionally0 critical invented retrieval facts. Any one fails gate regardless average.",
+    "task_coverage": "At least95% of frozen unambiguous active relevant obligations correctly proposed, with owner/meaning and source-grounded due where present. Abstentions, misses, contradictions and wrong proposals separate; blanket deferral fails.",
+    "retrieval": "At least95% semantically correct source-supported answers across40 mail questions (>=38/40); zero critical invented facts. Report native7 and state11 separately, no claim those passed from mail run.",
+    "provenance": "Every concrete deadline output must be opened/read at matching original source/version; evaluate file/parent distinction for attachments.",
+    "full_acceptance": "A pilot, first40-task scan, raw JSON validity, model confidence or max1-candidate grader is not full acceptance. Full synthetic claim must state which originals/phases were actually ingested and semantically checked."
+  }
+}
