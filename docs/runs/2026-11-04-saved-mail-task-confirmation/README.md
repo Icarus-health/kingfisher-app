@@ -61,3 +61,11 @@ PYTHONPATH=sidecar python -m pytest -q sidecar/tests/test_local_mail_workflow.py
 ```
 
 Frontend in `app/kingfisher`: `npm test`, `npm run typecheck`, `npm run build`.
+
+## Nachtrag: Wartezeit der synthetischen Importprüfung
+
+Im GitHub-Lauf `41882043160` scheiterte der Python-3.12-Job ausschließlich an der Fünf-Sekunden-Wartezeit von `test_bulk_accepts_101_sources_after_pilot_and_uses_larger_budget` (10.034 weitere Tests bestanden, zwei übersprungen). Dieser Test und die Importimplementierung waren gegenüber `main` unverändert. Der Python-3.10-Job bestand.
+
+Eine lokale Gegenprobe mit 30 ms zusätzlicher Verzögerung je künstlicher Providerantwort reproduzierte denselben Abbruch nach 5,17 s. Der beobachtete Worker beendete anschließend alle 101 Quellen mit genau 202 Antworten nach 9,29 s. Nur dieser große Test erhält deshalb bis zu 30 Sekunden Wartezeit; die anderen Aufrufe behalten fünf Sekunden. Produktzeitlimits, Anfragebudgets und Ergebnisprüfungen bleiben unverändert.
+
+Dieselbe verzögerte Gegenprobe bestand danach in 9,57 s einschließlich aller vorhandenen Vollständigkeits- und Budgetprüfungen. Die gesamte betroffene Datei `sidecar/tests/test_cloud_memory.py` bestand mit 50 Tests in 9,42 s. Diese künstliche Verzögerungsprobe ist weder eine Erklärung der genauen CI-Auslastung noch ein Nachweis realer Cloudgeschwindigkeit. Der frühere rote CI-Lauf wird dadurch nicht als grün ausgegeben.
