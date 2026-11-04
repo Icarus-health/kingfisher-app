@@ -82,6 +82,16 @@ test('changed review context cannot silently rebind an edited task to a fresh fi
  const confirm=nodes(d.render(),n=>n.type==='button'&&/Eingaben.*geprüft/.test(text(n)))[0];assert.ok(confirm,'explicit new context review');
  confirm.props.onClick();tree=d.render();nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();assert.equal(saves,1);
 }));
+test('failed confirmation freezes accepted defaults before a changed context is read',()=>harness(async(server,driver,listeners)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ let view=withDeadline();api.read=async()=>view;const calls=[];api.accept=async(...args)=>{calls.push(args);throw Error('HTTP 500');};
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();
+ view={...view,fingerprint:'c'.repeat(64),items:[{...view.items[0],frist_vorschlag:'2026-12-05T10:00:00+01:00'}]};listeners.focus();await d.flush();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe bestätigen')[0].props.disabled,true);
+ assert.equal(nodes(tree,n=>n.type==='input'&&n.props.type==='date')[0].props.value,'2026-11-30');
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();assert.equal(calls.length,1);
+}));
 
 test('task and project remain directly editable and confirmable while lengthy evidence stays under details',()=>harness(async(server,driver)=>{
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');

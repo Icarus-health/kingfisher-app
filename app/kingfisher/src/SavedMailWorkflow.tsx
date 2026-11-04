@@ -53,6 +53,9 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
  async function save(id:string,draft:SavedTaskDraft) {
   if(!view || !valid)return;
   if(draft.reviewFingerprint!==view.fingerprint){setError('Die Grundlage hat sich geändert. Bitte deine erhaltenen Eingaben am aktuellen Beleg prüfen.');return;}
+  // Auch unveränderte Vorgaben gehören zum bestätigten Entwurf. Nach einem
+  // Fehler darf ein erneutes Lesen sie nicht still durch neue Werte ersetzen.
+  setDrafts(values=>({...values,[id]:draft}));
   const version=epoch.current;setBusy(id);setError('');
   try {
    const task=await savedMailWorkflowApi.accept(episodeId,id,savedTaskPayload(view,draft));
