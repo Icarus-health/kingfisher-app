@@ -19,7 +19,7 @@ Der Nutzer möchte lokale Modelloptimierung nicht zur Voraussetzung der Alltagsv
 1. [x] Bestehende Korrekturvorbereitung und Ergebnisprüfung ohne Änderung ihrer Regeln für beide Ausführungswege verfügbar machen.
 2. [x] Vorschau, einmaligen Start, Status und Abbruch mit bestehendem Mistral-Transport/Budget ergänzen; Fehler und Neustart prüfen.
 3. [x] Kompakte, ausdrücklich optionale Bedienung in „Meine Abläufe“ ergänzen, samt Herkunft und gemeinsamer Kostenanzeige.
-4. [ ] Unabhängiges Review, betroffene Regressionen, künstlicher Bedienablauf und GitHub-Lieferung. Keine echte Mistral-Qualität behaupten, solange Schlüssel und konkrete Daten-/Kostenfreigabe fehlen.
+4. [x] Unabhängiges Review, betroffene Regressionen, künstlicher Bedienablauf und GitHub-Lieferung. Keine echte Mistral-Qualität behaupten, solange Schlüssel und konkrete Daten-/Kostenfreigabe fehlen.
 
 ## Review Focus
 
@@ -35,4 +35,4 @@ Die gemeinsame Vorschau-/Ausführungsschicht soll danach auch diesen Eingangsweg
 Persönliche Mistral-Probe, Mac-Update und Alltagsabnahme sind keine Ergebnisse der simulierten HTTP-Tests.
 
 Review und künstliche Bedienprüfung abgeschlossen; siehe [Prüfprotokoll](../../runs/2026-11-04-mistral-workflow-learning/README.md).
-Der GitHub-Auslieferungsnachweis wird nach dem Push ergänzt. P2/P5 des Gesamtplans bleiben offen.
+Als [Draft-PR #121](https://github.com/Icarus-health/kingfisher-app/pull/121) auf der noch offenen Abhängigkeit #120 geliefert. P2/P5 des Gesamtplans bleiben offen.

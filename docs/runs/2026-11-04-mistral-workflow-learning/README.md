@@ -3,6 +3,8 @@
 Stand: 04.11.2026. Basis `dec5dcb335eff33d50a7bd6f00bd509fbf6fbc92` (PR #120).
 Unabhängig geprüfter Implementierungssnapshot: `112fad264fedaf46a665e2511792b19ab735ac5e`.
 Die nachfolgende Korrekturrunde behebt die vier wichtigen Reviewbefunde.
+Geprüfter Implementierungsstand nach Korrekturen: `22f1d4490d7348c3bbc331b4b1d0dcd3507c2bc2`.
+GitHub-Lieferung: [Draft-PR #121](https://github.com/Icarus-health/kingfisher-app/pull/121), zunächst auf dem Branch der offenen Abhängigkeit #120. Noch kein Merge, Release oder Mac-Update.
 
 ## Ergebnis und Grenzen
 
