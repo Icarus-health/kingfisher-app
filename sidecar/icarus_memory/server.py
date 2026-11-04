@@ -1598,6 +1598,12 @@ def create_app(
     local_modules.inspection_admin(inspection, os.environ.get(TOKEN_ENV))
     if pending(_data_dir()):
         return inspection
+    from .recovery_workspace import read_working_contract, boot_allowed
+    if read_working_contract(_data_dir()) and not boot_allowed(_data_dir(), os.environ):
+        # A copied database is not permission to consume the host's old API
+        # keys, connectors, model switches or Harness configuration. Only the
+        # new instance launcher may establish its first clean environment.
+        return inspection
     # Vor dem ersten Öffnen: steht ein Umbau an, erst eine Kopie von vorher.
     backup_before_update(_data_dir())
     app = FastAPI(title="Kingfisher", version="0.1.0")

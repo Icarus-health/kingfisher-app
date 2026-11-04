@@ -64,3 +64,15 @@ untersucht; eine alte Quellen-/Skillfreigabe wird dabei nicht reaktiviert.
 Backend- und UI-Review fanden konkrete Randfehler, die mit Gegenproben korrigiert
 wurden. [Nachweis, 82 betroffene Tests und ausdrücklich offene Arbeitswiederherstellung](../2026-11-04-recovery-preflight/README.md).
 Die aktuelle Oberfläche wurde noch nicht im nativen Testfenster geprüft.
+
+## Anschlussprüfung Arbeitskopie
+
+Der gewählte historische Datenstand kann jetzt separat mit der normalen App
+weiterbearbeitet werden. Die Vorbereitung bindet sich an den Prüfbericht;
+Originale bleiben unverändert. Alte ausführende Rechte und Schlüssel werden
+nicht übernommen. Ein gefüllter Testbestand bestand Lesen, neue Aufgabe,
+Store-Neuverdrahtung und App-Neustart, während externe Arbeit als Testfalle
+gesperrt war. 37 direkte Tests bestanden; unabhängiges Review ohne offene
+wesentliche Befunde. [Nachweis und noch offene native Produktbedienung](../2026-11-04-recovery-working-copy/README.md).
+Der technische CLI-Einstieg ist keine Abnahme des nativen Wiederherstellungswegs
+und kein persönliches Update.
