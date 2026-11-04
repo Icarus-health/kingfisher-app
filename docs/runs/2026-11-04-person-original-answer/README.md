@@ -78,8 +78,15 @@ final result. Public evidence is condensed to artificial content and hashes.
   they do not establish sustained Mac fluidity or broad latency percentiles.
 - Before the final backend correction, the isolated native window verified
   clarification buttons, correct source opening, calendar navigation and an
-  unsent draft surviving navigation. The Mac then locked. Final corrected answer
-  rendering in that window and the ordinary installed application remain open.
+  unsent draft surviving navigation. The Mac then locked.
+- After the user unlocked the Mac, the final three API-generated conversations
+  were opened in that same native window (14:04–14:06 Europe/Berlin): contact,
+  school deadline and separate purchasing deadline rendered correctly. The
+  source button opened the matching complete school original. A newly typed
+  unsent draft survived calendar navigation and return. The local clock advanced.
+  This readback made no new model calls; the test calendar has no connection.
+  The ordinary installed application/update and sustained-load acceptance remain
+  open. Native-window readback does not claim fresh UI-triggered generation.
 - Sources were seeded deterministically; BGE was disabled in this narrow answer
   probe. Neither intake nor personal mail accuracy is established by these cases.
 - No cloud call, production data change, other-app closure, import resume,

@@ -3,7 +3,7 @@
   "synthetic_only": true,
   "cloud_calls": 0,
   "installed_app_verified": false,
-  "final_native_window_verified": false,
+  "final_native_window_verified": true,
   "bge_used": false,
   "ingestion_tested": false,
   "model": "kingfisher-qwen3.5:9b-8k",
@@ -63,5 +63,25 @@
   "model_seconds": 24.439,
   "minimum_free_percent": 31,
   "maximum_memory_pressure": 2,
-  "method": "Actual isolated Mac-local API, real Qwen source selection/original statement selection/same-model judge, GET after each persisted conversation. No full-system performance claim."
+  "method": "Actual isolated Mac-local API, real Qwen source selection/original statement selection/same-model judge, GET after each persisted conversation. No full-system performance claim.",
+  "native_window": {
+    "app": "Kingfisher Gedächtnistest · künstliche Daten",
+    "type": "isolated WKWebView sharing existing WebSurface",
+    "observed_at": "2026-11-04 14:04–14:06 Europe/Berlin",
+    "checked": [
+      "school contact after explicit choice",
+      "school deadline 13 November 2026",
+      "separate purchasing deadline 6 November 2026",
+      "source button and complete school original",
+      "unsent draft retained after calendar navigation and return",
+      "local clock advanced while open"
+    ],
+    "new_model_calls": 0,
+    "limitations": [
+      "read back final API-generated conversations; no new UI generation",
+      "no connected test calendar",
+      "no normal installed app update",
+      "no sustained load or global accessibility acceptance"
+    ]
+  }
 }
