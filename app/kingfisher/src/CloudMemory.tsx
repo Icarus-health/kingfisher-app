@@ -87,7 +87,7 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
       <option value="chatgpt">ChatGPT-Abo</option><option value="anthropic">Anthropic · Claude API</option><option value="mistral">Mistral · EU</option>
     </select></label>
     {provider==="anthropic" ? <p className="source-hint">Claude API nutzt den unter Cloud-Zugänge gespeicherten Schlüssel und das dort gewählte Modell. Der Alltag läuft lokal, oder über die Cloud-Einordnung neuer Mails unter Was Kingfisher darf. Modell: {selectedModel||"noch nicht eingerichtet"}.</p>:null}
-    {provider==='mistral'?<><p className="source-hint">Small 4 für dieses Quellenpaket · EU-Endpunkt. Die gewählten Alltagsmodelle bleiben erhalten.</p>
+    {provider==='mistral'?<><p className="source-hint">Small 4 für dieses Quellenpaket · EU-Endpunkt. Quellen und Abläufe teilen dasselbe Mistral-Kostenlimit. Die gewählten Alltagsmodelle bleiben erhalten.</p>
       {!credentialReady?<p><a href="/settings#ki">Mistral-Zugang unter KI &amp; Modelle einrichten</a></p>:null}
       <MistralSourceBudget refreshKey={job?.provider==='mistral'?job.updated_at:undefined} disabled={busy} onChange={budgetChanged}/></>:null}
     <details className="quiet-details"><summary>Wie die Einordnung funktioniert</summary>

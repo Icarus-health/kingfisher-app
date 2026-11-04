@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiError, request } from "./api";
+import { CloudWorkflowLearning } from "./CloudWorkflowLearning";
 import "./ProcedureSettings.css";
 
 type Area = "mail" | "planning" | "analysis";
@@ -11,7 +12,7 @@ type Procedure = {
   category?: Category; contexts?: string[];
   checks: { structure: boolean; routing_examples: boolean; human_review_required: boolean };
 };
-type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string>;
+type Detail = Procedure & { steps: string[]; markdown: string; sources: Record<string, string>; synthesis?: { provider: "mistral"; model: string };
   corrections?: Array<{request:string;correction:string;conversation_id:string;message_id:string}> };
 type Catalog = { items: Procedure[]; core: { id: string; name: string; title: string; category: string; purpose?: Category; area: string; description: string }[] };
 type Spec = { name: string; title: string; description: string; area: Area; category?: Category; contexts: string[]; triggers: string[]; steps: string[]; positive: string; negative: string };
@@ -142,9 +143,10 @@ function ProcedureRow({ item, busy, onAction, onSave, targeted = false }: { item
             <a href={`/conversations/${encodeURIComponent(source.conversation_id)}`}>Gespräch öffnen</a></li>)}</ul>
         </details> : null}
         <details className="quiet-details"><summary>Herkunft und technische Prüfung</summary>
+          {detail.synthesis?.provider === "mistral" ? <p>Mit Mistral entworfen · lokal gespeichert. Modell: {detail.synthesis.model}.</p> : null}
           {detail.base_version ? <p>Auf Basis von Version {detail.base_version}.</p> : null}
           <p>Strukturprüfung: {detail.checks.structure === true ? "bestanden" : "nicht bestanden"}. Auswahlbeispiele: {detail.checks.routing_examples === true ? "bestanden" : "nicht bestanden"}. Das bestätigt die Form, nicht die fachliche Eignung.</p>
-          {Object.keys(detail.sources).length ? <dl>{Object.entries(detail.sources).map(([id, source]) => <div key={id}><dt>{id}</dt><dd>{source}</dd></div>)}</dl> : <p>Ohne zusätzliche Quellenbelege; manuell vorgeschlagen.</p>}
+          {Object.keys(detail.sources).length ? <dl>{Object.entries(detail.sources).map(([id, source]) => <div key={id}><dt>{id}</dt><dd>{source}</dd></div>)}</dl> : <p>{detail.synthesis ? "Ohne zusätzliche Quellenbelege." : "Ohne zusätzliche Quellenbelege; manuell vorgeschlagen."}</p>}
         </details>
         <div className="source-form-actions">
           {detail.state === "pending" ? <><button type="button" className="primary-action" disabled={busy || !canAccept} onClick={() => void onAction(detail.id, "accept")}>Geprüft übernehmen</button>
@@ -182,12 +184,12 @@ export function ProcedureSettings() {
     window.addEventListener("hashchange", readTarget);
     return () => { window.removeEventListener("popstate", readTarget); window.removeEventListener("hashchange", readTarget); };
   }, []);
-  async function load() {
+  async function load(preserveSelection = false) {
     const current = ++generation.current;
     setVerified(false);
     try {
       const value = await request<Catalog>("/api/v1/procedures");
-      if (mounted.current && current === generation.current) { setCatalog(value); setVerified(true); setReadback(value => value + 1); }
+      if (mounted.current && current === generation.current) { setCatalog(value); setVerified(true); if (!preserveSelection) setReadback(value => value + 1); }
       return value;
     } catch (error) {
       if (mounted.current && current === generation.current) setError(errorText(error, "Die Abläufe konnten nicht geladen werden."));
@@ -266,7 +268,8 @@ export function ProcedureSettings() {
       <details className="quiet-details procedure-help"><summary>Eigene Abläufe hinzufügen</summary>
         <p className="source-hint">Im Gespräch kannst du „Lerne diesen Ablauf: …“ schreiben. Der Vorschlag bleibt bis zu deiner Prüfung inaktiv.</p>
         <details className="quiet-details"><summary>Manuell vorschlagen</summary><ProcedureForm busy={busy || !verified} onSave={save} /></details>
-        <p className="source-hint">Essenzielle Grundverfahren gelten immer. Eigene Abläufe bleiben lokal; bei Bedarf lädt Kingfisher die passende übernommene Fassung.</p>
+        <CloudWorkflowLearning onProposed={() => { void load(true).catch(() => { /* Der Ladefehler bleibt in der Bibliothek sichtbar. */ }); }} />
+        <p className="source-hint">Essenzielle Grundverfahren gelten immer. Eigene Abläufe werden lokal gespeichert; bei Bedarf lädt Kingfisher die passende übernommene Fassung.</p>
       </details>
     </> : null}
   </section>;

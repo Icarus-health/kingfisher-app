@@ -138,6 +138,9 @@ def register(app, guard):
         try:
             with app.state.conversation_lock:
                 item = app.state.procedures.get(identifier)
+                origin = getattr(app.state,'procedure_cloud_origin',None)
+                if callable(origin):
+                    item['synthesis'] = origin(identifier)
                 item['corrections'] = []
                 if item['current']:
                     from .workflow_learning import PREFIX

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import dataclass
 import hashlib
 import json
 import re
@@ -123,7 +124,19 @@ def _workflow_spec(finding,records,area):
     return data,chosen,identifiers
 
 
-def _review(app, row):
+@dataclass
+class LearningInput:
+    key: str
+    request: str
+    area: str
+    records: list
+    sources: dict
+    catalog: list
+    messages: list
+
+
+def prepare(app, row, *, cache_namespace=None):
+    """Freeze only existing own corrections; no model, credentials or network."""
     area = row['workflow']['area']
     records, sources, tasks = [], {}, set()
     for item in app.state.rueckmeldungen.workflow_candidates(area):
@@ -150,19 +163,12 @@ def _review(app, row):
         sources = {PREFIX+item['id']:sources[PREFIX+item['id']] for item in records}
     if not any(count >= 3 for count in Counter(term for item in records for term in subjects(item)).values()):
         return {'status':'no_pattern'}
-    key = 'corrections-v2:' + _hash(sources)
+    catalog = app.state.procedures.learning_catalog(row['workflow']['request'])
+    key = ('corrections-v2:' + _hash(sources) if cache_namespace is None else
+           cache_namespace + _hash({'sources':sources,'catalog':catalog}))
     saved = app.state.rueckmeldungen.workflow_result(key)
     if saved:
         return _existing(app,saved)
-    provider = app.state.agent.provider
-    if not getattr(provider,'is_local',False):
-        return {'status':'local_required'}
-    state = chat_state(app)
-    catalog = app.state.procedures.learning_catalog(row['workflow']['request'])
-    def permitted():
-        return (app.state.agent.provider is provider and chat_state(app)==state
-                and app.state.procedures.learning_catalog(row['workflow']['request']) == catalog
-                and all(dependency(app,k)==v for k,v in sources.items()))
     payload = {'corrections':records, 'existing':catalog}
     if len(json.dumps(payload,ensure_ascii=False).encode()) > 8000:
         return {'status':'too_long'}
@@ -180,14 +186,46 @@ def _review(app, row):
         'ursprünglichen Aufträgen passen. Positivbeispiel ist ein Nutzerauftrag, Gegenbeispiel liegt '
         'außerhalb. Gib ausschließlich JSON gemäß dem übergebenen Schema zurück.' + _TRIGGER_GUIDANCE),
         dict(role='user',content=json.dumps(payload,ensure_ascii=False))]
-    try:
+    return LearningInput(key,row['workflow']['request'],area,records,sources,catalog,messages)
+
+
+def current(app, packet):
+    return (app.state.procedures.learning_catalog(packet.request) == packet.catalog
+            and all(dependency(app,k)==v for k,v in packet.sources.items()))
+
+
+def _review(app, row):
+    packet = prepare(app,row)
+    if isinstance(packet,dict):
+        return packet
+    provider = app.state.agent.provider
+    if not getattr(provider,'is_local',False):
+        return {'status':'local_required'}
+    state = chat_state(app)
+    def permitted():
+        return (app.state.agent.provider is provider and chat_state(app)==state and current(app,packet))
+    def generate(messages, schema):
         app.state.agent.assert_egress_allowed(messages)
+        return draft(provider,messages,schema,permitted=permitted)
+    try:
+        return synthesize(app,packet,generate,permitted)
+    except (ProviderError,ProcedureError,ValueError,TypeError):
+        return {'status':'unavailable'}
+
+
+def synthesize(app, packet, generate, permitted, on_result=None):
+    """Same validation for local and separately authorized cloud generation."""
+    messages = packet.messages
+    records, sources, area, key = packet.records, packet.sources, packet.area, packet.key
+    try:
         # Echte Qwen-Proben ließen spec leer oder lieferten nicht abrufbare
         # nominale Beispiele. Eine Ergänzung teilt das ursprüngliche Zeitbudget.
         with json_request_deadline(time.monotonic()+60.0):
             attempt = messages
             for number in range(2):
-                response = draft(provider,attempt,Finding.model_json_schema(),permitted=permitted)
+                if not permitted() or not current(app,packet):
+                    raise ProcedureError('Die Grundlage hat sich geändert.')
+                response = generate(attempt,Finding.model_json_schema())
                 if not permitted() or getattr(response,'tool_calls',None):
                     raise ProcedureError('Der Prüfstand hat sich geändert.')
                 finding = Finding.model_validate_json(response.text)
@@ -206,20 +244,22 @@ def _review(app, row):
                         'Das Positivbeispiel ist ein ursprünglicher Auftrag, keine nominale Beschreibung; '
                         'die Auslöser müssen auch zu den ausgewählten Originalaufträgen passen. '
                         'Ist kein gemeinsamer Ablauf belegt, wähle none. Erfinde nichts.')
-        if finding.kind != 'workflow':
-            result = {'status':'no_pattern'}
-        else:
-            # Vorschlag und seine Belege noch einmal gemeinsam unter dem vorhandenen Schreibschutz prüfen.
-            with app.state.conversation_lock:
-                if not permitted():
-                    raise ProcedureError('Die Grundlage hat sich geändert.')
+        # Admission and optional dispatch receipt share the existing write boundary.
+        with app.state.conversation_lock:
+            if not permitted() or not current(app,packet):
+                raise ProcedureError('Die Grundlage hat sich geändert.')
+            if finding.kind != 'workflow':
+                result = {'status':'no_pattern'}
+            else:
                 support = {PREFIX+i:sources[PREFIX+i] for i in identifiers}
                 item = app.state.procedures.propose(data,sources=support,request_key=key)
                 result = {'status':'proposed','proposal_id':item['id'],'count':len(chosen)}
-        app.state.rueckmeldungen.save_workflow_result(key,result)
+            app.state.rueckmeldungen.save_workflow_result(key,result)
+            if on_result is not None:
+                on_result(result)
         return result
     except (ProviderError,ProcedureError,ValueError,TypeError):
-        return {'status':'unavailable'}
+        raise
 
 
 def conversation_feedback(app, conversation_id):

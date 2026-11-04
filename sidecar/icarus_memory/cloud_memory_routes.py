@@ -112,6 +112,12 @@ def register(app, guard, data_dir, provider_factory):
                 app.state.cloud_memory_jobs = value
             return value
 
+    # Shared cumulative allowance and credential factory, not a new grant.
+    # Consumers must provide their own exact reviewed-data capability.
+    app.state.mistral_source_budget_factory = source_budget
+    app.state.mistral_source_provider_factory = build_api_provider
+    app.state.mistral_source_credential = lambda: api_credential('mistral')
+
     def invoke(function, *args, **kwargs):
         try:
             return function(*args, **kwargs)

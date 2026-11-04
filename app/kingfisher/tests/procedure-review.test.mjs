@@ -189,3 +189,26 @@ test('failed technical checks remain visible outside folded details and prevent 
   assert.ok(nodes(tree,n=>n.props?.role==='alert').length);
  }finally{row.close();}
 }));
+
+test('cloud proposal refresh preserves the selected row, its key and library filters',()=>fixture('?ablauf=a',async({d,calls})=>{
+ nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.onChange({target:{value:'Gleicher'}});
+ nodes(d.render(),n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0].props.onChange({target:{value:'communication'}});
+ const before=rows(d).map(n=>({id:n.props.item.id,key:n.key,targeted:n.props.targeted}));
+ const cloud=nodes(d.render(),n=>n.type?.name==='CloudWorkflowLearning')[0];assert.ok(cloud);
+ cloud.props.onProposed();await tick();
+ assert.deepEqual(rows(d).map(n=>({id:n.props.item.id,key:n.key,targeted:n.props.targeted})),before);
+ assert.equal(nodes(d.render(),n=>n.type==='input'&&n.props['aria-label']==='Abläufe durchsuchen')[0].props.value,'Gleicher');
+ assert.equal(nodes(d.render(),n=>n.type==='select'&&n.props['aria-label']==='Abläufe nach Kategorie filtern')[0].props.value,'communication');
+ assert.equal(calls.filter(path=>path==='/api/v1/procedures').length,2);
+}));
+
+test('Mistral synthesis provenance distinguishes generation from local storage',()=>fixture('?ablauf=a',async({d})=>{
+ const fetch=globalThis.fetch;globalThis.fetch=async path=>path==='/api/v1/procedures/a'
+  ?Response.json({...detail('a'),synthesis:{provider:'mistral',model:'mistral-small-2603'}}):fetch(path);
+ const entry=rows(d)[0],row=driver(entry.type,entry.props);
+ try{row.render();row.run();await tick();const tree=row.render();
+  assert.match(text(tree),/Mit Mistral entworfen · lokal gespeichert/);assert.match(text(tree),/mistral-small-2603/);
+  assert.doesNotMatch(text(tree),/manuell vorgeschlagen/);
+  assert.match(visibleText(tree),/Noch nicht aktiv/);
+ }finally{row.close();}
+}));
