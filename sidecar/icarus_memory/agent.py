@@ -26,6 +26,8 @@ from .restore_boundary import guarded
 
 from .audit import AuditLog
 from .claims import ClaimError
+from .claim_index import query_terms as knowledge_query_terms
+from .knowledge_query_scope import explicit_context
 from . import knowledge_history, self_model_history, zeitmessung
 from .knowledge_render import KnowledgeInputBuild, PREFIX, ROW_BYTES, TOTAL_BYTES, TIME_NOTE, serialize
 from .context import ContextItem, ContextPacket, _terms, build_context_packet
@@ -310,7 +312,7 @@ class Agent:
 
     @guarded
     def context_packet(
-        self, query: str | None = None, *, external_caller: bool = False
+        self, query: str | None = None, *, external_caller: bool = False, focus_query: str | None = None
     ) -> tuple[ContextPacket, str]:
         """Wählt den zulässigen Kontext und erzeugt seinen Prompttext.
 
@@ -334,7 +336,7 @@ class Agent:
         self._knowledge_retrieval = None
         # Die Wissensschicht hat keine feinere Schutzbedarfsmarkierung und
         # bleibt fail-closed im Haus.
-        knowledge_items = () if external_caller else self._knowledge_context_items(query)
+        knowledge_items = () if external_caller else self._knowledge_context_items(query, focus_query=focus_query)
 
         # Die gelieferten Einträge werden gemeinsam mit der Antwort in SQLite
         # gespeichert. So zeigt der linke Kontextbereich exakt das, was das
@@ -360,7 +362,7 @@ class Agent:
         lines.extend(PREFIX + serialize(item.knowledge_projection) for item in knowledge_items)
         return packet, text + "\n\n" + "\n".join(lines)
 
-    def _knowledge_context_items(self, query: str | None) -> tuple[ContextItem, ...]:
+    def _knowledge_context_items(self, query: str | None, *, focus_query: str | None = None) -> tuple[ContextItem, ...]:
         """Wählt bestätigte Entitätsaussagen ausschließlich für lokale Modelle.
 
         Die allgemeine Wissensschicht hat noch keine feinere
@@ -375,7 +377,7 @@ class Agent:
             or self._episodes is None
         ):
             return ()
-        query_terms = _terms(query or "")
+        query_terms = knowledge_query_terms(query or "")
         if not (query or '').strip() or (not query_terms and self._knowledge_search is None):
             return ()
 
@@ -429,6 +431,14 @@ class Agent:
                          if _semantically_protected(item) or _has_specific_term(item[3])]
         if not hybrid:
             candidates.sort(key=lambda item: (-item[0], -item[1], -item[2].created_at.timestamp(), item[2].id))
+        scope = explicit_context(focus_query if focus_query is not None else (query or ''))
+        preferred = {item[2].id for item in candidates if scope and scope.matches(item[2].statement)}
+        # A textual qualifier is a ranking hint, not evidence that another
+        # record belongs to a different person. Keep all candidates and all
+        # existing validation/size limits; only count actually delivered rows.
+        if preferred:
+            candidates.sort(key=lambda item: item[2].id not in preferred)
+        explicit_context_preferred = 0
         # Ranking has its own bounded reads. Unused candidates must not consume
         # the 128-claim budget needed to validate selected dependency chains.
         build = KnowledgeInputBuild(self._knowledge, self._snapshot_provider)
@@ -455,6 +465,7 @@ class Agent:
                 payload_omitted += 1
                 continue
             total_bytes += size
+            explicit_context_preferred += claim.id in preferred
             primary = projection['primary_evidence']
             basis = 'occurred_at' if primary['occurred_at'] is not None else 'recorded_at'
             result.append(ContextItem(
@@ -465,6 +476,7 @@ class Agent:
                 subject_ref=claim.subject_ref, target_ref=claim.target_ref, scope_ref=claim.scope_ref,
                 knowledge_projection=projection, knowledge_input=entry))
         self._knowledge_retrieval['payload_omitted'] = payload_omitted
+        self._knowledge_retrieval['explicit_context_preferred'] = explicit_context_preferred
         self._knowledge_retrieval['selection_truncated'] = examined < len(candidates)
         self._knowledge_retrieval['truncated'] |= bool(payload_omitted or examined < len(candidates))
         return tuple(result)
@@ -1485,7 +1497,7 @@ class Agent:
             if item.get("role") == "user" and isinstance(item.get("content"), str)
         ][-3:]
         context_query = "\n".join(recent_user_messages)[-1200:]
-        packet, context_text = self.context_packet(context_query)
+        packet, context_text = self.context_packet(context_query, focus_query=message)
         if selection['conflicts']:
             turn.notices.append('Widersprüchliche Arbeitsvorlieben werden für diese Antwort nicht angewendet.')
         turn.context = {**packet.to_dict(), "memory_revision": revision,

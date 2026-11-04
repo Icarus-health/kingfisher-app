@@ -49,7 +49,7 @@ def test_profile_expiry_during_call_blocks_prior_only_input_and_tools(tmp_path, 
     from icarus_memory.context import ContextPacket
     agent, provider, assertion, clock = setup_profile(tmp_path, monkeypatch, expires_at=AT+timedelta(hours=1))
     agent.send('Filterkaffee?')
-    monkeypatch.setattr(agent, 'context_packet', lambda _: (ContextPacket('',clock[0],(),0), 'No new profile input'))
+    monkeypatch.setattr(agent, 'context_packet', lambda _, **kwargs: (ContextPacket('',clock[0],(),0), 'No new profile input'))
     def changing(*args):
         clock[0] += timedelta(hours=2)
         return Reply(text='EXPIRED_REPLY', tool_calls=[ToolCall('x','unused',{})])
@@ -64,8 +64,8 @@ def test_profile_expiry_during_call_blocks_prior_only_input_and_tools(tmp_path, 
 def test_profile_fingerprint_comes_from_rendered_object_not_later_lookup(tmp_path, monkeypatch):
     agent, provider, assertion, clock = setup_profile(tmp_path, monkeypatch)
     original = agent.context_packet
-    def racing(query):
-        packet, text = original(query)
+    def racing(query, **kwargs):
+        packet, text = original(query, **kwargs)
         changed = agent._store._backend.get(assertion.id)
         changed.sensitivity = Sensitivity.SENSITIVE  # allowed mutable classification, still locally shareable
         agent._store._backend.put(changed)

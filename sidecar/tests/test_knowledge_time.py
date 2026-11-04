@@ -62,8 +62,8 @@ def test_metadata_races_suppress_provider_or_returned_answer(core, monkeypatch, 
     revision = claims.revision
     if window == 'before':
         original = agent.context_packet
-        def context(query):
-            result = original(query)
+        def context(query, **kwargs):
+            result = original(query, **kwargs)
             change_source(episodes, source.id, **{field: value})
             return result
         monkeypatch.setattr(agent, 'context_packet', context)
