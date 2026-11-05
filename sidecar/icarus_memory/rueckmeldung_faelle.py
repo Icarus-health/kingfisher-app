@@ -8,9 +8,9 @@ der Messlatte (`messlatte/beispiel-eigene-fragen.json`, `messlatte/FORMAT.md`) h
   Die Messlatte sucht ihn als Teilstück in der Antwort; ein Wort oder Datum („15. November“)
   trifft zuverlässiger als ein ganzer Satz.
 * **Verbotene Aussage**: bei `falsch` und `veraltet` die gemeldete Antwort. Bestand sie aus
-  genau einem Satz, ist es dieser Satz, sonst der ganze Text; sie zählt nur, wenn Kingfisher
-  sie wörtlich wiederholt. Wer es gezielter will, kürzt die Zeile in der Datei auf die
-  falsche Stelle (in der Notiz steht, worum es ging).
+  genau einem Satz, ist es dieser Satz, sonst der ganze Text ohne den vorübergehenden
+  Mailaufnahmehinweis. Sie zählt, wenn Kingfisher sie wörtlich wiederholt. Wer es gezielter
+  will, kürzt die Zeile in der Datei auf die falsche Stelle (in der Notiz steht, worum es ging).
 * **Belege**: die Kennungen der Quellen, auf die sich die gemeldete Antwort stützte, bei
   `falsch` und `veraltet` als verbotene Belege. Im Modus `lokal` haben Belege keine Wirkung.
 * **Erledigt** ändert nichts am Fall: Er bleibt in der Datei und ist der Regressionstest.
@@ -40,11 +40,16 @@ def fall_id(meldung: dict[str, Any]) -> str:
 
 
 def verbotene_aussage(meldung: dict[str, Any]) -> str:
-    """Die gemeldete falsche Aussage: der einzelne Satz oder die ganze Antwort."""
-    saetze = (meldung.get('struktur') or {}).get('saetze') or []
+    """Der einzelne Satz oder die Antwort ohne den angehängten Mailaufnahmehinweis."""
+    struktur = meldung.get('struktur') or {}
+    saetze = struktur.get('saetze') or []
     if len(saetze) == 1 and str(saetze[0].get('text', '')).strip():
         return str(saetze[0]['text']).strip()
-    return str(meldung.get('antwort', '')).strip()
+    antwort = str(meldung.get('antwort', ''))
+    hinweis = struktur.get('mail_intake_notice')
+    if isinstance(hinweis, str) and hinweis.strip():
+        antwort = antwort.removesuffix('\n\n' + hinweis)
+    return antwort.strip()
 
 
 def als_fall(meldung: dict[str, Any]) -> dict[str, Any] | None:

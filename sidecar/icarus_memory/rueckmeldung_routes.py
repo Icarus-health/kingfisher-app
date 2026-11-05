@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from . import logbuch, rueckmeldung_faelle
 from .model_roles import ROLLEN, rollen_von
-from .rueckmeldung import ART_TEXTE, ARTEN, RueckmeldungFehler, Rueckmeldungen
+from .rueckmeldung import ART_TEXTE, ARTEN, MAX_ANTWORT, RueckmeldungFehler, Rueckmeldungen
 
 
 class RueckmeldungIn(BaseModel):
@@ -49,8 +49,8 @@ def belege_der_antwort(metadaten: dict[str, Any]) -> list[str]:
     return sorted({k for k in kennungen if isinstance(k, str) and k})
 
 
-def struktur_der_antwort(metadaten: dict[str, Any]) -> dict[str, Any]:
-    """Satz- und Belegstruktur ohne Quellentext: Sätze mit Belegnummern, Belege mit Nummer, Kennung und Titel."""
+def struktur_der_antwort(metadaten: dict[str, Any], antwort: str) -> dict[str, Any]:
+    """Satz- und Belegstruktur ohne Quellentext sowie der gespeicherte Teil des Mailaufnahmehinweises."""
     kontext = (metadaten or {}).get('context') or {}
     satz = kontext.get('satzantwort') or {}
     struktur: dict[str, Any] = {}
@@ -61,6 +61,14 @@ def struktur_der_antwort(metadaten: dict[str, Any]) -> dict[str, Any]:
     status = (kontext.get('answer_contract') or {}).get('status')
     if status:
         struktur['status'] = status
+    hinweis = kontext.get('mail_intake_notice')
+    if isinstance(hinweis, str) and hinweis.strip() and antwort.endswith('\n\n' + hinweis):
+        # Der Speicher trimmt zuerst und schneidet dann ab. Nur der Teil des echten Hinweises
+        # hinter dem Antworttext kann damit im Snapshot stehen.
+        antwort = antwort.lstrip()
+        hinweis_ab = len(antwort) - len(hinweis)
+        if hinweis_ab < MAX_ANTWORT:
+            struktur['mail_intake_notice'] = antwort.rstrip()[hinweis_ab:MAX_ANTWORT]
     return struktur
 
 
@@ -107,7 +115,8 @@ def register(app, guard, data_dir) -> None:
             meldung = ablage().melden(
                 frage=frage, antwort=antwort['content'], art=body.art, richtig=body.richtig,
                 nachricht_id=antwort['id'], gespraech_id=body.conversation_id,
-                struktur=struktur_der_antwort(antwort.get('metadata')), belege=belege_der_antwort(antwort.get('metadata')),
+                struktur=struktur_der_antwort(antwort.get('metadata'), antwort['content']),
+                belege=belege_der_antwort(antwort.get('metadata')),
                 modell=modellstand(app), workflow=workflow)
         except RueckmeldungFehler as fehler:
             raise HTTPException(status_code=422, detail=str(fehler)) from None

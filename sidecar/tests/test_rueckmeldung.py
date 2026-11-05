@@ -7,8 +7,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from icarus_memory import rueckmeldung_faelle
-from icarus_memory.rueckmeldung import ARTEN, Rueckmeldungen, RueckmeldungFehler
+from icarus_memory.rueckmeldung import ARTEN, MAX_ANTWORT, Rueckmeldungen, RueckmeldungFehler
+from icarus_memory.rueckmeldung_routes import struktur_der_antwort
+from icarus_memory.working_memory_store import WorkingMemoryStore
+from messlatte.bewertung import gefundene_verbotene
 from tests.test_context_identity import core  # noqa: F401 - Fixture
+from tests.test_intake_coverage_recall import ACCOUNT, QUESTION, intake_session  # noqa: F401 - Fixture
 from tests.test_source_answers_http import _api, _ask, _conversation, _upload
 
 
@@ -107,10 +111,65 @@ def test_falsch_mit_richtig_wird_fall_mit_erwartet_und_verboten():
 
 
 def test_ein_einzelner_satz_ist_die_verbotene_aussage():
-    struktur = {'saetze': [{'text': 'Die Frist ist der 31. Oktober.', 'belege': [1]}]}
-    (fall,) = rueckmeldung_faelle.faelle([_m(art='veraltet', antwort='Die Frist ist der 31. Oktober. [1]',
+    hinweis = 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+    struktur = {'saetze': [{'text': 'Die Frist ist der 31. Oktober.', 'belege': [1]}],
+                'mail_intake_notice': hinweis}
+    (fall,) = rueckmeldung_faelle.faelle([_m(art='veraltet', antwort='Die Frist ist der 31. Oktober. [1]\n\n' + hinweis,
                                               struktur=struktur)])['fragen']
     assert fall['verboten']['aussagen'] == ['Die Frist ist der 31. Oktober.'] and fall['schwere'] == 'kritisch'
+
+
+def test_export_entfernt_nur_den_letzten_mailaufnahmehinweis_bei_mehreren_saetzen():
+    hinweis = 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+    antwort = 'Die Frist steht fest. Sie endet morgen.\n\n' + hinweis
+    struktur = {'saetze': [{'text': 'Die Frist steht fest.'}, {'text': 'Sie endet morgen.'}],
+                'mail_intake_notice': hinweis}
+    assert rueckmeldung_faelle.verbotene_aussage(_m(
+        antwort=antwort + '\n\n' + hinweis, struktur=struktur)) == antwort
+
+
+@pytest.mark.parametrize('struktur, abschluss', [
+    ({}, ''),
+    ({'mail_intake_notice': 'Mailaufnahme: Ein anderer Stand.'}, ''),
+    ({'mail_intake_notice': ['Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.']}, ''),
+    ({'mail_intake_notice': ''}, ''),
+    ({'mail_intake_notice': 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'}, '\nWeiterer Text.'),
+])
+def test_export_behaelt_mailaufnahmeaehnlichen_text_ohne_passenden_endhinweis(struktur, abschluss):
+    antwort = 'Die Frist steht fest.\n\nMailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.' + abschluss
+    assert rueckmeldung_faelle.verbotene_aussage(_m(antwort=antwort, struktur=struktur)) == antwort
+
+
+def test_gekuerzte_meldung_behaelt_hinweisartigen_teil_der_antwort(ablage):
+    hinweis = 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+    zusatz = '\n\n' + hinweis
+    gespeichert = 'a' * (MAX_ANTWORT - len(zusatz)) + zusatz
+    angezeigt = gespeichert + '\nWeiterer Text.' + zusatz
+    struktur = struktur_der_antwort({'context': {'mail_intake_notice': hinweis}}, angezeigt)
+    meldung = ablage.melden(frage='Wann ist die Frist?', antwort=angezeigt, art='falsch',
+                            nachricht_id='m1', struktur=struktur)
+    assert rueckmeldung_faelle.verbotene_aussage(meldung) == gespeichert
+
+
+def test_gekuerzte_meldung_exportiert_antwort_ohne_hinweisfragment(ablage):
+    hinweis = 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+    zusatz = '\n\n' + hinweis
+    antwort = 'a' * (MAX_ANTWORT - 30)
+    angezeigt = antwort + zusatz
+    struktur = struktur_der_antwort({'context': {'mail_intake_notice': hinweis}}, angezeigt)
+    meldung = ablage.melden(frage='Wann ist die Frist?', antwort=angezeigt, art='falsch',
+                            nachricht_id='m1', struktur=struktur)
+    assert meldung['antwort'] == antwort + zusatz[:30]
+    fall = rueckmeldung_faelle.als_fall(meldung)
+    verbote = fall['verboten']['aussagen']
+    assert gefundene_verbotene(antwort, verbote) == (antwort,)
+
+
+def test_struktur_uebernimmt_nur_hinweis_mit_vollstaendigem_ende():
+    hinweis = 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+    angezeigt = 'Die Frist steht fest.\n\n' + hinweis.replace('nicht', 'heute')
+    struktur = struktur_der_antwort({'context': {'mail_intake_notice': hinweis}}, angezeigt)
+    assert rueckmeldung_faelle.verbotene_aussage(_m(antwort=angezeigt, struktur=struktur)) == angezeigt
 
 
 def test_unvollstaendig_mit_richtig_hat_nur_erwartet():
@@ -231,6 +290,52 @@ def test_export_ueber_die_route_enthaelt_auch_erledigtes(api):
     (fall,) = daten['fragen']
     assert fall['id'] == f'rueckmeldung-{kennung[:12]}' and fall['erwartet']['aussagen'] == [['bis Freitag']]
     assert 'Regressionstest' in fall['notiz'] and daten['nicht_messbar'] == []
+
+
+def test_export_erkennt_gleiche_falsche_antwort_bei_geaendertem_mailaufnahmestand(intake_session):
+    app, client, intake, box, calls, original_id = intake_session
+    gespraech = _conversation(client)
+    url = f'/api/v1/conversations/{gespraech}'
+    gesendet = client.post(url + '/messages', json={'message': QUESTION, 'answer_mode': 'memory_evidence'})
+    assert gesendet.status_code == 201
+    angezeigt = gesendet.json()['messages'][-1]
+    kontext = angezeigt['metadata']['context']
+    hinweis = kontext['mail_intake_notice']
+    assert 'nicht alle gefundenen Mails sind eingelesen' in hinweis
+    assert angezeigt['content'].endswith('\n\n' + hinweis) and not kontext.get('satzantwort')
+
+    gemeldet = client.post('/api/v1/rueckmeldungen', json={
+        'conversation_id': gespraech, 'message_id': angezeigt['id'], 'art': 'falsch'})
+    assert gemeldet.status_code == 201 and 'lernen' not in gemeldet.json()
+    meldung, = client.get('/api/v1/rueckmeldungen').json()['meldungen']
+    assert meldung == gemeldet.json()['meldung']
+    assert meldung['antwort'] == angezeigt['content'] and meldung['belege'] == [original_id]
+    export = client.get('/api/v1/rueckmeldungen/faelle')
+    assert export.status_code == 200
+    fall, = export.json()['fragen']
+    verbote = fall['verboten']['aussagen']
+    assert fall['verboten']['belege'] == [original_id]
+    assert gefundene_verbotene(angezeigt['content'], verbote) == tuple(verbote)
+
+    box.release = True
+    intake.retry(ACCOUNT)
+    neu = intake.step(ACCOUNT, box)
+    assert len(neu) == 2
+    eingeordnet = client.get(url).json()['messages'][-1]
+    neuer_hinweis = eingeordnet['metadata']['context']['mail_intake_notice']
+    assert 'noch nicht eingeordnet' in neuer_hinweis
+    store = WorkingMemoryStore(app.state.episodes)
+    for quelle_id in neu:
+        quelle, = store.pending(episode_ids=[quelle_id])
+        assert store.commit(quelle, [{'start': 0, 'end': len(quelle.episode.body), 'kind': 'fact'}], model='synthetic')
+    vollstaendig = client.get(url).json()['messages'][-1]
+    assert 'mail_intake_notice' not in vollstaendig['metadata']['context']
+    assert eingeordnet['content'] == vollstaendig['content'] + '\n\n' + neuer_hinweis
+    assert angezeigt['content'] == vollstaendig['content'] + '\n\n' + hinweis
+    assert len(calls) == 1
+    for antwort in (eingeordnet, vollstaendig):
+        assert gefundene_verbotene(antwort['content'], verbote) == tuple(verbote)
+    assert verbote == [vollstaendig['content']]
 
 
 def test_meldungen_sind_nach_der_wiederherstellung_da(tmp_path, monkeypatch):
