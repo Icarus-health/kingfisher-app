@@ -35,15 +35,19 @@ Mac-Abnahme nicht:
 | Kalenderabsagen | Explizite ICS-Absagen erhalten den Originalverlauf und entziehen dem alten Termin die aktuelle Belegberechtigung; Änderungen entfernen keine ungenannten Nachbartermine. | Echte Kalenderanbieter, native Bedienung und vollständige Antwort mit unabhängig weiter gültiger Abgabefrist. |
 | Bestätigte Erledigung | Unterstützte Statusfragen verwenden den gespeicherten Aufgabenstand und einen neu geprüften Ereignisverweis. | Beliebige Umformulierungen und zusammenhängende Modellabnahme. |
 | Unvollständiger Eingang | Antworten unterscheiden bekannte Aufnahme-/Analyse-Lücken von ungeprüfter Vollständigkeit. Die vorübergehende Anzeige wird nicht als verbotene Musterantwort in eine Lernregel übernommen. | Vollständigkeit des persönlichen Postfachs und reale Lern-/Abrufabnahme. |
-| Bestätigte Zuständigkeit | Lokale Entwicklungscommits `6880d67` und `ed9b190`: Korrektur, Rücknahme, Listen, Profile und Mailaktionen unabhängig geprüft. Auftraggeber, Ausführender und Warten auf Rückmeldung bleiben getrennt. | Gesprächsintegration und gemeinsamer technischer Integrationsreview bestanden; echte Modell-/Mac-Prüfung und persönliche Installation noch offen. |
+| Bestätigte Zuständigkeit | In PR124 bis `bb1ecec` veröffentlicht: Korrektur, Rücknahme, Listen, Profile, Mailaktionen und Gesprächsintegration unabhängig geprüft. Überlappende Quellenstellen umgehen die Korrektur auch bei erneuter Analyse nicht. Auftraggeber, Ausführender und Warten auf Rückmeldung bleiben getrennt. | Echte Modell-/Mac-Prüfung und persönliche Installation; semantisch gleiche Aufgaben in unterschiedlichen Quellenstellen sind keine hier nachgewiesene allgemeine Dublettenlösung. |
 | Lokale Modelllast | Der unveränderte kleine Pilot wurde unter zunächst normalem Speicherdruck erneut begonnen, aber nach 6,1 Sekunden wegen zu geringer Reserve gestoppt. Keine fertige Antwort; Modell anschließend entladen. | Keine neue Qualitätsaussage. Keine weitere Wiederholung bei unveränderter Last. Mistral-Probe wartet auf Schlüssel und konkrete Kostenfreigabe. |
 
-Die letzte veröffentlichte PR-Fassung `f4be125` besteht UI-, Mac-Bau- und
-Containerprüfung. Beide Python-CI-Jobs scheitern an derselben zentralen
-Quellenfilter-Regel; jeweils 10.293 weitere Tests bestehen. Die geprüfte
-Korrektur `7523853` verwendet die maßgeblichen Quellenhelfer und ist im
-zusammenhängenden Zuständigkeitspaket enthalten. Dieser Absatz ist kein
-grüner CI-Nachweis der noch unveröffentlichten Entwicklung.
+Die ältere PR-Fassung `f4be125` scheiterte in beiden Python-CI-Jobs an derselben
+zentralen Quellenfilter-Regel; jeweils 10.293 weitere Tests bestanden. Die
+geprüfte Korrektur `7523853` verwendet die maßgeblichen Quellenhelfer und ist
+im veröffentlichten Zuständigkeitspaket bis `bb1ecec` enthalten.
+Für diesen exakten Stand sind UI-, Mac-Bau- und Containerprüfung erfolgreich.
+Beim Readback am 5. November liefen beide Python-Jobs in CI-Lauf
+[41965994776](https://github.com/Icarus-health/kingfisher-app/actions/runs/41965994776)
+noch; ein vollständiger grüner CI-Nachweis ist hier damit nicht behauptet.
+PR124 bleibt Entwurf und ungemergt. Ein erfolgreicher Mac-Bau ist keine
+Installation oder native Bedienabnahme.
 
 Nachweise: [Quellenaufnahme und Kalenderabsagen](2026-11-05-memory-source-acceptance/README.md),
 [MIME-Wiederholung](2026-11-05-mime-replay/README.md),
