@@ -1174,6 +1174,26 @@ class EpisodeStore:
         self._put(episode, source_key=source_key)
         return episode, True
 
+    def calendar_revision(self, episode_id: str) -> str | None:
+        """Interne ICS-Versionsordnung, unabhängig von Inhalt und Evidenz."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT json_extract(document, '$._calendar_revision') FROM episodes WHERE id=?",
+                (episode_id,)).fetchone()
+        return row[0] if row else None
+
+    def set_calendar_revision(self, episode_id: str, revision: str | None) -> None:
+        """Pflegt ausschließlich die technische Revision eines aktuellen Kalenderbelegs."""
+        with self.transaction():
+            result = self._conn.execute(
+                "UPDATE episodes SET document=json_set(document, '$._calendar_revision', ?) "
+                "WHERE id=? AND kind='event' AND state!='ignored' AND "
+                "json_extract(document, '$.provenance.source_type')='calendar' AND "
+                "EXISTS(SELECT 1 FROM source_heads WHERE source_key=episodes.source_key AND episode_id=episodes.id)",
+                (revision, episode_id))
+            if result.rowcount != 1:
+                raise EpisodeError("Keine aktuelle Kalenderquelle für diese Revision")
+
     def add_mail_headers(self, episode_id: str, tags: list[str]) -> Episode:
         """Append advisory header links without changing original, identity, date or exclusion."""
         with self.transaction():
@@ -2292,8 +2312,12 @@ class EpisodeStore:
     def _put(self, episode: Episode, *, source_key: str = "", _reopen=False) -> None:
         d = episode.to_dict()
         with self.transaction():
-            old = self._conn.execute('SELECT state,source_key FROM episodes WHERE id=?', (episode.id,)).fetchone()
+            old = self._conn.execute(
+                "SELECT state,source_key,json_extract(document, '$._calendar_revision') FROM episodes WHERE id=?",
+                (episode.id,)).fetchone()
             if old:
+                if old[2] is not None:
+                    d['_calendar_revision'] = old[2]
                 if old[0] == 'ignored' and episode.state is not EpisodeState.IGNORED and not _reopen:
                     raise EpisodeError('An ignored source requires explicit reopen')
                 # Zustandsgründe ergänzen Tags; deren Digest muss zum Dokument

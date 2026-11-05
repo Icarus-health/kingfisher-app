@@ -16,7 +16,7 @@ import uuid
 
 import httpx
 
-from .calendar import CalendarError, Event, parse_events
+from .calendar import CalendarError, CalendarMemoryRead, Event, parse_events, parse_memory_events
 from .mail import MailError, Message
 
 
@@ -83,7 +83,18 @@ class ICalendarSubscription:
 
     def events(self, days: int = 7, at: datetime | None = None) -> list[Event]:
         """Alle Termine der Datei; Serien ausgeklappt im Fenster `at` bis `at + days` (`parse_events`)."""
+        daten, kodierung, _ = self._read()
         von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        return parse_events(daten, von, von + timedelta(days=days), kodierung=kodierung)
+
+    def memory_events(self, days: int = 7, at: datetime | None = None) -> CalendarMemoryRead:
+        daten, kodierung, vollstaendig = self._read()
+        von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        ergebnis = parse_memory_events(daten, von, von + timedelta(days=days), kodierung=kodierung)
+        ergebnis.complete &= vollstaendig
+        return ergebnis
+
+    def _read(self) -> tuple[bytes, str, bool]:
         if not self._url.startswith("https://"):
             raise CalendarError("iCalendar-Abonnements benötigen eine HTTPS-Adresse.")
         try:
@@ -98,10 +109,11 @@ class ICalendarSubscription:
                             raise CalendarError(zu_gross(ABO_GROESSE))
                         teile.append(stueck)
                     kodierung = response.encoding or "utf-8"
+                    vollstaendig = response.status_code == 200
         except httpx.HTTPError as exc:
             raise CalendarError(f"iCalendar-Abo nicht erreichbar: {exc}") from exc
         # Als Bytes weitergeben: `parse_events` dekodiert je Termin, nicht die ganze Datei auf einmal.
-        return parse_events(b"".join(teile), von, von + timedelta(days=days), kodierung=kodierung)
+        return b"".join(teile), kodierung, vollstaendig
 
 
 class MailCollection:

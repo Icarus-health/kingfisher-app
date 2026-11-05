@@ -600,10 +600,10 @@ def test_ein_unerwarteter_fehler_in_einem_termin_nimmt_die_anderen_nicht_mit(mon
     from icarus_memory.connectors import calendar
     echt = calendar._termin
 
-    def kaputt(termin, uid, *rest):
+    def kaputt(termin, uid, *rest, **optionen):
         if uid.startswith('x1'):
             raise fehler('Probe')
-        return echt(termin, uid, *rest)
+        return echt(termin, uid, *rest, **optionen)
 
     monkeypatch.setattr(calendar, '_termin', kaputt)
     assert [t.uid for t in parse_events(ics(EXTREM[0], NORMAL))] == ['normal']
