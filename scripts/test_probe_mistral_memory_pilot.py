@@ -4,6 +4,7 @@ import json
 import shutil
 import threading
 import time
+from datetime import datetime
 
 import httpx
 import pytest
@@ -80,7 +81,7 @@ def test_default_cli_previews_exact_sources_without_credentials_network_or_class
     assert sent['folder'] == 'Sent'
     own = next(c for c in sent['original']['contacts'] if c.get('ich'))
     assert own['adresse'] == 'mika@studio-fenn.example' and own['rolle'] == 'von'
-    assert sent['original']['occurred_at'] == '2026-11-03T10:00:00+01:00'
+    assert datetime.fromisoformat(sent['original']['occurred_at']) == datetime.fromisoformat('2026-11-03T10:00:00+01:00')
     assert all(s['body'].strip() == s['original']['body'].strip() for s in report['sources'])
     assert report['preview']['request_limit'] <= 60
     assert all(row['planned_request_upper_bound'] == 5 for row in report['sources'])
