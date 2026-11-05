@@ -10,10 +10,13 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
+import hashlib
+import json
+import uuid
 
 import httpx
 
-from .calendar import CalendarError, Event, parse_events
+from .calendar import CalendarError, CalendarMemoryRead, Event, parse_events, parse_memory_events
 from .mail import MailError, Message
 
 
@@ -80,7 +83,18 @@ class ICalendarSubscription:
 
     def events(self, days: int = 7, at: datetime | None = None) -> list[Event]:
         """Alle Termine der Datei; Serien ausgeklappt im Fenster `at` bis `at + days` (`parse_events`)."""
+        daten, kodierung, _ = self._read()
         von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        return parse_events(daten, von, von + timedelta(days=days), kodierung=kodierung)
+
+    def memory_events(self, days: int = 7, at: datetime | None = None) -> CalendarMemoryRead:
+        daten, kodierung, vollstaendig = self._read()
+        von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        ergebnis = parse_memory_events(daten, von, von + timedelta(days=days), kodierung=kodierung)
+        ergebnis.complete &= vollstaendig
+        return ergebnis
+
+    def _read(self) -> tuple[bytes, str, bool]:
         if not self._url.startswith("https://"):
             raise CalendarError("iCalendar-Abonnements benötigen eine HTTPS-Adresse.")
         try:
@@ -95,10 +109,11 @@ class ICalendarSubscription:
                             raise CalendarError(zu_gross(ABO_GROESSE))
                         teile.append(stueck)
                     kodierung = response.encoding or "utf-8"
+                    vollstaendig = response.status_code == 200
         except httpx.HTTPError as exc:
             raise CalendarError(f"iCalendar-Abo nicht erreichbar: {exc}") from exc
         # Als Bytes weitergeben: `parse_events` dekodiert je Termin, nicht die ganze Datei auf einmal.
-        return parse_events(b"".join(teile), von, von + timedelta(days=days), kodierung=kodierung)
+        return b"".join(teile), kodierung, vollstaendig
 
 
 class MailCollection:
@@ -169,12 +184,17 @@ class MailCollection:
         )
 
 
+class CalendarReadChanged(CalendarError):
+    """The source authorization changed while a display request was running."""
+
+
 class CalendarCollection:
     """Fasst mehrere Kalenderquellen zusammen, ohne eine davon zu bevorzugen."""
 
     def __init__(self, sources: list[NamedCalendar]) -> None:
         self._sources = {item.id: item for item in sources}
         self.last_errors: dict[str, str] = {}
+        self._display_generation = uuid.uuid4().hex
 
     @property
     def sources(self) -> list[NamedCalendar]:
@@ -200,8 +220,29 @@ class CalendarCollection:
         )
 
     def events(self, days: int = 7, at: datetime | None = None) -> list[Event]:
+        events, errors = self._read_events(days, at)
+        self.last_errors = errors
+        if not events and errors and len(errors) == len(self._sources):
+            raise CalendarError("; ".join(errors.values()))
+        return events
+
+    def display_context(self) -> str:
+        authority = [(source.id, value()) for source in self._sources.values()
+                     if callable(value := getattr(source.reader, 'display_authority', None))]
+        return hashlib.sha256(json.dumps([self._display_generation, authority], sort_keys=True).encode()).hexdigest()
+
+    def display_events(self, days: int = 7, at: datetime | None = None):
+        """Return per-request failures; do not turn cached previews into model data."""
+        context = self.display_context()
+        events, errors = self._read_events(days, at)
+        if self.display_context() != context:
+            raise CalendarReadChanged('Die Kalenderfreigabe hat sich während des Lesens geändert.')
+        self.last_errors = errors  # compatibility for account status, not the response authority
+        return events, errors, context
+
+    def _read_events(self, days: int, at: datetime | None):
         events: list[Event] = []
-        self.last_errors = {}
+        errors: dict[str, str] = {}
         for source in self._sources.values():
             try:
                 for event in source.reader.events(days=days, at=at):
@@ -214,13 +255,11 @@ class CalendarCollection:
                                                           if source.id == 'mac-calendar' and event.source_id
                                                           else event.view_source_id)))
             except Exception as exc:  # partial failures must not hide other calendars
-                self.last_errors[source.id] = str(exc)
-        if not events and self.last_errors and len(self.last_errors) == len(self._sources):
-            raise CalendarError("; ".join(self.last_errors.values()))
+                errors[source.id] = str(exc)
         return sorted(
             _mirror_copies(events),
             key=lambda item: item.start or datetime.max.replace(tzinfo=timezone.utc),
-        )
+        ), errors
 
 
 def _mirror_copies(events: list[Event]) -> list[Event]:

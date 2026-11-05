@@ -13,6 +13,28 @@ BERLIN = ZoneInfo('Europe/Berlin')
 FRIDAY = datetime(2026, 10, 30, 15, tzinfo=BERLIN)
 
 
+@pytest.mark.parametrize('text', [
+    'Bitte prüfe die Belege. Unsere Besprechung ist am 2. November 2026 um 14:30 Uhr.',
+    'Bitte prüfe die Belege. Unsere Besprechung ist am 2. November 2026.',
+])
+def test_besprechung_im_selben_beleg_ist_keine_aufgabenfrist(text):
+    assert frist_aus(text,FRIDAY) is None
+
+
+@pytest.mark.parametrize('text', [
+    'Bitte bearbeite die Unterlagen bis 10.11.2026.',
+    'Bitte aktualisiere die Liste bis nächste Woche.',
+    'Bitte prüfe die Belege. Unsere Besprechung ist am 2. November 2026.',
+])
+def test_nicht_gebundene_zeitangabe_darf_automatik_nicht_als_fristfrei_anlegen(welt,monkeypatch,text):
+    monkeypatch.setattr(basis,'JETZT',FRIDAY)
+    episodes,tasks,proposals,_,lauf,_=welt
+    _,candidate=basis.bitte(episodes,proposals,text=text)
+    assert lauf.schritt()=={'geprueft':1,'angelegt':0,'vorschlaege':1}
+    assert tasks.get('t-suggestion-'+candidate.id) is None
+    assert tasks.auto_ergebnis(candidate.id)=='frist_unklar'
+
+
 @pytest.fixture(autouse=True)
 def nutzerzone(monkeypatch):
     monkeypatch.setenv('KINGFISHER_TIMEZONE', 'Europe/Berlin')

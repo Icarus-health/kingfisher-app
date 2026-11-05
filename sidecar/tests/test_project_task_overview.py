@@ -24,7 +24,7 @@ def test_totals_cross_list_limits_and_separate_waiting_done_dropped(tmp_path):
     store.add('Other project', P, project_id='q', due=AT - timedelta(days=1))
     before = store.history(overdue.id)
     result = store.project_overview('p', at=AT)
-    assert result['counts'] == {'mine': 206, 'waiting': 1, 'done': 1, 'dropped': 1, 'overdue': 1, 'undated': 205}
+    assert result['counts'] == {'mine': 206, 'waiting': 1, 'others': 0, 'unassigned': 0, 'done': 1, 'dropped': 1, 'overdue': 1, 'undated': 205}
     assert len(result['next_tasks']) == 3
     assert result['next_tasks'][0]['id'] == overdue.id
     assert [t['id'] for t in result['waiting_tasks']] == [waiting.id]
@@ -69,7 +69,7 @@ def test_overview_api_empty_closed_project_and_missing_project(tmp_path, monkeyp
     project = client.post('/api/v1/projects', json={'name': 'Atlas'}).json()['id']
     response = client.get(f'/api/v1/projects/{project}/task-overview')
     assert response.status_code == 200
-    assert response.json()['counts'] == dict.fromkeys(('mine', 'waiting', 'done', 'dropped', 'overdue', 'undated'), 0)
+    assert response.json()['counts'] == dict.fromkeys(('mine', 'waiting', 'others', 'unassigned', 'done', 'dropped', 'overdue', 'undated'), 0)
     task = client.post('/api/v1/tasks', json={'title': 'Angebot prüfen', 'project_id': project}).json()['id']
     client.patch(f'/api/v1/projects/{project}', json={'status': 'done'})
     assert client.get(f'/api/v1/projects/{project}/task-overview').json()['next_tasks'][0]['id'] == task

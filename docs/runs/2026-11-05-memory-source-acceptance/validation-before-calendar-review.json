@@ -1,0 +1,58 @@
+{
+  "base": "ff2f07513a64dab09735d3dc7831f25000cc9af7",
+  "state": "uncommitted frozen review01 calendar plus reviewed intake fix01",
+  "python": "3.12",
+  "combined_test_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=sidecar:scripts:. /private/tmp/kf-core-20261104-env/bin/python -m pytest -q -p no:cacheprovider scripts/test_probe_mistral_source_package.py scripts/test_probe_mistral_memory_pilot.py scripts/test_memory_acceptance_intake.py sidecar/tests/test_calendar_cancellation.py",
+  "combined_tests": {
+    "passed": 113,
+    "warnings": 1,
+    "warning": "Existing Starlette TestClient deprecation",
+    "seconds": 19.59,
+    "exit_code": 0
+  },
+  "model_quality": "NOT EVALUATED",
+  "bulk_import_authorized": false,
+  "sha256": {
+    ".github/workflows/ci.yml": "2a9fbd8d84b3863154444c4ffe7d160a38b9e3f4734cbd6f87df3f196544052f",
+    "scripts/memory_acceptance_intake.py": "48c4ad404d88baf93f4d245f3a59d2f1f3e5673a2e2bf28cb38a185bb283d6ca",
+    "scripts/test_memory_acceptance_intake.py": "66fc255cccd99ddad9e636eb0cbbbec7a18c00c8e463a7e407a578bf524a60bf",
+    "sidecar/icarus_memory/connectors/calendar.py": "3ee4010a9fb3fdb6246c0b89e317f56c98d398a16184f33ce96918ac85959fb0",
+    "sidecar/icarus_memory/connectors/collections.py": "d87f38b08a5223b0570f138682f429ed5848b5b4bbb055c4f85157a71503abbf",
+    "sidecar/icarus_memory/calendar_memory.py": "4cf1b673ecd6b5878915c5eeeb70a0e5b62da75c4b43ad507c73387358ac3fec",
+    "sidecar/tests/test_calendar_cancellation.py": "d603fd3647bf34874ebe2660d82a0ccb6b6b65387fb0e602eeca173aff52b027",
+    "sidecar/tests/test_ical_termine.py": "fc84b6ad6efb20d1646e0f50462c2a3dc4a983459cb4ba84cc435d493c50d4f3",
+    "sidecar/tests/test_kalendergedaechtnis.py": "4d6bd815d40a1191913d5329fcbc7f6b459501693f99a8add3ddf357ce35b4b9"
+  },
+  "loopback_tls_tests": {
+    "passed": 3,
+    "seconds": 1.79,
+    "exit_code": 0,
+    "scope": "Three previously deselected CalDAV tests, synthetic temporary local TLS server only"
+  },
+  "previous_head_ci": {
+    "commit": "ff2f07513a64dab09735d3dc7831f25000cc9af7",
+    "workflow_run_id": 41931530259,
+    "python310": {
+      "job": 126929354482,
+      "backend_passed": 10198,
+      "backend_skipped": 2,
+      "subtests": 26,
+      "pilot_passed": 76,
+      "pilot_failed": 1
+    },
+    "python312": {
+      "job": 126929355024,
+      "backend_passed": 10198,
+      "backend_skipped": 2,
+      "subtests": 26,
+      "pilot_passed": 76,
+      "pilot_failed": 1
+    },
+    "failure": "Equivalent UTC and Berlin datetime compared as ISO strings at scripts/test_probe_mistral_memory_pilot.py:83",
+    "manual_rerun": false,
+    "local_utc_reproduction": {
+      "failed": 1,
+      "seconds": 1.23
+    }
+  }
+}

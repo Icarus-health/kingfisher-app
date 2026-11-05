@@ -1,0 +1,40 @@
+{
+  "validation": "static_fixture_consistency_only_not_product_acceptance",
+  "status": "passed",
+  "counts": {
+    "mail_sources": 100,
+    "native_sources": 10,
+    "mail_questions": 40,
+    "native_questions": 7,
+    "state_phases": 9,
+    "state_questions": 11,
+    "logical_mail_tasks": 39,
+    "logical_native_tasks": 9,
+    "mail_recognition": 37,
+    "all_recognition": 46,
+    "known_deadlines": 35,
+    "unknown_deadlines": 10,
+    "ambiguous_deadlines": 1,
+    "date_only_deadlines": 8,
+    "datetime_deadlines": 27,
+    "sent_mails": 8
+  },
+  "fault_checks_rejected": [
+    "T25 removed from recognition",
+    "T31 presented as confirmed owner",
+    "T43 assigned to Jona",
+    "T46 duplicate from E06-07",
+    "T46 lost supporting evidence",
+    "N03 wrong EML date",
+    "NQ02 uses cancelled phase",
+    "SQ11 missing cancellation evidence",
+    "Original mail text changed",
+    "T45 invented due"
+  ],
+  "original_mails_byte_preserved": 100,
+  "native_files_byte_preserved": 10,
+  "v1_frozen_hashes_verified": 15,
+  "predecessor_freeze_sha256": "99f1a7e11818a737095ff125a91fea156fcf85a51a5902c5275490739e35fb96",
+  "v2_freeze_verified": true,
+  "evaluation_model_calls": 0
+}

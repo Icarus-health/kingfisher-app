@@ -15,6 +15,7 @@ const {Aufklapp}=await server.ssrLoadModule('/src/Einstellungen/Aufklapp.tsx');
 const {CloudAccess}=await server.ssrLoadModule('/src/CloudAccess.tsx');
 const {ChatGPTAccess}=await server.ssrLoadModule('/src/ChatGPTAccess.tsx');
 const {CloudMemory}=await server.ssrLoadModule('/src/CloudMemory.tsx');
+const {api}=await server.ssrLoadModule('/src/api.ts');
 const {GoogleSignIn}=await server.ssrLoadModule('/src/GoogleSignIn.tsx');
 const {ModelRecommendation}=await server.ssrLoadModule('/src/ModelRecommendation.tsx');
 const {Nachrichten}=await server.ssrLoadModule('/src/WeltSettings.tsx');
@@ -64,6 +65,36 @@ test('cloud memory pause and errors remain visible before optional explanations'
   assert.match(firstLayer(tree),/Einordnung pausiert/);assert.match(firstLayer(tree),/20 von 100/);assert.match(firstLayer(tree),/Quelle nicht erreichbar/);
   assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Dieses Paket fortsetzen').length);
   assert.ok(nodes(tree,n=>n.type==='details'&&text(n).includes('Ergebnisse bleiben Quellenbefunde')).length,'explanation stays reachable');
+});
+
+test('Mistral preview names task review before consent and old jobs keep their original scope',()=>{
+  const preview={preview_id:'reviewed',purpose:'pilot',provider:'mistral',count:1,
+    include_tasks:true,sources:[],request_limit:5};
+  const tree=render(()=>CloudMemory({model:'test',connected:true}),[null,preview,false,false,'',undefined,'mistral']);
+  const consent=nodes(tree,n=>n.type==='label'&&n.props.className==='chatgpt-consent')[0];
+  assert.match(text(consent),/Aufgaben.*Gegenprüfung/);
+  assert.match(firstLayer(tree),/Aufgabenvorschläge/);
+  const old={id:'old',provider:'mistral',include_tasks:false,state:'complete',selected:1,position:1,
+    completed:1,failed:0,requests:2,request_limit:4,model:'test',issues:[]};
+  const oldTree=render(()=>CloudMemory({model:'test',connected:true}),[old]);
+  assert.match(firstLayer(oldTree),/Aufgabenprüfung war nicht Teil dieses Pakets/);
+});
+
+test('only a new Mistral preview requests tasks; start and resume cannot widen scope',async()=>{
+  const previous=globalThis.fetch,calls=[];
+  globalThis.fetch=async(path,options)=>{calls.push({path,body:JSON.parse(options.body)});return {ok:true,json:async()=>({})};};
+  try {
+    await api.cloudMemoryPreview('pilot',undefined,'mistral',{source_ids:['selected'],limit:1});
+    await api.cloudMemoryPreview('pilot',undefined,'anthropic');
+    await api.cloudMemoryPreview('pilot',undefined,'chatgpt');
+    await api.cloudMemoryPreview('pilot',undefined,'mistral',{include_tasks:false});
+    await api.cloudMemoryStart('reviewed','fixed-model','mistral');
+    await api.cloudMemoryAction('resume','existing-job');
+    assert.deepEqual(calls.slice(0,4).map(c=>c.body.include_tasks),[true,false,false,false]);
+    assert.deepEqual(calls[0].body.source_ids,['selected']);assert.equal(calls[0].body.limit,1);
+    assert.equal(Object.hasOwn(calls[4].body,'include_tasks'),false);
+    assert.equal(Object.hasOwn(calls[5].body,'include_tasks'),false);
+  } finally {globalThis.fetch=previous;}
 });
 
 test('missing ChatGPT credential storage remains visible with its sign-in panel closed',()=>{

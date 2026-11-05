@@ -105,25 +105,24 @@ test('thread follows the final answer near the bottom and respects reading older
 });
 
 
-test('start workspace shows the input at once and creates the conversation only with the first question',async()=>{
+test('start workspace binds its saved first draft once and opens the durable handoff without sending itself',async()=>{
  const {ConversationHistory}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
- const old={createConversation:api.createConversation,sendMessage:api.sendMessage};const oldWindow=globalThis.window,oldDocument=globalThis.document;
+ const drafts=await server.ssrLoadModule('/src/conversationDrafts.ts');
+ const old={getConversationDraft:api.getConversationDraft,saveConversationDraft:api.saveConversationDraft,bindNewConversationDraft:api.bindNewConversationDraft,sendMessage:api.sendMessage};
+ const oldWindow=globalThis.window,oldDocument=globalThis.document;
  const pushed=[];globalThis.window={location:{hash:''},history:{pushState(_s,_t,path){pushed.push(path);}},dispatchEvent(){},addEventListener(){},removeEventListener(){}};
  globalThis.PopStateEvent??=class{constructor(type){this.type=type;}};
  let focused=0;globalThis.document={querySelector(){return{focus(){focused++;}};}};
- let creates=0,sends=[],failSend=true;
- api.createConversation=async()=>{creates++;return{conversation:{id:'neu'}};};
- api.sendMessage=async(id,message)=>{sends.push([id,message]);if(failSend)throw Error('offline');return{};};
+ let remote={text:'',revision:0,instance_id:'new-workspace'},creates=0,sends=0,fail=true,bound;
+ api.getConversationDraft=async()=>remote;api.saveConversationDraft=async(_id,body)=>remote={...remote,text:body.text,revision:remote.revision+1};
+ api.bindNewConversationDraft=async()=>{if(!bound){creates++;bound={conversation_id:'neu',instance_id:'new-workspace',handoff:{id:'h-neu',text:remote.text,state:'ready'}};remote={...remote,text:'',revision:remote.revision+1,binding:bound};}if(fail)throw Error('response lost');return bound;};
+ api.sendMessage=async()=>{sends++;return{};};
  const d=driver(ConversationHistory,{recentConversation:null,rememberConversation(){},chatAvailable:true});
- try{let tree=d.render();d.runEffects();
-   assert.equal(button(tree,'Neues Gespräch beginnen'),undefined,'kein zweiter Knopf in der Mitte');
-   const bar=nodes(tree,n=>n.type?.name==='CommandBar')[0];assert.ok(bar,'die Mitte ist gleich das Eingabefeld');assert.equal(bar.props.disabled,false);
-   await tick();tree=d.render();assert.equal(creates,0,'Öffnen legt kein Gespräch an');
-   const nav=nodes(tree,n=>n.type?.name==='ConversationNavigation')[0];await nav.props.onCreate();assert.equal(creates,0,'„Neues Gespräch“ legt nichts an');assert.equal(focused,1,'sondern führt ins Eingabefeld');
-   await assert.rejects(bar.props.onSubmit('Wann ist der Fachtag?'));tree=d.render();
-   assert.equal(creates,1);assert.equal(nodes(tree,n=>n.type?.name==='MessageText')[0].props.content,'Wann ist der Fachtag?','die Frage bleibt stehen');assert.match(text(tree),/konnte nicht gesendet werden/);
-   failSend=false;await nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.onSubmit('Wann ist der Fachtag?');
-   assert.equal(creates,1,'der zweite Versuch nimmt dasselbe Gespräch');assert.deepEqual(sends.map(x=>x[0]),['neu','neu']);assert.deepEqual(pushed,['/conversations/neu']);
+ try{let tree=d.render();d.runEffects();const bar=nodes(tree,n=>n.type?.name==='CommandBar')[0];assert.equal(bar.props.draftId,'new');assert.equal(bar.props.lockWhileBusy,true);assert.equal(creates,0);
+   await drafts.loadConversationDraft('new');drafts.writeConversationDraft('new','Wann ist der Fachtag?');await drafts.flushConversationDraft('new');
+   await assert.rejects(bar.props.onSubmit('Wann ist der Fachtag?'));assert.equal(creates,1);assert.equal(sends,0);assert.deepEqual(pushed,[]);
+   fail=false;await nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.onSubmit('Wann ist der Fachtag?');
+   assert.equal(creates,1,'lost bind response must reuse its conversation');assert.equal(sends,0,'only a claimed handoff may issue the message POST');assert.deepEqual(pushed,['/conversations/neu']);
  }finally{d.close();Object.assign(api,old);globalThis.window=oldWindow;globalThis.document=oldDocument;}
 });
 
@@ -199,4 +198,58 @@ test('unverified original fallback keeps the whole source behind a closed access
    else{assert.equal(disclosure,undefined);assert.equal(nodes(tree,n=>n.type?.name==='MessageText')[0].props.content,original);}
   }finally{d.close();}
  }}finally{api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
+test('opening a ready durable handoff sends once and keeps the editable follow-up draft',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx'),{api}=await server.ssrLoadModule('/src/api.ts'),drafts=await server.ssrLoadModule('/src/conversationDrafts.ts');
+ const old={getConversation:api.getConversation,getConversationDraft:api.getConversationDraft,saveConversationDraft:api.saveConversationDraft,startConversationDraftHandoff:api.startConversationDraftHandoff,finishConversationDraftHandoff:api.finishConversationDraftHandoff,sendMessage:api.sendMessage};
+ const oldWindow=globalThis.window,oldDocument=globalThis.document;globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};globalThis.document={getElementById(){return null;}};
+ let remounted;let remote={text:'',revision:0,instance_id:'handoff-ui',handoff:{id:'h-ui',text:'Erste Frage',state:'ready'}},posts=[],resolve;
+ const payload={conversation:{id:'handoff-ui',title:'Test'},messages:[],context:{items:[]},memory_candidates:[]};
+ let serverConversation=payload;api.getConversation=async()=>serverConversation;api.getConversationDraft=async()=>remote;api.saveConversationDraft=async(_id,body)=>remote={...remote,text:body.text,revision:remote.revision+1};
+ api.startConversationDraftHandoff=async()=>{const claimed=remote.handoff.state==='ready';remote={...remote,handoff:{...remote.handoff,state:'started'}};return{conversation_id:'handoff-ui',handoff:remote.handoff,claimed,instance_id:remote.instance_id};};
+ api.sendMessage=(...args)=>{posts.push(args);return new Promise(r=>resolve=r);};
+ api.finishConversationDraftHandoff=async()=>{remote={...remote,handoff:{...remote.handoff,state:'accepted',text:''}};return{conversation_id:'handoff-ui',handoff:remote.handoff,instance_id:remote.instance_id};};
+ const d=driver(Conversation,{id:'handoff-ui',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try{d.render();d.runEffects();await tick();await drafts.loadConversationDraft('handoff-ui');await tick();assert.equal(posts.length,1);assert.equal(posts[0][3],'handoff-ui');let tree=d.render();const composer=nodes(tree,n=>n.type?.name==='CommandBar')[0];assert.equal(composer.props.busy,true);assert.equal(composer.props.disabled,false,'following text stays editable during reply');
+  d.close();remounted=driver(Conversation,{id:'handoff-ui',recentConversation:null,rememberConversation(){},chatAvailable:true});remounted.render();remounted.runEffects();await tick();
+  drafts.writeConversationDraft('handoff-ui','Noch eine Frage');await drafts.flushConversationDraft('handoff-ui');serverConversation={...payload,messages:[{id:'answer',role:'assistant',status:'complete',content:'Erste Antwort vorhanden'}]};resolve(serverConversation);await tick();await tick();tree=remounted.render();assert.ok(nodes(tree,n=>n.type?.name==='MessageText'&&n.props.content==='Erste Antwort vorhanden').length,'remounted view refreshes the accepted message');assert.doesNotMatch(text(tree),/Sendestatus ist noch unklar/);assert.equal(nodes(tree,n=>n.type?.name==='CommandBar')[0].props.busy,false);assert.equal(remote.text,'Noch eine Frage');assert.equal(remote.handoff.state,'accepted');assert.equal(posts.length,1);
+ }finally{d.close();remounted?.close();Object.assign(api,old);globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
+test('accepted first handoff neither clears later send busy state nor schedules a stale extra history GET',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx'),{api}=await server.ssrLoadModule('/src/api.ts'),drafts=await server.ssrLoadModule('/src/conversationDrafts.ts');
+ const old={getConversation:api.getConversation,getConversationDraft:api.getConversationDraft,saveConversationDraft:api.saveConversationDraft,sendMessage:api.sendMessage},oldWindow=globalThis.window,oldDocument=globalThis.document;
+ globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};globalThis.document={getElementById(){return null;}};
+ const payload={conversation:{id:'later-normal',title:'Test'},messages:[],context:{items:[]},memory_candidates:[]};let reads=0,resolve;
+ let remote={text:'',revision:0,instance_id:'normal-after-handoff',handoff:{id:'h-old-accepted',text:'',state:'accepted'}};
+ api.getConversation=async()=>{reads++;return payload;};api.getConversationDraft=async()=>remote;api.saveConversationDraft=async(_id,body)=>remote={...remote,text:body.text,revision:remote.revision+1};api.sendMessage=()=>new Promise(r=>resolve=r);
+ const d=driver(Conversation,{id:'later-normal',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try{d.render();d.runEffects();await tick();await drafts.loadConversationDraft('later-normal');await tick();assert.equal(reads,1,'an already accepted handoff must not request a second stale snapshot');const pending=nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.onSubmit('zweite Frage',{instanceId:remote.instance_id});assert.equal(nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.busy,true);drafts.writeConversationDraft('later-normal','dritte Frage');await drafts.flushConversationDraft('later-normal');assert.equal(nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.busy,true,'saving follow-up text must not unlock a different pending send');resolve({...payload,messages:[{id:'m-new',role:'assistant',status:'complete',content:'Neue Antwort'}]});await pending;assert.ok(nodes(d.render(),n=>n.type?.name==='MessageText'&&n.props.content==='Neue Antwort').length);assert.equal(reads,1);
+ }finally{d.close();Object.assign(api,old);globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
+test('intake notice remains visible once outside collapsed originals and sentence answers',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation;
+ globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};
+ globalThis.document={getElementById(){return null;}};
+ const notice='Mailaufnahme: Noch nicht alle gefundenen Mails sind eingelesen.';
+ const messages=[{}, {original_fallback:true}, {satzantwort:{}}].map((fields,i)=>({
+   id:'m'+i,role:'assistant',status:'complete',content:'Quellenbericht\n\n'+notice,
+   metadata:{context:{...fields,mail_intake_notice:notice}},
+ }));
+ api.getConversation=async()=>({conversation:{id:'intake',title:'Test'},context:{items:[]},memory_candidates:[],messages});
+ const d=driver(Conversation,{id:'intake',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try {
+  d.render();d.runEffects();await tick();
+  const articles=nodes(d.render(),n=>n.type==='article'&&n.props.id?.startsWith('message-'));
+  assert.equal(articles.length,3);
+  for(const article of articles){
+   const note=nodes(article,n=>n.type==='p'&&text(n)===notice);
+   assert.equal(note.length,1);
+   assert.equal(nodes(article,n=>n.type==='details'&&nodes(n,x=>x===note[0]).length).length,0);
+   assert.equal(nodes(article,n=>n.type?.name==='MessageText'&&n.props.content.includes(notice)).length,0);
+  }
+ } finally {d.close();api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
 });

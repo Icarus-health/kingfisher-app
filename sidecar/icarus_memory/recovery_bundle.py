@@ -86,7 +86,10 @@ def restore_bundle(bundle: Path, target: Path, passphrase: str) -> Path:
         # Umbenennung erst nach vollständiger Entschlüsselung und Prüfung.
         if target.exists():
             raise BackupError('Das Ziel wurde inzwischen angelegt.')
-        os.rename(staging, target)
+        # The last existence check is not a reservation. Use the same atomic
+        # no-replace primitive as the subsequent working-copy preparation.
+        from .recovery_workspace import _publish
+        _publish(staging, target)
     except Exception:
         shutil.rmtree(staging, ignore_errors=True)
         raise

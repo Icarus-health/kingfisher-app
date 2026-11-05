@@ -157,7 +157,8 @@ def test_gesendete_zusage_wird_eigene_zusage_und_steht_unter_was_habe_ich_zugesa
     antwort = client.post(f'/api/v1/conversations/{gespraech}/messages', json={'message': 'Was habe ich zugesagt?'})
     assert antwort.status_code == 201, antwort.text
     text = antwort.json()['messages'][-1]['content']
-    assert text.startswith('Du hast vermutlich noch eine Zusage offen'), text
+    assert text.startswith('In deinen Akten steht eine eigene Zusage (keine spätere Erledigung gefunden):\n'), text
+    assert 'Ob es wirklich noch offen ist, steht in den Quellen nicht.' in text, text
     assert 'Deine Zusage' in text and ZUSAGE in text, text
     assert antwort.json()['messages'][-1]['metadata']['context']['answer_contract']['model_called'] is False
 

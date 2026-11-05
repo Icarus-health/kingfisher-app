@@ -32,8 +32,8 @@ function actionFor(item: Attention) {
   const project = item.project_id ? `&project=${encodeURIComponent(item.project_id)}` : "";
   if (item.source === "nachbereitung" && item.source_ref) return { label: "Ergebnis festhalten", href: `/calendar?nachbereiten=${encodeURIComponent(item.source_ref)}` };
   if (item.source === "termin" && item.source_ref) return { label: "Termin vorbereiten", href: `/calendar?prepare=${encodeURIComponent(item.source_ref)}` };
-  if (item.source === "aufgabe") return { label: "Aufgabe ansehen", href: item.source_ref ? taskHref({id: item.source_ref, project_id: item.project_id}) : `/vorhaben?view=mine${project}` };
-  if (item.source === "wartet") return { label: "Offenen Punkt ansehen", href: item.source_ref ? taskHref({id: item.source_ref, wartet_auf: "waiting", project_id: item.project_id}) : `/vorhaben?view=waiting${project}` };
+  if (item.source === "aufgabe") return { label: "Aufgabe ansehen", href: item.source_ref ? taskHref(item.task ?? {id: item.source_ref, project_id: item.project_id}) : `/vorhaben?view=mine${project}` };
+  if (item.source === "wartet") return { label: "Offenen Punkt ansehen", href: item.source_ref ? taskHref(item.task ?? {id: item.source_ref, wartet_auf: "waiting", project_id: item.project_id}) : `/vorhaben?view=waiting${project}` };
   if (item.source === "entscheidung") return { label: "Entscheidung ansehen", href: `/vorhaben?view=decisions${project}` };
   if (item.source === "knowledge") return {label: "Angaben prüfen", href: "#memory-questions"};
   return null;
@@ -125,7 +125,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
           {offeneAufgabe.reason && offeneAufgabe.reason !== offeneAufgabe.title && <p className="today-aufgabe-grund">{offeneAufgabe.reason}</p>}
           {offeneAufgabe.episode_id && <ProfileSource kind="episode" id={offeneAufgabe.episode_id} label="Weitere Nachricht im Verlauf ansehen" originalOnly />}
           <TaskDetail key={offeneAufgabe.source_ref} taskId={offeneAufgabe.source_ref} onChanged={onChange} />
-          <a className="g-knopf-schlicht today-aufgabe-liste" href={taskHref({id: offeneAufgabe.source_ref, wartet_auf: offeneAufgabe.source === "wartet" ? "waiting" : null, project_id: offeneAufgabe.project_id})}>In Aufgaben öffnen</a>
+          <a className="g-knopf-schlicht today-aufgabe-liste" href={taskHref(offeneAufgabe.task ?? {id: offeneAufgabe.source_ref, wartet_auf: offeneAufgabe.source === "wartet" ? "waiting" : null, project_id: offeneAufgabe.project_id})}>In Aufgaben öffnen</a>
         </div>
       </DetailPanel>}
     </section>

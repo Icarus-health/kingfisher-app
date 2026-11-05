@@ -80,11 +80,22 @@ def _welt(app) -> dict[str, Any] | None:
 
 def termine(app, jetzt: datetime) -> list[dict[str, Any]]:
     """Die Termine von heute und morgen (ohne bereits Beendete von heute) aus dem verbundenen Kalender."""
+    # Mitteilungen behalten ihren bisherigen Fehlervertrag bei Totalausfall.
+    return _termine_mit_fehlern(app, jetzt, lesestatus=False)[0]
+
+
+def _termine_mit_fehlern(app, jetzt: datetime, *, lesestatus: bool = True) -> tuple[list[dict[str, Any]], dict]:
+    """Termine und Verfügbarkeit gehören zu demselben Abruf, auch bei Teilausfall."""
     kalender = getattr(app.state, 'calendar', None)
     if kalender is None:
-        return []
+        return [], {}
     anfang = jetzt.replace(hour=0, minute=0, second=0, microsecond=0)
-    gefunden = [e.to_dict() for e in kalender.events(days=3, at=anfang.astimezone(timezone.utc))]
+    if lesestatus and callable(getattr(kalender, 'display_events', None)):
+        gelesen, fehler, _ = kalender.display_events(days=3, at=anfang.astimezone(timezone.utc))
+    else:
+        gelesen = kalender.events(days=3, at=anfang.astimezone(timezone.utc))
+        fehler = dict(getattr(kalender, 'last_errors', {}) or {})
+    gefunden = [e.to_dict() for e in gelesen]
     ergebnis = []
     for item in gefunden:
         try:
@@ -95,7 +106,7 @@ def termine(app, jetzt: datetime) -> list[dict[str, Any]]:
         tage = (beginn.date() - jetzt.date()).days
         if 0 <= tage <= 1 and ende >= jetzt:
             ergebnis.append({**item, 'start': beginn.isoformat(), 'end': ende.isoformat()})
-    return sorted(ergebnis, key=lambda e: e['start'])
+    return sorted(ergebnis, key=lambda e: e['start']), fehler
 
 
 def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> list[terminvorbereitung.Vorbereitung]:
@@ -140,7 +151,10 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
         logger.exception('Bezüge konnten nicht nachgeführt werden')
     vorbereitungen: list[terminvorbereitung.Vorbereitung] = []
     try:
-        vorbereitungen = vorbereiten_alle(app, jetzt, termine(app, jetzt))
+        eintraege, kalender_fehler = _termine_mit_fehlern(app, jetzt)
+        if kalender_fehler:
+            ergebnis['fehler']['termine'] = 'Mindestens ein Kalender ist gerade nicht erreichbar. Die Terminübersicht ist unvollständig.'
+        vorbereitungen = vorbereiten_alle(app, jetzt, eintraege)
     except Exception as exc:  # noqa: BLE001
         ergebnis['fehler']['termine'] = 'Die Termine sind gerade nicht erreichbar.'
         logger.warning('Termine für das Tagesbriefing nicht lesbar: %s', type(exc).__name__)
@@ -171,6 +185,8 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
     lage = tagesbriefing.erstellen(vorbereitungen, fristen, _wetter(app), jetzt=jetzt,
                                    termin_wetter=termin_wetter, welt=_welt(app), verlauf=logbuch_zeilen(app, jetzt, buchen=buchen),
                                    geburtstage=geburtstage, aufgaben_post=post)
+    if not lage.zeilen and ergebnis['fehler']:
+        lage.einleitung = 'Der Tag ist noch nicht vollständig geprüft.'
     ergebnis['tageslage'] = lage.to_dict()
     ergebnis['termine'] = [v.to_dict() for v in vorbereitungen]
     ergebnis['fristen'] = [f.to_dict() for f in fristen]

@@ -23,6 +23,8 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
         let destination: URL
     }
     private var downloads: [ObjectIdentifier: DownloadTarget] = [:]
+    private var leavePending = false
+    private var draftNavigation: WKNavigation?
 
     init(origin: URL, configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
         self.origin = origin
@@ -46,7 +48,58 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
 
     /// Lädt die aktuelle Seite neu; ohne bisherige Seite die Startseite.
     func reload(fallbackPath: String) {
-        if let url = webView.url, sameOrigin(url, origin) { webView.reload() } else { load(path: fallbackPath) }
+        confirmLeaving { [weak self] in
+            guard let self = self else { return }
+            if let url = self.webView.url, sameOrigin(url, self.origin) {
+                self.draftNavigation = self.webView.reload()
+            } else {
+                self.draftNavigation = self.webView.load(URLRequest(url: self.origin.appendingPathComponent(fallbackPath)))
+            }
+            if self.draftNavigation == nil { self.cancelDraftLeave() }
+        }
+    }
+
+    /// Flush only this surface. A missing/old page hook, error or timeout is not an acknowledgement.
+    func prepareDraftsToLeave(_ completion: @escaping (Bool) -> Void) {
+        guard let url = webView.url else { completion(true); return }
+        guard sameOrigin(url, origin) else { completion(false); return }
+        let attempt = DraftLeaveAttempt(completion)
+        webView.callAsyncJavaScript("""
+            if (typeof window.kingfisherDraftsPrepareToLeave !== 'function') return false;
+            return await window.kingfisherDraftsPrepareToLeave();
+            """, arguments: [:], in: nil, in: .page) { result in
+                switch result {
+                case .success(let value): attempt.finish(value)
+                case .failure: attempt.finish(nil)
+                }
+            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { attempt.finish(nil) }
+    }
+
+    func cancelDraftLeave() {
+        guard let url = webView.url, sameOrigin(url, origin) else { return }
+        webView.evaluateJavaScript("window.kingfisherDraftsCancelLeave?.()", completionHandler: nil)
+    }
+
+    func confirmLeaving(_ action: @escaping () -> Void) {
+        guard !leavePending else { return }
+        leavePending = true
+        prepareDraftsToLeave { [weak self] saved in
+            guard let self = self else { return }
+            if saved { self.leavePending = false; action(); return }
+            guard let window = self.window, window.attachedSheet == nil else {
+                self.leavePending = false; self.cancelDraftLeave(); return
+            }
+            let alert = NSAlert(); alert.messageText = "Entwurf noch nicht gesichert"
+            alert.informativeText = "Kingfisher konnte nicht bestätigen, dass alle Texte gespeichert sind. Bleibe hier, um den Entwurf zu sichern oder zu kopieren."
+            alert.addButton(withTitle: "Hier bleiben")
+            alert.addButton(withTitle: "Trotzdem fortfahren")
+            alert.beginSheetModal(for: window) { response in
+                self.leavePending = false
+                if response == .alertSecondButtonReturn { action() }
+                else { self.cancelDraftLeave() }
+            }
+        }
     }
 
     func cancelDownloads() {
@@ -85,13 +138,22 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
         decisionHandler(attachment || !response.canShowMIMEType || disposition == .download ? .download : .allow)
     }
 
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { onLoaded?() }
+    private func finishDraftNavigation(_ navigation: WKNavigation?) {
+        guard let navigation = navigation, navigation === draftNavigation else { return }
+        draftNavigation = nil
+        cancelDraftLeave()
+    }
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        finishDraftNavigation(navigation); onLoaded?()
+    }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        finishDraftNavigation(navigation)
         if (error as NSError).code != NSURLErrorCancelled {
             onFailure?("Kingfisher ist noch nicht erreichbar. Bitte erneut versuchen.")
         }
     }
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        finishDraftNavigation(navigation)
         if (error as NSError).code != NSURLErrorCancelled {
             onFailure?("Die Seite konnte nicht geladen werden. Bitte erneut versuchen.")
         }

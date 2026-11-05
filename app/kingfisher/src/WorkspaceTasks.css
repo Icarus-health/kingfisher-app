@@ -72,6 +72,7 @@
    eigenem Bedienelement links: `.g-zeile-bedient`, `.g-zeile-ziel`, `.g-zeile-links`, `.g-zeile-ueber` in Grundlage.css). */
 #root .task-row.compact > .task-row-actions { grid-column: 3; grid-row: 1; }
 #root .task-row.compact > time { grid-column: 3; grid-row: 1; padding-left: var(--g-a2); white-space: nowrap; text-align: right; }
+#root .task-row.compact .task-due-clock { display: block; }
 #root .task-row :is(time, .task-meta) { font: var(--g-neben); color: var(--g-leise); font-variant-numeric: tabular-nums; }
 #root .task-row time.overdue, #root .task-row .task-meta time.overdue { color: var(--g-rot); font-weight: 500; }
 #root .task-row .task-meta { display: block; margin: 0; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
@@ -338,3 +339,14 @@
 #root main.aufgaben .development-weiter { margin-top: var(--g-a2); }
 @media (max-width: 700px) { #root main.aufgaben .habit-neu { grid-template-columns: minmax(0, 1fr); } }
 #root main.aufgaben .development-weiter a.g-zeile { color: var(--g-tinte); text-decoration: none; }
+
+#root .task-responsibility { min-width: 0; border-top: 1px solid var(--g-linie); }
+#root .task-responsibility .task-aufklapper { max-width: 100%; text-align: left; overflow-wrap: anywhere; }
+#root .task-responsibility form { display: grid; gap: var(--g-a3); padding: var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-grund); }
+#root .task-responsibility p { margin: 0; font: var(--g-neben); overflow-wrap: anywhere; }
+#root .task-responsibility label { display: grid; min-width: 0; gap: var(--g-a1); font: var(--g-neben); }
+#root .task-responsibility :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; min-height: var(--g-ziel); padding: 0 var(--g-a2); font: var(--g-text); }
+#root .task-responsibility-person { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--g-a3); }
+#root .task-responsibility-person p { grid-column: 1 / -1; }
+#root .task-responsibility-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--g-a2) var(--g-a3); }
+#root .project-responsibility-counts { display: flex; flex-wrap: wrap; gap: 0 var(--g-a3); }

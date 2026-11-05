@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from .datumstext import MONATE, iso_versuchen as _tag
 from .datumstext import tag_und_monat as _datum
+from .tasks import effective_responsibility
 
 # Mehr trägt kein Mensch am Morgen. Alles Weitere steht im Nachsatz und in den
 # Ansichten dahinter — es geht nicht verloren, es drängt sich nur nicht vor.
@@ -95,11 +96,18 @@ def _gleicher_tag(a: datetime, b: datetime) -> bool:
     return a.date() == b.date()
 
 
+def _eigene_ausfuehrung(aufgabe: dict) -> bool:
+    # Older dashboard snapshots may have neither of these fields.
+    return (aufgabe.get("user_actionable") is not False
+            and effective_responsibility(aufgabe) in ("self", "unconfirmed")
+            and aufgabe.get("wartet_auf") is None)
+
+
 def _ueberfaellige(aufgaben: list[dict], jetzt: datetime) -> list[tuple[datetime, dict]]:
     """Überfälliges, das Älteste zuerst. Es hat am längsten gewartet."""
     treffer: list[tuple[datetime, dict]] = []
     for aufgabe in aufgaben:
-        if not aufgabe.get("overdue"):
+        if not aufgabe.get("overdue") or not _eigene_ausfuehrung(aufgabe):
             continue
         faellig = _tag(aufgabe.get("due"))
         if faellig is not None:
@@ -108,18 +116,8 @@ def _ueberfaellige(aufgaben: list[dict], jetzt: datetime) -> list[tuple[datetime
     return treffer
 
 
-def _bei(name: str) -> str:
-    """„bei Herrn Ohlsen“, nicht „bei Herr Ohlsen“.
-
-    Nur die Anrede wird gebeugt, nie der Name selbst — bei fremden Namen ist
-    jede Regel eine Wette, und ein falsch gebeugter Name liest sich schlimmer
-    als ein ungebeugter.
-    """
-    return f"Herrn {name[5:]}" if name.startswith("Herr ") else name
-
-
 def _lange_wartend(aufgaben: list[dict], jetzt: datetime) -> list[dict]:
-    """Was bei anderen liegt, und zwar lange genug. Am längsten zuerst."""
+    """Lange offene Warteabhängigkeiten, am längsten zuerst."""
     treffer = [
         a for a in aufgaben
         if a.get("wartet_auf") and (a.get("wartet_tage") or 0) >= WARTEFRIST_TAGE
@@ -151,7 +149,7 @@ def _naechster_termin(termine: list[dict], jetzt: datetime) -> tuple[datetime, d
 def _heute_faellig(aufgaben: list[dict], jetzt: datetime) -> list[dict]:
     treffer = []
     for aufgabe in aufgaben:
-        if aufgabe.get("overdue"):
+        if aufgabe.get("overdue") or not _eigene_ausfuehrung(aufgabe):
             continue
         faellig = _tag(aufgabe.get("due"))
         # A UTC timestamp can fall on the previous/next civil date from the
@@ -259,8 +257,7 @@ def erstelle(
             aktion="Ansehen",
         ))
 
-    # 3. Was bei anderen liegt und dort zu lange liegt. Ein Stabschef fasst
-    # nach; er wartet nicht darauf, dass die andere Seite von selbst einfällt.
+    # 3. Eine seit Längerem fehlende Rückmeldung.
     wartend = _lange_wartend(aufgaben, jetzt)
     if wartend:
         aufgabe = wartend[0]
@@ -268,13 +265,13 @@ def erstelle(
         wann = f"Seit dem {_datum(seit)}" if seit else "Seit Längerem"
         kandidaten.append(Punkt(
             text=(
-                f"{wann} liegt „{_kurz(aufgabe.get('title', ''))}“ "
-                f"bei {_bei(aufgabe.get('wartet_auf') or '')}."
+                f"{wann} wartest du bei „{_kurz(aufgabe.get('title', ''))}“ "
+                f"auf Rückmeldung ({aufgabe['wartet_auf']})."
             ),
             gewicht=95,
             quelle="wartet",
             ref=aufgabe.get("id"),
-            aktion="Zurückholen",
+            aktion="Warten prüfen",
         ))
 
     # 4. Der nächste Termin. Er hat eine Uhrzeit — er wartet nicht.

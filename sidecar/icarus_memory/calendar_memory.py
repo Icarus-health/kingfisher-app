@@ -18,8 +18,9 @@ Beleg zitierbar.
   (`source_key`). Ein verschobener oder geänderter Termin ist eine neue Fassung
   derselben Quelle (`source_versions.track_source`: Wissen aus der alten sperren,
   alte Fassung ausschließen, Zeiger umstellen), keine Dublette. Ein gelöschter
-  oder abgesagter Termin ist eine entzogene Quelle (`ignore`, mit Marke
-  `entzogen:kalender`), die Episode bleibt als Nachweis erhalten.
+  Termin ohne Nachfolger ist eine entzogene Quelle (`ignore`, mit Marke
+  `entzogen:kalender`). Eine explizite ICS-Absage bleibt als aktuelle Fassung
+  mit eigener Herkunft lesbar.
 * **Inkrementell.** Der Fingerabdruck einer Fassung ist der Digest ihres Textes,
   und der Text enthält alles Erhebliche (Titel, Zeit, Ort, Teilnehmer, Notiz).
   Ein Abgleich liest je Abschnitt nur Schlüssel und Digest der aktuellen
@@ -47,12 +48,13 @@ kann. CalDAV und Abonnements klappen Serien im gelesenen Zeitraum aus
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import Callable, Iterable, Sequence
 
 from . import logbuch
-from .connectors.calendar import Event
+from .connectors.calendar import CalendarMemoryRead, CalendarRevision, Event
 from .datumstext import MONATE
 from .episodes import ENTZUG_MARKE, EpisodeError, EpisodeKind, EpisodeState, EpisodeStore, digest_of
 from .model import Provenance, SourceType, ensure_aware, now, user_timezone
@@ -78,6 +80,9 @@ MAC_QUELLE = "mac-calendar"
 ENTZUG_GRUND = "kalender"
 _SCHLUESSEL = "cal:"
 _HERKUNFT = "calendar:"
+_ABGESAGT = "ical:cancelled"
+_ICAL_UID = "ical:uid:"
+_SERIENKENNUNG = re.compile(r"#[0-9]{8}(?:T[0-9]{6}Z?)?$")
 
 _WOCHENTAGE = ("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")
 _MONATE = MONATE
@@ -153,7 +158,11 @@ def _wann(termin: Event) -> str:
 
 def termin_text(termin: Event, kalender: str = "") -> str:
     """Der Text der Rohquelle. Alles, was einen Termin ausmacht, steht darin."""
-    zeilen = [f"Termin: {(termin.summary or '').strip() or '(ohne Titel)'}", f"Wann: {_wann(termin)}"]
+    zeilen = [f"Termin: {(termin.summary or '').strip() or '(ohne Titel)'}"]
+    if termin.cancelled:
+        zeilen.append("Status: abgesagt")
+    if termin.start is not None:
+        zeilen.append(f"Wann: {_wann(termin)}")
     if termin.location and termin.location.strip():
         zeilen.append(f"Ort: {' '.join(termin.location.split())}")
     teilnehmer = _teilnehmer(termin)
@@ -173,6 +182,25 @@ def _teilnehmer(termin: Event) -> list[str]:
 def fingerabdruck(termin: Event, kalender: str = "") -> str:
     """Kennung einer Fassung: der Digest ihres Textes."""
     return digest_of(termin_text(termin, kalender))
+
+
+def _fassungsmarke(fassung: CalendarRevision | None) -> str | None:
+    if fassung is None or fassung == (None, None):
+        return None
+    sequenz = "" if fassung.sequence is None else str(fassung.sequence)
+    datum = fassung.modified.isoformat() if fassung.modified else ""
+    return f"{sequenz}:{datum}"
+
+
+def _markierte_fassung(marke: str | None) -> CalendarRevision:
+    if marke is None:
+        return CalendarRevision(None, None)
+    sequenz, _, datum = marke.partition(":")
+    return CalendarRevision(int(sequenz) if sequenz else None, datetime.fromisoformat(datum) if datum else None)
+
+
+def _uid_marke(uid: str) -> str:
+    return _ICAL_UID + hashlib.sha256(uid.encode()).hexdigest()
 
 
 # -- Abgleich ----------------------------------------------------------------
@@ -242,20 +270,23 @@ class KalenderGedaechtnis:
         return self.lock if self.lock is not None else nullcontext()
 
     def abgleichen(self, quelle: str, label: str, termine: Sequence[Event], von: datetime, bis: datetime,
-                   *, erlaubt: Callable[[], bool] = lambda: True, at: datetime | None = None) -> Abgleich:
+                   *, erlaubt: Callable[[], bool] = lambda: True, at: datetime | None = None,
+                   vollstaendig: bool = True) -> Abgleich:
         """Gleicht den Abschnitt `von`..`bis` einer Quelle mit dem Gedächtnis ab.
 
-        `termine` müssen alle Termine der Quelle in diesem Abschnitt sein (auch
-        solche, die ihn nur berühren). Nur dann ist es zulässig, dass ein
-        fehlender Termin als gelöscht gilt.
+        Bei `vollstaendig` müssen alle Termine der Quelle im Abschnitt vorliegen.
+        Eine explizite Absage benötigt keine vollständige Abschnittsaufnahme.
         """
         ergebnis = Abgleich()
         von, bis = ensure_aware(von), ensure_aware(bis)
         at = at or now()
         praefix = schluessel_praefix(quelle)
         bekannt = {kopf[0]: kopf for kopf in self.episodes.heads_with_prefix(praefix)}
-        im_fenster = [t for t in termine if _beruehrt(t, von, bis)]
+        im_fenster = [t for t in termine if _beruehrt(t, von, bis) or (
+            t.cancelled and (t.start is None or _kopf_im_fenster(
+                bekannt.get(quelle_schluessel(quelle, t.uid)), von, bis)))]
         ergebnis.ausserhalb = len(termine) - len(im_fenster)
+        im_fenster += self._bekannte_serienabsagen(quelle, bekannt, termine)
         gesehen: set[str] = set()
         schluessel_je_termin = _schluessel_je_termin(quelle, im_fenster)
         for start in range(0, len(im_fenster), self.PAKET):
@@ -267,47 +298,137 @@ class KalenderGedaechtnis:
                 for termin, schluessel in zip(paket, schluessel_je_termin[start:start + self.PAKET]):
                     gesehen.add(schluessel)
                     try:
-                        self._aufnehmen(termin, quelle, label, schluessel, herkunft(quelle, termin.uid),
-                                        bekannt.get(schluessel), ergebnis, at)
+                        vollstaendig &= self._aufnehmen(termin, label, schluessel, herkunft(quelle, termin.uid),
+                                                         bekannt.get(schluessel), ergebnis, at)
                     except (EpisodeError, ValueError) as exc:
+                        vollstaendig = False
                         ergebnis.fehler.append(f"{type(exc).__name__}")
         # Ein leerer Abschnitt kann ebenso von einem Lesefehler stammen wie von einem
         # tatsächlich leeren Kalender; das eine ist harmlos, das andere löschte Jahre.
         fehlend = [k for k in bekannt.values() if k[0] not in gesehen and k[3] != EpisodeState.IGNORED.value
-                   and k[4] and von <= ensure_aware(datetime.fromisoformat(k[4])) < bis]
-        if fehlend and not im_fenster:
+                   and _kopf_im_fenster(k, von, bis)]
+        if fehlend and not any(not t.cancelled for t in im_fenster):
             ergebnis.leer_ohne_entzug = True
-        elif fehlend:
+        elif fehlend and vollstaendig:
             with self._gesperrt():
                 if not erlaubt():
                     ergebnis.keine_freigabe = True
                     return ergebnis
                 for kopf in fehlend:
+                    # Eine schon belegte Absage bleibt bei späterer bloßer Abwesenheit lesbar.
+                    if self.episodes.source_head(kopf[0]) != kopf[1]:
+                        continue
+                    episode = self.episodes.get(kopf[1])
+                    if episode.state is EpisodeState.IGNORED or _ABGESAGT in episode.tags:
+                        continue
                     self._entziehen(kopf[1])
                     ergebnis.entzogen += 1
         if ergebnis.neu:
             logbuch.vermerke('quellen', sorte='termin', anzahl=ergebnis.neu)
         return ergebnis
 
-    def _aufnehmen(self, termin: Event, quelle: str, label: str, schluessel: str, ref: str,
-                   kopf, ergebnis: Abgleich, at: datetime) -> None:
+    def _bekannte_serienabsagen(self, quelle: str, bekannt, termine: Sequence[Event]) -> list[Event]:
+        """Bindet explizite sparsame Masterabsagen nur an nachweislich zugehörige Quellköpfe."""
+        master = {t.external_uid: t for t in termine if t.ical_sparse_master_cancel}
+        if not master:
+            return []
+        explizit = {t.uid for t in termine}
+        marken = {uid: _uid_marke(uid) for uid in master}
+        praefix = herkunft(quelle, "")
+        absagen = []
+        for schluessel, episode_id, *_ in bekannt.values():
+            episode = self.episodes.get(episode_id)
+            ref = episode.provenance.source_ref or ""
+            if not ref.startswith(praefix):
+                continue
+            uid = ref.removeprefix(praefix)
+            roh_uid, _, _ = uid.rpartition("#")
+            if (roh_uid in master and uid not in explizit and _SERIENKENNUNG.search(uid)
+                    and marken[roh_uid] in episode.tags and quelle_schluessel(quelle, uid) == schluessel):
+                # Die Zeit des Masters beschreibt kein einzelnes gespeichertes Vorkommen.
+                absagen.append(replace(master[roh_uid], uid=uid, start=None, end=None, all_day=False,
+                                       ical_sparse_master_cancel=False))
+        return absagen
+
+    def _aufnehmen(self, termin: Event, label: str, schluessel: str, ref: str,
+                   kopf, ergebnis: Abgleich, at: datetime) -> bool:
         text = termin_text(termin, label)
         digest = digest_of(text)
+        marke = _fassungsmarke(termin.ical_revision)
+        alte_marke = None
+        uid_marke = None
+        if termin.ical_revision is not None:
+            if termin.external_uid and (termin.uid != termin.external_uid or _SERIENKENNUNG.search(termin.uid)):
+                uid_marke = _uid_marke(termin.external_uid)
+            # Der nächste Abschnitt oder ein Nutzerausschluss kann den Kopf inzwischen geändert haben.
+            alt_id = self.episodes.source_head(schluessel)
+            alt = self.episodes.get(alt_id) if alt_id else None
+            if alt is not None:
+                if alt.state is EpisodeState.IGNORED and not any(t.startswith(ENTZUG_MARKE) for t in alt.tags):
+                    ergebnis.ausgeschlossen += 1
+                    return True
+                alte_uid_marke = next((t for t in alt.tags if t.startswith(_ICAL_UID)), None)
+                if (alte_uid_marke is not None and alte_uid_marke != uid_marke
+                        or termin.cancelled and uid_marke is not None and alte_uid_marke is None):
+                    # Alte UID#Datum-Köpfe tragen nur die Anzeige-ID. Weder Serie noch wörtliche UID raten.
+                    ergebnis.fehler.append("ICS-Serienkennung nicht eindeutig")
+                    return False
+                alte_marke = self.episodes.calendar_revision(alt.id)
+                alt_fassung = _markierte_fassung(alte_marke)
+                reihenfolge = termin.ical_revision.compare(alt_fassung)
+                statuswechsel = termin.cancelled != (_ABGESAGT in alt.tags)
+                if (reihenfolge == -1 or (statuswechsel and reihenfolge == 0)
+                        or (alte_marke is not None and reihenfolge is None)):
+                    ergebnis.unveraendert += 1
+                    return False
+                sequenz, datum = termin.ical_revision
+                neue_sequenz = (sequenz is not None and alt_fassung.sequence is not None
+                                and sequenz > alt_fassung.sequence)
+                if not neue_sequenz:
+                    # Fehlende Angaben setzen die bekannte Ordnung nicht zurück. Ein neues
+                    # SEQUENCE-Intervall braucht dagegen seinen eigenen LAST-MODIFIED-Stempel.
+                    marke = _fassungsmarke(CalendarRevision(
+                        sequenz if sequenz is not None else alt_fassung.sequence,
+                        datum if datum is not None else alt_fassung.modified,
+                    ))
+                kopf = (schluessel, alt.id, alt.digest, alt.state.value, None)
+            else:
+                kopf = None
         if kopf is not None and kopf[2] == digest:
             if kopf[3] != EpisodeState.IGNORED.value:
+                if marke != alte_marke:
+                    self.episodes.set_calendar_revision(kopf[1], marke)
                 ergebnis.unveraendert += 1
-            elif self._wiederherstellen(kopf[1]):
-                ergebnis.wiederhergestellt += 1
             else:
-                ergebnis.ausgeschlossen += 1
-            return
-        episode, neu = self.episodes.record(
-            EpisodeKind.EVENT, (termin.summary or "").strip() or "(ohne Titel)", text,
-            Provenance(source_type=SourceType.CALENDAR, source_ref=ref, captured_at=termin.start),
-            occurred_at=termin.start, participants=_teilnehmer(termin), source_key=schluessel, at=at)
-        geaendert = track_source(self.episodes, self.claims, schluessel, episode)
-        if (episode.state is EpisodeState.IGNORED and episode.id != (kopf[1] if kopf else None)
-                and self._wiederherstellen(episode.id, ersetzt=True)):
+                with self.episodes.transaction():
+                    if self._wiederherstellen(kopf[1]):
+                        if marke != alte_marke:
+                            self.episodes.set_calendar_revision(kopf[1], marke)
+                        ergebnis.wiederhergestellt += 1
+                    else:
+                        ergebnis.ausgeschlossen += 1
+            return True
+        titel = (termin.summary or "").strip() or "(ohne Titel)"
+        stempel = termin.start
+        tags = [uid_marke] if uid_marke else []
+        if termin.cancelled:
+            titel = f"Absage: {titel}"
+            stempel = termin.ical_stamp or (termin.ical_revision.modified if termin.ical_revision else None)
+            tags.append(_ABGESAGT)
+        # Ignorieren und Kopfwechsel müssen gemeinsam zurückrollen. Andernfalls sähe
+        # ein unterbrochener Wechsel beim nächsten Lauf wie ein Nutzerausschluss aus.
+        with self.episodes.transaction():
+            episode, neu = self.episodes.record(
+                EpisodeKind.EVENT, titel, text,
+                Provenance(source_type=SourceType.CALENDAR, source_ref=ref, captured_at=stempel),
+                occurred_at=termin.start, participants=_teilnehmer(termin), source_key=schluessel, tags=tags, at=at)
+            geaendert = track_source(self.episodes, self.claims, schluessel, episode)
+            wiederhergestellt = (episode.state is EpisodeState.IGNORED and episode.id != (kopf[1] if kopf else None)
+                                 and self._wiederherstellen(episode.id, ersetzt=True))
+            if (termin.ical_revision is not None and (episode.state is not EpisodeState.IGNORED or wiederhergestellt)
+                    and marke != self.episodes.calendar_revision(episode.id)):
+                self.episodes.set_calendar_revision(episode.id, marke)
+        if wiederhergestellt:
             # Ein Termin, der auf eine frühere Fassung zurückgesetzt wurde: Sie war nur ersetzt.
             ergebnis.wiederhergestellt += 1
         elif geaendert:
@@ -316,6 +437,7 @@ class KalenderGedaechtnis:
             ergebnis.neu += 1
         else:
             ergebnis.unveraendert += 1
+        return True
 
     def _wiederherstellen(self, episode_id: str, *, ersetzt: bool = False) -> bool:
         """Öffnet eine vom Programm selbst ausgeschlossene Fassung wieder. Nutzerausschluss bleibt.
@@ -361,6 +483,10 @@ class KalenderGedaechtnis:
         return sum(1 for kopf in self.episodes.heads_with_prefix(praefix) if kopf[3] != EpisodeState.IGNORED.value)
 
 
+def _kopf_im_fenster(kopf, von: datetime, bis: datetime) -> bool:
+    return bool(kopf and kopf[4] and von <= ensure_aware(datetime.fromisoformat(kopf[4])) < bis)
+
+
 def _beruehrt(termin: Event, von: datetime, bis: datetime) -> bool:
     """Der Termin überschneidet `von`..`bis` (ohne Beginn oder Ende gehört er nirgends hin)."""
     return (termin.start is not None and termin.end is not None
@@ -377,8 +503,10 @@ def _zu_viele(termine: Sequence[Event], von: datetime, bis: datetime, gesamt: bo
     """
     if not gesamt:
         return len(termine) > MAX_TERMINE_JE_ABSCHNITT
-    return any(sum(1 for t in termine if _beruehrt(t, a, b)) > MAX_TERMINE_JE_ABSCHNITT
-               for a, b in abschnitte(von, bis))
+    ohne_zeit = sum(t.cancelled and t.start is None for t in termine)
+    return (ohne_zeit > MAX_TERMINE_JE_ABSCHNITT or
+            any(sum(1 for t in termine if _beruehrt(t, a, b)) > MAX_TERMINE_JE_ABSCHNITT
+                for a, b in abschnitte(von, bis)))
 
 
 def _schluessel_je_termin(quelle: str, termine: Sequence[Event]) -> list[str]:
@@ -394,7 +522,8 @@ def kalender_job(gedaechtnis: KalenderGedaechtnis, quellen: Iterable, *, at: dat
                  erlaubt: Callable[[str], bool] = lambda quelle: True) -> dict[str, Abgleich]:
     """Liest jede Nicht-Mac-Quelle im Gedächtnisfenster und gleicht sie ab.
 
-    `quellen`: Objekte mit `id`, `label` und `reader.events(days, at)`. Ein Lesefehler
+    `quellen`: Objekte mit `id`, `label` und `reader.events(days, at)`. ICS-Leser
+    liefern über `reader.memory_events(days, at)` auch Absagen. Ein Lesefehler
     einer Quelle lässt ihre Termine unberührt (kein Löschbeweis) und die anderen
     Quellen weiterlaufen. Die Quelle liest abschnittsweise (`ABSCHNITT_TAGE`), damit
     Größenbegrenzungen der Anbieter (Google: Seitenzahl) nie still kürzen.
@@ -405,17 +534,20 @@ def kalender_job(gedaechtnis: KalenderGedaechtnis, quellen: Iterable, *, at: dat
         summe = Abgleich()
         ergebnisse[quelle.id] = summe
         gesamt = getattr(quelle.reader, "ganzer_zeitraum", False)
+        lesen = getattr(quelle.reader, "memory_events", None) or quelle.reader.events
         for a, b in ([(von, bis)] if gesamt else abschnitte(von, bis)):
             try:
-                termine = quelle.reader.events(days=max(1, -(-int((b - a).total_seconds()) // 86400)), at=a)
+                gelesen = lesen(days=max(1, -(-int((b - a).total_seconds()) // 86400)), at=a)
             except Exception as exc:  # noqa: BLE001 - eine Quelle darf die anderen nicht anhalten
                 summe.fehler.append(type(exc).__name__)
                 continue
-            if _zu_viele(termine, a, b, gesamt):
+            abschnitt = gelesen if isinstance(gelesen, CalendarMemoryRead) else CalendarMemoryRead(gelesen)
+            if _zu_viele(abschnitt.events, a, b, gesamt):
                 summe.fehler.append("zu viele Termine im Abschnitt")
                 continue
-            summe += gedaechtnis.abgleichen(quelle.id, quelle.label, termine, a, b,
-                                            erlaubt=lambda q=quelle.id: erlaubt(q), at=at)
+            summe += gedaechtnis.abgleichen(quelle.id, quelle.label, abschnitt.events, a, b,
+                                            erlaubt=lambda q=quelle.id: erlaubt(q), at=at,
+                                            vollstaendig=abschnitt.complete)
             if summe.keine_freigabe:
                 break
     return ergebnisse

@@ -12,6 +12,7 @@ import {calendarColor, calendarDayLayout, calendarDisplaySource, calendarEventKe
 import {DetailPanel} from './DetailPanel';
 import {Leer, Seitenkopf, Segmente} from './grundlage';
 import {ganztaegig, nachTagen, terminZeit} from './calendarAnzeige';
+import {calendarPreview,calendarPreviewLabel} from './calendarPreview';
 import './CalendarPage.css';
 import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
 import {kontenApi} from './kontenApi';
@@ -84,7 +85,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const [actionTarget, setActionTarget] = useState<CalendarOverview["items"][number] | "new" | null>(null);
   const [data, setData] = useState<CalendarOverview | null>(null);
   const [loadedRangeKey, setLoadedRangeKey] = useState("");
-  const [legacyPreparation, setLegacyPreparation] = useState<CalendarOverview["items"][number] | null>(null);
   const [error, setError] = useState(false);
   const [revision, setRevision] = useState(0);
   const [loadedRevision, setLoadedRevision] = useState(0);
@@ -99,7 +99,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     setPreparationUid(prepare);
     setPreparationAt(prepareAt ?? null);
     setFollowup(nachbereiten);
-    if (!prepare) setLegacyPreparation(null);
     const url = new URL(window.location.href);
     if (prepare) {
       url.searchParams.set("prepare", prepare);
@@ -116,7 +115,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const visibleData = loadedRangeKey === rangeKey ? data : null;
   const selectPreparation = (uid: string | null, start?: string | null) => {
     const event = uid ? findCalendarEvent(visibleData?.items ?? [], uid, start) : null;
-    if (event) setLegacyPreparation(event);
     select(uid, null, event?.start);
   };
   const followupTarget = splitFollowup(followup);
@@ -146,8 +144,11 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     let active = true;
     setLoading(true); setError(false);
     api.calendar(visibleWindow.from.toISOString(), visibleWindow.until.toISOString())
-      .then(next => { if (active) { setData(next); setLoadedRangeKey(rangeKey); setLoadedRevision(revision); } })
-      .catch(() => { if (active) setError(true); })
+      .then(next => { if (active) { setData(old=>calendarPreview(old,next,loadedRangeKey===rangeKey)); setLoadedRangeKey(rangeKey); setLoadedRevision(revision); } })
+      .catch(failure => { if (active) {
+        setError(true);setData(null);
+        if(failure instanceof Error && /^HTTP (401|403|404|409)$/.test(failure.message))setActionTarget(null);
+      } })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [revision, rangeKey]);
@@ -160,7 +161,6 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       if (!active) return;
       const event = findCalendarEvent(result.items, preparationUid);
       if (!event) return;
-      setLegacyPreparation(event);
       if (event.start) {
         const start = new Date(event.start);
         if (Number.isFinite(start.getTime())) {
@@ -197,6 +197,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const detailsEvent = items.find(item=>calendarEventKey(item)===detailsKey) || null;
   const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarDisplaySource(calendarSourceVersions(item).find(copy=>!hiddenSources.has(calendarDisplaySource(copy)))||item));
   function eventActions(item:CalendarOverview['items'][number]) {
+    if(item.stale_since)return <p className="calendar-hinweis" role="status">{calendarPreviewLabel(item)}. Änderungen und Vorbereitung sind nach erfolgreichem Abgleich wieder möglich.</p>;
     return <div className="calendar-detail-actions">{calendarSourceVersions(item).filter(copy => copy.source_id && googleSources.includes(copy.source_id) && editableEventId(copy)).map(copy => <button key={calendarEventKey(copy)} type="button" className="secondary-action" onClick={() => {setDetailsKey(null);setActionTarget(copy);}}>Bearbeiten / absagen{item.source_copies?.length ? ` · ${copy.source_label}` : ''}</button>)}
       {item.art !== 'geburtstag' && (!item.end || new Date(item.end) > new Date()) && <button className="secondary-action" type="button" onClick={()=>selectPreparation(item.uid,item.start)}>Vorbereiten</button>}
       {!item.all_day && item.start && new Date(item.start)<=new Date() && <button className="secondary-action" type="button" onClick={()=>{setDetailsKey(null);select(null,followupKey(item.uid,item.start!));}}>Nachbereiten</button>}
@@ -205,9 +206,9 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   function timeGrid() {
     const days=Array.from({length:view==='Tag'?1:7},(_,index)=>plusDays(view==='Tag'?focus:weekStart,index));
     return <div className="calendar-time-scroll" ref={timeScroll} aria-label={view==='Tag'?'Tageszeitraster':'Wochenzeitraster'}><div className={`calendar-time-grid ${view==='Tag'?'single-day':''}`}>
-      <div className="calendar-time-corner">Ganztägig</div>{days.map(day=><section className="calendar-all-day" key={dateKey(day)}><button className={`calendar-grid-date ${dateKey(day)===dateKey(today)?'is-today':''}`} type="button" aria-label={day.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})} onClick={()=>{setFocus(day);setView('Tag');}}><span>{day.toLocaleDateString('de-DE',{weekday:'short'})}</span><strong>{day.getDate()}</strong></button>{(+plusDays(day,1)-+midnight(day))/3600000!==24&&<small className="calendar-clock-change">Zeitumstellung · {(+plusDays(day,1)-+midnight(day))/3600000} Std.</small>}{onDay(day).filter(ganztaegig).map(event=><button className="calendar-all-day-event" style={{borderLeftColor:eventColor(event)}} title={event.summary} key={calendarEventKey(event)} type="button" onClick={()=>setDetailsKey(calendarEventKey(event))}>{event.summary}</button>)}</section>)}
+      <div className="calendar-time-corner">Ganztägig</div>{days.map(day=><section className="calendar-all-day" key={dateKey(day)}><button className={`calendar-grid-date ${dateKey(day)===dateKey(today)?'is-today':''}`} type="button" aria-label={day.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})} onClick={()=>{setFocus(day);setView('Tag');}}><span>{day.toLocaleDateString('de-DE',{weekday:'short'})}</span><strong>{day.getDate()}</strong></button>{(+plusDays(day,1)-+midnight(day))/3600000!==24&&<small className="calendar-clock-change">Zeitumstellung · {(+plusDays(day,1)-+midnight(day))/3600000} Std.</small>}{onDay(day).filter(ganztaegig).map(event=><button className="calendar-all-day-event" style={{borderLeftColor:eventColor(event)}} title={[event.summary,calendarPreviewLabel(event)].filter(Boolean).join(" · ")} key={calendarEventKey(event)} type="button" onClick={()=>setDetailsKey(calendarEventKey(event))}>{event.summary}{event.stale_since ? " · ungeprüft" : ""}</button>)}</section>)}
       <div className="calendar-hours">{Array.from({length:24},(_,hour)=><div className="calendar-hour" key={hour}>{`${String(hour).padStart(2,'0')}:00`}</div>)}</div>
-      {days.map(day=><div className="calendar-time-day" key={dateKey(day)} aria-label={day.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}>{calendarDayLayout(onDay(day).filter(event=>!ganztaegig(event)),day).map(placement=><button type="button" className="calendar-time-event" key={calendarPlacementKey(placement)} style={{top:`${placement.startMinute/1440*100}%`,height:`${(placement.endMinute-placement.startMinute)/1440*100}%`,left:`${placement.column/placement.columns*100}%`,width:`${100/placement.columns}%`,borderLeftColor:eventColor(placement.event)}} aria-label={`${placement.event.summary}, ${placement.timeLabel}, ${placement.event.source_label||'Kalender'}`} title={`${placement.event.summary} · ${placement.timeLabel} · ${placement.event.source_label||'Kalender'}`} onClick={()=>setDetailsKey(calendarEventKey(placement.event))}><small>{placement.continuesBefore?'↤ ':''}{placement.timeLabel.split('–')[0]}{placement.continuesAfter?' ↦':''}</small><strong>{placement.event.summary}</strong></button>)}</div>)}
+      {days.map(day=><div className="calendar-time-day" key={dateKey(day)} aria-label={day.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}>{calendarDayLayout(onDay(day).filter(event=>!ganztaegig(event)),day).map(placement=><button type="button" className="calendar-time-event" key={calendarPlacementKey(placement)} style={{top:`${placement.startMinute/1440*100}%`,height:`${(placement.endMinute-placement.startMinute)/1440*100}%`,left:`${placement.column/placement.columns*100}%`,width:`${100/placement.columns}%`,borderLeftColor:eventColor(placement.event)}} aria-label={`${placement.event.summary}, ${placement.timeLabel}, ${placement.event.source_label||'Kalender'}${placement.event.stale_since ? ' · '+calendarPreviewLabel(placement.event) : ''}`} title={`${placement.event.summary} · ${placement.timeLabel} · ${placement.event.source_label||'Kalender'}${placement.event.stale_since ? ' · '+calendarPreviewLabel(placement.event) : ''}`} onClick={()=>setDetailsKey(calendarEventKey(placement.event))}><small>{placement.continuesBefore?'↤ ':''}{placement.timeLabel.split('–')[0]}{placement.continuesAfter?' ↦':''}</small><strong>{placement.event.summary}{placement.event.stale_since ? " · ungeprüft" : ""}</strong></button>)}</div>)}
     </div></div>;
   }
   const onDay = (day: Date) => eventsInRange(items, midnight(day), plusDays(day, 1));
@@ -223,7 +224,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         const day = new Date(gridYear, month, i + 1), events = onDay(day);
         return <div key={i} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${dateKey(day) === dateKey(focus) ? "is-selected" : ""} ${events.length ? "has-events" : ""}`}>
           <button type="button" className="calendar-month-date" aria-label={`${day.toLocaleDateString("de-DE")}, ${events.length} Termine im geladenen Zeitraum`} aria-pressed={dateKey(day) === dateKey(focus)} onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong>{i + 1}</strong>{small && events.length>0 && <span className="event-dot" />}</button>
-          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" className="calendar-month-event" key={calendarEventKey(event)} title={event.summary} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span><span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
+          {!small && <div className="calendar-month-events">{events.slice(0,3).map(event=><button type="button" className="calendar-month-event" key={calendarEventKey(event)} title={event.stale_since ? `${event.summary} · ${calendarPreviewLabel(event)}` : event.summary} aria-label={event.stale_since ? `${event.summary} · ${calendarPreviewLabel(event)}` : undefined} onClick={()=>setDetailsKey(calendarEventKey(event))}><span className="calendar-vorne"><i className="calendar-punkt" style={{background:eventColor(event)}} />{!ganztaegig(event) && event.start ? <span className="calendar-zeit">{time(event.start)}</span> : null}</span>{event.stale_since ? <small className="calendar-month-stale">ungeprüft · </small> : null}<span className="calendar-titel">{event.summary}</span></button>)}{events.length>3 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{events.length-3} weitere</button>}</div>}
         </div>;
       })}
     </div>;
@@ -240,14 +241,13 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         <div className="calendar-tag-zeilen">{gruppe.termine.map(item => <button type="button" className="calendar-entry" key={calendarEventKey(item)} onClick={()=>setDetailsKey(calendarEventKey(item))}>
           <span className="calendar-entry-zeit">{ganztaegig(item) || !item.start ? "Ganztägig" : <>{time(item.start)}{item.end ? <small>{time(item.end)}</small> : null}</>}</span>
           <i className="calendar-punkt" style={{background:eventColor(item)}} />
-          <span className="calendar-entry-text"><strong>{item.summary}</strong>{item.location ? <small>{item.location}</small> : null}</span>
+          <span className="calendar-entry-text"><strong>{item.summary}</strong>{item.stale_since ? <small>{calendarPreviewLabel(item)}</small> : null}{item.location ? <small>{item.location}</small> : null}</span>
           <span className="g-zeile-pfeil" aria-hidden="true" />
         </button>)}</div>
       </section>)}</div>; }
-  const selectedAt = validDate(preparationAt);
-  const selectedInRange = selectedAt && selectedAt >= visibleWindow.from && selectedAt < visibleWindow.until;
-  const preparationEvent = preparationUid ? findCalendarEvent(visibleData?.items ?? [], preparationUid, preparationAt)
-    || (!(visibleData && selectedInRange) ? findCalendarEvent(legacyPreparation ? [legacyPreparation] : [], preparationUid, preparationAt) : null) : null;
+  // Legacy links resolve a date above; only a fresh read of that visible range
+  // may mount preparation. A previously selected object is never authority.
+  const preparationEvent = preparationUid ? findCalendarEvent((visibleData?.items ?? []).filter(item=>!item.stale_since), preparationUid, preparationAt) : null;
   useEffect(() => {
     if (preparationEvent?.start) {
       const start = new Date(preparationEvent.start);
@@ -272,6 +272,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {error && <p className="calendar-hinweis calendar-hinweis-fehler" role="alert">Termine konnten nicht geladen werden. <button type="button" className="g-knopf-schlicht" onClick={() => setRevision(n => n + 1)}>Erneut versuchen</button></p>}
       {visibleData?.errors.map((message, index) => <p className="calendar-hinweis calendar-hinweis-fehler" role="alert" key={index}>{message}</p>)}
       {visibleData?.warnings?.map((message, index) => <p className="calendar-hinweis" role="status" key={index}>{message}</p>)}
+      {visibleData?.items.some(item=>item.stale_since) && <p className="calendar-hinweis" role="status">Zuletzt geladene Termine bleiben sichtbar · ungeprüft. Der aktuelle Stand wird erneut abgefragt.</p>}
       {preparationUid && visibleData && !loading && !error && !preparationEvent && <p className="calendar-hinweis" role="status">Der ausgewählte Termin ist in den geladenen Kalendern nicht zu finden. <button type="button" className="g-knopf-schlicht" onClick={() => selectPreparation(null)}>Auswahl schließen</button></p>}
       {ohneKalender ? <Leer className="calendar-leer" satz="Noch kein Kalender verbunden." aktion={kalenderLink("Kalender verbinden", formOffen ? "g-knopf-getoent" : "g-knopf")} /> : <>
       <div className="calendar-actions"><Segmente label="Kalenderansicht" className="calendar-ansicht" optionen={ANSICHTEN.map(v => ({wert: v, titel: v}))} wert={view} onWahl={setView} />{bereichFilter.segmente}</div>
@@ -298,7 +299,9 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         {eventActions(detailsEvent)}
         {preparationEvent&&calendarEventKey(preparationEvent)===calendarEventKey(detailsEvent)&&<CalendarPreparation key={calendarEventKey(preparationEvent)} event={preparationEvent} revision={loadedRevision} onClose={()=>selectPreparation(null)} />}
       </div></DetailPanel>}
-      {actionTarget && <CalendarActionForm key={actionTarget === "new" ? "new" : `${actionTarget.uid}|${actionTarget.start}`} event={actionTarget === "new" ? undefined : actionTarget} onClose={() => setActionTarget(null)} onDone={() => setRevision(n => n + 1)} />}
+      {actionTarget && <CalendarActionForm key={actionTarget === "new" ? "new" : `${actionTarget.uid}|${actionTarget.start}`} event={actionTarget === "new" ? undefined : actionTarget}
+        sourceVerified={actionTarget==='new' || (!loading && !error && !!findCalendarEvent((visibleData?.items||[]).filter(item=>!item.stale_since),actionTarget.uid,actionTarget.start))}
+        onClose={() => setActionTarget(null)} onDone={() => setRevision(n => n + 1)} />}
       {preparationEvent && (!detailsEvent || calendarEventKey(preparationEvent)!==calendarEventKey(detailsEvent)) && <div ref={preparationPanel}><CalendarPreparation key={calendarEventKey(preparationEvent)} event={preparationEvent} revision={loadedRevision} onClose={() => selectPreparation(null)} /></div>}
       {followupTarget && <div ref={followupPanel}><CalendarFollowup key={followup!} uid={followupTarget.uid} start={followupTarget.start} onClose={() => select(null, null)} /></div>}
     </main></div>;

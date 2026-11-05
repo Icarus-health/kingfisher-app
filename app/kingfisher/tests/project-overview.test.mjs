@@ -49,6 +49,8 @@ test('full counts, missing dates, waiting names and completed counts stay explic
   const d=await driver(props());try{d.render();d.runEffects();await tick();
     const html=renderToStaticMarkup(d.render());assert.match(html,/206/);assert.match(html,/205 ohne Termin/);
     assert.match(html,/Anna/);assert.match(html,/<strong>2<\/strong>Erledigt/);assert.match(html,/1 verworfen/);
+    assert.match(html, /<strong>206<\/strong>Meine Aufgaben/);
+    assert.match(html, /Warten zählt unabhängig von der Zuständigkeit/);
     assert.match(html,/Ohne Termin/);assert.doesNotMatch(html,/100%|Heute|Projektfortschritt/);
   }finally{d.close();}
 }));

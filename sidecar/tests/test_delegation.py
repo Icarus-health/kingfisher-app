@@ -153,7 +153,7 @@ def test_lange_wartendes_kommt_in_das_briefing() -> None:
     assert "Frau Becker" in satz
     assert "Vergütungsspanne festlegen" in satz
     assert "4. August" in satz
-    assert b.punkte[0].aktion == "Zurückholen"
+    assert b.punkte[0].aktion == "Warten prüfen"
     assert b.punkte[0].quelle == "wartet"
 
 
@@ -246,7 +246,7 @@ def test_die_anrede_wird_gebeugt() -> None:
         jetzt=JETZT,
     )
 
-    assert "bei Herrn Ohlsen." in b.punkte[0].text
+    assert "auf Rückmeldung (Herr Ohlsen)." in b.punkte[0].text
 
 
 def test_der_name_selbst_bleibt_unangetastet() -> None:
@@ -255,4 +255,4 @@ def test_der_name_selbst_bleibt_unangetastet() -> None:
         b = briefing.erstelle(
             stand([wartende_aufgabe("Zuarbeit", name, 20)]), jetzt=JETZT
         )
-        assert f"bei {name}." in b.punkte[0].text
+        assert f"auf Rückmeldung ({name})." in b.punkte[0].text

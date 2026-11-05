@@ -189,6 +189,13 @@ def schluessel(name: str) -> str:
     return name.strip().casefold()
 
 
+def verantwortet(aufgabe: Any, adresse: str) -> bool:
+    """A confirmed address is usable even when the display name is ambiguous."""
+    responsibility = getattr(aufgabe, "responsibility", None) or {}
+    return bool(adresse and responsibility.get("decision") == "person"
+                and responsibility.get("address") == adresse.casefold())
+
+
 def wartet_auf(aufgabe: Any, name: str) -> bool:
     """Nur die ausdrückliche Zuordnung belegt, bei wem eine Aufgabe liegt."""
     zugesagt = getattr(aufgabe, "wartet_auf", None)
@@ -413,10 +420,11 @@ def _bauen(anker: str, rohbau: _Rohbau, *, verzeichnis: Verzeichnis, mehrdeutige
     eindeutig = (not rohbau.offen_mit
                  and not any(name_schluessel(n) in mehrdeutige_namen for n in namen))
     aufgaben: list[dict[str, Any]] = []
-    if tasks is not None and eindeutig:
+    if tasks is not None:
         aufgaben = [
             a.to_dict() for a in tasks.open_tasks(limit=300)
-            if any(wartet_auf(a, alias) for alias in (namen or [name]))
+            if verantwortet(a, rohbau.adresse)
+            or (eindeutig and any(wartet_auf(a, alias) for alias in (namen or [name])))
         ]
 
     aussagen: list[dict[str, Any]] = []
@@ -513,6 +521,9 @@ def _zusammengefuehrte_personen(menschen: list[Person], bestand: _Bestand,
             name=label,
             id=record["id"],
             adressen=sorted(adressen),
+            offene_aufgaben=list({task["id"]: task for task in (
+                *person.offene_aufgaben, *(task for member in mitglieder for task in member.offene_aufgaben)
+            )}.values()),
             namen=list(dict.fromkeys([*person.namen, label])),
             unterscheidung="",
             anzeige=label,

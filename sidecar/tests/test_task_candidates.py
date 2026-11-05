@@ -157,3 +157,127 @@ def test_archiving_source_preserves_an_explicitly_adopted_task(env):
     assert client.get('/api/v1/task-candidates').json() == []
     assert client.post(url, json={'title': 'Nicht überschreiben'}).json() == accepted
     assert len(app.state.tasks.all_tasks()) == 1
+
+
+def test_reanalysis_reuses_proven_original_statement_after_task_title_edit(env):
+    from icarus_memory.proposals import Evidence
+
+    app, client, episode, candidate = env
+    original_url = f'/api/v1/task-candidates/{candidate.id}/accept'
+    first = client.post(original_url, json={'title': candidate.statement})
+    assert first.status_code == 200, first.text
+    task_id = first.json()['id']
+    tasks = app.state.tasks
+    tasks.change_responsibility(task_id, request_id='synthetic-source-retry',
+        expected_revision=tasks.responsibility_snapshot(task_id)['revision'], operation='reset')
+    tasks.edit(task_id, title='Von mir bearbeiteter Aufgabentitel')
+    evidence = [Evidence(episode.id, episode.body, episode.digest)]
+    retry, _ = app.state.proposals.propose(ProposalKind.TASK, candidate.statement, 'Erneute Analyse',
+                                         evidence=evidence, proposed_by='synthetic')
+    other, _ = app.state.proposals.propose(ProposalKind.TASK, 'Andere Handlung aus demselben Zitat',
+                                         'Neue Analyse', evidence=evidence, proposed_by='synthetic')
+    retry_url = f'/api/v1/task-candidates/{retry.id}/accept'
+    result = client.post(retry_url, json={'title': retry.statement})
+    assert result.status_code == 200, result.text
+    assert result.json()['id'] == task_id
+    assert result.json()['title'] == 'Von mir bearbeiteter Aufgabentitel'
+    assert result.json()['responsibility']['decision'] == 'unknown'
+    assert result.json()['provenance'] == first.json()['provenance']
+    assert app.state.proposals.get(retry.id).produced == task_id
+    blocked = client.post(f'/api/v1/task-candidates/{other.id}/accept',
+                          json={'title': other.statement, 'new_project_name': 'Keine Nebenwirkung'})
+    assert blocked.status_code == 409 and 'Quellenstelle' in blocked.json()['detail']
+    assert app.state.proposals.get(other.id).state is ProposalState.PENDING
+    assert len(tasks.all_tasks()) == 1
+    assert app.state.workspace.projects() == []
+
+
+@pytest.mark.parametrize('shortened', [False, True], ids=['exact', 'shortened'])
+def test_correction_before_final_acceptance_leaves_no_new_project(env, monkeypatch, tmp_path, shortened):
+    from icarus_memory.proposals import Evidence
+    from icarus_memory.tasks import TaskStore
+
+    app, client, episode, original = env
+    task_id = client.post(f'/api/v1/task-candidates/{original.id}/accept',
+                          json={'title': original.statement}).json()['id']
+    quote = 'schicke das Angebot.' if shortened else episode.body
+    candidate, _ = app.state.proposals.propose(ProposalKind.TASK, 'Angebot überprüfen', 'Race',
+        evidence=[Evidence(episode.id, quote, episode.digest)])
+    writer = TaskStore(tmp_path / 'tasks.sqlite3')
+    from_suggestion = app.state.tasks.from_suggestion
+
+    def correct_before_final_write(*args, **kwargs):
+        writer.change_responsibility(task_id, request_id='synthetic-correction-first',
+            expected_revision=writer.responsibility_snapshot(task_id)['revision'], operation='reset')
+        return from_suggestion(*args, **kwargs)
+
+    monkeypatch.setattr(app.state.tasks, 'from_suggestion', correct_before_final_write)
+    try:
+        result = client.post(f'/api/v1/task-candidates/{candidate.id}/accept',
+            json={'title': candidate.statement, 'new_project_name': 'Synthetisches neues Projekt'})
+        assert result.status_code == 409, result.text
+        assert app.state.proposals.get(candidate.id).state is ProposalState.PENDING
+        assert app.state.workspace.projects() == []
+        [task] = app.state.tasks.all_tasks()
+        assert task.id == task_id and task.responsibility['decision'] == 'unknown'
+    finally:
+        writer.close()
+        client.close()
+
+
+def test_new_project_acceptance_serializes_an_independent_correction(env, monkeypatch, tmp_path):
+    import sqlite3
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from icarus_memory.proposals import Evidence
+    from icarus_memory.tasks import TaskStore
+
+    app, client, episode, original = env
+    task_id = client.post(f'/api/v1/task-candidates/{original.id}/accept',
+                          json={'title': original.statement}).json()['id']
+    candidate, _ = app.state.proposals.propose(ProposalKind.TASK, 'Zweite Handlung aus demselben Beleg', 'Race',
+        evidence=[Evidence(episode.id, episode.body, episode.digest)])
+    task_file = tmp_path / 'tasks.sqlite3'
+    writer = TaskStore(task_file)
+    revision = writer.responsibility_snapshot(task_id)['revision']
+    entered_project, release_project, probed_lock = Event(), Event(), Event()
+    create_project = app.state.workspace.project_from_task_suggestion
+
+    def pause_before_project(*args, **kwargs):
+        entered_project.set()
+        assert release_project.wait(3)
+        return create_project(*args, **kwargs)
+
+    def correct():
+        try:
+            with sqlite3.connect(task_file, timeout=0) as probe:
+                with pytest.raises(sqlite3.OperationalError, match='locked'):
+                    probe.execute('BEGIN IMMEDIATE')
+        finally:
+            probed_lock.set()
+        return writer.change_responsibility(task_id, request_id='synthetic-acceptance-first',
+            expected_revision=revision, operation='reset')
+
+    monkeypatch.setattr(app.state.workspace, 'project_from_task_suggestion', pause_before_project)
+    try:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            accept = pool.submit(client.post, f'/api/v1/task-candidates/{candidate.id}/accept',
+                json={'title': candidate.statement, 'new_project_name': 'Synthetisches Projekt'})
+            try:
+                assert entered_project.wait(3)
+                correction = pool.submit(correct)
+                assert probed_lock.wait(3)
+                assert not correction.done()
+            finally:
+                release_project.set()
+            result = accept.result(timeout=3)
+            corrected = correction.result(timeout=3)
+        assert result.status_code == 200, result.text
+        assert corrected['task'].responsibility['decision'] == 'unknown'
+        [project] = app.state.workspace.projects()
+        assert result.json()['project_id'] == project.id
+        assert app.state.proposals.get(candidate.id).produced == result.json()['id']
+    finally:
+        writer.close()
+        client.close()

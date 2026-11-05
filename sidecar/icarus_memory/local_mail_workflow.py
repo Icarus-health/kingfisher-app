@@ -9,6 +9,8 @@ import json
 from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from . import local_model_guard
+from .identitaet import eigene_adressen
+from .aufgaben_von_selbst import durchlauf_fuer
 from .episodes import EpisodeKind, EpisodeError, EpisodeState
 from .model import SourceType
 from .mail_briefing import _passages, _selected, SYSTEM, SCHEMA, BRIEFING_VERSION
@@ -111,7 +113,9 @@ class SavedMailWorkflow:
                     timing.update(review)
                     break
         # Die Zeitklassifikation und Folgemails sind Teil des Prüfschritts, nicht des Originaltexts.
-        material = ['saved-mail-v1',BRIEFING_VERSION,identifier,source.digest,context,source.project_id,timing['temporal_status'],timing['followup_episode_id']]
+        material = ['saved-mail-v2',BRIEFING_VERSION,identifier,source.digest,context,source.project_id,
+                    timing['temporal_status'],timing['followup_episode_id'],
+                    sorted(a.casefold() for a in eigene_adressen(getattr(self.state,'settings',None)))]
         stamp = hashlib.sha256(json.dumps(material,ensure_ascii=False).encode()).hexdigest()
         return source, context, timing, stamp
     def _hints(self):
@@ -152,7 +156,8 @@ class SavedMailWorkflow:
                     or not task_context_matches(proposal,self.state.episodes)
                     or self.state.tasks.get(f't-suggestion-{proposal.id}') is not None):
                 continue
-            items.append({**proposal.to_dict(),'project_suggestion':self._hints().visible(proposal),
+            items.append({**proposal.to_dict(),**durchlauf_fuer(self.app).vorbefuellt(proposal),
+                          'project_suggestion':self._hints().visible(proposal),
                           'project_preparation_status':self._project_preparation(proposal),
                           'review_required':timing['temporal_status']!='recent' or proposal.task_context is None
                               or not proposal.proposed_by.endswith(REVIEW_MARKER)
@@ -250,7 +255,8 @@ class SavedMailWorkflow:
             # TaskCandidates delegiert innerhalb dieses Scopes ohne zweiten Lock-Erwerb.
             return TaskCandidates(self.state.episodes,self.state.proposals,self.state.tasks,self.state.workspace,
                                   nullcontext()).accept(proposal_id,title=body.title,
-                project_id=body.project_id,new_project_name=body.new_project_name,due=body.due,waiting_for=body.waiting_for).to_dict()
+                project_id=body.project_id,new_project_name=body.new_project_name,due=body.due,waiting_for=body.waiting_for,
+                eigene=eigene_adressen(getattr(self.state,'settings',None))).to_dict()
 
 
 def prepare_background(app, provider, *, limit=1, permitted=lambda:True):

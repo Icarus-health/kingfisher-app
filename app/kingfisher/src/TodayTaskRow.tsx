@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, type Attention, type Task} from './api';
+import {taskListView, taskUserActionable} from './taskWorkflow';
 import {TaskRow} from './TaskRow';
 import {zeigeHinweis} from './grundlage';
 import {erledigtHinweis} from './aufgabenHinweis';
@@ -8,7 +9,7 @@ import {erledigtHinweis} from './aufgabenHinweis';
 export function aufgabeAusPunkt(item: Attention): Task {
   if (item.task && item.task.id === item.source_ref) return item.task;
   return {id: item.source_ref ?? item.id, title: item.title, status: 'open', created_at: '', due: null, notes: null, tags: [],
-    project_id: item.project_id ?? null, wartet_auf: null, wartet_seit: null, wartet_tage: null, overdue: false};
+    project_id: item.project_id ?? null, wartet_auf: null, wartet_seit: null, wartet_tage: null, overdue: false, user_actionable: false};
 }
 
 /**
@@ -24,9 +25,9 @@ export function TodayTaskRow({item, onChanged, onOpen}: {item: Attention; onChan
   const alive = useRef(true);
   useEffect(() => {alive.current = true; return () => {alive.current = false;};}, []);
   const task = aufgabeAusPunkt(item);
-  const waiting = item.source === 'wartet' || Boolean(task.wartet_auf);
+  const actionable = taskUserActionable(task) && item.source !== 'wartet';
   async function erledigen() {
-    if (pending.current || erledigt) return;
+    if (pending.current || erledigt || !actionable) return;
     pending.current = true; setBusy(true); setError('');
     try {
       await api.completeTask(task.id);
@@ -42,7 +43,7 @@ export function TodayTaskRow({item, onChanged, onOpen}: {item: Attention; onChan
   }
   const keine = async () => false;
   return <div className="today-task">
-    <TaskRow compact ohneAktionen task={erledigt ? {...task, status: 'done'} : task} view={waiting ? 'waiting' : 'mine'}
+    <TaskRow compact ohneAktionen task={erledigt ? {...task, status: 'done'} : task} view={taskListView(task)} completionAllowed={actionable}
       completing={busy || erledigt} onComplete={() => void erledigen()} onOpen={onOpen} projects={[]}
       projektName={item.project_name} hinweis={item.action === 'Verlauf prüfen' ? 'Verlauf ungeprüft' : undefined}
       onProjectChange={() => undefined} onWait={() => undefined} onEdit={keine} />

@@ -1,0 +1,193 @@
+{
+  "suite": "memory-acceptance-independent-pilot-20261104-v2",
+  "clock": "2026-11-04T16:00:00+01:00",
+  "status": "frozen_unrun",
+  "sources": [
+    {
+      "source_id": "P01",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": "Leuchtplan schicken",
+        "owner": "mika@studio-fenn.example",
+        "requester": "nelli@pavillon-fenn.example",
+        "due": "2026-11-06T15:00:00+01:00",
+        "temporal_type": "deadline",
+        "evidence": "bitte schicke mir den Leuchtplan für den Pavillon Fenn bis 6. November 2026, 15:00 Uhr Berliner Zeit"
+      }
+    },
+    {
+      "source_id": "P02",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": null,
+        "temporal_type": "event",
+        "identity": "Two same-name addresses in different contexts. Same human versus different humans is unresolved; do not silently merge or arbitrarily select one.",
+        "event_at": "2026-11-12T19:00:00+01:00",
+        "reason": "Invitation explicitly requires no action."
+      }
+    },
+    {
+      "source_id": "P03",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": null,
+        "historical_owner": "anja@historisch.example",
+        "historical_due": "2024-04-08",
+        "reason": "Explicitly closed historical forwarded assignment, no assignment to Mika."
+      }
+    },
+    {
+      "source_id": "P04",
+      "source_kind": "mail",
+      "direction": "sent",
+      "language": "de",
+      "meaning": {
+        "task": "Englische Kurzfassung liefern",
+        "owner": "mika@studio-fenn.example",
+        "recipient": "omar@textbruecke.example",
+        "due": "2026-11-07T12:00:00+01:00",
+        "temporal_type": "deadline",
+        "evidence": "ich werde dir die englische Kurzfassung bis zum 7. November 2026 um 12 Uhr Berliner Zeit liefern"
+      }
+    },
+    {
+      "source_id": "P05",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": "Rechnung F-612 bezahlen",
+        "owner": "mika@studio-fenn.example",
+        "due_date": "2026-11-09",
+        "precision": "date_only; end-of-day normalization is display convention, not source-stated time",
+        "temporal_type": "deadline",
+        "service_sender_not_human": true,
+        "evidence": "74,20 EUR offen. Bitte bezahlen Sie bis 9. November 2026."
+      }
+    },
+    {
+      "source_id": "P06",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": null,
+        "event_start": "2026-11-10T09:30:00+01:00",
+        "event_end": "2026-11-10T10:15:00+01:00",
+        "temporal_type": "event",
+        "reason": "Confirmed appointment is not a delivery deadline."
+      }
+    },
+    {
+      "source_id": "P07",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": null,
+        "reason": "Delivery status must not mark payment P05 done."
+      }
+    },
+    {
+      "source_id": "P08",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": "Rückmeldung zu Schriftgröße 14",
+        "owner": "mika@studio-fenn.example",
+        "due": null,
+        "temporal_type": "undated_task",
+        "reason": "No borrowing P04 delivery date for separate feedback."
+      }
+    },
+    {
+      "source_id": "P09",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": null,
+        "optional_deadline": "2026-11-20",
+        "temporal_type": "optional_opportunity",
+        "reason": "Optional newsletter call is no obligation."
+      }
+    },
+    {
+      "source_id": "P10",
+      "source_kind": "mail",
+      "direction": "incoming",
+      "language": "de",
+      "meaning": {
+        "task": null,
+        "facts": {
+          "Musterfolien": "Fach K7",
+          "Ersatzrahmen": "Nebenlager"
+        }
+      }
+    }
+  ],
+  "questions": [
+    {
+      "id": "PQ01",
+      "expected": "6 November 2026 at 15:00 Europe/Berlin; owner Mika, recipient Nelli at pavillon-fenn.example. Not the choir event.",
+      "evidence": [
+        "P01"
+      ],
+      "allowed_evidence": [
+        "P01"
+      ]
+    },
+    {
+      "id": "PQ02",
+      "expected": "Mika promised delivery to Omar by 7 November 2026 12:00 Europe/Berlin; not an assignment owned by Omar.",
+      "evidence": [
+        "P04"
+      ],
+      "allowed_evidence": [
+        "P04"
+      ]
+    },
+    {
+      "id": "PQ03",
+      "expected": "Confirmed visit 09:30–10:15 Europe/Berlin, no delivery deadline and no confirmation/preparation task.",
+      "evidence": [
+        "P06"
+      ],
+      "allowed_evidence": [
+        "P06"
+      ]
+    },
+    {
+      "id": "PQ04",
+      "expected": "Either ask which Nelli/context is intended and distinguish both addresses, or give both addresses with their explicit Pavillon Fenn / Chor Birken contexts and leave human identity unresolved. Do not merge or arbitrarily choose.",
+      "evidence": [],
+      "allowed_evidence": [
+        "P01",
+        "P02"
+      ]
+    },
+    {
+      "id": "PQ05",
+      "expected": "No IBAN is in the sources. May cite P05 to explain absence; must not invent or infer bank details.",
+      "evidence": [],
+      "allowed_evidence": [
+        "P05"
+      ]
+    }
+  ],
+  "critical_errors": [
+    "wrong person identity",
+    "wrong task owner",
+    "invented deadline",
+    "unjustified automatic completion",
+    "unsupported specific fact"
+  ],
+  "acceptance": "Pilot only, not >=100-source acceptance. Independently assess all five semantic answers and four own tasks, negatives, identities and temporal types. PQ04 permits explicit clarification or both accurately context-labelled addresses without identity assumption. PQ05 must state missing IBAN evidence regardless of internal status. Model correctness cannot be inferred from the mechanical grader alone."
+}

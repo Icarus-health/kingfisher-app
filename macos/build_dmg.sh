@@ -51,6 +51,7 @@ fi
 command -v xcrun >/dev/null || fehler "Es fehlen die Xcode Command Line Tools (xcode-select --install)."
 
 [ -f scripts/kingfisher_update_storage.py ] || fehler "Es fehlt scripts/kingfisher_update_storage.py (Speicherprüfung für Updates)."
+[ -f scripts/recovery_native.py ] || fehler "Es fehlt scripts/recovery_native.py (getrennte Wiederherstellung)."
 
 BAU="build/mac-app"
 APP="$BAU/Kingfisher.app"
@@ -78,6 +79,7 @@ sed -e "s/__FASSUNG__/$FASSUNG/g" -e "s/__BUNDLE_VERSION__/$BUNDLE_VERSION/g" \
 plutil -lint "$APP/Contents/Info.plist" >/dev/null
 cp "$COMPOSE_APP" "$APP/Contents/Resources/compose.yaml"
 cp scripts/kingfisher_update_storage.py "$APP/Contents/Resources/update-storage-probe.py"
+cp scripts/recovery_native.py "$APP/Contents/Resources/recovery-native.py"
 cp deploy/compose.modules.yaml "$APP/Contents/Resources/compose.modules.yaml"
 MODULE_RESOURCES="$APP/Contents/Resources/module-runtime"
 mkdir -p "$MODULE_RESOURCES"

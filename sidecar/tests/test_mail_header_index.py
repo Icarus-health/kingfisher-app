@@ -57,14 +57,15 @@ def test_v21_backfill_preserves_original_rows_and_deduplication(tmp_path):
     path = tmp_path / "v21.sqlite3"
     conn = sqlite3.connect(path)
     run_migrations(conn, store="episodes", path=path, migrations=_MIGRATIONS[:21])
+    row.pop('recall_archive_generation')
     fields = list(row)
     conn.execute(f"INSERT INTO episodes({','.join(fields)}) VALUES ({','.join('?' for _ in fields)})", tuple(row.values()))
     conn.commit()
     before = conn.execute("SELECT * FROM episodes").fetchall()
     conn.close()
     store = EpisodeStore(path)
-    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 26
-    assert [tuple(row) for row in store._conn.execute("SELECT * FROM episodes")] == before
+    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 27
+    assert [tuple(row) for row in store._conn.execute("SELECT * FROM episodes")] == [(*row, 0) for row in before]
     assert [tuple(row) for row in store._conn.execute("SELECT value,episode_id FROM episode_mail_headers")] == [(source.tags[0], source.id)]
     assert record(store, "<old@local>").id == source.id
     store.close()
@@ -118,7 +119,7 @@ def test_missing_header_trigger_is_rejected_without_rewriting_original(tmp_path)
         EpisodeStore(path)
     with sqlite3.connect(path) as conn:
         assert conn.execute("SELECT document FROM episodes WHERE id=?", (source.id,)).fetchone()[0] == before
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == 26
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == 27
 
 
 def test_interrupted_v22_backfill_rolls_back_before_successful_retry(tmp_path, monkeypatch):
@@ -134,6 +135,7 @@ def test_interrupted_v22_backfill_rolls_back_before_successful_retry(tmp_path, m
     fixture.close()
     conn = sqlite3.connect(path)
     run_migrations(conn, store="episodes", path=path, migrations=_MIGRATIONS[:21])
+    row.pop('recall_archive_generation')
     conn.execute(f"INSERT INTO episodes({','.join(row)}) VALUES ({','.join('?' for _ in row)})", tuple(row.values()))
     conn.commit(); before = conn.execute("SELECT * FROM episodes").fetchall(); conn.close()
     actual_migrate = mail_header_index.migrate
@@ -149,7 +151,7 @@ def test_interrupted_v22_backfill_rolls_back_before_successful_retry(tmp_path, m
         assert conn.execute("SELECT name FROM sqlite_schema WHERE name='episode_mail_headers'").fetchall() == []
         assert conn.execute("SELECT * FROM episodes").fetchall() == before
     retried = EpisodeStore(path)
-    assert retried._conn.execute("PRAGMA user_version").fetchone()[0] == 26
+    assert retried._conn.execute("PRAGMA user_version").fetchone()[0] == 27
     assert retried._conn.execute("SELECT episode_id FROM episode_mail_headers").fetchone()[0] == source.id
-    assert [tuple(row) for row in retried._conn.execute("SELECT * FROM episodes")] == before
+    assert [tuple(row) for row in retried._conn.execute("SELECT * FROM episodes")] == [(*row, 0) for row in before]
     retried.close()

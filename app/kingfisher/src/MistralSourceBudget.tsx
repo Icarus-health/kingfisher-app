@@ -57,15 +57,15 @@ export function MistralSourceBudget({refreshKey,disabled=false,onChange}:{refres
   }
   const cap=parseBudgetUsd(draft);
   const notice=budget&&budget.cap_microusd!==0&&budget.blocked_reason!=='budget_busy'?budgetNotice(budget):'';
-  return <div className="mistral-source-budget" aria-label="Kostenlimit für Mistral-Einordnung">
+  return <div className="mistral-source-budget" aria-label="Mistral-Kostenlimit für Quellen und Abläufe">
     {loadError?<p role="status">Der Mistral-Kostenstand ist gerade nicht erreichbar. <button type="button" className="g-knopf-schlicht" disabled={saving} onClick={()=>void load()}>Erneut laden</button></p>
-      :budget?<p><strong>{budget.cap_microusd===0?'Noch kein Kostenlimit freigegeben':`${formatBudgetUsd(budget.remaining_microusd)} verfügbar`}</strong> · nur Mistral-Einordnung</p>
+      :budget?<p><strong>{budget.cap_microusd===0?'Noch kein Kostenlimit freigegeben':`${formatBudgetUsd(budget.remaining_microusd)} verfügbar`}</strong> · Quellen und Abläufe</p>
       :<p role="status">Mistral-Kostenstand wird geladen …</p>}
     {notice?<p className="source-hint" role="status">{notice}</p>:null}
     <details className="quiet-details" open={editing} onToggle={event=>setEditing(event.currentTarget.open)}>
       <summary>Limit und Kosten</summary>
       {budget?<p className="source-hint">Gesamtlimit {formatBudgetUsd(budget.cap_microusd)} · verbraucht {formatBudgetUsd(budget.spent_microusd,true)} · reserviert {formatBudgetUsd(budget.held_microusd,true)}</p>:null}
-      <p>Das Gesamtlimit gilt über alle Mistral-Pakete. Bereits verbrauchte oder reservierte Beträge bleiben erhalten. Modellkosten in USD zum angezeigten Preisstand, ohne Steuern; kein Guthaben beim Anbieter.</p>
+      <p>Das Gesamtlimit gilt gemeinsam für Quellen und Abläufe über alle Mistral-Pakete. Bereits verbrauchte oder reservierte Beträge bleiben erhalten. Modellkosten in USD zum angezeigten Preisstand, ohne Steuern; kein Guthaben beim Anbieter.</p>
       <form onSubmit={event=>void save(event)}>
         <label htmlFor={id}>Neues Gesamtlimit (USD)</label>
         <div className="source-form-actions">

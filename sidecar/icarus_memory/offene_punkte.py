@@ -9,7 +9,8 @@ Richtung (`von_mir` oder `an_mich`, nur bei Mails) und die Entscheidungen des Nu
 
 Wie die Mappe im Gespräch ist die Antwort eine Ansicht: Gespeichert wird nur die Frage, nie ein Zitat; beim Öffnen
 des Gesprächs wird sie neu aus den Akten zusammengestellt (`conversations.py`, `server.py`). Jede Zeile nennt ihre
-Quelle. Die Antwort behauptet nicht, dass etwas offen ist: Es heißt „vermutlich“.
+Quelle. Die Antwort lässt den offenen Stand ausdrücklich ungewiss. Bei eigenen Zusagen benennt der Einstieg
+den Aktenfund und die fehlende spätere Erledigung.
 """
 from __future__ import annotations
 
@@ -130,14 +131,17 @@ def als_text(gesammelt: dict[str, Any], art: str) -> tuple[str, list[dict[str, A
         kopf = (f'Du wartest vermutlich noch auf {"eine Sache" if gesamt == 1 else f"{gesamt} Dinge"} '
                 '(aus deinen Akten; keine spätere Erledigung gefunden):')
     else:
-        kopf = (f'Du hast vermutlich noch {"eine Zusage" if gesamt == 1 else f"{gesamt} Zusagen"} offen '
-                '(aus deinen Akten; keine spätere Erledigung gefunden):')
+        kopf = (f'In deinen Akten {"steht eine eigene Zusage" if gesamt == 1 else f"stehen {gesamt} eigene Zusagen"} '
+                '(keine spätere Erledigung gefunden):')
     zeilen = [kopf]
     for nummer, punkt in enumerate(punkte, 1):
         wann = tag_text(punkt.get('occurred_at') or punkt.get('recorded_at'))
         # Zeilenumbrüche des Originals würden die nummerierte Liste zerreißen: ein Zitat, eine Zeile.
         zitat = ' '.join(str(punkt['text']).split())
         zeilen.append(f'{nummer}. {_wer(punkt)}{f" vom {wann}" if wann else ""}: „{zitat}“ [Quelle {nummer}]')
+        zustaendig = (punkt.get('aufgabe') or {}).get('responsibility_label')
+        if zustaendig:
+            zeilen.append(f'   Bestätigte Zuständigkeit der verknüpften Aufgabe: {zustaendig}.')
         links.append({'episode_id': punkt['episode_id'], 'label': f'Quelle {nummer} öffnen', 'automatic_memory': True})
     if gesamt > len(punkte):
         zeilen.append(f'Die jüngsten {len(punkte)} von {gesamt}; die übrigen stehen in den Akten.')

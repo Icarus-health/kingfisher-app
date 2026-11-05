@@ -61,13 +61,13 @@ test('die Zeile: Kreis mit 44-px-Ziel, Titel als Knopf über die ganze Zeile, ei
   assert.equal(kreis.props.disabled, false);
   assert.equal(text(nodes(baum, n => n.props?.className?.split?.(' ').includes('task-title-link'))[0]), aufgabe.title);
   const meta = nodes(baum, n => n.props?.className === 'task-meta')[0];
-  assert.equal(text(meta), 'FachtagVerlauf ungeprüft', 'Projekt und Hinweis in einer leisen Zeile');
+  assert.equal(text(meta), 'FachtagZuständigkeit: Nicht bestätigtVerlauf ungeprüft', 'Projekt und Hinweis in einer leisen Zeile');
   assert.ok(nodes(baum, n => n.type === 'time' && n.props?.className === 'overdue').length === 1, 'überfällig rechts, rot');
   // Ohne die neuen Angaben bleibt die Liste, wie sie war: Zeilenaktionen da, Projekt aus der Projektliste.
   const inListe = render(() => TaskRow({task: aufgabe, view: 'mine', compact: true, completing: false, onComplete() {}, onOpen() {}, onWait() {},
     projects: [{id: 'p1', name: 'Aus der Liste', open: true}], onProjectChange() {}, onEdit: async () => false}));
   assert.equal(nodes(inListe, n => n.props?.className?.split?.(' ').includes('task-row-actions')).length, 1);
-  assert.equal(text(nodes(inListe, n => n.props?.className === 'task-meta')[0]), 'Aus der Liste');
+  assert.equal(text(nodes(inListe, n => n.props?.className === 'task-meta')[0]), 'Aus der ListeZuständigkeit: Nicht bestätigt');
   const css = quelle('WorkspaceTasks.css');
   assert.match(css, /#root \.task-row \.task-check \{[^}]*width: 44px; height: 44px;/);
 });
@@ -141,7 +141,8 @@ test('Wartet-Punkte: dieselbe Zeile mit „Wartet auf …“; ohne mitgelieferte
   const liste = nodes(render(() => TodayTaskRow({item: wartet, onOpen() {}, onChanged() {}})), n => n.type === TaskRow)[0];
   assert.equal(liste.props.view, 'waiting');
   const zeile = render(() => TaskRow(liste.props));
-  assert.equal(text(nodes(zeile, n => n.props?.className === 'task-meta')[0]), 'Wartet auf Dr. Amann');
+  assert.match(text(nodes(zeile, n => n.props?.className === 'task-meta')[0]), /Wartet auf Dr\. Amann.*Zuständigkeit: Nicht bestätigt/);
+  assert.equal(liste.props.completionAllowed, false);
   const alt = aufgabeAusPunkt({id: 'a9', title: 'Alter Stand', source: 'aufgabe', source_ref: 't9'});
   assert.deepEqual([alt.id, alt.title, alt.status, alt.due], ['t9', 'Alter Stand', 'open', null]);
   assert.equal(aufgabeAusPunkt({...punkt, source_ref: 'anders'}).id, 'anders', 'eine fremde Aufgabe gilt nicht');

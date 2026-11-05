@@ -103,7 +103,15 @@ class Keychain:
         # Only a successfully authenticated exact blob/passphrase may reuse its
         # decoded values. Never expose this private in-memory entry or persist it.
         self._file_cache = None
-        self._backend = self._detect()
+        from .recovery_workspace import read_working_contract
+        recovered = read_working_contract(self._data_dir)
+        if recovered:
+            # Every ordinary/fallback Keychain() in a recovered instance uses
+            # its new encrypted file, never the user's global OS credentials.
+            self._service = SERVICE + '.recovered.' + recovered['restore_id']
+            self._backend = 'file' if os.environ.get(PASSPHRASE_ENV) else 'none'
+        else:
+            self._backend = self._detect()
 
     def _detect(self) -> str:
         """Sucht den besten verfügbaren Speicher.

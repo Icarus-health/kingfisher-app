@@ -3,6 +3,7 @@ from .episodes import AUSGEBLENDETE_ZUSTAENDE, QUELLEN_ARTEN
 from .model import Provenance, SourceType, now
 from .proposals import ProposalError, ProposalKind, ProposalState
 from .task_review import task_context_matches
+from .tasks import CORRECTED_CITATION_REVIEW, TaskRequestConflict
 
 
 class TaskCandidates:
@@ -113,13 +114,21 @@ class TaskCandidates:
                 projekt = Durchlauf(self.tasks, self.episodes, self.proposals, workspace=self.workspace).projekt(
                     candidate, episode)
                 project_id = projekt['project_id'] if projekt else None
-            if new_project_name is not None:
+            # A reanalysis can have a new proposal ID. A shared quotation alone
+            # is ambiguous, so use the accepted proposal's original statement.
+            source_text = None if 'source:truncated' in episode.tags else episode.body
+            proven_retry_id = self._proven_retry_id(candidate, evidence, source_text)
+            create_project = None
+            if proven_retry_id is not None:
+                project_id = None  # Existing task and project assignment are preserved.
+            elif new_project_name is not None:
                 name = new_project_name.strip()
                 if project_id or not 1 <= len(name) <= 200:
                     raise ValueError('Bitte ein vorhandenes oder ein neues Projekt wählen.')
-                project_id = self.workspace.project_from_task_suggestion(candidate.id, name,
-                    Provenance(source_type=SourceType.USER_STATED, source_ref=f'episode:{episode.id}',
-                               captured_at=now(), verbatim=evidence.quote)).id
+                def create_project() -> str:
+                    return self.workspace.project_from_task_suggestion(candidate.id, name,
+                        Provenance(source_type=SourceType.USER_STATED, source_ref=f'episode:{episode.id}',
+                                   captured_at=now(), verbatim=evidence.quote)).id
             if project_id:
                 if not self.workspace.project(project_id).is_open():
                     raise ProposalError('Das Projekt ist inzwischen abgeschlossen. Bitte neu zuordnen.')
@@ -128,9 +137,30 @@ class TaskCandidates:
                 Provenance(source_type=SourceType.USER_STATED, source_ref=f'episode:{episode.id}',
                            captured_at=now(), verbatim=evidence.quote),
                 due=due, project_id=project_id, waiting_for=waiting, person=person, angelegt=angelegt,
+                proven_retry_id=proven_retry_id, create_project=create_project, source_text=source_text,
             )
             self.proposals.accept(candidate.id, produced=task.id)
             return task
+
+    def _proven_retry_id(self, candidate, evidence, source_text):
+        prefix = "t-suggestion-"
+        corrected = self.tasks.corrected_source_citations(f"episode:{evidence.episode_id}", evidence.quote, source_text)
+        if not corrected:
+            return None
+        exact = [task_id for task_id, quote in corrected if quote == evidence.quote]
+        if len(exact) == 1 and exact[0].startswith(prefix):
+            task_id = exact[0]
+            try:
+                original = self.proposals.get(task_id[len(prefix):])
+            except ProposalError:
+                original = None
+            if (original is not None and original.kind is ProposalKind.TASK and original.state is ProposalState.ACCEPTED
+                    and original.produced == task_id and original.statement == candidate.statement
+                    and len(original.evidence) == 1
+                    and original.evidence[0].episode_id == evidence.episode_id
+                    and original.evidence[0].quote == evidence.quote):
+                return task_id
+        raise TaskRequestConflict(CORRECTED_CITATION_REVIEW)
 
     def reject(self, proposal_id):
         with self.lock:

@@ -1,5 +1,15 @@
+import type {Task, TaskListView} from "./api";
+
 type Dated = {due?: string | null};
-type BoardTask = {status?: string; wartet_auf?: string | null};
+type BoardTask = {status?: string; wartet_auf?: string | null} & Partial<Pick<Task, "user_actionable" | "responsibility" | "effective_responsibility">>;
+
+export const projectBoardViews = [
+  {view: "mine", label: "Meine Aufgaben"},
+  {view: "waiting", label: "Wartend"},
+  {view: "done", label: "Erledigt"},
+  {view: "others", label: "Bei anderen"},
+  {view: "unassigned", label: "Zu klären"},
+] as const satisfies ReadonlyArray<{view: TaskListView; label: string}>;
 
 export function groupTasks<T extends Dated>(tasks: T[], now = new Date()) {
   const groups: Array<{label: string; items: T[]}> = [
@@ -21,11 +31,15 @@ export function visibleTaskGroups<T extends Dated>(tasks: T[], now = new Date())
 }
 
 export function projectColumns<T extends BoardTask>(tasks: T[]) {
-  return [
-    {label:'Offen',items:tasks.filter(t=>t.status==='open' && !t.wartet_auf)},
-    {label:'Wartend',items:tasks.filter(t=>t.status==='open' && Boolean(t.wartet_auf))},
-    {label:'Erledigt',items:tasks.filter(t=>t.status==='done')},
-  ];
+  const decision = (task: BoardTask) => task.effective_responsibility ?? task.responsibility?.decision;
+  return projectBoardViews.map(({view, label}) => ({view, label, items: tasks.filter(task => {
+    if (view === "done") return task.status === "done";
+    if (task.status !== "open") return false;
+    if (view === "waiting") return Boolean(task.wartet_auf);
+    if (view === "others") return decision(task) === "person";
+    if (view === "unassigned") return decision(task) === "unknown";
+    return task.user_actionable ?? (!task.wartet_auf && decision(task) !== "person" && decision(task) !== "unknown");
+  })}));
 }
 
 /** Fälligkeit, wie man sie sagt: „Heute“, „Morgen“, „Gestern“, sonst „2. Okt.“ (mit Jahr, wenn es ein anderes ist). */
@@ -39,6 +53,19 @@ export function dueLabel(value: string | null, now = new Date()) {
   if (days === 1) return "Morgen";
   if (days === -1) return "Gestern";
   return new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() ? {year: "numeric"} : {}) }).format(date);
+}
+
+/** Gespeicherte Uhrzeit in der Gerätezeitzone; keine abgeleitete Quellengenauigkeit. */
+export function dueTimeLabel(value: string | null) {
+  if (!value || !/[T ]\d{2}:\d{2}/.test(value)) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${new Intl.DateTimeFormat("de-DE", {hour: "2-digit", minute: "2-digit"}).format(date)} Uhr`;
+}
+
+export function dueDateTimeLabel(value: string | null, now = new Date()) {
+  const clock = dueTimeLabel(value);
+  return `${dueLabel(value, now)}${clock ? ` · ${clock}` : ""}`;
 }
 
 /** Die Zeile unter „Aufgaben“: wie viele Aufgaben heute dran oder überfällig sind.

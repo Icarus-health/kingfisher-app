@@ -1,0 +1,114 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_known_analysis_gap_survives_other_unverified_inventory[unstarted_archive] _
+
+intake_session = (<fastapi.applications.FastAPI object at 0x10a9333b0>, <starlette.testclient.TestClient object at 0x10a7bf110>, <icaru...xample.invalid"],"sender":"writer@example.invalid","project_id":null,"context":"[siehe text]"}]}'}]], 'e-8da2d4bc753e')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a71d760>
+unknown_inventory = 'unstarted_archive'
+
+    @pytest.mark.parametrize('unknown_inventory', ['unstarted_archive', 'disabled_account'])
+    def test_known_analysis_gap_survives_other_unverified_inventory(intake_session, monkeypatch, unknown_inventory):
+        app, client, intake, box, calls, original_id = intake_session
+        box.release = True
+        intake.retry(ACCOUNT)
+        unclassified = intake.step(ACCOUNT, box)
+        assert len(unclassified) == 2
+        if unknown_inventory == 'unstarted_archive':
+            assert intake.ergaenzen(ACCOUNT, ['Archive']) == ['Archive']
+            folders = {folder['folder']: folder for folder in intake.status(ACCOUNT)['folders']}
+            assert not folders['Archive']['inventory_complete']
+        else:
+            app.state.settings.mail_accounts.append(MailAccountSettings(
+                id='synthetic-disabled', imap_host='synthetic.example.invalid',
+                user='disabled@example.invalid', enabled=False))
+            folders = {folder['folder']: folder for folder in intake.status(ACCOUNT)['folders']}
+        inbox = folders['INBOX']
+        assert (inbox['inventory_complete'], inbox['captured'], inbox['analyzed']) == (True, 3, 1)
+        assert (inbox['pending'], inbox['failed']) == (0, 0)
+
+        def forbid_intake_work(*args, **kwargs):
+            pytest.fail('Conversation must not call intake maintenance or a mail connector.')
+
+        monkeypatch.setattr(Intake, 'status', forbid_intake_work)
+        monkeypatch.setattr(Intake, 'step', forbid_intake_work)
+        monkeypatch.setattr(app.state.mail, 'reader_for', forbid_intake_work)
+        body_requests = list(box.body_requests)
+        url = '/api/v1/conversations/' + _conversation(client)
+        posted = read(client.post(url + '/messages', json={'message': QUESTION, 'answer_mode': 'memory_evidence'}), 201)
+        changes = intake.db.total_changes
+        reopened = read(client.get(url))
+        assert intake.db.total_changes == changes
+        assert box.body_requests == body_requests and len(calls) == 1
+        for payload in (posted, reopened):
+            message = payload['messages'][-1]
+            context = message['metadata']['context']
+            assert context['answer_contract']['status'] == 'working_reports'
+            assert context['source_links'][0]['episode_id'] == original_id
+            assert ORIGINAL in message['content']
+            notice = context['mail_intake_notice']
+            assert notice == payload['context']['mail_intake_notice']
+>           assert 'noch nicht eingeordnet' in notice
+E           AssertionError: assert 'noch nicht eingeordnet' in 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+
+sidecar/tests/test_intake_coverage_recall.py:197: AssertionError
+_ test_known_analysis_gap_survives_other_unverified_inventory[disabled_account] _
+
+intake_session = (<fastapi.applications.FastAPI object at 0x10c76aa80>, <starlette.testclient.TestClient object at 0x10c76ad80>, <icaru...xample.invalid"],"sender":"writer@example.invalid","project_id":null,"context":"[siehe text]"}]}'}]], 'e-e427912b81ac')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a7c03b0>
+unknown_inventory = 'disabled_account'
+
+    @pytest.mark.parametrize('unknown_inventory', ['unstarted_archive', 'disabled_account'])
+    def test_known_analysis_gap_survives_other_unverified_inventory(intake_session, monkeypatch, unknown_inventory):
+        app, client, intake, box, calls, original_id = intake_session
+        box.release = True
+        intake.retry(ACCOUNT)
+        unclassified = intake.step(ACCOUNT, box)
+        assert len(unclassified) == 2
+        if unknown_inventory == 'unstarted_archive':
+            assert intake.ergaenzen(ACCOUNT, ['Archive']) == ['Archive']
+            folders = {folder['folder']: folder for folder in intake.status(ACCOUNT)['folders']}
+            assert not folders['Archive']['inventory_complete']
+        else:
+            app.state.settings.mail_accounts.append(MailAccountSettings(
+                id='synthetic-disabled', imap_host='synthetic.example.invalid',
+                user='disabled@example.invalid', enabled=False))
+            folders = {folder['folder']: folder for folder in intake.status(ACCOUNT)['folders']}
+        inbox = folders['INBOX']
+        assert (inbox['inventory_complete'], inbox['captured'], inbox['analyzed']) == (True, 3, 1)
+        assert (inbox['pending'], inbox['failed']) == (0, 0)
+
+        def forbid_intake_work(*args, **kwargs):
+            pytest.fail('Conversation must not call intake maintenance or a mail connector.')
+
+        monkeypatch.setattr(Intake, 'status', forbid_intake_work)
+        monkeypatch.setattr(Intake, 'step', forbid_intake_work)
+        monkeypatch.setattr(app.state.mail, 'reader_for', forbid_intake_work)
+        body_requests = list(box.body_requests)
+        url = '/api/v1/conversations/' + _conversation(client)
+        posted = read(client.post(url + '/messages', json={'message': QUESTION, 'answer_mode': 'memory_evidence'}), 201)
+        changes = intake.db.total_changes
+        reopened = read(client.get(url))
+        assert intake.db.total_changes == changes
+        assert box.body_requests == body_requests and len(calls) == 1
+        for payload in (posted, reopened):
+            message = payload['messages'][-1]
+            context = message['metadata']['context']
+            assert context['answer_contract']['status'] == 'working_reports'
+            assert context['source_links'][0]['episode_id'] == original_id
+            assert ORIGINAL in message['content']
+            notice = context['mail_intake_notice']
+            assert notice == payload['context']['mail_intake_notice']
+>           assert 'noch nicht eingeordnet' in notice
+E           AssertionError: assert 'noch nicht eingeordnet' in 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.'
+
+sidecar/tests/test_intake_coverage_recall.py:197: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../../private/tmp/kf-core-20261104-env/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /private/tmp/kf-core-20261104-env/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_intake_coverage_recall.py::test_known_analysis_gap_survives_other_unverified_inventory[unstarted_archive]
+FAILED sidecar/tests/test_intake_coverage_recall.py::test_known_analysis_gap_survives_other_unverified_inventory[disabled_account]
+2 failed, 5 deselected, 1 warning in 1.83s

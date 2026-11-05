@@ -53,6 +53,59 @@ def prepare(client,source):
 def accept_payload(result,item,**kwargs):
     return {'fingerprint':result['fingerprint'],'source_digest':result['source_digest'],'title':'Belege prüfen',**kwargs}
 
+def confirmed_candidate(app, *, own=False, quote='Bitte prüfe die Belege.', at=None):
+    from icarus_memory.proposals import ProposalKind
+    from icarus_memory.task_review import current_task_context, REVIEW_MARKER
+    app.state.settings.mail_accounts=[SimpleNamespace(id='own',user='lena.probe@example.org')]
+    sender,recipient=('Lena Probe','lena.probe@example.org'),('Anna Berg','anna.berg@example.org')
+    if not own: sender,recipient=recipient,sender
+    source=app.state.episodes.record(EpisodeKind.MESSAGE,'Belege',quote,
+        Provenance(source_type=SourceType.EMAIL),occurred_at=at or datetime.now(timezone.utc),
+        contacts=[{'rolle':'von','name':sender[0],'adresse':sender[1]},
+                  {'rolle':'an','name':recipient[0],'adresse':recipient[1]}])[0]
+    with app.state.proposals.transaction():
+        app.state.proposals._record_task_candidates(source.id,source.digest,
+            [{'title':'Belege prüfen','quote':quote}],proposed_by='test/local'+REVIEW_MARKER,
+            task_context=current_task_context(app.state.episodes,source.id))
+    item=next(p for p in app.state.proposals.pending(ProposalKind.TASK) if p.evidence[0].episode_id==source.id)
+    return source,item
+
+def test_saved_candidate_exposes_source_deadline_and_counterparty_without_model(env,monkeypatch):
+    from zoneinfo import ZoneInfo
+    from icarus_memory import aufgaben_von_selbst
+    monkeypatch.setattr(aufgaben_von_selbst,'user_timezone',lambda:ZoneInfo('Europe/Berlin'))
+    app,client,_,calls,_=env
+    source,_=confirmed_candidate(app,quote='Bitte prüfe die Belege bis 30.11.2026 um 14:30 Uhr.')
+    view=client.get(root(source)).json();item=view['items'][0]
+    assert item.get('frist_vorschlag')=='2026-11-30T14:30:00+01:00'
+    assert item['person_vorschlag']=={'adresse':'anna.berg@example.org','name':'Anna Berg'}
+    assert item['review_required'] is False and calls==[]
+
+def test_saved_own_commitment_links_recipient_instead_of_the_user(env):
+    app,client,_,calls,_=env
+    source,item=confirmed_candidate(app,own=True,quote='Ich prüfe die Belege.')
+    view=client.get(root(source)).json()
+    response=client.post(root(source)+f'/tasks/{item.id}/accept',json=accept_payload(view,item))
+    assert response.status_code==200,response.text
+    assert response.json()['person']=={'adresse':'anna.berg@example.org','name':'Anna Berg'}
+    assert calls==[]
+
+def test_account_identity_change_invalidates_saved_mail_confirmation(env):
+    app,client,_,_,_=env
+    source,item=confirmed_candidate(app,own=True,quote='Ich prüfe die Belege.')
+    view=client.get(root(source)).json()
+    app.state.settings.mail_accounts=[]
+    response=client.post(root(source)+f'/tasks/{item.id}/accept',json=accept_payload(view,item))
+    assert response.status_code==409,response.text
+    assert app.state.tasks.all_tasks()==[]
+
+def test_saved_candidate_does_not_suggest_a_meeting_as_deadline(env):
+    app,client,_,calls,_=env
+    source,_=confirmed_candidate(app,quote='Bitte prüfe die Belege. Unsere Besprechung ist am 30.11.2026 um 14:30 Uhr.')
+    item=client.get(root(source)).json()['items'][0]
+    assert 'frist_vorschlag' in item and item['frist_vorschlag'] is None
+    assert calls==[]
+
 def test_get_never_calls_model_or_provider_and_preparation_reuses_result(env):
     app,client,source,calls,_=env
     initial=client.get(root(source))

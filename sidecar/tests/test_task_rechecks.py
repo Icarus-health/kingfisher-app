@@ -92,13 +92,14 @@ def test_v20_upgrade_preserves_sources_and_seeds_changed_generations(tmp_path):
     row = dict(store._conn.execute('SELECT * FROM episodes WHERE id=?', (episode.id,)).fetchone())
     store.close()
     conn = sqlite3.connect(path)
+    row.pop('recall_archive_generation')
     fields = list(row); row['support_generation'] = 3
     conn.execute(f"INSERT INTO episodes ({','.join(fields)}) VALUES ({','.join('?' for _ in fields)})", tuple(row[f] for f in fields))
     conn.commit(); before = conn.execute('SELECT * FROM episodes').fetchall(); conn.close()
     upgraded = EpisodeStore(path)
     try:
-        assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0] == 26
-        assert [tuple(r) for r in upgraded._conn.execute('SELECT * FROM episodes')] == before
+        assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0] == 27
+        assert [tuple(r) for r in upgraded._conn.execute('SELECT * FROM episodes')] == [(*row, 0) for row in before]
         [pending] = upgraded.task_rechecks()
         assert pending['id'] == episode.id and pending['generation'] == 3
     finally:

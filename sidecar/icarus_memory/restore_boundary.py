@@ -28,7 +28,10 @@ class RestorePending(RuntimeError):
 def pending(directory):
     path = Path(directory) / MARKER
     # Even a malformed or dangling marker is a restriction, never a release.
-    return path.exists() or path.is_symlink()
+    if not path.exists() and not path.is_symlink():
+        return False
+    from .recovery_workspace import read_working_contract
+    return read_working_contract(directory) is None
 
 
 def mark_pending(directory, reason):

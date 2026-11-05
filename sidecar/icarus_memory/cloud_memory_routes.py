@@ -23,6 +23,7 @@ class PreviewIn(BaseModel):
     source_ids: list[str] | None = Field(default=None, max_length=1000)
     limit: int | None = Field(default=None, ge=1, le=1000)
     cursor: int | None = Field(default=None, ge=1)
+    include_tasks: StrictBool = False
 
 
 class StartIn(BaseModel):
@@ -108,9 +109,17 @@ def register(app, guard, data_dir, provider_factory):
                                         getattr(app.state, "runtime_boundary", None),
                                         api_provider_factory=build_api_provider, credential_status=api_credential,
                                         source_screen=lambda episode: classify_episode(episode, policy(app.state.settings)),
-                                        mistral_budget=source_budget)
+                                        mistral_budget=source_budget,
+                                        proposals=getattr(app.state, 'proposals', None),
+                                        tasks=getattr(app.state, 'tasks', None))
                 app.state.cloud_memory_jobs = value
             return value
+
+    # Shared cumulative allowance and credential factory, not a new grant.
+    # Consumers must provide their own exact reviewed-data capability.
+    app.state.mistral_source_budget_factory = source_budget
+    app.state.mistral_source_provider_factory = build_api_provider
+    app.state.mistral_source_credential = lambda: api_credential('mistral')
 
     def invoke(function, *args, **kwargs):
         try:
@@ -140,7 +149,8 @@ def register(app, guard, data_dir, provider_factory):
 
     @app.post("/api/v1/memory/cloud/preview", dependencies=guard)
     def preview(body: PreviewIn):
-        return invoke(lambda: manager().preview(body.purpose, body.source_ids, body.limit, body.cursor, provider=body.provider))
+        return invoke(lambda: manager().preview(body.purpose, body.source_ids, body.limit, body.cursor,
+                                               provider=body.provider, include_tasks=body.include_tasks))
 
     @app.post("/api/v1/memory/cloud/start", dependencies=guard)
     def start(body: StartIn):

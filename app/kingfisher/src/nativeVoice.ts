@@ -1,3 +1,4 @@
+import {setDraftRecording, draftLeaveLocked} from './conversationDraftActivity.ts';
 import type {Message} from './api.ts';
 import {belegStand, OHNE_BELEG} from './beleg.ts';
 import {gueltigeQuellen} from './quellenWeg.ts';
@@ -33,10 +34,11 @@ export const emptyVoice: VoiceState={phase:'idle',partial:'',notice:'',dictation
 type Request={aktion:string;id:string;text?:string};
 type Options={post:(body:Request)=>boolean;newId:()=>string;active:()=>boolean;changed:(state:VoiceState)=>void};
 export function createVoiceSession(options:Options) {
+  const recordingOwner=Symbol();
   let state={...emptyVoice}, alive=true, query='', id='', mode:'draft'|'read'|null=null, generation=0;
   let base='', accept:((text:string)=>void)|null=null;
   let fetchAbort:AbortController|null=null;
-  const change=(patch:Partial<VoiceState>)=>{state={...state,...patch};if(alive)options.changed({...state});};
+  const change=(patch:Partial<VoiceState>)=>{state={...state,...patch};setDraftRecording(recordingOwner,['authorizing','listening','finishing'].includes(state.phase));if(alive)options.changed({...state});};
   const post=(aktion:string,text?:string)=>options.post({aktion,id,...(text!==undefined ? {text} : {})});
   function cancel(){
     generation++;fetchAbort?.abort();fetchAbort=null;
@@ -48,7 +50,7 @@ export function createVoiceSession(options:Options) {
   return {
     probe(){if(!alive || !options.active())return;query=options.newId();options.post({aktion:'spracheStatus',id:query});},
     startDraft(value:string,commit:(text:string)=>void){
-      if(!alive || !options.active() || !state.dictationAvailable)return;
+      if(!alive || !options.active() || !state.dictationAvailable || draftLeaveLocked())return;
       cancel();id=options.newId();mode='draft';base=value;accept=commit;change({phase:'authorizing'});
       if(!post('spracheStart'))fail('Diktieren ist in diesem Fenster nicht verfügbar.');
     },

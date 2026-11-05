@@ -1,0 +1,2778 @@
+{
+  "version": 1,
+  "suite": "memory-acceptance-independent-heldout-mail-20261104-v2",
+  "synthetic_only": true,
+  "clock": "2026-11-04T16:00:00+01:00",
+  "timezone": "Europe/Berlin",
+  "owner": {
+    "name": "Jona Seidel",
+    "address": "jona@atelier-kiesel.example"
+  },
+  "mails": [
+    {
+      "id": "E01-01",
+      "sender": {
+        "name": "Rika Urban",
+        "address": "rika@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Kiesel: Bildauswahl",
+      "body": "Jona, bitte sende mir die Bildauswahl für die Ausstellung Kiesel bis 9. November 2026 um 17 Uhr Berliner Zeit. Die Hängung besprechen wir später.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Bildauswahl",
+        "due": "2026-11-09T17:00:00+01:00",
+        "person": "rika@halle-kiesel.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-02",
+      "sender": {
+        "name": "Rika Urban",
+        "address": "rika@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Begehung jetzt am 12. November",
+      "body": "Die Begehung der Ausstellung Kiesel verschiebt sich vom 10. auf den 12. November 2026, 11 Uhr. Die Abgabe der Bildauswahl am 9. November um 17 Uhr bleibt unverändert. Für die Begehung ist keine Bestätigung nötig.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-03",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Piet Holm",
+          "address": "piet@druck-kiesel.example"
+        }
+      ],
+      "title": "Zusage an die Druckerei",
+      "body": "Hallo Piet, ich sende dir die Wandtexte für Kiesel bis 6. November 2026 um 14 Uhr. Beste Grüße, Jona",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Wandtexte",
+        "due": "2026-11-06T14:00:00+01:00",
+        "person": "piet@druck-kiesel.example"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E01-04",
+      "sender": {
+        "name": "Piet Holm",
+        "address": "piet@druck-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Papiermuster sind angekommen",
+      "body": "Die Papiermuster für Kiesel sind angekommen. Das bestätigt nur den Eingang der Muster, nicht den Eingang der Wandtexte. Für die Muster ist keine weitere Handlung erforderlich.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-05",
+      "sender": {
+        "name": "Oda Kreis",
+        "address": "oda@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Bente Jung",
+          "address": "bente@halle-kiesel.example"
+        },
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Verteilung für den Aufbau",
+      "body": "Jona erhält diese Nachricht zur Kenntnis. Bente, bitte bringe bis 8. November 2026 die weißen Sockel zur Halle. Ich, Oda, übernehme die Stromprüfung am 9. November. Jona hat in dieser Verteilung keine Aufgabe.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-06",
+      "sender": {
+        "name": "Rika Urban",
+        "address": "rika@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Kiesel 2022: altes Protokoll",
+      "body": "Aus dem abgeschlossenen Projekt Kiesel 2022: Jona musste die Bildauswahl am 4. November 2022 abgeben; sie wurde am 3. November 2022 vollständig abgegeben. Das ist nur ein Archivvermerk.",
+      "at": "2022-11-05T09:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-07",
+      "sender": {
+        "name": "Rika Urban",
+        "address": "rika@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Abbau bitte planen",
+      "body": "Jona, bitte erstelle den Abbauplan für Kiesel. Wir haben dafür noch keinen Abgabetermin vereinbart; der Ausstellungsschluss am 30. November ist kein festgelegter Plantermin.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Abbauplan",
+        "due": null,
+        "person": "rika@halle-kiesel.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-08",
+      "sender": {
+        "name": "Hallendienst",
+        "address": "noreply@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Öffnungszeiten November",
+      "body": "Die Halle Kiesel ist dienstags bis sonntags von 10 bis 18 Uhr geöffnet. Montags bleibt sie geschlossen. Diese Übersicht ist keine Einladung und keine Aufgabe.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-09",
+      "sender": {
+        "name": "Piet Holm",
+        "address": "piet@druck-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Option für einen Katalog",
+      "body": "Falls ihr einen gedruckten Katalog möchtet, können wir ein Angebot machen. Es wurde noch kein Katalog beauftragt; bitte jetzt keine Druckdaten erstellen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E01-10",
+      "sender": {
+        "name": "Oda Kreis",
+        "address": "oda@halle-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Lagervermerk Kiesel",
+      "body": "Die gepolsterten Transportkisten der Ausstellung Kiesel stehen in Raum N2. Die Glashauben stehen in Raum N3. Dieser Vermerk ändert keine Lieferfrist.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-01",
+      "sender": {
+        "name": "Dana Voß",
+        "address": "dana@stadtmuseum-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Vitrinenetiketten für Rohr",
+      "body": "Jona, bitte sende mir die Vitrinenetiketten für das Stadtmuseum Rohr bis 10. November 2026 um 16 Uhr. Dana Voß, Sammlung Rohr",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Vitrinenetiketten",
+        "due": "2026-11-10T16:00:00+01:00",
+        "person": "dana@stadtmuseum-rohr.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-02",
+      "sender": {
+        "name": "Dana Voß",
+        "address": "dana@radgruppe-aue.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Ausfahrt ohne Anmeldung",
+      "body": "Hier schreibt Dana Voß aus der Radgruppe Aue. Unsere offene Ausfahrt startet am 15. November um 09 Uhr am Brunnen. Keine Anmeldung, keine Rückmeldung nötig; das hat nichts mit dem Stadtmuseum zu tun.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-03",
+      "sender": {
+        "name": "Deniz Rott",
+        "address": "deniz.alt@werkstatt-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Meine neue Adresse",
+      "body": "Hallo Jona, ich, Deniz Rott aus der Werkstatt Rohr, benutze ab heute deniz.neu@werkstatt-rohr.example. Die alte Adresse deniz.alt@werkstatt-rohr.example gehört weiterhin mir. Bitte ordne beide meinen bisherigen Werkstatt-Absprachen zu.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Werkstatt-Absprachen",
+        "person": "deniz.alt@werkstatt-rohr.example",
+        "due": null
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-04",
+      "sender": {
+        "name": "Deniz Rott",
+        "address": "deniz.neu@werkstatt-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Leihrahmen zurück",
+      "body": "Jona, wie über meine alte Werkstatt-Adresse besprochen: Bitte gib mir die drei Leihrahmen bis 13. November 2026 zurück. Deniz",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Leihrahmen",
+        "due": "2026-11-13T23:59:00+01:00",
+        "person": "deniz.neu@werkstatt-rohr.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-05",
+      "sender": {
+        "name": "Deniz Rott",
+        "address": "deniz@schachverein-ost.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Schachrunde",
+      "body": "Ich bin Deniz Rott vom Schachverein Ost. Die Partie am Samstag entfällt. Ich bin nicht der gleichnamige Deniz Rott aus der Werkstatt Rohr; wir sind zwei verschiedene Personen. Kein Ersatztermin vereinbart.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-06",
+      "sender": {
+        "name": "Museum Poststelle",
+        "address": "poststelle@stadtmuseum-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Automatische Empfangsquittung",
+      "body": "Ihre Nachricht wurde an die Sammlung weitergeleitet. Die Signatur der Poststelle lautet Dana Voß, Verwaltung. Diese automatisch erzeugte Empfangsquittung bestätigt weder einen Auftrag noch die Abgabe der Vitrinenetiketten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-07",
+      "sender": {
+        "name": "Karla Eder",
+        "address": "karla@stadtmuseum-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Rückfrage zu den Namen",
+      "body": "Zur Orientierung: Dana Voß betreut hier die Sammlung Rohr. Dana Voß aus der Radgruppe Aue ist eine andere Person. Karla Eder",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-08",
+      "sender": {
+        "name": "Dana Voß",
+        "address": "dana@stadtmuseum-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Nur Leserechte",
+      "body": "Der Vitrinenordner ist für dich freigegeben. Eine Abnahme der Etiketten ist damit nicht verbunden. Keine zusätzliche Aufgabe aus dieser Freigabemail.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-09",
+      "sender": {
+        "name": "Deniz Rott",
+        "address": "deniz.neu@werkstatt-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Ablage des Rahmenprotokolls",
+      "body": "Das Rahmenprotokoll der Werkstatt Rohr liegt im Ordner Metall/Leihgaben. Die Schraubenliste gehört nicht dazu und liegt im Ordner Verbrauch.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E02-10",
+      "sender": {
+        "name": "Archiv Rohr",
+        "address": "archiv@stadtmuseum-rohr.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Namensliste 2019",
+      "body": "Historische Liste von 2019: Dana Voß war damals Mitglied im Chor Tal. Daraus lässt sich keine heutige E-Mail-Adresse ableiten. Die Liste enthält kein Geburtsdatum.",
+      "at": "2019-06-12T08:00:00+02:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-01",
+      "sender": {
+        "name": "Malte Fink",
+        "address": "malte@netzwerk-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "FW: Messkoffer, nur zur Kenntnis",
+      "body": "Jona, nur zur Kenntnis, nicht an dich delegiert.\n--- Originalnachricht ---\nVon: Sina Ahr <sina@labor-linde.example>\nAn: Uwe Dorn <uwe@labor-linde.example>\nDatum: 2. November 2026\nUwe, prüfe bitte den Messkoffer bis 8. November 2026.\nSina",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-02",
+      "sender": {
+        "name": "Malte Fink",
+        "address": "malte@netzwerk-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Bitte Versand übernehmen",
+      "body": "Jona, Uwe prüft weiterhin den Messkoffer. Übernimm du bitte nur den Versand des geprüften Koffers bis 11. November 2026 um 10 Uhr. Die Prüfung wird nicht an dich übertragen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Versand",
+        "due": "2026-11-11T10:00:00+01:00",
+        "person": "malte@netzwerk-linde.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-03",
+      "sender": {
+        "name": "Sina Ahr",
+        "address": "sina@labor-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Zwei Punkte für dich",
+      "body": "Jona, bitte bestätige mir bis 6. November 2026 um 13 Uhr die Abholadresse. Schicke mir außerdem bis 9. November 2026 um 09 Uhr das Versandetikett. Das sind zwei getrennte Aufgaben.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "review",
+        "anchor": "Abholadresse",
+        "due": null
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-04",
+      "sender": {
+        "name": "Uwe Dorn",
+        "address": "uwe@labor-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Prüfung angekündigt",
+      "body": "Ich plane, den Messkoffer am 7. November zu prüfen. Er ist noch nicht geprüft. Uwe",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-05",
+      "sender": {
+        "name": "Malte Fink",
+        "address": "malte@netzwerk-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "FW: Rechnung aus 2021",
+      "body": "Zum Archiv, bitte nichts zahlen.\nVon: Sina Ahr <sina@labor-linde.example>\nDatum: 4. Mai 2021\nJona, die Laborrechnung ist bis 12. Mai 2021 zu zahlen.\n--- Zusatz 2021: Rechnung storniert und Vorgang geschlossen. ---",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-06",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Malte Fink",
+          "address": "malte@netzwerk-linde.example"
+        }
+      ],
+      "title": "Frage an Malte zur Verpackung",
+      "body": "Malte, kannst du mir bis 5. November 2026 die Maße der Mehrwegbox nennen? Ich habe dir damit keine Zusage gemacht, die Box zu beschaffen. Jona",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E03-07",
+      "sender": {
+        "name": "Labor Postfach",
+        "address": "noreply@labor-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Automatische Abwesenheit",
+      "body": "Sina Ahr ist bis 12. November abwesend. Uwe Dorn vertritt sie bei allgemeinen Fragen. Diese Notiz überträgt bestehende persönliche Aufgaben nicht automatisch.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-08",
+      "sender": {
+        "name": "Sina Ahr",
+        "address": "sina@labor-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Versandadresse bestätigt",
+      "body": "Der Messkoffer geht an Labor Linde, Tor 4. Die Rechnungsadresse bleibt Haus 2. Tor 4 ist eine Versandadresse, keine Zimmernummer für die Besprechung.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-09",
+      "sender": {
+        "name": "Malte Fink",
+        "address": "malte@netzwerk-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Entwurf ohne Auftrag",
+      "body": "Entwurf für eine mögliche Erweiterung: Jona könnte später die Kalibrierung übernehmen. Das wurde noch nicht vereinbart; die Kalibrierung gehört nicht zu deinen aktuellen Aufgaben.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E03-10",
+      "sender": {
+        "name": "Sina Ahr",
+        "address": "sina@labor-linde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Alte Signatur",
+      "body": "Zur Pflege der Kontaktdaten: Meine alte Signatur enthielt die Adresse von Malte Fink. Sie war ein weitergeleiteter Bürotext, keine Aussage, dass Malte und ich dieselbe Person sind.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-01",
+      "sender": {
+        "name": "Konto Dienst",
+        "address": "konto@lieferkiste.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Rechnung LK-482 offen",
+      "body": "Jona Seidel, Ihre Rechnung LK-482 über 118,70 EUR ist noch offen. Zahlen Sie bitte bis 14. November 2026. Diese Nachricht wurde automatisch erstellt. Kontodaten werden ausschließlich in Ihrem bestehenden Kundenportal angezeigt.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "118,70",
+        "due": "2026-11-14T23:59:00+01:00"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-02",
+      "sender": {
+        "name": "Paketstatus",
+        "address": "noreply@lieferkiste.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Sendung LK-482 geliefert",
+      "body": "Die Sendung zur Rechnung LK-482 wurde zugestellt. Der Versanddienst kennt den Zahlungsstatus nicht. Eine Zustellung ist keine Zahlungsbestätigung.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-03",
+      "sender": {
+        "name": "Mahnungsdienst",
+        "address": "konto@bibliothek-nebel.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Entliehenes Buch verlängern oder zurückgeben",
+      "body": "Jona Seidel, das Buch Karten der Küste, Ausleihe BN-27, ist spätestens am 17. November 2026 zurückzugeben oder zu verlängern. Dies ist eine automatische Erinnerung; genau eine dieser beiden Möglichkeiten genügt.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Karten der Küste",
+        "due": "2026-11-17T23:59:00+01:00"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-04",
+      "sender": {
+        "name": "Fachbrief Redaktion",
+        "address": "redaktion@materialkunde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Monatsbrief: Pflicht für angemeldete Aussteller",
+      "body": "Hinweis für bereits angemeldete Aussteller der Materialtage: Das Messeteam muss Sicherheitsnachweise bis 18. November 2026 erhalten. Jona Seidel, Ihre Ausstelleranmeldung MT-82 ist bestätigt; reichen Sie Ihren Sicherheitsnachweis bis dahin ein. Für reine Leser gilt das nicht.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Sicherheitsnachweis",
+        "due": "2026-11-18T23:59:00+01:00",
+        "person": "redaktion@materialkunde.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-05",
+      "sender": {
+        "name": "Ideenpost Redaktion",
+        "address": "redaktion@ideenpost.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Freiwilliger Fotowettbewerb",
+      "body": "Sie können freiwillig ein Foto bis 19. November 2026 einsenden und einen Kalender gewinnen. Eine Teilnahme ist nicht vorausgesetzt, es besteht kein Auftrag und keine Antwortpflicht.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-06",
+      "sender": {
+        "name": "Portal Wartung",
+        "address": "noreply@portal-ost.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Wartungsfenster",
+      "body": "Das Portal Ost ist am 8. November 2026 von 02 bis 03 Uhr nicht erreichbar. Ihre Daten bleiben gespeichert. Es ist keine Aktion erforderlich.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-07",
+      "sender": {
+        "name": "Schließfachsystem",
+        "address": "noreply@paketfach.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Paketfach PF-63 läuft aus",
+      "body": "Jona Seidel, holen Sie Sendung PF-63 bitte spätestens am 7. November 2026 um 20 Uhr Berliner Zeit aus dem Paketfach ab. Danach wird sie zurückgesendet. Es ist kein Briefporto nachzuzahlen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "PF-63",
+        "due": "2026-11-07T20:00:00+01:00"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-08",
+      "sender": {
+        "name": "Konto Dienst",
+        "address": "konto@lieferkiste.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Andere Rechnung LK-479 storniert",
+      "body": "Die Rechnung LK-479 wurde storniert und muss nicht bezahlt werden. Diese Stornierung betrifft ausschließlich LK-479, nicht die Rechnung LK-482.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-09",
+      "sender": {
+        "name": "Ticketdienst",
+        "address": "noreply@materialtage.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Kaufbeleg Materialtage",
+      "body": "Ihre Eintrittskarte für die Materialtage wurde bezahlt. Dieser Beleg betrifft nur die Eintrittskarte, nicht den separat einzureichenden Sicherheitsnachweis.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E04-10",
+      "sender": {
+        "name": "Fachbrief Redaktion",
+        "address": "redaktion@materialkunde.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Redaktionelle Notiz",
+      "body": "Ein früheres Heft nannte 2025 eine Abgabe zum 21. November. Diese Archivnotiz gilt nicht für die Materialtage 2026. Sie enthält keine Änderung der aktuellen Frist.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-01",
+      "sender": {
+        "name": "Luzia Kern",
+        "address": "luzia@tagung-schilf.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Abstract und Veranstaltung",
+      "body": "Jona, bitte reiche dein Abstract für die Tagung Schilf bis 16. November 2026 um 12 Uhr Berliner Zeit ein. Die Tagung selbst findet am 3. Dezember statt. Luzia",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Abstract",
+        "due": "2026-11-16T12:00:00+01:00",
+        "person": "luzia@tagung-schilf.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-02",
+      "sender": {
+        "name": "Tagungsbüro",
+        "address": "buero@tagung-schilf.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Tagung um einen Tag verlegt",
+      "body": "Die Tagung Schilf wird vom 3. auf den 4. Dezember 2026 verlegt. Die Abstractfrist 16. November bleibt unverändert; ein neues Abstract ist wegen des neuen Veranstaltungstags nicht erforderlich.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-03",
+      "sender": {
+        "name": "Hotel Moos",
+        "address": "buchung@hotel-moos.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Buchung HM-52 bestätigt",
+      "body": "Für Jona Seidel ist ein Zimmer vom 3. bis 5. Dezember 2026 verbindlich gebucht. Buchungsnummer HM-52. Der Zugang zum Zimmer erfolgt an der Rezeption; eine zusätzliche Bestätigung ist nicht erforderlich.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-04",
+      "sender": {
+        "name": "Hotel Moos",
+        "address": "buchung@hotel-moos.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Buchung HM-52 kostenfrei storniert",
+      "body": "Die Zimmerbuchung HM-52 für 3. bis 5. Dezember 2026 wurde kostenfrei storniert. Es gibt aus HM-52 kein gebuchtes Zimmer mehr. Andere Buchungen sind davon nicht betroffen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-05",
+      "sender": {
+        "name": "Gästehaus Moor",
+        "address": "reservierung@gaestehaus-moor.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Neue Buchung GM-18",
+      "body": "Jona Seidel, bestätigt ist Ihr Zimmer GM-18 für 3. bis 5. Dezember 2026 im Gästehaus Moor. Frühstück ist enthalten. Sie brauchen nicht zu antworten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-06",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Luzia Kern",
+          "address": "luzia@tagung-schilf.example"
+        }
+      ],
+      "title": "Zug noch nicht gebucht",
+      "body": "Hallo Luzia, ich habe noch keine Bahnfahrkarte zur Tagung Schilf gekauft. Ich möchte die Verbindung erst prüfen; einen Kauf habe ich niemandem zugesagt. Jona",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E05-07",
+      "sender": {
+        "name": "Luzia Kern",
+        "address": "luzia@tagung-schilf.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Vortragstitel für das Programm",
+      "body": "Bitte schicke mir bis 11. November 2026 um 18 Uhr den endgültigen Vortragstitel, Jona. Das Abstract ist ein eigenes Dokument und hat seine separate Frist.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Vortragstitel",
+        "due": "2026-11-11T18:00:00+01:00",
+        "person": "luzia@tagung-schilf.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-08",
+      "sender": {
+        "name": "Fahrplanauskunft",
+        "address": "noreply@fahrplan.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Unverbindliche Verbindungsauskunft",
+      "body": "Auskunft für 3. Dezember: Regionalzug um 08:32 Uhr ab Südtor. Dies ist keine Fahrkarte und keine Reservierung. Es wurde nichts gebucht oder bezahlt.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-09",
+      "sender": {
+        "name": "Luzia Kern",
+        "address": "luzia@tagung-schilf.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Frühere Tagung 2023",
+      "body": "Zur historischen Dokumentation: Die Tagung Schilf 2023 fand am 1. Dezember 2023 statt. Damals war der Abstractschluss am 2. November 2023. Beide Daten gehören ausschließlich zum abgeschlossenen Jahr 2023.",
+      "at": "2023-12-02T11:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E05-10",
+      "sender": {
+        "name": "Gästehaus Moor",
+        "address": "reservierung@gaestehaus-moor.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Anreiseinformation",
+      "body": "Die Rezeption des Gästehauses Moor ist am Anreisetag bis 22 Uhr besetzt. Spätere Anreise wäre nach gesonderter Vereinbarung möglich. Für Ihre bestätigte Buchung ist derzeit keine weitere Handlung nötig.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-01",
+      "sender": {
+        "name": "Evelyn Fox",
+        "address": "evelyn@studio-sedge.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Sedge: caption approval",
+      "body": "Jona, please approve the captions for Sedge by 6 November 2026 at 16:00 Berlin time. I will do the typesetting afterwards. Evelyn",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "captions",
+        "due": "2026-11-06T16:00:00+01:00",
+        "person": "evelyn@studio-sedge.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-02",
+      "sender": {
+        "name": "Lucie Morel",
+        "address": "lucie@atelier-roseau.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Maquette Roseau",
+      "body": "Bonjour Jona, merci de me transmettre la maquette Roseau au plus tard le 13 novembre 2026 à 17 h, heure de Paris. Je m’occupe de l’impression. Lucie",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "maquette",
+        "due": "2026-11-13T17:00:00+01:00",
+        "person": "lucie@atelier-roseau.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-03",
+      "sender": {
+        "name": "Inés Mora",
+        "address": "ines@estudio-junco.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Lista de materiales Junco",
+      "body": "Jona: envíame la lista de materiales de Junco como máximo el 16 de noviembre de 2026 a las 14:00, hora de Berlín. La compra la haré yo, Inés; no te encargues de comprar.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "lista de materiales",
+        "due": "2026-11-16T14:00:00+01:00",
+        "person": "ines@estudio-junco.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-04",
+      "sender": {
+        "name": "Evelyn Fox",
+        "address": "evelyn@studio-sedge.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "New York review files",
+      "body": "Please send the review files for our New York meeting by 9 November 2026 at 09:00 America/New_York, Jona. The video meeting itself starts at 10:30 New York time that day.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "review files",
+        "due": "2026-11-09T09:00:00-05:00",
+        "person": "evelyn@studio-sedge.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-05",
+      "sender": {
+        "name": "Lucie Morel",
+        "address": "lucie@atelier-roseau.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Réunion facultative",
+      "body": "Notre échange informel du 18 novembre à 11 h est facultatif. Il n’y a ni document à remettre ni confirmation à envoyer. L’absence ne change pas votre travail convenu.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-06",
+      "sender": {
+        "name": "Inés Mora",
+        "address": "ines@estudio-junco.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Recibido no significa aprobado",
+      "body": "He recibido el borrador de Junco, pero aún no lo he aprobado. La recepción no confirma que la lista de materiales esté completa.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-07",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Evelyn Fox",
+          "address": "evelyn@studio-sedge.example"
+        }
+      ],
+      "title": "Summary of who does what",
+      "body": "Evelyn, I will approve the captions; you will handle typesetting. I am not taking on your typesetting task. This note adds no new due date.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E06-08",
+      "sender": {
+        "name": "Atelier Roseau",
+        "address": "info@atelier-roseau.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Version archivée",
+      "body": "Archive 2020: une maquette était attendue le 10 novembre 2020. Ce dossier est clos et ne concerne pas la maquette Roseau de 2026.",
+      "at": "2020-11-12T09:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-09",
+      "sender": {
+        "name": "Evelyn Fox",
+        "address": "evelyn@studio-sedge.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Style reference",
+      "body": "The Sedge captions use British spelling. The Junco brochure follows its separate Spanish style guide. This is reference information, not an additional request.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E06-10",
+      "sender": {
+        "name": "Inés Mora",
+        "address": "ines@estudio-junco.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Almacén de muestras",
+      "body": "Las muestras verdes de Junco están en el armario B4. Las muestras amarillas pertenecen a otro proyecto y están en B5. No hay que moverlas.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-01",
+      "sender": {
+        "name": "Anouk Tamm",
+        "address": "anouk@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Korrektur morgen",
+      "body": "Jona, bitte sende mir die korrigierte Legende morgen bis 12 Uhr Berliner Zeit. Anouk",
+      "at": "2026-10-29T08:15:00+01:00",
+      "expect": {
+        "tasks": "review",
+        "anchor": "Legende",
+        "due": "2026-10-30T12:00:00+01:00",
+        "not_recent": true
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-02",
+      "sender": {
+        "name": "Anouk Tamm",
+        "address": "anouk@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Abgabe demnächst",
+      "body": "Jona, bitte erstelle eine Farbprobe. Für die Abgabe haben wir nur demnächst gesagt; ein Datum oder Wochentag ist nicht vereinbart.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Farbprobe",
+        "due": null,
+        "person": "anouk@kartenwerk.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-03",
+      "sender": {
+        "name": "Bela Stein",
+        "address": "bela@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Freitag, noch zu klären",
+      "body": "Jona, bitte überarbeite die Höhenlinien. Ich schrieb kommenden Freitag, weiß aber selbst noch nicht, ob ich den 6. oder den 13. November 2026 meine. Bitte setze dafür noch kein bestimmtes Fälligkeitsdatum.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "review",
+        "anchor": "Höhenlinien",
+        "due": null
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-04",
+      "sender": {
+        "name": "Bela Stein",
+        "address": "bela@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Druck erst nach Freigabe",
+      "body": "Der Kartendruck soll nur stattfinden, wenn Anouk die Höhenlinien freigibt. Diese Freigabe ist noch nicht erfolgt. Du hast derzeit keinen Auftrag, die Karten zu drucken, Jona.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-05",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Bela Stein",
+          "address": "bela@kartenwerk.example"
+        }
+      ],
+      "title": "Zusage der Nordansicht",
+      "body": "Bela, ich liefere dir die Nordansicht am 5. November 2026 bis 18 Uhr Berliner Zeit. Die Freigabe des separaten Kartendrucks ist keine Voraussetzung für die Nordansicht.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Nordansicht",
+        "due": "2026-11-05T18:00:00+01:00",
+        "person": "bela@kartenwerk.example"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E07-06",
+      "sender": {
+        "name": "Anouk Tamm",
+        "address": "anouk@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Besprechung der Höhenlinien",
+      "body": "Wir können die Höhenlinien am 6. November 2026 um 10 Uhr besprechen. Das ist ein Terminvorschlag, noch nicht bestätigt. Es ist damit keine Entscheidung über ihre Abgabefrist getroffen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-07",
+      "sender": {
+        "name": "Kartenarchiv",
+        "address": "archiv@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Version 2018",
+      "body": "Im Projekt von 2018 war die Südansicht bis 20. Juli 2018 abzugeben. Sie wurde am 18. Juli 2018 geliefert. Dieses Dokument ist ein abgeschlossener historischer Vorgang.",
+      "at": "2018-07-21T10:00:00+02:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-08",
+      "sender": {
+        "name": "Anouk Tamm",
+        "address": "anouk@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Nicht Ende des Monats",
+      "body": "Zur Farbprobe: Ende November war nur ein Gedanke, keine gesetzte Frist. Es bleibt dabei, dass wir noch keinen Abgabetermin festgelegt haben.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-09",
+      "sender": {
+        "name": "Bela Stein",
+        "address": "bela@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Reihenfolge im Register",
+      "body": "Die Nordansicht steht im Register vor der Südansicht. Das beschreibt die Ablagereihenfolge und keine zeitliche Reihenfolge der Abgaben.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E07-10",
+      "sender": {
+        "name": "Anouk Tamm",
+        "address": "anouk@kartenwerk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Arbeitszeitangabe",
+      "body": "Ich bin montags und mittwochs vormittags im Büro. Daraus ergibt sich keine Frist für deine Farbprobe oder Höhenlinien. Du kannst mir Nachrichten auch außerhalb dieser Zeiten schicken.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-01",
+      "sender": {
+        "name": "Felia Busch",
+        "address": "felia@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Prüfliste und Bestandsfoto",
+      "body": "Jona, bitte sende mir bis 12. November 2026 um 15 Uhr die ausgefüllte Prüfliste. Bitte sende außerdem das Bestandsfoto bis 13. November 2026 um 10 Uhr. Die beiden Lieferungen werden getrennt geprüft.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "review",
+        "anchor": "Prüfliste",
+        "due": null
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-02",
+      "sender": {
+        "name": "Felia Busch",
+        "address": "felia@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Prüfliste unvollständig eingegangen",
+      "body": "Deine Prüfliste ist eingegangen, aber die Zeile zum Feuerlöscher fehlt. Der Prüflistenauftrag ist noch nicht erledigt. Das Bestandsfoto habe ich noch nicht erhalten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-03",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Felia Busch",
+          "address": "felia@team-weide.example"
+        }
+      ],
+      "title": "Ich habe die Rückmeldung gelesen",
+      "body": "Felia, ich habe deine Rückmeldung zur fehlenden Feuerlöscher-Zeile gelesen. Das bedeutet noch nicht, dass ich die Prüfliste korrigiert habe. Jona",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E08-04",
+      "sender": {
+        "name": "Felia Busch",
+        "address": "felia@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Zweite Nachricht nur zum Bestandsfoto",
+      "body": "Der Auftrag zum Bestandsfoto ist aufgehoben. Bitte fotografiere nicht mehr. Die Korrektur der Prüfliste bleibt bis 12. November 2026 um 15 Uhr offen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-05",
+      "sender": {
+        "name": "Timon Eck",
+        "address": "timon@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Inventarnummern abgeglichen",
+      "body": "Ich, Timon, habe die Inventarnummern am 2. November 2026 vollständig abgeglichen. Dieser Vorgang ist abgeschlossen; Jona hatte daran keine eigene Aufgabe.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-06",
+      "sender": {
+        "name": "Felia Busch",
+        "address": "felia@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Etiketten auf Ersatzkisten",
+      "body": "Jona, bitte beschrifte die Ersatzkisten bis 14. November 2026 um 16 Uhr. Eine Erinnerung an diese Aufgabe ist kein Beleg dafür, dass sie schon erledigt ist.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Ersatzkisten",
+        "due": "2026-11-14T16:00:00+01:00",
+        "person": "felia@team-weide.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-07",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Felia Busch",
+          "address": "felia@team-weide.example"
+        }
+      ],
+      "title": "Eine von drei Kisten",
+      "body": "Felia, eine der drei Ersatzkisten habe ich beschriftet. Zwei fehlen noch, ich melde das Gesamtpaket noch nicht als fertig. Jona",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E08-08",
+      "sender": {
+        "name": "Kalender Weide",
+        "address": "noreply@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Inventarrunde vorbei",
+      "body": "Die Kalenderrunde Inventar vom 2. November 2026 ist beendet. Daraus ergibt sich keine Aussage über Erledigung einzelner Aufgaben oder offener Prüflisten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-09",
+      "sender": {
+        "name": "Felia Busch",
+        "address": "felia@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Optionale Verbesserung",
+      "body": "Wenn du irgendwann Zeit und Lust hast, könnte man die Kisten farbig markieren. Das ist kein Auftrag und gehört nicht zur vereinbarten Beschriftung.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E08-10",
+      "sender": {
+        "name": "Timon Eck",
+        "address": "timon@team-weide.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Standort der Ersatzkisten",
+      "body": "Die drei Ersatzkisten stehen in Regal W6. Die Originalkisten stehen in W8. Beide Gruppen bleiben getrennt; nichts umräumen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-01",
+      "sender": {
+        "name": "Silas Grün",
+        "address": "silas@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Mosaik: Datenblatt abgeben",
+      "body": "Jona, bitte sende das Mosaik-Datenblatt bis 18. November 2026 um 09 Uhr an mich. Silas",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Datenblatt",
+        "due": "2026-11-18T09:00:00+01:00",
+        "person": "silas@mosaik-werk.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-02",
+      "sender": {
+        "name": "Silas Grün",
+        "address": "silas@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Mosaik: Aufbewahrungsort",
+      "body": "Die versiegelten Materialproben für Mosaik liegen ausschließlich im Schrank Vireo-7. Diese Standortangabe gilt für Mosaik, nicht für das Projekt Mosaik Plus.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-03",
+      "sender": {
+        "name": "Lene Berg",
+        "address": "lene@mosaik-plus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Mosaik Plus, anderer Bestand",
+      "body": "Die Muster von Mosaik Plus liegen im Schrank T18. Mosaik Plus ist ein eigenständiges Projekt; seine Muster und Fristen gehören nicht zum Projekt Mosaik von Silas.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-04",
+      "sender": {
+        "name": "Silas Grün",
+        "address": "silas@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Projektkoordination",
+      "body": "Die interne Koordinationsnotiz nennt Jona als zuständig für die Messreihe. Diese Zuordnung stammt aus unserer Notiz und wurde von Jona noch nicht bestätigt. Ein Termin ist nicht genannt.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "review",
+        "anchor": "Messreihe",
+        "due": null
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-05",
+      "sender": {
+        "name": "Lene Berg",
+        "address": "lene@mosaik-plus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Nur zur Unterscheidung",
+      "body": "Für Mosaik Plus ist Lene die Projektleitung. Diese Nachricht sagt nichts über die Koordination der Messreihe im eigenständigen Projekt Mosaik aus.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-06",
+      "sender": {
+        "name": "Silas Grün",
+        "address": "silas@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Datenblatt noch nicht geschickt",
+      "body": "Ich habe das Mosaik-Datenblatt noch nicht erhalten. Die Erlaubnis, den Projektordner zu lesen, ist keine Empfangsbestätigung. Silas",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-07",
+      "sender": {
+        "name": "Projektpost",
+        "address": "noreply@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Zugang zum Ordner",
+      "body": "Jona hat Leserechte für den Projektordner Mosaik. Dieser automatisierte Hinweis enthält keine neue Frist und keine Aufgabenbestätigung.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-08",
+      "sender": {
+        "name": "Silas Grün",
+        "address": "silas@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Historischer Standort 2020",
+      "body": "Im abgeschlossenen Mosaik-Vorläufer von 2020 lagen Proben in Fach H2. Das war ein anderer Bestand. H2 ist keine gültige aktuelle Standortangabe für Mosaik 2026.",
+      "at": "2020-12-04T12:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-09",
+      "sender": {
+        "name": "Lene Berg",
+        "address": "lene@mosaik-plus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Mosaik Plus: Transportanfrage",
+      "body": "Jona, bitte bringe die Muster für Mosaik Plus bis 19. November 2026 um 11 Uhr zum Empfang Ost. Dies ist unabhängig vom Datenblatt für Mosaik.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Mosaik Plus",
+        "due": "2026-11-19T11:00:00+01:00",
+        "person": "lene@mosaik-plus.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E09-10",
+      "sender": {
+        "name": "Silas Grün",
+        "address": "silas@mosaik-werk.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Kein bestätigter Abnahmepreis",
+      "body": "Ein Abnahmepreis für Mosaik ist noch nicht vereinbart. Die Zahl 720 EUR aus einer unverbindlichen Kalkulation ist kein bestätigter Preis und darf nicht als solcher verwendet werden.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-01",
+      "sender": {
+        "name": "Hedda Loh",
+        "address": "hedda@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Lesehaus: Raumplan",
+      "body": "Jona, bitte prüfe den Raumplan des Lesehauses bis 20. November 2026 um 15 Uhr. Die Wandfarbe ist nicht Gegenstand dieser Prüfung.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Raumplan",
+        "due": "2026-11-20T15:00:00+01:00",
+        "person": "hedda@lesehaus.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-02",
+      "sender": {
+        "name": "Hedda Loh",
+        "address": "hedda@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Anlage fehlt in diesem Export",
+      "body": "Zur Abgabe im Lesehaus gehört eine gesonderte Anlage mit dem Brandschutznachweis. Der Export dieser Mail enthält die Anlage nicht und nennt deren Abgabetermin nicht. Bitte leite aus dem Raumplantermin keinen Termin für die fehlende Anlage ab.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-03",
+      "sender": {
+        "name": "Ivo Tal",
+        "address": "ivo@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Lesesaal statt Lesecafé",
+      "body": "Die grüne Pinnwand steht im Lesesaal, nicht im Lesecafé. Die beiden Räume liegen nebeneinander. Das ist nur eine Ortskorrektur.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-04",
+      "sender": {
+        "name": "Ivo Tal",
+        "address": "ivo@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Kein weiterer Raumplan",
+      "body": "Du sollst keinen zweiten Raumplan zeichnen, Jona. Es geht ausschließlich um die Prüfung des bestehenden Plans. Der Wunsch nach einem Neubau wurde verworfen.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-05",
+      "sender": {
+        "name": "Hedda Loh",
+        "address": "hedda@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Akustikprobe vorbereiten",
+      "body": "Jona, bitte bereite eine Akustikprobe vor. Wir legen den Termin erst nach der Raumplanprüfung fest; du hast dafür heute keine feste Frist.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Akustikprobe",
+        "due": null,
+        "person": "hedda@lesehaus.example"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-06",
+      "sender": {
+        "name": "Lesekreis",
+        "address": "redaktion@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Vorleseabend für Interessierte",
+      "body": "Am 21. November um 18 Uhr findet ein offener Vorleseabend statt. Wer kommen möchte, kommt einfach. Jona muss weder moderieren noch eine Lesung vorbereiten.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-07",
+      "sender": {
+        "name": "Hedda Loh",
+        "address": "hedda@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Rechnungsunterlagen 2017",
+      "body": "Archivvermerk: Die Rechnung zum alten Lesehaus von 2017 wurde bezahlt und der Vorgang abgeschlossen. Der damalige Betrag von 265 EUR ist keine neue Forderung.",
+      "at": "2017-09-08T14:00:00+02:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-08",
+      "sender": {
+        "name": "Jona Seidel",
+        "address": "jona@atelier-kiesel.example"
+      },
+      "recipients": [
+        {
+          "name": "Hedda Loh",
+          "address": "hedda@lesehaus.example"
+        }
+      ],
+      "title": "Zusage einer Fotofreigabe",
+      "body": "Hedda, ich sende dir die Fotofreigabe bis 23. November 2026 um 10 Uhr Berliner Zeit. Das ist meine eigene Zusage, keine Bitte an dich. Jona",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "required",
+        "anchor": "Fotofreigabe",
+        "due": "2026-11-23T10:00:00+01:00",
+        "person": "hedda@lesehaus.example"
+      },
+      "folder": "Sent"
+    },
+    {
+      "id": "E10-09",
+      "sender": {
+        "name": "Ivo Tal",
+        "address": "ivo@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Nur ein Zitat",
+      "body": "Im Gestaltungsbuch steht: \"Bitte reichen Sie alle Pläne bis morgen ein.\" Das ist ein Beispieltext aus dem Buch, kein Auftrag des Lesehauses und keine Frist für Jona.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    },
+    {
+      "id": "E10-10",
+      "sender": {
+        "name": "Hedda Loh",
+        "address": "hedda@lesehaus.example"
+      },
+      "recipients": [
+        {
+          "name": "Jona Seidel",
+          "address": "jona@atelier-kiesel.example"
+        }
+      ],
+      "title": "Unbestätigtes Gesprächsgerücht",
+      "body": "Es gibt das Gerücht, die Akustikprobe sei schon freigegeben. Ich habe keine Freigabe erteilt und keinen Nachweis dafür. Bitte behandle das nicht als bestätigten Sachstand.",
+      "at": "2026-11-03T10:00:00+01:00",
+      "expect": {
+        "tasks": "none"
+      },
+      "folder": "INBOX"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "question": "Ändert die verschobene Kiesel-Begehung auch meine Bildauswahl-Abgabe?",
+      "required": [
+        "E01-01",
+        "E01-02"
+      ],
+      "allowed": [
+        "E01-01",
+        "E01-02"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q02",
+      "question": "Habe ich Piet die Wandtexte schon geliefert oder nur zugesagt?",
+      "required": [
+        "E01-03",
+        "E01-04"
+      ],
+      "allowed": [
+        "E01-03",
+        "E01-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q03",
+      "question": "Bis wann ist mein Kiesel-Abbauplan fällig?",
+      "required": [
+        "E01-07"
+      ],
+      "allowed": [
+        "E01-07"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q04",
+      "question": "Wer bringt die Sockel zur Halle Kiesel?",
+      "required": [
+        "E01-05"
+      ],
+      "allowed": [
+        "E01-05"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q05",
+      "question": "Welche E-Mail-Adresse hat Dana Voß?",
+      "required": [],
+      "allowed": [
+        "E02-01",
+        "E02-02",
+        "E02-07"
+      ],
+      "contains": [],
+      "status": [
+        "meaning_choice",
+        "working_reports",
+        "working_unclear"
+      ],
+      "excludes": [],
+      "minimum_choices": 2
+    },
+    {
+      "id": "Q06",
+      "question": "Sind die alte und neue Werkstatt-Adresse von Deniz zwei Personen?",
+      "required": [
+        "E02-03"
+      ],
+      "allowed": [
+        "E02-03",
+        "E02-04",
+        "E02-05"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q07",
+      "question": "Wo finde ich das Protokoll der geliehenen Rahmen von Deniz aus der Werkstatt?",
+      "required": [
+        "E02-09"
+      ],
+      "allowed": [
+        "E02-09"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q08",
+      "question": "An welchem Tag wurde Dana vom Stadtmuseum geboren?",
+      "required": [],
+      "allowed": [
+        "E02-10"
+      ],
+      "contains": [],
+      "status": [
+        "working_unknown",
+        "working_unclear"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q09",
+      "question": "Muss ich den Messkoffer selbst prüfen oder nur versenden?",
+      "required": [
+        "E03-01",
+        "E03-02"
+      ],
+      "allowed": [
+        "E03-01",
+        "E03-02"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q10",
+      "question": "Welche zwei Rückmeldungen erwartet Sina von mir und mit welchen Fristen?",
+      "required": [
+        "E03-03"
+      ],
+      "allowed": [
+        "E03-03"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q11",
+      "question": "Hat Uwe den Messkoffer schon geprüft?",
+      "required": [
+        "E03-04"
+      ],
+      "allowed": [
+        "E03-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q12",
+      "question": "An welches Tor soll der Messkoffer gehen?",
+      "required": [
+        "E03-08"
+      ],
+      "allowed": [
+        "E03-08"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q13",
+      "question": "Ist LK-482 erledigt, weil das Paket da ist und eine Rechnung storniert wurde?",
+      "required": [
+        "E04-01",
+        "E04-02",
+        "E04-08"
+      ],
+      "allowed": [
+        "E04-01",
+        "E04-02",
+        "E04-08"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q14",
+      "question": "Muss ich als angemeldeter Aussteller auf den Materialkunde-Fachbrief reagieren?",
+      "required": [
+        "E04-04"
+      ],
+      "allowed": [
+        "E04-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q15",
+      "question": "Muss ich das Buch Karten der Küste sowohl zurückgeben als auch verlängern?",
+      "required": [
+        "E04-03"
+      ],
+      "allowed": [
+        "E04-03"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q16",
+      "question": "Welche IBAN gehört zur offenen Rechnung LK-482?",
+      "required": [],
+      "allowed": [
+        "E04-01"
+      ],
+      "contains": [],
+      "status": [
+        "working_unknown",
+        "working_unclear"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q17",
+      "question": "Wann muss mein Abstract für Schilf fertig sein und wann findet die Tagung aktuell statt?",
+      "required": [
+        "E05-01",
+        "E05-02"
+      ],
+      "allowed": [
+        "E05-01",
+        "E05-02"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q18",
+      "question": "Wo habe ich für die Tagung Schilf aktuell ein Zimmer?",
+      "required": [
+        "E05-04",
+        "E05-05"
+      ],
+      "allowed": [
+        "E05-04",
+        "E05-05"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q19",
+      "question": "Habe ich schon eine Zugfahrkarte für Schilf?",
+      "required": [
+        "E05-06",
+        "E05-08"
+      ],
+      "allowed": [
+        "E05-06",
+        "E05-08"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q20",
+      "question": "Sind Vortragstitel und Abstract ein und dieselbe Abgabe?",
+      "required": [
+        "E05-01",
+        "E05-07"
+      ],
+      "allowed": [
+        "E05-01",
+        "E05-07"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q21",
+      "question": "Was schulde ich Lucie für Roseau und bis wann?",
+      "required": [
+        "E06-02"
+      ],
+      "allowed": [
+        "E06-02"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q22",
+      "question": "Muss ich für Junco selbst einkaufen?",
+      "required": [
+        "E06-03"
+      ],
+      "allowed": [
+        "E06-03"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q23",
+      "question": "Wann muss ich die New-York-Unterlagen nach Berliner Zeit schicken?",
+      "required": [
+        "E06-04"
+      ],
+      "allowed": [
+        "E06-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q24",
+      "question": "Wo liegen die grünen Junco-Muster?",
+      "required": [
+        "E06-10"
+      ],
+      "allowed": [
+        "E06-10"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q25",
+      "question": "Auf welchen Tag bezieht sich Anouks morgen in der spät importierten Legenden-Mail?",
+      "required": [
+        "E07-01"
+      ],
+      "allowed": [
+        "E07-01"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q26",
+      "question": "Ist die Farbprobe bis Ende November fällig?",
+      "required": [
+        "E07-02",
+        "E07-08"
+      ],
+      "allowed": [
+        "E07-02",
+        "E07-08"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q27",
+      "question": "Welcher Freitag ist für meine Höhenlinien gemeint?",
+      "required": [],
+      "allowed": [
+        "E07-03",
+        "E07-06"
+      ],
+      "contains": [],
+      "status": [
+        "meaning_choice",
+        "working_reports",
+        "working_unclear"
+      ],
+      "excludes": [],
+      "minimum_choices": 2
+    },
+    {
+      "id": "Q28",
+      "question": "Darf ich den Kartendruck schon als freigegeben ansehen?",
+      "required": [
+        "E07-04"
+      ],
+      "allowed": [
+        "E07-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q29",
+      "question": "Sind meine Prüfliste und das Bestandsfoto beide erledigt?",
+      "required": [
+        "E08-02",
+        "E08-04"
+      ],
+      "allowed": [
+        "E08-02",
+        "E08-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q30",
+      "question": "Reicht meine Lesebestätigung an Felia als Abschluss der Prüfliste?",
+      "required": [
+        "E08-03"
+      ],
+      "allowed": [
+        "E08-03"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q31",
+      "question": "Wie weit bin ich mit den Ersatzkisten?",
+      "required": [
+        "E08-06",
+        "E08-07"
+      ],
+      "allowed": [
+        "E08-06",
+        "E08-07"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q32",
+      "question": "Sind durch die vergangene Inventarrunde alle Aufgaben im Team erledigt?",
+      "required": [
+        "E08-08"
+      ],
+      "allowed": [
+        "E08-08",
+        "E08-02",
+        "E08-04",
+        "E08-07"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q33",
+      "question": "Wo liegen die aktuellen Mosaik-Proben von Silas?",
+      "required": [
+        "E09-02"
+      ],
+      "allowed": [
+        "E09-02"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q34",
+      "question": "Wer soll laut unbestätigter Notiz die Mosaik-Messreihe koordinieren?",
+      "required": [
+        "E09-04"
+      ],
+      "allowed": [
+        "E09-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q35",
+      "question": "Ist der Transport für Mosaik Plus meine Datenblatt-Abgabe für Mosaik?",
+      "required": [
+        "E09-01",
+        "E09-09"
+      ],
+      "allowed": [
+        "E09-01",
+        "E09-09"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q36",
+      "question": "Ist für Mosaik ein Preis von 720 EUR verbindlich vereinbart?",
+      "required": [
+        "E09-10"
+      ],
+      "allowed": [
+        "E09-10"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q37",
+      "question": "Welche Frist steht in der fehlenden Brandschutz-Anlage zum Lesehaus?",
+      "required": [],
+      "allowed": [
+        "E10-02"
+      ],
+      "contains": [],
+      "status": [
+        "working_unknown",
+        "working_unclear",
+        "working_unavailable"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q38",
+      "question": "Steht die grüne Pinnwand im Lesecafé?",
+      "required": [
+        "E10-03"
+      ],
+      "allowed": [
+        "E10-03"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q39",
+      "question": "Muss ich für das Lesehaus einen neuen Raumplan zeichnen?",
+      "required": [
+        "E10-01",
+        "E10-04"
+      ],
+      "allowed": [
+        "E10-01",
+        "E10-04"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    },
+    {
+      "id": "Q40",
+      "question": "Ist die Akustikprobe bereits bestätigt oder abgeschlossen?",
+      "required": [
+        "E10-05",
+        "E10-10"
+      ],
+      "allowed": [
+        "E10-05",
+        "E10-10"
+      ],
+      "contains": [],
+      "status": [
+        "working_reports"
+      ],
+      "excludes": []
+    }
+  ],
+  "people": {
+    "separate": [
+      [
+        "dana@stadtmuseum-rohr.example"
+      ],
+      [
+        "dana@radgruppe-aue.example"
+      ],
+      [
+        "deniz.alt@werkstatt-rohr.example",
+        "deniz.neu@werkstatt-rohr.example"
+      ],
+      [
+        "deniz@schachverein-ost.example"
+      ]
+    ],
+    "not_people": [
+      "poststelle@stadtmuseum-rohr.example",
+      "konto@lieferkiste.example",
+      "noreply@lieferkiste.example",
+      "konto@bibliothek-nebel.example",
+      "redaktion@materialkunde.example",
+      "redaktion@ideenpost.example",
+      "noreply@portal-ost.example",
+      "noreply@paketfach.example",
+      "noreply@materialtage.example",
+      "buchung@hotel-moos.example",
+      "reservierung@gaestehaus-moor.example",
+      "noreply@fahrplan.example",
+      "noreply@team-weide.example",
+      "noreply@mosaik-werk.example"
+    ]
+  },
+  "limits": {
+    "model_calls": 0,
+    "seconds": 0
+  },
+  "note": "FROZEN UNRUN HOLDOUT V2. Gold/metadata review only; original mail bodies and all native file bytes unchanged from V1. Limits0 authorize no run.100 mails/40 questions plus10 native originals. Semantics in reference.json govern39 mail obligations,9 native obligations and separate action/owner/deadline/status dimensions; current recognition denominator37 mail/46 total. Legacy max1-own-candidate grader cannot validate third-party or multiple obligations. Never pass expect/gold/annotations to a model. Date-only23:59 is compatibility normalization only. Later approved run limits belong in a separate manifest."
+}

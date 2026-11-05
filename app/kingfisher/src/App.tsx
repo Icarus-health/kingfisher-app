@@ -1,3 +1,5 @@
+import {runConversationHandoff} from './conversationDraftHandoff';
+import {installConversationDraftLeaveGuard, bindNewConversationDraft, conversationDraft, loadConversationDraft, subscribeConversationDraft, conversationSending, beginConversationSend, endConversationSend} from './conversationDrafts';
 import {useConversationVoice, VoiceDraftStatus, VoiceReply} from "./ConversationVoice";
 import {CommandBar} from "./CommandBar";
 import {ConversationCapture} from "./ConversationCapture";
@@ -21,6 +23,7 @@ import {
   type ConversationPayload,
   type MorningBriefing,
   type Task as LocalTask,
+  type TaskListView,
   type Project,
 } from "./api";
 import { Sidebar } from "./chrome";
@@ -34,14 +37,15 @@ import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
-import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
+import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, wartenBeendetHinweis } from "./aufgabenHinweis";
 import { anlageZuruecknehmen } from "./AufgabenSelbstHeute";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
-import { endOfTaskDay } from "./taskWorkflow";
+import { endOfTaskDay, taskHistorySequence, taskListView } from "./taskWorkflow";
+import { TaskStatusAnswer } from "./TaskStatusAnswer";
 import { ProfileSource } from "./ProfileSource";
 import { MemoryGraph } from "./MemoryGraph";
 import { MemoryProfile, RegistryProfile } from "./MemoryProfile";
@@ -266,6 +270,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
 }) {
   const [data, updateData] = useState<ConversationPayload | null>(null);
   const live = useRef(true);
+  const responseGeneration = useRef(0);
   const messagesElement = useRef<HTMLDivElement | null>(null);
   const followBottom = useRef(true);
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -341,17 +346,19 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   );
 
   const [cancelledProcedure, setCancelledProcedure] = useState<string|null>(null);
-  async function send(message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }) {
+  async function send(message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }, draftInstance?:string) {
     if (!message.trim() || !chatAvailable) return;
+    responseGeneration.current++;
     setSending(true);
     setAusstehend(message);
     setSendError(false);
     setRefreshNotice(null);
     try {
-      setData(await api.sendMessage(id, message, clarification));
+      setData(await (draftInstance ? api.sendMessage(id, message, clarification, draftInstance) : api.sendMessage(id, message, clarification)));
       setCorrectionSaved(false);
       if (clarification?.newQuestion) setRefreshNotice("Mit dem aktuellen Stand der Quellen neu beantwortet.");
     } catch (problem) {
+      if(problem instanceof ApiError && problem.grund==='draft_instance_changed') await loadConversationDraft(id);
       // Haben sich die Quellen seit der Rückfrage geändert, passt die Auswahl
       // nicht mehr. Statt eines Fehlers wird die ursprüngliche Frage mit dem
       // aktuellen Stand neu gestellt; der Nutzer muss nichts wiederholen.
@@ -381,6 +388,53 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     }
   }
 
+  const [handoffNotice,setHandoffNotice]=useState<string|null>(null);
+  const [handoffOriginal,setHandoffOriginal]=useState<string|null>(null);
+  const [handoffFinish,setHandoffFinish]=useState<{instance_id:string;handoff_id:string}|null>(null);
+  const handoffAttempted=useRef(new Set<string>());
+  const handoffCompleted=useRef(new Set<string>());
+  useEffect(()=>{
+    let active=true;let previous:{id:string;state:string}|null=null;
+    const observe=()=>{
+      if(!active)return;
+      const draft=conversationDraft(id),handoff=draft.handoff;
+      if(!handoff||!draft.instanceId||draft.status==='loading')return;
+      const transitioned=previous?.id===handoff.id&&previous.state!=='accepted';previous={id:handoff.id,state:handoff.state};
+      if(handoff.state==='accepted'){
+        const owned=handoffAttempted.current.has(handoff.id);
+        if(handoffCompleted.current.has(handoff.id)||!transitioned&&!owned)return;
+        handoffCompleted.current.add(handoff.id);
+        setHandoffOriginal(null);setHandoffNotice(null);setHandoffFinish(null);setSending(false);setAusstehend(null);
+        // The sender already has its POST payload. Only a remounted observer
+        // needs a fresh snapshot, and it must not replace a later normal send.
+        if(!owned){const generation=responseGeneration.current;void api.getConversation(id).then(value=>{if(active&&responseGeneration.current===generation)setData(value);}).catch(()=>{if(active&&responseGeneration.current===generation)setHandoffNotice('Der Gesprächsverlauf konnte noch nicht aktualisiert werden.');});}
+        return;
+      }
+      setHandoffOriginal(handoff.text);
+      if(handoff.state==='started'&&!handoffAttempted.current.has(handoff.id)){
+        if(conversationSending(id)){setSending(true);setAusstehend(handoff.text);setHandoffNotice(null);}
+        else{setSending(false);setAusstehend(null);setHandoffNotice('Der Sendestatus ist noch unklar. Bitte den Gesprächsverlauf prüfen; die Nachricht wird nicht automatisch erneut gesendet.');}return;
+      }
+      if(handoff.state!=='ready'||!chatAvailable||handoffAttempted.current.has(handoff.id)||!beginConversationSend(id))return;
+      handoffAttempted.current.add(handoff.id);setSending(true);setAusstehend(handoff.text);setHandoffNotice(null);
+      const instance=draft.instanceId;
+      void runConversationHandoff(id,handoff,instance).then(async result=>{
+        if(active){
+        if(result.payload)setData(result.payload);
+        if(result.state==='accepted'){setHandoffOriginal(null);setHandoffNotice(null);}
+        else if(result.state==='finish_failed'){
+          setHandoffNotice('Die Nachricht wurde beantwortet. Die Abschlussbestätigung konnte noch nicht gespeichert werden.');
+          setHandoffFinish({instance_id:instance,handoff_id:handoff.id});
+        }else setHandoffNotice('Der Sendestatus ist noch unklar. Bitte den Gesprächsverlauf prüfen; die Nachricht wird nicht automatisch erneut gesendet.');
+        }
+        await loadConversationDraft(id);
+      }).finally(()=>{if(active){setSending(false);setAusstehend(null);}endConversationSend(id);});
+    };
+    const stop=subscribeConversationDraft(id,observe);observe();return()=>{active=false;stop();};
+  },[id,chatAvailable]);
+  async function checkHandoff(){try{setData(await api.getConversation(id));await loadConversationDraft(id);}catch{setHandoffNotice('Der Sendestatus konnte noch nicht geprüft werden. Bitte erneut versuchen.');}}
+  async function finishHandoff(){if(!handoffFinish)return;try{await api.finishConversationDraftHandoff(id,handoffFinish);setHandoffFinish(null);setHandoffNotice(null);setHandoffOriginal(null);await loadConversationDraft(id);}catch{setHandoffNotice('Die Abschlussbestätigung konnte noch nicht gespeichert werden. Die Nachricht wird nicht erneut gesendet.');}}
+
   // Eine Frage von Heute oder vom Gesprächsanfang: Das Gespräch ist schon offen, hier wird sie gestellt (Paket T).
   useEffect(() => {
     if (!chatAvailable) return;
@@ -390,6 +444,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   }, [id, chatAvailable]);
 
   async function retry(messageId: string) {
+    responseGeneration.current++;
     setSending(true);
     setSendError(false);
     try {
@@ -488,6 +543,11 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
               const beleg = belegStand(message);
+              const intakeNotice = message.role === "assistant" ? message.metadata?.context?.mail_intake_notice : undefined;
+              const intakeSuffix = intakeNotice ? "\n\n" + intakeNotice : "";
+              const answerText = intakeSuffix && message.content.endsWith(intakeSuffix)
+                ? message.content.slice(0, -intakeSuffix.length) : message.content;
+              const taskStatus = message.role === "assistant" && message.metadata?.context?.task_status_view === true;
               const procedureProposal = message.role === "assistant" ? message.metadata?.context?.procedure_proposal : undefined;
               const candidate = card?.candidate;
               const requiresReplacement = Boolean(card?.conflicts.length);
@@ -498,11 +558,13 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 : "Derzeit nicht als Wissen verwendbar.";
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
                 <span className="message-wer">{message.role === "user" ? "Du" : "Kingfisher"}</span>
-                {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} />
+                {taskStatus ? <TaskStatusAnswer content={message.content} link={message.metadata?.context?.task_link} messageId={message.id} />
+                  : message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} />
                   : message.role === "assistant" && message.metadata?.context?.original_fallback === true
                     ? <div className="antwort-originale"><p>Die Quellen sind gefunden. Eine geprüfte Zusammenfassung fehlt noch.</p>
-                      <details className="antwort-arbeitsweise"><summary>Originalangaben lesen</summary><MessageText content={message.content} /></details></div>
-                    : <MessageText content={message.content} />}
+                      <details className="antwort-arbeitsweise"><summary>Originalangaben lesen</summary><MessageText content={answerText} /></details></div>
+                    : <MessageText content={answerText} />}
+                {intakeNotice ? <p className="beleg-ohne">{intakeNotice}</p> : null}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
                 {message.role === "assistant" ? <CloudVermerk kontext={message.metadata?.context} /> : null}
@@ -512,10 +574,10 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {beleg.art === "quellenlinks" ? <div className="beleg-links" role="group" aria-label="Worauf die Antwort sich stützt"><p className="beleg-kopf">{GESTUETZT_AUF}</p>
                   {message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet={false} />)}
                 </div> : null}
-                {beleg.art === "ohne" && !procedureProposal && !message.metadata?.context?.procedure_choice ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
+                {!taskStatus && beleg.art === "ohne" && !procedureProposal && !message.metadata?.context?.procedure_choice ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
                 {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate(`/settings?ablauf=${encodeURIComponent(procedureProposal.id)}#ich-ablaeufe`)}>Ablauf prüfen</button> : null}
                 {meldbar(message) ? <div className="antwort-rueckkanal">
-                  <StimmtNicht conversationId={data.conversation.id} messageId={message.id} />
+                  <StimmtNicht conversationId={data.conversation.id} messageId={message.id} saved={message.metadata?.workflow_feedback} />
                   {uebernehmbar(message) ? <InDieAkte conversationId={data.conversation.id} messageId={message.id} /> : null}
                 </div> : null}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_choices?.length ? <div className="memory-actions clarification-choices" role="group" aria-label="Antwort auswählen">
@@ -562,11 +624,16 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             {refreshNotice ? <p className="memory-decision thread-notice" role="status">{refreshNotice}</p> : null}
           </div>
           <div className="thread-command">
+            {handoffNotice && <div className="partial-error thread-send-error" role="status"><p>{handoffNotice}</p>
+              <button type="button" className="g-knopf-schlicht g-kompakt" disabled={sending} onClick={()=>void checkHandoff()}>Sendestatus prüfen</button>
+              {handoffFinish && <button type="button" className="g-knopf-schlicht g-kompakt" onClick={()=>void finishHandoff()}>Abschluss sichern</button>}
+              {handoffOriginal && <details><summary>Ursprüngliche Nachricht</summary><MessageText content={handoffOriginal}/></details>}
+            </div>}
             {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.{nichtGesendet ? <>{" "}<button className="g-knopf-schlicht g-kompakt" disabled={sending} type="button" onClick={() => { const frage = nichtGesendet; setNichtGesendet(null); void send(frage).catch(() => setNichtGesendet(frage)); }}>Erneut senden</button></> : null}</p> : null}
             {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
             {sending && <WarteZeile gespraech={id} />}
             {!error && data && <ConversationCapture key={`capture-${id}`} />}
-            <VoiceDraftStatus voice={voice} /><CommandBar key={id} conversationId={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
+            <VoiceDraftStatus voice={voice} /><CommandBar key={id} conversationId={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={(message,draft)=>send(message,undefined,draft?.instanceId)} placeholder={chatPlaceholder} />
           </div>
         </section>
       </main>
@@ -580,31 +647,19 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
   chatAvailable: boolean;
   chatPlaceholder?: string;
 }) {
-  // Kein leeres Gespräch auf Vorrat: Die Mitte ist gleich das Eingabefeld, das Gespräch entsteht mit der ersten Frage.
+  // Bind the first message durably before moving to its conversation. The
+  // conversation claims the pending handoff once; retries never create a second chat.
   const [sending, setSending] = useState(false);
-  const [question, setQuestion] = useState<string | null>(null);
   const [sendError, setSendError] = useState(false);
-  const [gespraech, setGespraech] = useState<string | null>(null);
-  const created = useRef<string | null>(null);
-  const live = useRef(true);
-  useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
-  async function begin(message: string) {
+  async function begin(_message: string) {
     if (!chatAvailable) return;
-    setSending(true); setSendError(false); setQuestion(message);
+    setSending(true);setSendError(false);
     try {
-      // Schlug nur das Senden fehl, nimmt der zweite Versuch dasselbe Gespräch; es entsteht kein zweites.
-      const id = created.current ?? (await api.createConversation()).conversation.id;
-      created.current = id;
-      if (!live.current) return;
-      rememberConversation(id);
-      setGespraech(id);  // für den Zwischenstand (Paket T); die Frage steht schon da
-      await api.sendMessage(id, message);
-      created.current = null;
-      if (live.current) navigate(`/conversations/${id}`);
-    } catch (problem) {
-      if (live.current) setSendError(true);
-      throw problem;
-    } finally { if (live.current) setSending(false); }
+      const bound=await bindNewConversationDraft();
+      rememberConversation(bound.conversation_id);
+      navigate(`/conversations/${bound.conversation_id}`);
+    } catch(problem) {setSendError(true);throw problem;}
+    finally {setSending(false);}
   }
   async function focusInput() {
     document.querySelector<HTMLTextAreaElement>(".workspace-chat-start .thread-command textarea")?.focus();
@@ -615,23 +670,25 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
       <ConversationNavigation onCreate={focusInput} onSelect={id => navigate(`/conversations/${id}`)} />
       <section className="thread">
         <div className="messages">
-          {question ? <article className="message user"><span className="message-wer">Du</span><MessageText content={question} /></article> : <div className="conversation-empty"><h1>Was beschäftigt dich?</h1></div>}
+          <div className="conversation-empty"><h1>Was beschäftigt dich?</h1></div>
         </div>
         <div className="thread-command">
-          {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
-          {sending && <WarteZeile gespraech={gespraech} />}
-          <CommandBar busy={sending} conversation disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
+          {sendError ? <p className="partial-error thread-send-error" role="alert">Das Gespräch konnte noch nicht vorbereitet werden. Dein Entwurf bleibt erhalten.</p> : null}
+          {sending && <p role="status">Gespräch wird vorbereitet …</p>}
+          <CommandBar draftId="new" lockWhileBusy busy={sending} conversation disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
         </div>
       </section>
     </main>
   </div>;
 }
 
-type TaskView = "mine" | "waiting" | "done" | "decisions" | "goals";
+type TaskView = TaskListView | "decisions" | "goals";
 
 const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
   { id: "mine", label: "Meine Aufgaben" },
   { id: "waiting", label: "Warte auf andere" },
+  { id: "others", label: "Bei anderen" },
+  { id: "unassigned", label: "Zu klären" },
   { id: "done", label: "Erledigt" },
   { id: "decisions", label: "Entscheidungen" },
   { id: "goals", label: "Ziele" },
@@ -647,9 +704,10 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(()=>{const id=window.setInterval(()=>setGroupTime(new Date()),60000);return()=>window.clearInterval(id);},[]);
   const [view, setView] = useState<TaskView>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
-    return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
+    return TASK_VIEWS.find(item => item.id === requested)?.id ?? "mine";
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
+  const [historySequence, setHistorySequence] = useState(() => taskHistorySequence(new URLSearchParams(window.location.search)));
   // 0: Aufgabe nur öffnen; sonst eine fortlaufende Nummer, damit jeder Klick auf einen Titel das Bearbeiten öffnet.
   const [detailEdit, setDetailEdit] = useState(0);
   const editRequests = useRef(0);
@@ -702,6 +760,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   function openTask(id: string | null, edit = false) {
     setDetailEdit(edit ? ++editRequests.current : 0);
     setSelectedTask(id);
+    setHistorySequence(undefined);
   }
 
   function loadProjects() {
@@ -751,10 +810,12 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     url.searchParams.set("view", view);
     if (selectedTask) url.searchParams.set("task", selectedTask);
     else url.searchParams.delete("task");
+    if (selectedTask && historySequence) url.searchParams.set("history", historySequence);
+    else url.searchParams.delete("history");
     if (projectId) url.searchParams.set("project", projectId);
     else url.searchParams.delete("project");
     window.history.replaceState(window.history.state, "", url);
-  }, [view, projectId, selectedTask]);
+  }, [view, projectId, selectedTask, historySequence]);
 
   useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search]);
 
@@ -819,7 +880,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       else await api.unwaitTask(taskId);
       load();
       zeigeHinweis(name ? wartetHinweis(aufgabe, name, async () => { await api.unwaitTask(taskId); load(); })
-        : zurueckZuMirHinweis(aufgabe, "wartet_auf" in aufgabe ? aufgabe.wartet_auf : null, async vorher => { await api.waitTask(taskId, vorher); load(); }));
+        : wartenBeendetHinweis(aufgabe, "wartet_auf" in aufgabe ? aufgabe.wartet_auf : null, async vorher => { await api.waitTask(taskId, vorher); load(); }));
     } catch { setError("Der Wartestatus konnte nicht gespeichert werden."); }
     finally { setCompleting(null); }
   }
@@ -853,7 +914,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     try {taskSave.current.resetAfterReview(); setCreateReviewed(false); setCreateError("");}
     catch {setCreateError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher und andere offene Aufgabenfenster prüfen. Es wurde keine Aufgabe gesendet.');}
   }
-  function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
+  function openProjectView(nextView: TaskListView, taskId: string | null = null) {
     currentSearch.current = '';
     setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
@@ -864,7 +925,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => kontenFuerFilter(setBereichKonten), []);
   const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
   const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId) && bereichFilter.passt(task));
-  const listView = view === "mine" || view === "waiting" || view === "done";
+  const listView = view !== "decisions" && view !== "goals";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
   // Segmente statt Reiter: alle bleiben erreichbar; „Zur Prüfung“ nur, wenn etwas zu prüfen ist (sonst über „Gedächtnis
@@ -884,8 +945,10 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
   const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
   const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
-  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as "mine" | "waiting" | "done"} />;
-  const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
+  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as TaskListView} />;
+  const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden."
+    : view === "others" ? "Keine offenen Aufgaben bei anderen."
+    : view === "unassigned" ? "Keine offenen Aufgaben mit ungeklärter Zuständigkeit." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
   // „Zur Prüfung“ ist das Prüfen die Hauptsache, dort ist „Aufgabe“ ebenfalls nur getönt.
   const formOffen = (creating && panel === "tasks" && listView) || (panel === "projects" && projektFormular) || panel === "review";
@@ -896,7 +959,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <Seitenkopf className="tasks-heading" titel="Aufgaben" zeile={kopfZeile}
         aktionen={view !== "decisions" && view !== "goals" ? <button className={formOffen ? "g-knopf-getoent" : "tasks-add"} disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : undefined} />
       {selectedTask && <DetailPanel title="Aufgabe" onClose={() => openTask(null)}>
-        <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} editing={detailEdit > 0} onChanged={() => load()} />
+        <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} historySequence={historySequence} editing={detailEdit > 0} onChanged={() => load()} />
       </DetailPanel>}
       <Segmente className="aufgaben-segmente" label="Aufgabenansichten" optionen={tabs} wert={activeTab} onWahl={chooseTab} />
       <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>
@@ -906,7 +969,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
       </section>
       <div className="task-review" hidden={panel !== "review"}>
-        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
+        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(taskListView(task)); load(taskListView(task)); }} />
         {panel === "review" && reviewTotal === 0 ? <Leer className="task-empty" zeichen="check" satz="Nichts zu prüfen." /> : null}
       </div>
       {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}
@@ -936,6 +999,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
 }
 
 export function App() {
+  useEffect(installConversationDraftLeaveGuard, []);
   const [path, setPath] = useState(window.location.pathname);
   const erstePruefung = useErststartWeiterleitung(path);
   const [chatAvailable, setChatAvailable] = useState<boolean | null>(null);

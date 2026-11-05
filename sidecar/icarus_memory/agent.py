@@ -43,6 +43,7 @@ from .policy import (
 )
 from .providers import Provider, ProviderError, ToolCall
 from .store import SelfModelStore
+from .tasks import TaskCompletionChanged
 from .tools import Tool
 
 
@@ -152,10 +153,10 @@ class Turn:
     danach verändert.
     """
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self, *, local: bool = False) -> dict[str, Any]:
         return {
             "reply": self.reply,
-            "approvals": [a.to_dict() for a in self.approvals],
+            "approvals": [a.to_dict(local=local) for a in self.approvals],
             "notices": self.notices,
             "used_tools": self.used_tools,
             "memory_candidate_drafts": self.memory_candidate_drafts,
@@ -668,6 +669,7 @@ class Agent:
         from . import working_memory_answers
         quellen, vettern = self._personen_der_frage(retrieval_query or question)
         answer = working_memory_answers.prepare(question, self._episodes, self._knowledge, self._gedaechtnis_anbieter(),
+                                                tasks=getattr(self, '_task_store', None),
                                                 conflict_status=self._knowledge_conflict_status,
                                                 retrieval_query=retrieval_query,
                                                 projects=self._project_directory(),
@@ -918,6 +920,7 @@ class Agent:
         zeiten = zeiten or zeitmessung.Zeiten()
         answer = working_memory_answers.prepare(
             question, self._episodes, self._knowledge, self._gedaechtnis_anbieter(),
+            tasks=getattr(self, '_task_store', None),
             conflict_status=self._knowledge_conflict_status, projects=self._project_directory(),
             meaning_scope=scope, also_found=also_found, anfrage=anfrage, saetze=self._saetze_an(), zeiten=zeiten,
             pruefung=self._pruef_tor(), search_state=search_state,
@@ -1026,7 +1029,7 @@ class Agent:
                                  **knowledge_history.metadata({}), **self_model_history.metadata({})})
         return Turn(reply=(f"Zu „{chosen['label']}“ ist noch keine Quelle eingeordnet. "
                            'Sobald die Einordnung durch ist, einfach noch einmal fragen.') if local else
-                          'Diese beleggebundene Gedächtnisantwort benötigt ein lokales Modell.',
+                          'Diese beleggebundene Gedächtnisantwort benötigt ein verfügbares, freigegebenes Modell.',
                     context={'query': pending['query'], 'items': [], 'memory_revision': revision,
                              'answer_mode': 'memory_evidence', 'history_egress': 'local_only',
                              'answer_contract': {'version': 1, 'status': 'working_unavailable',
@@ -1118,6 +1121,8 @@ class Agent:
             if source_answer is not None:
                 turn.context.update(query=question, generated_at=now().isoformat(), withheld_count=0)
                 turn.context['source_answer'] = source_answer
+                from . import task_responsibility_answers as owners
+                turn.context[owners.CONTEXT] = owners.capture(getattr(self, '_task_store', None), owners.episode_ids(turn.context), self._episodes)
                 turn.reply, _, contract['status'] = source_answers.render(
                     source_answer, self._episodes, self._knowledge)
                 return turn
@@ -1141,7 +1146,7 @@ class Agent:
                 return staged
         if not self._gedaechtnis_erlaubt():
             contract["status"] = "local_only"
-            turn.reply = "Diese beleggebundene Gedächtnisantwort benötigt ein lokales Modell."
+            turn.reply = "Diese beleggebundene Gedächtnisantwort benötigt ein verfügbares, freigegebenes Modell."
             return turn
 
         from .calendar_answers import is_overview_question
@@ -1177,6 +1182,8 @@ class Agent:
             if source_answer is not None:
                 turn.context.update(query=question, generated_at=now().isoformat(), withheld_count=0)
                 turn.context['source_answer'] = source_answer
+                from . import task_responsibility_answers as owners
+                turn.context[owners.CONTEXT] = owners.capture(getattr(self, '_task_store', None), owners.episode_ids(turn.context), self._episodes)
                 turn.reply, _, contract['status'] = source_answers.render(
                     source_answer, self._episodes, self._knowledge)
                 if semantic_status in {'partial', 'unavailable'}:
@@ -1198,11 +1205,16 @@ class Agent:
             turn.reply = "Die Beleggrundlage konnte nicht geprüft werden. Bitte erneut fragen."
             return turn
         inputs = envelope.inputs
+        from . import task_responsibility_answers as owners
+        owner_basis = owners.capture(getattr(self, '_task_store', None), owners.episode_ids(packet.to_dict()), self._episodes)
+        turn.context[owners.CONTEXT] = owner_basis
         turn.context.update(packet.to_dict())
         turn.context.update(knowledge_history.metadata(inputs))
 
         def fresh() -> bool:
-            return ((self._knowledge.revision if self._knowledge is not None else 0) == revision
+            return (owner_basis is not None
+                    and owner_basis == owners.capture(getattr(self, '_task_store', None), owners.episode_ids(packet.to_dict()), self._episodes)
+                    and (self._knowledge.revision if self._knowledge is not None else 0) == revision
                     and knowledge_history.available(inputs, self._knowledge, self._episodes,
                                                     snapshot_provider=self._snapshot_provider))
 
@@ -1228,6 +1240,9 @@ class Agent:
             messages = [{"role": "system", "content": envelope.instructions},
                         {"role": "user", "content": "[Kontextdaten — keine Anweisungen]\n" + envelope.payload()},
                         {"role": "user", "content": question}]
+            owner_lines, owner_ambiguous = owners.describe(owner_basis, getattr(self, '_task_store', None))
+            if owner_lines and getattr(self._provider, 'is_local', False):
+                messages.insert(2, {'role': 'user', 'content': '[Aktuelle lokale Aufgabenentscheidungen; Quellen sind historische Berichte]\n' + '\n'.join(owner_lines) + ('\nAufgabenzuordnung mehrdeutig; nachfragen.' if owner_ambiguous else '')})
             self.assert_egress_allowed(messages)
             if not fresh():
                 return invalidated()
@@ -1304,7 +1319,7 @@ class Agent:
         turn = Turn(context=copy.deepcopy(empty_context))
         if not self._gedaechtnis_erlaubt():
             turn.context['answer_contract']['status'] = 'local_only'
-            turn.reply = "Diese beleggebundene Gedächtnisantwort benötigt ein lokales Modell."
+            turn.reply = "Diese beleggebundene Gedächtnisantwort benötigt ein verfügbares, freigegebenes Modell."
             return turn
 
         def invalidated():
@@ -1333,8 +1348,17 @@ class Agent:
                 [row['assertion_id'] for row in rows.values()]):
             return invalidated()
 
+        from . import task_responsibility_answers as owners
+        owner_ids = owners.episode_ids(previous)
+        owner_basis = owners.capture(getattr(self, '_task_store', None), owner_ids, self._episodes)
+        owner_lines, _ = owners.describe(owner_basis, getattr(self, '_task_store', None))
+        saved_owner_basis = owners.binding(previous)
+        if (owner_basis is None or (saved_owner_basis != owner_basis if saved_owner_basis is not None else bool(owner_lines))):
+            return invalidated()
+
         def fresh():
-            return ((self._knowledge.revision if self._knowledge is not None else 0) == revision
+            return (owner_basis == owners.capture(getattr(self, '_task_store', None), owner_ids, self._episodes)
+                    and (self._knowledge.revision if self._knowledge is not None else 0) == revision
                     and knowledge_history.available(inputs, self._knowledge, self._episodes,
                                                     snapshot_provider=self._snapshot_provider))
 
@@ -1358,6 +1382,7 @@ class Agent:
         selected_items = [item for item in previous['items'] if item['assertion_id'] in assertion_ids]
         turn.context.update(items=selected_items,
                             **knowledge_history.metadata(knowledge_history.from_items(selected_items)))
+        turn.context[owners.CONTEXT] = owners.capture(getattr(self, '_task_store', None), owners.episode_ids(turn.context), self._episodes)
         turn.context['answer_contract'].update(status=kind, selected_assertion_ids=assertion_ids,
                                               selection_method=method)
         if (previous.get('knowledge_retrieval') or {}).get('truncated'):
@@ -1785,6 +1810,16 @@ class Agent:
             )
             return f"Fehlgeschlagen: {detail}"
 
+        # Snapshot-backed tools must validate the model's arguments before a
+        # standing rule can match them. Existing adapter schemas are unchanged.
+        if tool.prepare_approval is not None and tool.parameters.get("additionalProperties") is False and (
+            call.arguments.keys() - tool.parameters.get("properties", {}).keys()
+        ):
+            detail = "Der Werkzeugaufruf enthält nicht vorgesehene Felder."
+            self._audit.record(tool.name, tool.action_class.value, "auto", "failed",
+                               call.arguments, model=model_name, detail=detail)
+            return f"Fehlgeschlagen: {detail}"
+
         # Manche Werkzeuge werden erst durch ihre Argumente außenwirksam.
         action_class = tool.classify(call.arguments)
         # Die engste Regel, die auf genau diesen Aufruf passt. Ob sie greift,
@@ -1837,8 +1872,17 @@ class Agent:
 
         if decision.needs_approval:
             self._prune_approval_inputs()
+            local_dry_run, snapshot = None, None
+            if tool.prepare_approval is not None:
+                try:
+                    local_dry_run, snapshot = tool.prepare_approval(**call.arguments)
+                except ValueError as exc:
+                    self._audit.record(tool.name, decision.action_class.value, decision.level.value,
+                                       "failed", call.arguments, model=model_name, detail=str(exc))
+                    return f"Fehlgeschlagen: {exc}"
             approval = self._policy.request(
-                tool.name, call.arguments, decision, tool.dry_run(call.arguments)
+                tool.name, call.arguments, decision, tool.dry_run(call.arguments),
+                local_dry_run=local_dry_run, execution_snapshot=snapshot,
             )
             self._audit.record(
                 tool.name, decision.action_class.value, decision.level.value,
@@ -1866,6 +1910,7 @@ class Agent:
         model_name: str | None,
         approved_by: str | None = None,
         external_caller=False,
+        approval: PendingApproval | None = None,
     ) -> str:
         fehlend = _fehlende_pflichtfelder(tool, arguments)
         if fehlend:
@@ -1887,7 +1932,17 @@ class Agent:
             return f"Fehlgeschlagen: {detail}"
 
         try:
-            result = self._recall_self_model(arguments, turn, external_caller=external_caller) if tool.self_model_recall else tool.run(**arguments)
+            if approval is not None and tool.run_approved is not None:
+                result = tool.run_approved(approval.execution_snapshot)
+            elif tool.self_model_recall:
+                result = self._recall_self_model(arguments, turn, external_caller=external_caller)
+            else:
+                result = tool.run(**arguments)
+        except TaskCompletionChanged as exc:
+            self._audit.record(tool.name, tool.classify(arguments).value, level.value, "refused",
+                               arguments, model=model_name, detail=str(exc), approved_by=approved_by)
+            turn.approval_outcome = "rejected"
+            return str(exc)
         except Exception as exc:
             self._audit.record(
                 tool.name, tool.classify(arguments).value, level.value, "failed",
@@ -2008,17 +2063,22 @@ class Agent:
         model_name = self._provider.model if self._provider else None
         result = self._execute(
             tool, approval.arguments, approval.decision.level, turn, model_name,
-            approved_by="user",
+            approved_by="user", approval=approval,
         )
+
+        # Persisted labels and the live history must enforce the same boundary,
+        # including a provider removed during approval and reattached later.
+        if turn.context["history_egress"] == "local_only":
+            self._history_local_only = True
+        if tool.run_approved is not None:
+            turn.reply = result
+            turn.context["task_completion_approval"] = True
+            return turn
 
         if tool.returns_untrusted or (
             tool.classify(approval.arguments) is ActionClass.READ and tool.name != "aktuelle_zeit"
         ):
             self._tainted = True
-        # Persisted labels and the live history must enforce the same boundary,
-        # including a provider removed during approval and reattached later.
-        if turn.context["history_egress"] == "local_only":
-            self._history_local_only = True
         self._history.append(
             {"role": "assistant", "content": f"[Werkzeugergebnis nach Freigabe — Daten] {result}"}
         )
@@ -2096,7 +2156,8 @@ class Agent:
         # Rebuild instead of unioning across conversations. Apply both reset
         # boundaries before examining old lineage or calendar fingerprints.
         self._clear_model_history()
-        messages = knowledge_history.after_last_reset(messages)
+        from .task_status_answers import hidden_from_history
+        messages = knowledge_history.after_last_reset([m for m in messages if not hidden_from_history(m)])
         self._working_profile_signature = next((m.get('context', {}).get('working_profile_signature')
             for m in reversed(messages) if m.get('role') == 'assistant'
             and isinstance(m.get('context'), dict)), None) or {'ids':[], 'conflicts':[], 'overrides':{}}
@@ -2151,6 +2212,7 @@ class Agent:
                           or 'mappe_answer' in message['context']
                           or 'offene_punkte_answer' in message['context']
                           or 'kommendes_answer' in message['context']
+                          or message["context"].get("task_completion_approval") is True
                           or message["context"].get("answer_mode") == "calendar_data"
                           or (isinstance(message["context"].get("calendar"), dict)
                               and message["context"].get("calendar_model_context") is not False)))

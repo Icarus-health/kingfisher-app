@@ -158,4 +158,4 @@ def test_bestaetigter_wartevorschlag_erfindet_keine_antwort_im_verlauf(welt):
     [vorschlag] = lauf.vorschlaege()
     zurueck = lauf.vorschlag_annehmen(vorschlag['id'])
     assert zurueck.wartet_auf is None
-    assert zurueck.geaendert_grund['satz'] == 'Wieder bei dir, weil Anna Berg am 21. Oktober geschrieben hat.'
+    assert zurueck.geaendert_grund['satz'] == 'Warten beendet, weil Anna Berg am 21. Oktober geschrieben hat.'

@@ -1,0 +1,41 @@
+{
+  "base_commit": "8b6393e591a9c21adedf805fbc6abf0d5c4548ec",
+  "source_sha256": {
+    "recovery_workspace.py": "5b3be717ddd2a62464c7af268af62bf7159aed50b3ecdf436d25e923494a6514",
+    "recovery_workspace_cli.py": "09daa8fa0bfed6597a46aaca9e416aa69b07634c532a37d648aa480b90a3a07d",
+    "restore_boundary.py": "ab626440c9ff0eb00f7710f58a9fd687f6b859f71b1e19eba59bd701ca4b9d89",
+    "secrets.py": "76dfb5bdced3af50eee0855ae25ed49f7520407acd39a46300b51d43f0cc7a6f",
+    "server.py": "d92e9c65ec4869360e74d04c936477a39b7f7bd00867270808b9e05f2dfb37ce"
+  },
+  "validation": {
+    "direct": {
+      "passed": 37,
+      "seconds": 5.17
+    },
+    "affected": {
+      "passed": 271,
+      "failed": 1,
+      "seconds": 52.26,
+      "failure": "sandbox denied ephemeral loopback bind in unchanged restored-app launcher test"
+    },
+    "launcher_authorized_repeat": {
+      "passed": 5,
+      "seconds": 0.09
+    },
+    "earlier_overlapping_adjacent": {
+      "passed": 103,
+      "seconds": 7.72
+    },
+    "independent_review": {
+      "direct_passed_at_review": 36,
+      "important_findings": 0,
+      "later_change": "reject deeply nested JSON marker; final direct suite 37 passed"
+    }
+  },
+  "real_model_calls": 0,
+  "cloud_calls": 0,
+  "personal_data_used": false,
+  "native_app_tested": false,
+  "product_recovery_acceptance_complete": false,
+  "bulk_import_resumed": false
+}

@@ -40,7 +40,7 @@ class CloudMemoryError(ValueError):
 class CloudMemoryJobs:
     def __init__(self, episodes, database: Path, provider_factory, grant_status,
                  permission_lock=None, runtime_boundary=None, *, api_provider_factory=None, credential_status=None,
-                 source_screen=None, mistral_budget=None):
+                 source_screen=None, mistral_budget=None, proposals=None, tasks=None):
         self.episodes = episodes
         self.memory = WorkingMemoryStore(episodes)
         self.categories = Categories(episodes)
@@ -52,11 +52,14 @@ class CloudMemoryJobs:
         self.credential_status = credential_status
         self.source_screen = source_screen
         self._mistral_budget = mistral_budget
+        self.proposals = proposals
+        self.tasks = tasks
         self.permission_lock = permission_lock or threading.RLock()
         self._runtime_boundary = runtime_boundary
         self.lock = threading.RLock()
         self._threads: dict[str, threading.Thread] = {}
         with self._connect() as db:
+            db.execute('BEGIN IMMEDIATE')
             db.execute("""CREATE TABLE IF NOT EXISTS cloud_memory_previews (
                 id TEXT PRIMARY KEY, purpose TEXT NOT NULL, model_scope TEXT NOT NULL,
                 grant_id TEXT, sources TEXT NOT NULL, expires_at REAL NOT NULL)""")
@@ -69,7 +72,7 @@ class CloudMemoryJobs:
                 stop_reason TEXT NOT NULL, created_at REAL NOT NULL, updated_at REAL NOT NULL)""")
             issue_schema = """CREATE TABLE IF NOT EXISTS cloud_memory_issues (
                 job_id TEXT NOT NULL, episode_id TEXT NOT NULL,
-                stage TEXT NOT NULL CHECK(stage IN ('source','categories')),
+                stage TEXT NOT NULL CHECK(stage IN ('source','categories','tasks')),
                 code TEXT NOT NULL CHECK(code IN ('invalid_entity_evidence',
                     'invalid_category_evidence', 'invalid_output_format', 'unsupported_source')),
                 PRIMARY KEY(job_id,episode_id))"""
@@ -77,12 +80,22 @@ class CloudMemoryJobs:
             issue_columns = {row[1] for row in db.execute("PRAGMA table_info(cloud_memory_issues)")}
             if "reason" not in issue_columns:
                 db.execute("ALTER TABLE cloud_memory_issues ADD COLUMN reason TEXT NOT NULL DEFAULT 'unspecified'")
+            schema = db.execute("SELECT sql FROM sqlite_master WHERE name='cloud_memory_issues'").fetchone()[0]
+            if 'CHECK' in schema.upper() and "'tasks'" not in schema:
+                db.execute('ALTER TABLE cloud_memory_issues RENAME TO cloud_memory_issues_previous')
+                db.execute(issue_schema)
+                db.execute("ALTER TABLE cloud_memory_issues ADD COLUMN reason TEXT NOT NULL DEFAULT 'unspecified'")
+                db.execute('INSERT INTO cloud_memory_issues (job_id,episode_id,stage,code,reason) '
+                           'SELECT job_id,episode_id,stage,code,reason FROM cloud_memory_issues_previous')
+                db.execute('DROP TABLE cloud_memory_issues_previous')
             columns = {row[1] for row in db.execute("PRAGMA table_info(cloud_memory_jobs)")}
             if "source_limit" not in columns:
                 db.execute("ALTER TABLE cloud_memory_jobs ADD COLUMN source_limit INTEGER NOT NULL DEFAULT 100")
             # Bestehende Aufträge bleiben dem bisherigen ChatGPT-Zugang zugeordnet.
             for table in ("cloud_memory_previews", "cloud_memory_jobs"):
                 existing = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+                if 'include_tasks' not in existing:
+                    db.execute(f'ALTER TABLE {table} ADD COLUMN include_tasks INTEGER NOT NULL DEFAULT 0')
                 if "provider" not in existing:
                     db.execute(f"ALTER TABLE {table} ADD COLUMN provider TEXT NOT NULL DEFAULT 'chatgpt'")
                 if "credential_revision" not in existing:
@@ -102,16 +115,30 @@ class CloudMemoryJobs:
         return db
 
     @staticmethod
-    def _planned_requests(episode):
+    def _planned_requests(episode, *, include_tasks=False):
         """Reserve classification and quote calls, including one anchor correction per quote section."""
         try:
             classifications = len(abschnitte_der(episode))
             categories = len(_quote_sections(episode.body, _remote_fragments(episode.body, _blocks(episode.body))))
-            return classifications + 2 * categories
+            return classifications + 2 * categories + (2 * CloudMemoryJobs._task_segments(episode) if include_tasks else 0)
         except UnsupportedSource:
             # The normal source validator reports unsupported originals; no
             # request limit is enlarged merely for an unprocessable source.
             return 0
+
+    @staticmethod
+    def _task_segments(episode):
+        from .episodes import EpisodeKind
+        from .memory_analysis import segment
+        # Existing semantic review needs the full mail and has a 20k limit.
+        # Attachments retain their own source consent and are not silently added.
+        if episode.kind is not EpisodeKind.MESSAGE or len(episode.body) > 20000 or 'source:truncated' in episode.tags:
+            return 0
+        offset, count = 0, 0
+        while offset < len(episode.body):
+            _, offset = segment(episode.body, offset)
+            count += 1
+        return max(1, count)
 
     @staticmethod
     def _limit(job):
@@ -241,7 +268,7 @@ class CloudMemoryJobs:
                 return None
             return snapshot
 
-    def _cloud_complete(self, episode_id, fingerprint):
+    def _cloud_complete(self, episode_id, fingerprint, *, include_tasks=False):
         """A current remote result needs both derived layers before bulk skips it."""
         with self.episodes._lock:
             row = self.episodes._conn.execute(
@@ -249,11 +276,22 @@ class CloudMemoryJobs:
                 (episode_id,)).fetchone()
             if not row or row[0] != fingerprint or row[1] != "complete" or not row[2].startswith(("chatgpt:", "anthropic:", "mistral:")):
                 return False
-        return self.categories.list_for(episode_id)["status"] in {"complete", "empty"}
+        if self.categories.list_for(episode_id)["status"] not in {"complete", "empty"}:
+            return False
+        if include_tasks:
+            from types import SimpleNamespace
+            from .task_review import current_task_context
+            source = self.episodes.get(episode_id)
+            context = current_task_context(self.episodes, episode_id)
+            return bool(self.proposals is not None and context is not None and self.proposals.memory_analysis.completed(
+                source, SimpleNamespace(name='mistral', model=MISTRAL_IMPORT_MODEL), context=context))
+        return True
 
     @guarded
-    def preview(self, purpose="pilot", source_ids=None, limit=None, cursor=None, *, provider="chatgpt"):
+    def preview(self, purpose="pilot", source_ids=None, limit=None, cursor=None, *, provider="chatgpt", include_tasks=False):
         self._check_provider(provider)
+        if type(include_tasks) is not bool or (include_tasks and (provider != 'mistral' or self.proposals is None)):
+            raise CloudMemoryError('Die zusätzliche Aufgabenprüfung ist nur für vorbereitete Mistral-Quellenpakete verfügbar.')
         if purpose not in {"pilot", "bulk", "recheck"}:
             raise CloudMemoryError("Unbekannter Verarbeitungsumfang.")
         source_limit = MAX_SOURCES if purpose == "pilot" else MAX_BULK_SOURCES
@@ -305,13 +343,13 @@ class CloudMemoryJobs:
             fp = source_fingerprint(snapshot)
             # The pilot must include sources already classified locally. Bulk skips only
             # sources already completed by this explicit cloud workflow in both layers.
-            if purpose == "bulk" and self._cloud_complete(episode_id, fp):
+            if purpose == "bulk" and self._cloud_complete(episode_id, fp, include_tasks=include_tasks):
                 continue
             episode = snapshot.episode
             candidate = {"id": episode.id, "fingerprint": fp,
                          "title": (episode.title or "")[:240],
                          "occurred_at": episode.occurred_at.isoformat() if episode.occurred_at else None,
-                         "planned_requests": self._planned_requests(episode)}
+                         "planned_requests": self._planned_requests(episode, include_tasks=include_tasks)}
             if source_ids is None:
                 candidate["_rowid"] = rowids[episode_id]
             candidates.append(candidate)
@@ -328,11 +366,12 @@ class CloudMemoryJobs:
         request_limit = self._budget(sources)
         with self._connect() as db:
             db.execute("INSERT INTO cloud_memory_previews "
-                       "(id,purpose,model_scope,grant_id,sources,expires_at,provider,credential_revision,budget_id,budget_revision,price_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                       "(id,purpose,model_scope,grant_id,sources,expires_at,provider,credential_revision,budget_id,budget_revision,price_id,include_tasks) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                        (preview_id, purpose, model_scope, grant_id,
                         json.dumps(sources, separators=(",", ":")), expires, provider, revision,
-                        binding["budget_id"], binding["budget_revision"], binding["price_id"]))
+                        binding["budget_id"], binding["budget_revision"], binding["price_id"], int(include_tasks)))
         return {"preview_id": preview_id, "purpose": purpose, "provider": provider, "count": len(sources),
+                "include_tasks": include_tasks,
                 **({"import_model": MISTRAL_IMPORT_MODEL, "budget": budget, **binding} if provider == "mistral" else {}),
                 "source_limit": source_limit,
                 "request_limit": request_limit,
@@ -373,12 +412,13 @@ class CloudMemoryJobs:
             if preview["purpose"] == "bulk":
                 with self._connect() as db:
                     pilot = db.execute(
-                        "SELECT state FROM cloud_memory_jobs WHERE purpose='pilot' AND provider=? AND model=? "
+                        "SELECT state,include_tasks FROM cloud_memory_jobs WHERE purpose='pilot' AND provider=? AND model=? "
                         "AND COALESCE(credential_revision,grant_id)=? ORDER BY created_at DESC LIMIT 1",
                         (provider, model, preview["credential_revision"] or self._grant())
                     ).fetchone()
-                if not pilot or pilot["state"] != "complete":
-                    raise CloudMemoryError("Der 100-Mail-Pilot muss abgeschlossen sein, bevor der Bulk-Lauf startet.")
+                if (not pilot or pilot["state"] != "complete"
+                        or (preview['include_tasks'] and not pilot['include_tasks'])):
+                    raise CloudMemoryError('Zuerst muss das erste Mailpaket mit demselben Prüfumfang vollständig durchgesehen sein.')
             credential = self._credential(provider)
             grant_id = credential.get("grant_id") if provider == "chatgpt" else ""
             revision = credential.get("credential_revision") if provider != "chatgpt" else None
@@ -419,12 +459,12 @@ class CloudMemoryJobs:
             with self._connect() as db:
                 db.execute("""INSERT INTO cloud_memory_jobs
                     (id,purpose,model,grant_id,source_ids,fingerprints,source_limit,state,consent,
-                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision,request_limit,budget_id,budget_revision,price_id)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision,request_limit,budget_id,budget_revision,price_id,include_tasks)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                            (job_id, preview["purpose"], model, grant_id,
                             json.dumps(chosen), json.dumps(fingerprints), len(chosen),
                             "running", 1, 0, 0, 0, 0, "", now, now, provider, revision, request_limit,
-                            preview["budget_id"], preview["budget_revision"], preview["price_id"]))
+                            preview["budget_id"], preview["budget_revision"], preview["price_id"], preview['include_tasks']))
                 # Ein erneut zugestellter Start darf kein zweites bezahltes Paket erzeugen.
                 db.execute("UPDATE cloud_memory_previews SET expires_at=0 WHERE id=?", (preview_id,))
             thread = threading.Thread(target=self._run, args=(job_id, selected_provider),
@@ -463,6 +503,7 @@ class CloudMemoryJobs:
                                     "WHERE job_id=? ORDER BY rowid LIMIT 10", (job["id"],)).fetchall()
         return {"job": {"id": job["id"], "purpose": job["purpose"], "model": job["model"],
                          "provider": job["provider"], "quality_verified": False,
+                         "include_tasks": bool(job['include_tasks']),
                          **self._job_budget_status(job),
                          "state": job["state"], "selected": len(ids), "position": job["position"],
                          "completed": job["completed"], "failed": job["failed"],
@@ -488,6 +529,7 @@ class CloudMemoryJobs:
                     and source_fingerprint(snapshot) == json.loads(job["fingerprints"])[snapshot.episode.id])
 
     def _run(self, job_id, provider):
+        stage = 'source'
         try:
             job = self._job(job_id)
             ids = json.loads(job["source_ids"])
@@ -516,6 +558,9 @@ class CloudMemoryJobs:
                         self._analyze_one(job_id, provider, snapshot, explicit_recheck=True)
                         stage = "categories"
                         self._categories_one(job_id, provider, snapshot)
+                        if job['include_tasks']:
+                            stage = 'tasks'
+                            self._tasks_one(job_id, provider, snapshot)
                     except SourceValidationError as exc:
                         with self.permission_lock:
                             if not self._permitted(job_id, provider, snapshot):
@@ -571,10 +616,16 @@ class CloudMemoryJobs:
                 current = self._job(job_id)
                 if current and current["state"] == "running":
                     retryable = self._retryable(exc)
+                    reason = self._stop_reason(exc)
+                    if (stage == 'tasks' and isinstance(exc, ProviderError)
+                            and not isinstance(exc, MistralBudgetError)):
+                        reason = ('Die Aufgabenprüfung wurde nicht abgeschlossen. '
+                                  'Die gespeicherte Quellen- und Personeneinordnung bleibt erhalten. '
+                                  'Bitte diese Quelle erneut prüfen.')
                     self._save(job_id, state="paused" if retryable else "stopped",
                                consent=0 if not self._identity_current(current, provider) else current["consent"],
                                failed=current["failed"] + int(not retryable),
-                               stop_reason=self._stop_reason(exc))
+                               stop_reason=reason)
 
     @staticmethod
     def _retryable(exc):
@@ -669,6 +720,39 @@ class CloudMemoryJobs:
             raise UnsupportedSource("Category analysis is deferred for this source.")
         if state not in {"complete", "empty"}:
             raise ProviderError("Category analysis did not produce a current result.")
+
+    def _tasks_one(self, job_id, provider, snapshot):
+        from .task_detection import TaskDetector
+        from .task_review import current_task_context
+        count = self._task_segments(snapshot.episode)
+        if not count:
+            raise UnsupportedSource('Task review needs one complete mail of at most 20000 characters.')
+        if self.proposals is None:
+            raise ProviderError('Die Aufgabenprüfung ist nicht verfügbar.')
+        scoped, policy = self._scoped(job_id, provider, snapshot)
+        detector = TaskDetector(self.episodes, self.proposals, scoped, self.permission_lock,
+                                tasks=self.tasks, policy_for=lambda _episode: policy)
+        for _ in range(count):
+            with self.permission_lock:
+                if not self._permitted(job_id, provider, snapshot):
+                    raise ProviderError('Die Aufgabenfreigabe wurde geändert.')
+                context = current_task_context(self.episodes, snapshot.episode.id)
+                if context is None:
+                    raise ProviderError('Die Aufgabengrundlage wurde geändert.')
+                if self.proposals.memory_analysis.completed(snapshot.episode, scoped, context=context):
+                    return
+                before = self.proposals.memory_analysis.snapshot(snapshot.episode.id)
+            report = detector.run(with_model=True, limit=1, source_ids=[snapshot.episode.id],
+                                  permitted=lambda: self._permitted(job_id, provider, snapshot))
+            with self.permission_lock:
+                if not self._permitted(job_id, provider, snapshot) or report.cancelled:
+                    raise ProviderError('Die Aufgabenfreigabe wurde geändert.')
+                if self.proposals.memory_analysis.completed(snapshot.episode, scoped, context=context):
+                    return
+                after = self.proposals.memory_analysis.snapshot(snapshot.episode.id)
+                if after == before:
+                    raise ProviderError('Eine andere Aufgabenprüfung läuft; bitte später fortsetzen.')
+        raise SourceValidationError('invalid_output_format', 'Die Aufgabenprüfung ist noch unvollständig.')
 
     def pause(self, job_id=None, revoke=False):
         job = self._job(job_id) if job_id else self._job(self._latest_id())

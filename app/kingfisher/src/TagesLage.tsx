@@ -15,6 +15,7 @@ const KOPF: Record<string, string> = { termin: "Wohin", leute: "Wer kommt", einp
 export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: boolean}) {
   const [daten, setDaten] = useState<TagBriefing | null>(null);
   const [fehler, setFehler] = useState(false);
+  const [laedt, setLaedt] = useState(false);
   const [offen, setOffen] = useState<string | null>(null);
   const [verlaufOffen, setVerlaufOffen] = useState(false);
   const [frage, setFrage] = useState<"fahrzeiten" | "heimat" | null>(null);
@@ -22,21 +23,35 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
   const [arbeitet, setArbeitet] = useState(false);
   const [meldung, setMeldung] = useState("");
   const nachladen = useRef<number | undefined>(undefined);
+  const live = useRef(false);
+  const lesestand = useRef(0);
+  const laufendeAbrufe = useRef(0);
 
   const laden = useCallback(async (still = false) => {
+    if (!live.current) return;
+    const anfrage = ++lesestand.current;
+    laufendeAbrufe.current += 1;
+    setLaedt(true);
+    window.clearTimeout(nachladen.current);
     try {
       const neu = await api.tagBriefing(still);
+      // Ein älterer Abruf darf z. B. eine inzwischen abbestellte Quelle nicht wieder einsetzen.
+      if (!live.current || anfrage !== lesestand.current) return;
       setDaten(neu); setFehler(false);
       // Fahrzeiten, die das Briefing nicht abwarten konnte, holt der Sidecar im Hintergrund; ein zweiter Blick zeigt sie.
-      window.clearTimeout(nachladen.current);
       if (neu.termine.some(t => t.wegezeit?.status === "wird_berechnet")) nachladen.current = window.setTimeout(() => void laden(true), 4000);
-    } catch { setFehler(true); }
+    } catch { if (live.current && anfrage === lesestand.current) setFehler(true); }
+    finally {
+      laufendeAbrufe.current -= 1;
+      if (live.current && anfrage === lesestand.current) setLaedt(false);
+    }
   }, []);
   useEffect(() => {
+    live.current = true;
     void laden();
     // Das stille Erneuern zählt nicht als Blick: Das Logbuch bezieht sich auf das letzte Öffnen, nicht auf den offenen Tab.
-    const takt = window.setInterval(() => { if (!document.hidden) void laden(true); }, 60_000);
-    return () => { window.clearInterval(takt); window.clearTimeout(nachladen.current); };
+    const takt = window.setInterval(() => { if (!document.hidden && !laufendeAbrufe.current) void laden(true); }, 60_000);
+    return () => { live.current = false; lesestand.current += 1; window.clearInterval(takt); window.clearTimeout(nachladen.current); };
   }, [laden]);
 
   async function speichern(aenderung: Parameters<typeof api.wegezeitSetzen>[0], antwort: string) {
@@ -45,13 +60,14 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
     try {
       const stand = await api.wegezeitSetzen(aenderung);
       await laden(true);
+      if (!live.current) return;
       // Apple Karten antwortet über den Mac-Helfer; ein zweiter Blick nach wenigen Sekunden holt die Zahl.
       window.clearTimeout(nachladen.current);
       nachladen.current = window.setTimeout(() => void laden(true), 7000);
       setMeldung(antwort);
       setFrage(stand.aktiv && !stand.heimat ? "heimat" : null);
-    } catch { setMeldung("Das konnte nicht gespeichert werden. Bitte erneut versuchen."); }
-    finally { setArbeitet(false); }
+    } catch { if (live.current) setMeldung("Das konnte nicht gespeichert werden. Bitte erneut versuchen."); }
+    finally { if (live.current) setArbeitet(false); }
   }
 
   async function abbestellen(a: TagAktion) {
@@ -60,13 +76,18 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
     try {
       await api.weltAbbestellen(a.art === "welt_quelle" ? { quelle_id: a.ref } : { sache: a.ref });
       await laden(true);
+      if (!live.current) return;
       setMeldung(a.art === "welt_quelle" ? "Abbestellt. Unter Einstellungen → Was Kingfisher darf kannst du die Quelle wieder einschalten."
         : "Abbestellt. Unter Einstellungen → Was Kingfisher darf kannst du es wieder zulassen.");
-    } catch { setMeldung("Das konnte nicht abbestellt werden. Bitte erneut versuchen."); }
-    finally { setArbeitet(false); }
+    } catch { if (live.current) setMeldung("Das konnte nicht abbestellt werden. Bitte erneut versuchen."); }
+    finally { if (live.current) setArbeitet(false); }
   }
 
-  if (fehler && !daten) return <section className="tageslage" aria-label="Das zählt heute"><p className="tageslage-hinweis" role="status">Die Tageslage ist gerade nicht erreichbar.</p></section>;
+  const ladeHinweis = fehler ? <p className="tageslage-hinweis" role="status">
+    {daten ? "Aktualisierung fehlgeschlagen. Angezeigt wird der letzte geladene Stand." : "Die Tageslage ist gerade nicht erreichbar."}{" "}
+    <button className="today-text-link tageslage-knopf" type="button" disabled={laedt} onClick={() => void laden(true)}>{laedt ? "Wird geladen …" : "Erneut versuchen"}</button>
+  </p> : null;
+  if (fehler && !daten?.tageslage) return <section className="tageslage" aria-label="Das zählt heute">{ladeHinweis}</section>;
   if (!daten || !daten.tageslage) return null;
   const lage = daten.tageslage;
   const termin = daten.termine.find(t => t.uid === offen) ?? null;
@@ -90,13 +111,14 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
   }
 
   return <section className="tageslage" aria-labelledby="tageslage-titel">
+    {ladeHinweis}
     {verlauf.length > 0 && <div className="tageslage-verlauf" role="group" aria-label="Seit dem letzten Blick">
       {verlauf.map((zeile, index) => <p key={index}>{zeile}</p>)}
       <button type="button" className="today-text-link tageslage-knopf" aria-expanded={verlaufOffen}
         onClick={() => setVerlaufOffen(!verlaufOffen)}>{verlaufOffen ? "Verlauf schließen" : "Verlauf"}<span aria-hidden="true">→</span></button>
       {verlaufOffen && <Logbuch />}
     </div>}
-    <h2 id="tageslage-titel">{dailyIntroduction(lage.einleitung, lage.zeilen.length > 0, sourcesIncomplete || Object.keys(daten.fehler).length > 0)}</h2>
+    <h2 id="tageslage-titel">{dailyIntroduction(lage.einleitung, lage.zeilen.length > 0, fehler || sourcesIncomplete || Object.keys(daten.fehler).length > 0)}</h2>
     {lage.zeilen.length > 0 && <ol className="tageslage-zeilen">{lage.zeilen.map(z => <li key={z.art} className={`tageslage-zeile tageslage-${z.art}`}>
       <span className="tageslage-kopf">{KOPF[z.art] ?? ""}</span>
       <p>{z.text}</p>

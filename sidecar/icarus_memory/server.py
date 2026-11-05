@@ -107,6 +107,7 @@ from .providers_mail import guess as guess_mail_provider
 from .secrets import Keychain, load_into_env
 from .security import SecurityError, file_roots_from_env
 from .store import ConflictError, SelfModelStore
+from . import task_status_answers, task_responsibility_answers
 from .tasks import TaskStore, TaskChangedError, TaskRequestConflict
 from .tools import build_registry
 from .zeitgrenze import mit_zeitgrenze
@@ -143,6 +144,7 @@ EIGENE_FRAGE_ANSEHEN = "So ist deine Nachricht gespeichert"
 #: gesamte persönliche Gedächtnis im lokalen Netz.
 HOST_ENV = "ICARUS_SIDECAR_HOST"
 DEFAULT_HOST = "127.0.0.1"
+PACKAGED_UI_DIR = Path('/opt/kingfisher/ui')
 
 
 def _ui_dir() -> Path | None:
@@ -160,7 +162,11 @@ def _ui_dir() -> Path | None:
     # Arbeitskopie: sidecar/icarus_memory/server.py → ../../app/dist
     # (Ausgabeordner von `npm run build` in app/kingfisher, siehe vite.config.ts)
     candidate = Path(__file__).resolve().parents[2] / "app" / "dist"
-    return candidate if candidate.is_dir() else None
+    if candidate.is_dir():
+        return candidate
+    # The recovered child intentionally inherits no ICARUS_UI_DIR. The image's
+    # fixed, packaged assets are still available without widening boot authority.
+    return PACKAGED_UI_DIR if PACKAGED_UI_DIR.is_dir() else None
 
 
 def _data_dir() -> Path:
@@ -1453,6 +1459,10 @@ def _wire_scheduler(app: FastAPI) -> None:
 def _close_persistent_state(app: FastAPI) -> None:
     """Schließt alle offenen SQLite-Verbindungen vor einer Wiederherstellung."""
     local_modules.stop_for_transition(app)
+    learning = getattr(app.state, 'cloud_workflow_learning', None)
+    if learning is not None:
+        learning.revoke(readback=False)
+        app.state.cloud_workflow_learning = None
     cloud_jobs = getattr(app.state, "cloud_memory_jobs", None)
     if cloud_jobs is not None:
         cloud_jobs.pause(revoke=True)
@@ -1593,6 +1603,12 @@ def create_app(
     inspection = create_inspection_app(_data_dir())
     local_modules.inspection_admin(inspection, os.environ.get(TOKEN_ENV))
     if pending(_data_dir()):
+        return inspection
+    from .recovery_workspace import read_working_contract, boot_allowed
+    if read_working_contract(_data_dir()) and not boot_allowed(_data_dir(), os.environ):
+        # A copied database is not permission to consume the host's old API
+        # keys, connectors, model switches or Harness configuration. Only the
+        # new instance launcher may establish its first clean environment.
         return inspection
     # Vor dem ersten Öffnen: steht ein Umbau an, erst eine Kopie von vorher.
     backup_before_update(_data_dir())
@@ -2543,7 +2559,7 @@ def create_app(
 
     @app.post("/chat", dependencies=guard)
     def chat(body: ChatIn) -> dict[str, Any]:
-        return app.state.agent.send(body.message).to_dict()
+        return app.state.agent.send(body.message).to_dict(local=True)
 
     @app.get("/context", dependencies=tuer_guard)
     def context() -> dict[str, str]:
@@ -2576,7 +2592,9 @@ def create_app(
                     context={"items": [], "history_egress": "local_only"})
 
     @app.get("/approvals", dependencies=guard)
-    def approvals() -> list[dict[str, Any]]:
+    def approvals(local_preview: bool = False) -> list[dict[str, Any]]:
+        # The MCP bridge also lists these requests; the default is safe even
+        # for older bridges. Local conversation cards get the title separately.
         with app.state.conversation_lock:
             visible = []
             validity_cache = {}
@@ -2591,7 +2609,7 @@ def create_app(
                         from .mail_reply_suggestions import context_active
                         if not context_active(app, context):
                             continue
-                visible.append(approval.to_dict())
+                visible.append(approval.to_dict(local=local_preview))
             return visible
 
     @app.post("/approvals/{approval_id}", dependencies=guard)
@@ -2617,7 +2635,7 @@ def create_app(
                         if item.get("id") == approval_id), None)
                 return app.state.agent.resolve(
                     approval_id, body.granted, body.confirmation
-                ).to_dict()
+                ).to_dict(local=True)
             except PolicyError as exc:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
             finally:
@@ -2936,8 +2954,11 @@ def create_app(
                 # the checks above, even if an earlier task already exists.
                 key = mail_task_identity(message, title, body.source_quote)
                 projekt, person = aufgaben_von_selbst.zuordnung_fuer_quelle(app, episode['id'])
-                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
-                                                       person=person).to_dict()
+                try:
+                    return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
+                                                           person=person, source_text=None if message.truncated else message.body).to_dict()
+                except TaskRequestConflict as exc:
+                    raise HTTPException(409, str(exc)) from exc
             if body.request_id is not None:
                 payload = {'uid': uid, 'source_digest': body.source_digest, 'source_quote': body.source_quote,
                            'title': title, 'project_id': body.project_id, 'waiting_for': waiting_for,
@@ -3369,6 +3390,7 @@ def create_app(
 
     def _calendar_overview(days: int = 7, year_view: bool = False, *, start: datetime | None = None,
                            finish: datetime | None = None, zone=None) -> dict[str, Any]:
+        from .connectors.collections import CalendarReadChanged
         calendar = getattr(app.state, "calendar", None)
         result: dict[str, Any] = {"items": [], "errors": [], "warnings": [], "configured": calendar is not None}
         # Bestätigte Geburtstage stehen jedes Jahr wieder im Kalender, auch ohne verbundenen Kalender; nur in dieser
@@ -3393,13 +3415,24 @@ def create_app(
             elif not (start and finish):
                 start = datetime.now(timezone.utc)
                 finish = start + timedelta(days=days)
-            events, unknown = display_events(
-                calendar.events(days=(finish - start).total_seconds() / 86400, at=start), start, finish, zone=zone)
+            duration = (finish - start).total_seconds() / 86400
+            if isinstance(calendar, CalendarCollection):
+                read, errors, context = calendar.display_events(days=duration, at=start)
+                result.update(read_context=context, failed_sources=list(errors),
+                              read_at=datetime.now(timezone.utc).isoformat())
+            else:
+                read = calendar.events(days=duration, at=start)
+                errors = dict(getattr(calendar, 'last_errors', {}))
+            if getattr(app.state, 'calendar', None) is not calendar:
+                raise CalendarReadChanged('Die verbundenen Kalender haben sich während des Lesens geändert.')
+            events, unknown = display_events(read, start, finish, zone=zone)
             result["items"] = [event.to_dict() for event in events]
-            result["errors"] = list(getattr(calendar, "last_errors", {}).values())
+            result["errors"] = list(errors.values())
             konten_routes.nach_kalenderabruf(app, calendar, result)  # Stand je Kalender, Bereich je Termin
             if unknown:
                 result["warnings"].append(display_warning(unknown))
+        except CalendarReadChanged as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
         except Exception as exc:
             result["errors"] = [str(exc)]
         result["items"] = sorted([*result["items"], *geburtstage], key=lambda e: str(e.get("start") or ""))
@@ -3814,7 +3847,9 @@ def create_app(
         from .logbuch_routes import zeilen as logbuch_zeilen
         from .wetter_routes import dienst as wetter_dienst
         # `post=false`: ohne Posteingang, damit Heute den Gruß sofort zeigt; die Oberfläche holt danach den Rest.
-        return compose_morning(_dashboard_data(days=1, post=post, briefing_now=current), now=current, target=target,
+        # Der leere heutige Kalender verweist auf den nächsten Termin innerhalb
+        # einer Woche. Dafür braucht auch die lesende Projektion dieses Fenster.
+        return compose_morning(_dashboard_data(days=7, post=post, briefing_now=current), now=current, target=target,
                                wetter=lambda: wetter_dienst(app).aktuell(), verlauf=logbuch_zeilen(app, current),
                                nutzername=str((app.state.settings.einrichtung or {}).get("name") or ""))
 
@@ -4196,7 +4231,7 @@ def create_app(
                               lineages: dict[str, list[dict[str, str]]] | None = None,
                               validity_cache: dict | None = None) -> list[dict[str, Any]]:
         policy = getattr(app.state.agent, "policy", None)
-        pending = {item.id for item in policy.pending()} if policy is not None else set()
+        pending = {item.id: item for item in policy.pending()} if policy is not None else {}
         outcomes = {message.metadata["resolved_approval_id"]: message.metadata.get("approval_outcome", "unknown")
                     for message in messages if "resolved_approval_id" in message.metadata}
         lineages = lineages or _conversation_lineages(messages)
@@ -4210,6 +4245,10 @@ def create_app(
                     continue
                 action = {**approval, "message_id": message.id,
                           "state": outcomes.get(approval["id"], "pending" if approval["id"] in pending else "expired")}
+                if action["state"] == "pending":
+                    live = pending[approval["id"]]
+                    if live.local_dry_run is not None:
+                        action["dry_run"] = live.local_dry_run
                 if not valid:
                     action.update(dry_run="Grundlage dieser Freigabe geändert oder ausgeschlossen.",
                                   arguments={}, confirmation_phrase=None, reasons=[])
@@ -4225,6 +4264,15 @@ def create_app(
                             action["state"] = "expired"
                 actions.append(action)
         return actions
+
+    def _mail_intake_notice():
+        from .mail_intake import Intake
+
+        return {
+            'capture_pending': 'Mailaufnahme: Noch nicht alle gefundenen Mails sind eingelesen.',
+            'analysis_pending': 'Mailaufnahme: Ein Teil der eingelesenen Mails ist noch nicht eingeordnet.',
+            'unverified': 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.',
+        }.get(Intake(app.state.episodes).recall_gap(app.state.settings.mail_accounts))
 
     def _conversation_payload(conversation_id: str) -> dict[str, Any]:
         # Keep the conversation, proposal and claim reads together. In
@@ -4290,8 +4338,14 @@ def create_app(
             from . import knowledge_answer_view
             projected = []
             resolved_source_turns = 0
+            resolved_task_turns = 0
             resolved_knowledge_turns = 0
+            resolved_owner_sources = 0
             mappen_neu, mappen_memo = 0, {}
+            # POST, retry and GET all use this view. Coverage is current local
+            # intake state, never stored as a turn, claim, or model input.
+            intake_checked, intake_notice = False, None
+            intake_turns = 0
             # Bound original-source reads when opening a long conversation.
             # Older references stay stored and neutral; no stale copied quotes.
             for message in reversed(messages):
@@ -4312,6 +4366,13 @@ def create_app(
                     }
                 stored_context = message.metadata.get('context')
                 if (message.role == 'assistant' and isinstance(stored_context, dict)
+                        and task_status_answers.KEY in stored_context):
+                    value = task_status_answers.project_message(value, app.state.tasks, app.state.episodes,
+                                                                 resolve=resolved_task_turns < 20)
+                    resolved_task_turns += 1
+                    if stored_context is context:
+                        current_context = {**value['metadata']['context'], 'memory_revision': app.state.claims.revision}
+                elif (message.role == 'assistant' and isinstance(stored_context, dict)
                         and 'source_answer' in stored_context):
                     value = project_message(value, app.state.episodes, app.state.claims,
                                             resolve=resolved_source_turns < 20)
@@ -4432,12 +4493,38 @@ def create_app(
                         app.state.knowledge_service.answer_conflict_status,
                         resolve=resolved_knowledge_turns < 20)
                     resolved_knowledge_turns += 1
+                if message.role == 'assistant' and isinstance(stored_context, dict) and task_responsibility_answers.episode_ids(stored_context):
+                    value = task_responsibility_answers.project_sources(value, stored_context, app.state.tasks, app.state.episodes,
+                                                                        resolve=resolved_owner_sources < 20)
+                    resolved_owner_sources += 1
+                view = value['metadata'].get('context')
+                contract = view.get('answer_contract') if isinstance(view, dict) else None
+                if (message.role == 'assistant' and message.status == 'complete'
+                        and isinstance(contract, dict) and view.get('answer_mode') == 'memory_evidence'
+                        and 'source_answer' not in view
+                        and contract.get('status') in {
+                            'working_reports', 'working_unknown', 'working_fallback', 'evidence', 'fallback', 'unknown'
+                        } and intake_turns < 20):
+                    intake_turns += 1
+                    if not intake_checked:
+                        intake_notice = _mail_intake_notice()
+                        intake_checked = True
+                    if intake_notice:
+                        value['content'] += '\n\n' + intake_notice
+                        value['metadata'] = {**value['metadata'], 'context': {**view, 'mail_intake_notice': intake_notice}}
                 projected.append(value)
             projected.reverse()
+            from .workflow_learning import conversation_feedback
+            feedback = conversation_feedback(app,conversation_id)
+            for message in projected:
+                if message['id'] in feedback:
+                    message['metadata'] = {**message.get('metadata',{}), 'workflow_feedback':feedback[message['id']]}
             latest_context = next((item['metadata']['context'] for item in reversed(projected)
                 if item.get('role') == 'assistant'
                 and isinstance(item.get('metadata', {}).get('context'), dict)
                 and isinstance(item['metadata']['context'].get('items'), list)), {})
+            if task_status_answers.KEY in current_context:
+                current_context = task_status_answers.base_context()
             if latest_context.get('memory_answer_withheld'):
                 current_context = latest_context
             if ('source_answer' in current_context or 'working_answer' in current_context
@@ -4449,6 +4536,10 @@ def create_app(
                          or 'working_answer' in item['metadata']['context']
                          or 'mappe_answer' in item['metadata']['context'])), current_context))
                 current_context['memory_revision'] = app.state.claims.revision
+            if 'mail_intake_notice' in latest_context:
+                current_context['mail_intake_notice'] = latest_context['mail_intake_notice']
+            else:
+                current_context.pop('mail_intake_notice', None)
             return {
                 "conversation": _conversation_title(conversation, messages, lineages, validity_cache),
                 "messages": projected,
@@ -4491,13 +4582,16 @@ def create_app(
                 continue
             protected = (context.get('answer_mode') == 'memory_evidence'
                          or bool(context.get('knowledge_claim_ids'))
-                         or any(key in context for key in ('source_answer','working_answer','mappe_answer')))
-            if (message.role in {'user','assistant'} and not (message.role == 'assistant' and protected)
+                         or any(key in context for key in ('source_answer','working_answer','mappe_answer', task_status_answers.KEY)))
+            if (message.role in {'user','assistant'} and message.metadata.get(task_status_answers.USER_FLAG) is not True
+                    and not (message.role == 'assistant' and protected)
                     and query in message.content.casefold()
                     and conversation_memory.lineage_valid(app.state.episodes, lineages[message.id], cache)):
                 return True
         return False
     register_conversation_search_routes(app, guard, _safe_conversation_summary, _conversation_search_match)
+    from .conversation_draft_routes import register as register_conversation_drafts
+    register_conversation_drafts(app, guard)
 
     @app.get("/api/v1/conversations", dependencies=guard)
     def list_conversations(limit: int = Query(default=100, ge=1, le=200)) -> dict[str, Any]:
@@ -4597,7 +4691,7 @@ def create_app(
         validity_cache = {}
         start = 0
         for index, item in enumerate(messages):
-            if item.role == "assistant":
+            if item.role == "assistant" and not task_status_answers.hidden_from_history(item.metadata):
                 context = item.metadata.get("context") or {}
                 if context.get("memory_revision", 0) != revision:
                     start = index + 1
@@ -4607,6 +4701,7 @@ def create_app(
                 for item in messages[start:]
                 if item.role in {"user", "assistant"} and item.status == "complete"
                 and not (item.role == "user" and item.metadata.get("mail_reply_context"))
+                and not task_status_answers.hidden_from_history(item.metadata)
                 and conversation_memory.lineage_valid(app.state.episodes, lineages[item.id], validity_cache)]
 
     def _memory_conversation_turn(message, last, *, new_question=False, anfrage=None):
@@ -4644,8 +4739,12 @@ def create_app(
         status_code=201,
     )
     def send_conversation_message(
-        conversation_id: str, body: ConversationMessageIn
+        conversation_id: str, body: ConversationMessageIn, request: Request
     ) -> dict[str, Any]:
+        draft_instance = request.headers.get('x-kingfisher-draft-instance')
+        if draft_instance is not None and draft_instance != app.state.conversation_draft_instance_id:
+            raise HTTPException(409, detail={'code': 'draft_instance_changed',
+                'message': 'Die App wurde neu gestartet. Bitte den gespeicherten Entwurf erneut laden.'})
         if app.state.conversations.get(conversation_id) is None:
             raise HTTPException(status_code=404, detail="Unbekanntes Gespräch")
 
@@ -4731,6 +4830,13 @@ def create_app(
                         or options[body.clarification_choice].get('label') != body.message.strip()):
                     raise HTTPException(409, "Diese Auswahl ist nicht mehr aktuell. Bitte frage erneut.")
                 mode, fresh_question = 'memory_evidence', False
+            typed_context = None
+            if (mode in {'auto', 'memory_evidence'} and not learning_request
+                    and procedure_choice is None and procedure_turn is None
+                    and body.clarification_choice is None and body.clarification_date is None):
+                typed_context = task_status_answers.answer(body.message, app.state.tasks, app.state.episodes)
+                if typed_context is not None:
+                    mode, fresh_question = 'memory_evidence', True
             anfrage = None
             identity_turn = None
             if mode == 'auto':
@@ -4811,29 +4917,35 @@ def create_app(
                            or clicked or date_answer is not None)
             source = app.state.conversations.add_message(conversation_id, "user", body.message,
                 metadata={'answer_mode': mode, 'new_question': fresh_question,
-                          'source_capture_expected': True,
+                          **({task_status_answers.USER_FLAG: True} if typed_context is not None
+                             else {'source_capture_expected': True}),
                           'memory_lookup_only': lookup_only,
                           **({'clarification_choice': body.clarification_choice}
                              if body.clarification_choice is not None else {}),
                           **({'clarification_date': body.clarification_date.isoformat()}
                              if date_answer is not None else {})})
-            source_episode, created = conversation_memory.capture(
-                app.state.episodes, conversation_id, source, lookup_only=lookup_only)
-            if created and not lookup_only and app.state.settings.schedule.enabled and app.state.settings.schedule.with_model:
-                scheduler = getattr(app.state, 'scheduler', None)
-                if scheduler is not None and hintergrund_cloud.einordnung_moeglich(app, source_episode):
-                    scheduler.request_working_memory(source_episode.id)
-            input_sources = {entry["episode_id"]: entry
-                for item in history for entry in item.get("conversation_source_lineage", [])}
-            source_stamp = conversation_memory.stamp(app.state.episodes, source_episode.id)
-            source_captured = conversation_memory.usable(app.state.episodes, source_stamp)
-            input_sources[source_episode.id] = source_stamp
-            # Eine geänderte Gedächtnisrevision kann den Modellverlauf leeren.
-            # Die Einmalwahl führt trotzdem den ursprünglichen Auftrag fort.
-            if (mode == 'memory_evidence' or procedure_choice is not None) and last is not None:
-                input_sources.update({entry["episode_id"]: entry for entry in previous_lineages[last.id]})
+            input_sources = {}
+            if typed_context is None:
+                source_episode, created = conversation_memory.capture(
+                    app.state.episodes, conversation_id, source, lookup_only=lookup_only)
+                if created and not lookup_only and app.state.settings.schedule.enabled and app.state.settings.schedule.with_model:
+                    scheduler = getattr(app.state, 'scheduler', None)
+                    if scheduler is not None and hintergrund_cloud.einordnung_moeglich(app, source_episode):
+                        scheduler.request_working_memory(source_episode.id)
+                input_sources = {entry["episode_id"]: entry
+                    for item in history for entry in item.get("conversation_source_lineage", [])}
+                source_stamp = conversation_memory.stamp(app.state.episodes, source_episode.id)
+                source_captured = conversation_memory.usable(app.state.episodes, source_stamp)
+                input_sources[source_episode.id] = source_stamp
+                # Eine geänderte Gedächtnisrevision kann den Modellverlauf leeren.
+                # Die Einmalwahl führt trotzdem den ursprünglichen Auftrag fort.
+                if (mode == 'memory_evidence' or procedure_choice is not None) and last is not None:
+                    input_sources.update({entry["episode_id"]: entry for entry in previous_lineages[last.id]})
             try:
-                if learning_request:
+                if typed_context is not None:
+                    routing = None
+                    turn = Turn(reply=task_status_answers.NEUTRAL, context=typed_context)
+                elif learning_request:
                     routing = None
                     turn = learn_procedure(app, body.message, source_episode)
                 elif procedure_turn is not None:
@@ -4880,7 +4992,7 @@ def create_app(
                          'context_ids': [item.get('assertion_id') for item in turn.context.get('items', [])],
                          'memory_revision': turn.context.get('memory_revision'),
                          'allowed_tools': routing['allowed_tools']}, model=execution_agent.provider.model)
-                if mode == 'memory_evidence' and not learning_request:
+                if mode == 'memory_evidence' and not learning_request and typed_context is None:
                     # Beschreibt den festen, bereits geprüften Belegpfad. Gelernte
                     # Freitexte verändern dessen Auswahl und Antwortvertrag nicht.
                     selected = app.state.procedures.select(body.message, area='memory', local=True)
@@ -4902,7 +5014,7 @@ def create_app(
                 # ein nachweislich ausdrückliches „Merke …" in genau dieser
                 # Nutzerzeile darf seinen strukturierten Entwurf in den
                 # bestehenden Kandidatenpfad überführen.
-                if procedure_choice is None and _explicit_memory_request(source.content):
+                if typed_context is None and procedure_choice is None and _explicit_memory_request(source.content):
                     same_turn_messages = [assistant_message.id]
                     for draft in getattr(turn, "memory_candidate_drafts", []):
                         try:
@@ -4945,7 +5057,9 @@ def create_app(
                     "assistant",
                     "Die Antwort konnte gerade nicht erstellt werden.",
                     status="error",
-                    metadata={"conversation_source_lineage": list(input_sources.values())},
+                    metadata={"conversation_source_lineage": list(input_sources.values()),
+                              **({task_status_answers.USER_FLAG: True, 'context': task_status_answers.base_context()}
+                                 if typed_context is not None else {})},
                 )
         return _conversation_payload(conversation_id)
 
@@ -5130,12 +5244,13 @@ def create_app(
                 )
 
             question = messages[user_index].content
-            source_episode = conversation_memory.find(app.state.episodes, conversation_id, messages[user_index].id)
-            if source_episode is None:
+            typed_retry = messages[user_index].metadata.get(task_status_answers.USER_FLAG) is True
+            source_episode = None if typed_retry else conversation_memory.find(app.state.episodes, conversation_id, messages[user_index].id)
+            if source_episode is None and not typed_retry:
                 source_episode, _ = conversation_memory.capture(
                     app.state.episodes, conversation_id, messages[user_index],
                     lookup_only=messages[user_index].metadata.get('memory_lookup_only') is True)
-            if source_episode.state is EpisodeState.IGNORED:
+            if source_episode is not None and source_episode.state is EpisodeState.IGNORED:
                 raise HTTPException(status_code=409, detail="Diese Gesprächsquelle wurde ausgeschlossen.")
             memory_mode = messages[user_index].metadata.get('answer_mode') == 'memory_evidence'
             if memory_mode and failed_index != len(messages) - 1:
@@ -5148,16 +5263,22 @@ def create_app(
                  "context": message.metadata.get("context"),
                  "conversation_source_lineage": lineages[message.id]}
                 for message in messages[:user_index]
-                if message.status == "complete" and conversation_memory.lineage_valid(
-                    app.state.episodes, lineages[message.id], validity_cache)
+                if not typed_retry and message.status == "complete"
+                and not task_status_answers.hidden_from_history(message.metadata)
+                and conversation_memory.lineage_valid(app.state.episodes, lineages[message.id], validity_cache)
             ]
             input_sources = {entry["episode_id"]: entry
                 for item in history for entry in item["conversation_source_lineage"]}
-            source_stamp = conversation_memory.stamp(app.state.episodes, source_episode.id)
-            source_captured = conversation_memory.usable(app.state.episodes, source_stamp)
-            input_sources[source_episode.id] = source_stamp
+            source_captured = False
+            if source_episode is not None:
+                source_stamp = conversation_memory.stamp(app.state.episodes, source_episode.id)
+                source_captured = conversation_memory.usable(app.state.episodes, source_stamp)
+                input_sources[source_episode.id] = source_stamp
             try:
-                if memory_mode:
+                if typed_retry:
+                    typed_context = task_status_answers.answer(question, app.state.tasks, app.state.episodes, retry=True)
+                    turn = Turn(reply=task_status_answers.NEUTRAL, context=typed_context)
+                elif memory_mode:
                     turn = _memory_conversation_turn(question,
                         messages[user_index - 1] if user_index else None,
                         new_question=messages[user_index].metadata.get('new_question') is True)
@@ -5185,43 +5306,16 @@ def create_app(
                     "Die Antwort konnte gerade nicht erstellt werden.",
                     status="error",
                     metadata={"retry_of": message_id,
-                              "conversation_source_lineage": list(input_sources.values())},
+                              "conversation_source_lineage": list(input_sources.values()),
+                              **({task_status_answers.USER_FLAG: True, 'context': task_status_answers.base_context()}
+                                 if typed_retry else {})},
                 )
         return _conversation_payload(conversation_id)
 
     # -- Aufgaben ----------------------------------------------------------
 
-    def _task_view(view: str, project_id: str | None = None) -> list[dict[str, Any]]:
-        """Die drei belegten Aufgabensichten für die Produktoberfläche.
-
-        `delegated` fehlt bewusst: Die aktuelle Ablage kennt den tatsächlichen
-        Wartezustand, aber keine davon unabhängige Delegationssemantik.
-        """
-        tasks = app.state.tasks
-        if project_id:
-            _validate_task_project(project_id, allow_closed=True)
-            items = tasks.by_project(project_id, include_closed=True)
-            if view == "mine":
-                items = [task for task in items if task.status.value == "open" and task.wartet_auf is None]
-            elif view == "waiting":
-                items = [task for task in items if task.status.value == "open" and task.wartet_auf is not None]
-                items.sort(key=lambda task: task.wartet_seit or task.created_at)
-            elif view == "done":
-                items = [task for task in items if task.status.value == "done"]
-                items.sort(key=lambda task: task.done_at or task.created_at, reverse=True)
-            return [task.to_dict() for task in items]
-        if view == "mine":
-            return [task.to_dict() for task in tasks.open_tasks() if task.wartet_auf is None]
-        if view == "waiting":
-            return [task.to_dict() for task in tasks.wartend()]
-        if view == "done":
-            completed = [task for task in tasks.all_tasks() if task.status.value == "done"]
-            completed.sort(key=lambda task: task.done_at or task.created_at, reverse=True)
-            return [task.to_dict() for task in completed]
-        raise HTTPException(status_code=400, detail="Unbekannte Aufgabenansicht.")
-
     @app.get("/api/v1/tasks", dependencies=guard)
-    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None,
+    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done|others|unassigned)$"), project_id: str | None = None,
                               q: str = Query(default='', max_length=200), limit: int = Query(default=200, ge=1, le=200),
                               cursor: str | None = Query(default=None, max_length=2048)) -> dict[str, Any]:
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
@@ -5249,13 +5343,22 @@ def create_app(
         return task.to_dict()
 
     @app.get("/api/v1/tasks/{task_id}/history", dependencies=guard)
-    def task_history(task_id: str) -> dict[str, Any]:
+    def task_history(task_id: str, sequence: int | None = Query(default=None, ge=1, le=2**63-1)) -> dict[str, Any]:
         with app.state.conversation_lock:
             if app.state.tasks.get(task_id) is None:
                 raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+            if sequence is not None:
+                event = app.state.tasks.history_event(task_id, sequence)
+                if event is None:
+                    raise HTTPException(status_code=404, detail="Verlaufseintrag nicht gefunden.")
+                return {"items": [event], "truncated": False,
+                        "scope": "Der verknüpfte Eintrag im Verlauf dieser Aufgabe."}
             events = app.state.tasks.history(task_id, limit=101)
             return {"items": events[:100], "truncated": len(events) > 100,
                     "scope": "Gespeicherte Änderungen dieser Aufgabe, neueste zuerst."}
+
+    from .task_responsibility_routes import register_task_responsibility_routes
+    register_task_responsibility_routes(app, guard)
 
     @app.get("/api/v1/tasks/{task_id}/source", dependencies=guard)
     def task_source(task_id: str) -> dict[str, Any]:
@@ -5360,7 +5463,7 @@ def create_app(
     @app.post("/api/v1/tasks/{task_id}/done", dependencies=guard)
     def complete_kingfisher_task(task_id: str) -> dict[str, Any]:
         try:
-            return app.state.tasks.complete(task_id).to_dict()
+            return app.state.tasks.confirm_completion(task_id).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -5492,7 +5595,7 @@ def create_app(
                 project_id=body.project_id, new_project_name=body.new_project_name,
                 due=body.due, waiting_for=body.waiting_for, zuordnung_aus_vorschlag=body.zuordnung_aus_vorschlag,
                 eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None))).to_dict()
-        except (ProposalError, EpisodeError) as exc:
+        except (ProposalError, EpisodeError, TaskRequestConflict) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -5516,7 +5619,7 @@ def create_app(
     @app.post("/tasks/{task_id}/done", dependencies=guard)
     def complete_task(task_id: str) -> dict[str, Any]:
         try:
-            return app.state.tasks.complete(task_id).to_dict()
+            return app.state.tasks.confirm_completion(task_id).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -6467,8 +6570,10 @@ def create_app(
                 status_code=409,
                 detail=f"„{name}“ gehört mehreren Menschen: {'; '.join(adressen)}. Bitte die Adresse angeben.")
         key = personen.schluessel(name)
+        owner_address = parseaddr(name)[1] if '@' in name else (adressen[0] if adressen else '')
         tasks = [task for task in app.state.tasks.open_tasks(limit=None)
-                 if task.wartet_auf and personen.schluessel(task.wartet_auf) == key]
+                 if (task.wartet_auf and personen.schluessel(task.wartet_auf) == key)
+                 or personen.verantwortet(task, owner_address)]
         if not ids and not tasks:
             raise HTTPException(status_code=404, detail=f"In deinen Aufzeichnungen kommt „{name}“ nicht vor.")
         # Name gegen Titel und Ort, Adresse gegen die Gäste; nie gemischt.
@@ -6994,6 +7099,8 @@ def create_app(
     register_learning_routes(app, guard)
     from .procedure_routes import register as register_procedure_routes
     register_procedure_routes(app, guard)
+    from .cloud_workflow_learning import register as register_cloud_learning
+    register_cloud_learning(app, guard, _data_dir)
     from .world_routes import register_world_routes
     register_world_routes(app, guard, _data_dir)
 

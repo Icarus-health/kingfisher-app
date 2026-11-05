@@ -1,0 +1,30 @@
+{
+  "code_commit": "f4be12554791fb58ed8cd3344dc2d8e20b2d2611",
+  "report_sha256": "8a09a2e4830c4ba92c9ecb67e16da3b9bbd73bb3de83d7cab8f838ec3720411e",
+  "runner_sha256": "a511e8e31fc0acd704e975a8a881b0399385538c8257a4d18f2802b7d7577f83",
+  "pilot_catalog_sha256": "036fbf45fe33b7329f49c60e6183d13126daa8731bc922545cd7333d2a63f388",
+  "outcome": "STOPPED_RESOURCE_GUARD",
+  "semantic_quality": "NOT_EVALUATED",
+  "completed_answers": 0,
+  "started_model_calls": 1,
+  "embedding_calls": 0,
+  "cloud_calls": 0,
+  "bulk_import_resumed": false,
+  "personal_app_changed": false,
+  "before": {
+    "pressure": 1,
+    "free_percent": 49,
+    "swap_used_mib": 15768.94
+  },
+  "stop": {
+    "elapsed_seconds": 6.1,
+    "pressure": 4,
+    "free_percent": 22
+  },
+  "cleanup_readback": {
+    "ollama_loaded_models": [],
+    "pressure": 1,
+    "free_percent": 55
+  },
+  "model_quality_claim": false
+}

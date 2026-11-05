@@ -102,13 +102,15 @@ export type AntwortZeitenProtokoll = {
   pruefung?: SatzpruefungStand;
 };
 
+export type TaskStatusLink = {id: string; status: "open" | "done" | "dropped"; sequence: string};
+
 export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { workflow_feedback?:WorkflowFeedback; resolved_approval_id?: string; context?: { mail_intake_notice?: string; task_status_view?: boolean; task_link?: TaskStatusLink; original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -148,6 +150,7 @@ export type ContextItem = {
 };
 
 export type ContextPacket = {
+  task_link?: TaskStatusLink;
   query: string;
   generated_at: string | null;
   items: ContextItem[];
@@ -194,6 +197,11 @@ export type ConversationPayload = {
   context: ContextPacket;
   memory_candidates: MemoryCandidateCard[];
 };
+
+export type ConversationDraftHandoff = {id:string;text:string;state:'ready'|'started'|'accepted'};
+export type ConversationDraftBinding = {conversation_id:string;handoff:ConversationDraftHandoff};
+export type ConversationDraftPayload = {text:string;revision:number;instance_id:string;handoff?:ConversationDraftHandoff;binding?:ConversationDraftBinding};
+export type ConversationDraftBound = ConversationDraftBinding & {instance_id:string;claimed?:boolean};
 
 export type ConversationSummary = {
   id: string;
@@ -495,6 +503,20 @@ export type AufgabenPostVorschlag = {
   mail: { episode_id: string; titel: string; datum: string }; erstellt: string;
 };
 
+export type TaskListView = "mine" | "waiting" | "done" | "others" | "unassigned";
+export type TaskResponsibility = {version: 1; decision: "self" | "person" | "unknown"; address: string | null; label: string | null};
+export type TaskResponsibilitySnapshot = {
+  task: Task; revision: number; responsibility_event_sequence: number | null; own_address_overlap: boolean;
+};
+export type TaskResponsibilityOperation =
+  | {operation: "set"; owner: {decision: "self"} | {decision: "person"; address: string; label?: string}}
+  | {operation: "reset"}
+  | {operation: "undo"; target_event_sequence: number};
+export type TaskResponsibilityCommand = TaskResponsibilityOperation & {
+  request_id: string; expected_revision: number; confirmed: true;
+};
+export type ResponsibilityContact = {name: string; adressen?: string[]};
+
 export type Task = {
   provenance?: {source_ref?: string | null};
   /** Gesetzt, wenn die eigene Post die Aufgabe erledigt hat; leer nach „Rückgängig“ oder beim Abhaken von Hand. */
@@ -503,6 +525,9 @@ export type Task = {
   geaendert_grund?: AufgabenPostGrund | null;
   /** Wer zur Aufgabe gehört: wer darum bat oder wem zugesagt wurde (Adresse führt zur Akte). */
   person?: AufgabePerson | null;
+  responsibility?: TaskResponsibility | null;
+  effective_responsibility?: TaskResponsibility["decision"] | "unconfirmed";
+  user_actionable?: boolean;
   /** Wie die Aufgabe entstand, wenn nicht von Hand (Aufgaben von selbst, `aufgaben_von_selbst.py`). */
   angelegt?: AufgabeAngelegt | null;
   id: string;
@@ -537,7 +562,7 @@ export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler:
 export type ProjectTaskOverview = {
   project_id: string;
   as_of: string;
-  counts: {mine: number; waiting: number; done: number; dropped: number; overdue: number; undated: number};
+  counts: {mine: number; waiting: number; others?: number; unassigned?: number; done: number; dropped: number; overdue: number; undated: number};
   next_tasks: Task[];
   waiting_tasks: Task[];
 };
@@ -857,7 +882,7 @@ export type MappeEinzelheiten = {
   entwicklungen: MappeListe<MappeZitat>;
   angaben: MappeListe<MappeZitat>;
   einordnung: { eingeordnet: number; offen: number; ausgeschlossen: number };
-  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null }>;
+  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null; responsibility_label?: string }>;
   termine: MappeListe<{ uid: string | null; titel: string; ort: string; start: string; ganztags?: boolean }> & { kalender: "ok" | "nicht_erreichbar" };
 };
 
@@ -909,7 +934,7 @@ export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
   verlauf: { eintraege: Array<{ episode_id: string; titel: string; datum: string; grundlagen: string[]; archiviert: boolean; art: string | null; text: string | null; gekuerzt: boolean; quelle_art: string }>; gesamt: number };
-  offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string } | null; ziel?: string; richtung?: AkteRichtung; bestaetigt?: boolean }>; gesamt: number; vermutlich: boolean;
+  offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string; responsibility_label?: string } | null; ziel?: string; richtung?: AkteRichtung; bestaetigt?: boolean }>; gesamt: number; vermutlich: boolean;
     erledigt: { eintraege: Array<AkteZeile & { grund: string; durch: AkteZeile | null; ziel?: string; richtung?: AkteRichtung }>; gesamt: number } };
   fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number }; abgelegt?: number;
     ohne_datum: { eintraege: Array<{ ausdruck: string; episode_id: string; titel: string }>; gesamt: number };
@@ -918,7 +943,7 @@ export type Akte = {
   stand_der_dinge: { aktuell: AkteZeile | null; vorher: AkteZeile[]; vorher_gesamt: number; weitere: Array<{ aktuell: AkteZeile; vorher: AkteZeile[]; vorher_gesamt: number }>; weitere_gesamt: number };
   beteiligte: { eintraege: Array<{ sache: string; art: AkteSachenArt; anzahl: number; name: string }>; gesamt: number };
   termine: { kommend: AkteTermin[]; vergangen: AkteTermin[]; gesamt: { kommend: number; vergangen: number } };
-  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null }>;
+  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null; responsibility_label?: string }>;
   einordnung: { eingeordnet: number; offen: number; ausgeschlossen: number };
   /** Aussagen, die ein Mensch aus einer Antwort übernommen und bestätigt hat („In die Akte übernehmen“). Als Aussage, nie als Zitat. */
   aussagen?: AkteAussagen;
@@ -1063,7 +1088,8 @@ export async function request<T>(path: string, init?: RequestInit, previewError 
     }
     const payload = await response.json().catch(() => null);
     throw new ApiError(response.status, typeof payload?.detail === "string" ? payload.detail.slice(0, 500) : undefined,
-      typeof payload?.grund === "string" ? payload.grund.slice(0, 40) : undefined);
+      typeof payload?.grund === "string" ? payload.grund.slice(0, 40) :
+        typeof payload?.detail?.code === "string" ? payload.detail.code.slice(0,40) : undefined);
   }
   return response.json() as Promise<T>;
 }
@@ -1079,11 +1105,14 @@ export type MacCalendarState = {
 
 export type CalendarOverview = {
   configured: boolean; errors: string[];
+  read_context?: string; failed_sources?: string[]; read_at?: string;
   warnings?: string[];
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[];
     source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>;
+    /** Client-only reading preview; never an authority for calendar actions. */
+    stale_since?: string;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string;
     /** Bereich des Kalenders (Paket K, `bereiche.py`); fehlt oder null ohne bestätigten Bereich. */
@@ -1152,7 +1181,9 @@ export type MemoryTimeline = {
 
 export type TaskHistoryEvent = {
   sequence: number; kind: string; recorded_at: string; business_at: string | null;
-  before: {wartet_auf?: string | null} | null; after: {wartet_auf?: string | null};
+  actor_id?: string | null;
+  before: {wartet_auf?: string | null; responsibility?: TaskResponsibility | null} | null;
+  after: {wartet_auf?: string | null; responsibility?: TaskResponsibility | null};
 };
 
 export type WorkingPreference = { id: string; statement: string; status: string; expires_at: string | null; provenance: { source_type: string; source_ref: string | null }; structured: { key: string; value: string; scope: string; scope_key: string | null } };
@@ -1212,10 +1243,12 @@ export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boo
 export type ChatGPTModel = {id:string; label:string};
 export type CloudMemoryPurpose = "pilot"|"bulk"|"recheck";
 export type CloudMemoryPreview = SourceBudgetBinding & {preview_id:string; purpose:CloudMemoryPurpose; provider?:CloudMemoryProvider; count:number;
+  include_tasks?:boolean;
   sources:Array<{id:string;title:string;occurred_at:string|null}>; expires_at:number; sampling_note?:string;
   request_limit?:number;filtered_count?:number;review_count?:number;
   scanned_count:number;next_cursor:number|null};
 export type CloudMemoryJob = SourceBudgetBinding & {id:string;purpose:CloudMemoryPurpose;provider?:CloudMemoryProvider;quality_verified?:boolean;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
+  include_tasks?:boolean;
   selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;
   stop_reason:string;updated_at:number;issue_count?:number;
   issues?:Array<{episode_id:string;stage:string;code:string;reason?:string}>};
@@ -1249,6 +1282,8 @@ export type RueckmeldungArt = "falsch" | "unvollstaendig" | "veraltet" | "zu_lan
 export type Rueckmeldung = { id: string; erstellt: string; frage: string; antwort: string; art: RueckmeldungArt; art_text: string;
   richtig: string; belege: string[]; status: "offen" | "erledigt"; erledigt_am: string; gespraech_id: string; nachricht_id: string };
 export type RueckmeldungZaehlung = { gesamt: number; offen: number; erledigt: number };
+export type WorkflowLearning = {status: "recorded"|"collecting"|"proposed"|"active"|"dismissed"|"changed"|"not_workflow"|"no_pattern"|"local_required"|"busy"|"too_long"|"unavailable"; count?:number; proposal_id?:string};
+export type WorkflowFeedback = {id:string;art:RueckmeldungArt;richtig:string;arbeitsweise:boolean;lernen?:WorkflowLearning|null};
 export type RueckmeldungenListe = { meldungen: Rueckmeldung[]; zaehlung: RueckmeldungZaehlung; arten: Array<{ id: RueckmeldungArt; text: string }> };
 
 /** Befunde des Lint über alle Akten (sidecar: lint.py, lint_routes.py). */
@@ -1306,8 +1341,8 @@ export const api = {
   chatgptModels: () => request<{models:ChatGPTModel[]}>("/api/v1/chatgpt/models"),
   chatgptDisconnect: () => request<{remote_revoked:boolean;notice:string}>("/api/v1/chatgpt",{method:"DELETE"}),
   cloudMemoryStatus: () => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/status"),
-  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt",selection?:{source_ids?:string[];limit?:number}) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
-    {method:"POST",body:JSON.stringify({purpose,cursor,provider,limit:selection?.limit??(purpose === "pilot" ? 100 : 1000),...(selection?.source_ids?{source_ids:selection.source_ids}:{})})}),
+  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt",selection?:{source_ids?:string[];limit?:number;include_tasks?:boolean}) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
+    {method:"POST",body:JSON.stringify({purpose,cursor,provider,include_tasks:selection?.include_tasks??provider==='mistral',limit:selection?.limit??(purpose === "pilot" ? 100 : 1000),...(selection?.source_ids?{source_ids:selection.source_ids}:{})})}),
   cloudMemoryStart: (preview_id:string,model:string,provider:CloudMemoryProvider="chatgpt") => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/start",
     {method:"POST",body:JSON.stringify({preview_id,model,provider,consent:true})}),
   cloudMemoryAction: (action:"pause"|"resume"|"revoke",job_id:string) => request<{job:CloudMemoryJob|null}>(`/api/v1/memory/cloud/${action}`,
@@ -1344,7 +1379,12 @@ export const api = {
   previewSupportReassessment: (id: string) => request<SupportReassessmentPreview>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment/preview`, {method: "POST"}),
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
   task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
-  taskHistory: (id: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history`),
+  taskResponsibility: (id: string) => request<TaskResponsibilitySnapshot>(`/api/v1/tasks/${encodeURIComponent(id)}/responsibility`),
+  changeTaskResponsibility: (id: string, command: TaskResponsibilityCommand) =>
+    request<TaskResponsibilitySnapshot & {applied_event_sequence: number; replayed: boolean}>(
+      `/api/v1/tasks/${encodeURIComponent(id)}/responsibility`, {method: "POST", body: JSON.stringify(command)}),
+  responsibilityContacts: () => request<ResponsibilityContact[]>("/people"),
+  taskHistory: (id: string, sequence?: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history${sequence ? `?sequence=${encodeURIComponent(sequence)}` : ""}`),
   memoryCoverage: (signal?: AbortSignal) => request<MemoryCoverage>("/api/v1/memory/coverage", {signal}),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
   setMemoryAutomation: (enabled: boolean, vormerken = false) => request<MemoryAutomation>("/api/v1/memory/automation", {method: "PUT", body: JSON.stringify(vormerken ? {enabled, vormerken} : {enabled})}),
@@ -1454,6 +1494,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ title }),
     }),
+  bindNewConversationDraft: (body:{instance_id:string;expected_revision:number}) => request<ConversationDraftBound>('/api/v1/conversation-drafts/new/bind',{method:'POST',body:JSON.stringify(body)}),
+  startConversationDraftHandoff: (id:string,body:{instance_id:string;handoff_id:string}) => request<ConversationDraftBound>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}/handoff/start`,{method:'POST',body:JSON.stringify(body)}),
+  finishConversationDraftHandoff: (id:string,body:{instance_id:string;handoff_id:string}) => request<ConversationDraftBound>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}/handoff/finish`,{method:'POST',body:JSON.stringify(body)}),
+  getConversationDraft: (id:string) => request<ConversationDraftPayload>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}`),
+  saveConversationDraft: (id:string,body:{text:string;expected_revision:number;instance_id:string}) =>
+    request<ConversationDraftPayload>(`/api/v1/conversation-drafts/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(body)}),
   getConversation: (id: string, signal?: AbortSignal) => request<ConversationPayload>(`/api/v1/conversations/${id}`, {signal}),
   conversationPage: (q = "", cursor?: string, signal?: AbortSignal) => {
     const params = new URLSearchParams({q, limit: "30"});
@@ -1519,7 +1565,7 @@ export const api = {
     request<KalenderAnmeldung>("/api/v1/integrations/calendar/anmelden", { method: "POST", body: JSON.stringify(data) }),
   removeIntegration: (kind: "mail" | "calendar", id: string) =>
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
-  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
+  tasks: (view: TaskListView, projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
   projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
@@ -1571,9 +1617,10 @@ export const api = {
   latestConversation: () => request<{ conversation: ConversationPayload["conversation"] | null }>(
     "/api/v1/conversations/latest",
   ),
-  sendMessage: (id: string, message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }) =>
+  sendMessage: (id: string, message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean; procedure?:ProcedureChoiceValue }, draftInstance?:string) =>
     request<ConversationPayload>(`/api/v1/conversations/${id}/messages`, {
       method: "POST",
+      ...(draftInstance ? {headers:{'X-Kingfisher-Draft-Instance':draftInstance}} : {}),
       body: JSON.stringify({
         message,
         ...(clarification?.newQuestion ? { new_question: true } : {}),
@@ -1713,8 +1760,9 @@ export const api = {
     request<{ befund: Befund; aussage: { id: string; statement: string } | null; zusammenfassung: BefundZusammenfassung }>(
       `/api/v1/lint/befunde/${encodeURIComponent(id)}/entscheiden`, { method: "POST", body: JSON.stringify({ wahl, stand }) }),
   rueckmeldungen: () => request<RueckmeldungenListe>("/api/v1/rueckmeldungen"),
-  rueckmeldungMelden: (body: { conversation_id: string; message_id: string; art: RueckmeldungArt; richtig: string }) =>
-    request<{ meldung: Rueckmeldung } & RueckmeldungZaehlung>("/api/v1/rueckmeldungen", { method: "POST", body: JSON.stringify(body) }),
+  rueckmeldungArbeitsweiseZuruecknehmen: (id:string) => request(`/api/v1/rueckmeldungen/${encodeURIComponent(id)}/arbeitsweise-zuruecknehmen`,{method:"POST",body:"{}"}),
+  rueckmeldungMelden: (body: { conversation_id: string; message_id: string; art: RueckmeldungArt; richtig: string; arbeitsweise?:boolean }) =>
+    request<{ meldung: Rueckmeldung; lernen?:WorkflowLearning } & RueckmeldungZaehlung>("/api/v1/rueckmeldungen", { method: "POST", body: JSON.stringify(body) }),
   rueckmeldungErledigt: (id: string) =>
     request<{ meldung: Rueckmeldung } & RueckmeldungZaehlung>(`/api/v1/rueckmeldungen/${encodeURIComponent(id)}/erledigt`, { method: "PATCH" }),
   /** Die Fälle als Text der Datei (Fragenformat der Messlatte). Enthält Frage- und Antworttexte, nur zum Speichern auf diesem Rechner. */

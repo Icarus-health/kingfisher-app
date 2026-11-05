@@ -2,12 +2,13 @@
 from dataclasses import replace
 from contextlib import nullcontext
 import json
+import sqlite3
 import time
 from collections import Counter
 
 from . import logbuch
 from .mail_filter import Decision, excluded_folder, intake_screen
-from .episodes import sql_nicht_ignoriert, sql_aktuell
+from .episodes import sql_nicht_ignoriert, sql_aktuell, sql_aktuelle_fassung, sql_nachricht
 from .mail_ingestion import remember, source_key_for_message
 from .connectors.mail import MailboxGenerationChanged, MailError
 from .mail_intake_grund import einordnen as grund_einordnen
@@ -32,6 +33,10 @@ MIME_REFRESH_VERSION = 1
 FILTERED='filtered:'
 #: Einträge je Lesefenster von `Intake.status`; klein genug, dass die Episodensperre nur Millisekunden gehalten wird.
 STATUS_WINDOW=1000
+# The answer view needs existence checks, not the full intake dashboard.
+_RECALL_ACCOUNT_LIMIT = 32
+_RECALL_STATUS_OPCODE_BUDGET = 100_000
+_RECALL_STATUS_PROGRESS_STEPS = 1000
 # At most this many distinct failed category sources are reopened for a fresh projection per status request.
 # Each check may fingerprint an original (up to the category body bound), so keep frequent UI polling cheap.
 CATEGORY_DIAGNOSTIC_BUDGET=16
@@ -652,6 +657,67 @@ class Intake:
             categories_pending=category_counts['pending'],categories_failed=category_counts['failed'],
             categories_deferred=category_counts['deferred'],categories_failed_by=dict(category_failures),
             categories_unverified=category_counts['unverified'])
+
+    def recall_gap(self, accounts):
+        """Only an observed gap (or unknown), never proof of a complete mailbox.
+
+        Read current folder generations and the persisted analysis marker. Do not
+        call status(): it projects category failures and inspects originals.
+        """
+        from .working_memory_store import ANALYSIS_VERSION, analysis_marker_matches_sql
+
+        if not accounts:
+            return None
+        ids = list(dict.fromkeys(entry.id for entry in accounts[:_RECALL_ACCOUNT_LIMIT] if entry.configured))
+        unknown = len(ids) != len(accounts)
+        if not ids:
+            return 'unverified'
+        placeholders = ','.join('?' for _ in ids)
+        folders = f"""WITH folders AS (SELECT account,folder,generation,inventory_complete,error
+            FROM mail_intake_folders WHERE account IN ({placeholders}))"""
+        current = "JOIN folders f ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation"
+        # Bound work even if an account has a large old generation or analyzed
+        # history. No document bodies, mail metadata or provider errors leave SQL.
+        steps = 0
+
+        def progress():
+            nonlocal steps
+            steps += _RECALL_STATUS_PROGRESS_STEPS
+            return steps >= _RECALL_STATUS_OPCODE_BUDGET
+
+        with self.episodes._lock:
+            self.db.set_progress_handler(progress, _RECALL_STATUS_PROGRESS_STEPS)
+            try:
+                pending = self.db.execute(f"""{folders}
+                    SELECT 1 FROM mail_intake_items i {current}
+                    WHERE i.account IN ({placeholders})
+                      AND i.status IN ('pending','failed') AND i.episode_id IS NULL LIMIT 1""", (*ids, *ids)).fetchone()
+                if pending:
+                    return 'capture_pending'
+                analysis_pending = self.db.execute(f"""{folders}
+                    SELECT 1 FROM mail_intake_items i {current}
+                    JOIN episodes e ON e.id=i.episode_id
+                    LEFT JOIN working_memory_sources s ON s.episode_id=e.id
+                    LEFT JOIN mail_intake_analysis a ON a.episode_id=e.id
+                    WHERE i.status IN ('captured','duplicate')
+                      AND {sql_nachricht('e')} AND {sql_aktuelle_fassung('e')}
+                      AND (s.status IS NULL OR (s.status<>'dismissed' AND
+                         (s.status<>'complete' OR s.analysis_version<>? OR
+                          NOT COALESCE(({analysis_marker_matches_sql()}),0)))) LIMIT 1""",
+                    (*ids, ANALYSIS_VERSION)).fetchone()
+                if analysis_pending:
+                    return 'analysis_pending'
+                # Unknown coverage elsewhere does not invalidate observed gaps.
+                if unknown:
+                    return 'unverified'
+                started, incomplete = self.db.execute(f"""{folders}
+                    SELECT COUNT(DISTINCT account),
+                        MAX(generation IS NULL OR inventory_complete<>1 OR error IS NOT NULL) FROM folders""", ids).fetchone()
+                return 'unverified' if started != len(ids) or incomplete else None
+            except sqlite3.Error:
+                return 'unverified'
+            finally:
+                self.db.set_progress_handler(None, 0)
 
     def status(self, account):
         """Zähler je Ordner. Liest in kleinen Fenstern statt in einem Zug unter der Episodensperre.

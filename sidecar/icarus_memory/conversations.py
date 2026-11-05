@@ -138,7 +138,64 @@ def _verify_v1(connection: sqlite3.Connection) -> None:
     )
 
 
-_MIGRATIONS = (Migration(1, "initial_conversations", _migrate_v1, _verify_v1),)
+_DRAFT_SCHEMA = {**_SCHEMA, "conversation_drafts": {"composer_id", "text", "revision"}}
+
+
+def _migrate_v2(connection: sqlite3.Connection) -> None:
+    connection.execute("""CREATE TABLE conversation_drafts (
+        composer_id TEXT PRIMARY KEY,
+        text TEXT NOT NULL CHECK (typeof(text) = 'text' AND length(text) <= 20000),
+        revision INTEGER NOT NULL CHECK (typeof(revision) = 'integer' AND revision >= 1)
+    )""")
+
+
+def _verify_v2(connection: sqlite3.Connection) -> None:
+    verify_schema(
+        connection,
+        expected_tables=_DRAFT_SCHEMA,
+        expected_indexes=_INDEXES,
+        expected_primary_keys={**_PRIMARY_KEYS, "conversation_drafts": {"composer_id"}},
+    )
+
+
+_HANDOFF_SCHEMA = {**_DRAFT_SCHEMA, "conversation_draft_handoffs": {
+    "id", "conversation_id", "composer_revision", "text", "state",
+}}
+_HANDOFF_INDEXES = {
+    **_INDEXES,
+    "idx_conversation_draft_handoffs_revision": IndexContract(
+        "conversation_draft_handoffs", ("composer_revision",), unique=True),
+    "idx_conversation_draft_handoffs_conversation": IndexContract(
+        "conversation_draft_handoffs", ("conversation_id",), unique=True),
+}
+
+
+def _migrate_v3(connection: sqlite3.Connection) -> None:
+    connection.execute("""CREATE TABLE conversation_draft_handoffs (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        composer_revision INTEGER NOT NULL CHECK (typeof(composer_revision) = 'integer' AND composer_revision >= 1),
+        text TEXT NOT NULL CHECK (typeof(text) = 'text' AND length(text) <= 20000),
+        state TEXT NOT NULL CHECK (state IN ('ready','started','accepted'))
+    )""")
+    connection.execute("CREATE UNIQUE INDEX idx_conversation_draft_handoffs_revision ON conversation_draft_handoffs(composer_revision)")
+    connection.execute("CREATE UNIQUE INDEX idx_conversation_draft_handoffs_conversation ON conversation_draft_handoffs(conversation_id)")
+
+
+def _verify_v3(connection: sqlite3.Connection) -> None:
+    verify_schema(connection, expected_tables=_HANDOFF_SCHEMA, expected_indexes=_HANDOFF_INDEXES,
+        expected_primary_keys={**_PRIMARY_KEYS, "conversation_drafts": {"composer_id"}, "conversation_draft_handoffs": {"id"}})
+
+
+_MIGRATIONS = (
+    Migration(1, "initial_conversations", _migrate_v1, _verify_v1),
+    Migration(2, "unsent_conversation_drafts", _migrate_v2, _verify_v2),
+    Migration(3, "new_conversation_draft_handoffs", _migrate_v3, _verify_v3),
+)
+
+
+class DraftConflict(RuntimeError):
+    """A draft write was based on a revision that is no longer current."""
 
 
 class ConversationStore:
@@ -166,6 +223,169 @@ class ConversationStore:
         except Exception:
             self._conn.close()
             raise
+
+    @staticmethod
+    def _draft_id(composer_id: str) -> None:
+        if not isinstance(composer_id, str) or (composer_id != "new" and not re.fullmatch(r"c-[0-9a-f]{12}", composer_id)):
+            raise ValueError("Ungültige Gesprächskennung.")
+
+    def _require_composer(self, composer_id: str) -> None:
+        # Called only while holding the short Store lock / write transaction.
+        if composer_id != "new" and self._conn.execute(
+            "SELECT 1 FROM conversations WHERE id=?", (composer_id,)
+        ).fetchone() is None:
+            raise KeyError(composer_id)
+
+    def draft_get(self, composer_id: str) -> dict[str, Any]:
+        """Return unsent composer input without touching messages or recency."""
+        self._draft_id(composer_id)
+        with self._lock:
+            self._require_composer(composer_id)
+            row = self._conn.execute(
+                "SELECT text,revision FROM conversation_drafts WHERE composer_id=?", (composer_id,)
+            ).fetchone()
+            if composer_id == "new":
+                handoff = self._conn.execute(
+                    "SELECT * FROM conversation_draft_handoffs ORDER BY composer_revision DESC LIMIT 1"
+                ).fetchone()
+            else:
+                handoff = self._conn.execute(
+                    "SELECT * FROM conversation_draft_handoffs WHERE conversation_id=?", (composer_id,)
+                ).fetchone()
+        result = {"text": row["text"], "revision": row["revision"]} if row else {"text": "", "revision": 0}
+        if handoff:
+            if composer_id != "new":
+                result["handoff"] = self._handoff_payload(handoff)["handoff"]
+            elif handoff["state"] != "accepted":
+                # Offer only the latest binding for recovery. Older unfinished
+                # handoffs remain on their conversations, never hijack new input.
+                result["binding"] = self._handoff_payload(handoff)
+        return result
+
+    @staticmethod
+    def _draft_revision(expected_revision: int) -> None:
+        if type(expected_revision) is not int or not 0 <= expected_revision <= 2**63 - 2:
+            raise ValueError("Ungültige Entwurfsrevision.")
+
+    def draft_put(self, composer_id: str, text: str, expected_revision: int) -> dict[str, Any]:
+        """Atomic CAS, including empty tombstones and the exact previous retry.
+
+        BEGIN IMMEDIATE protects independent Store connections too. No model or
+        conversation-wide lock is involved, and drafts never enter chat history.
+        """
+        self._draft_id(composer_id)
+        if not isinstance(text, str) or len(text) > 20000:
+            raise ValueError("Ein Entwurf darf höchstens 20000 Zeichen enthalten.")
+        self._draft_revision(expected_revision)
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN IMMEDIATE")
+                self._require_composer(composer_id)
+                row = self._conn.execute(
+                    "SELECT text,revision FROM conversation_drafts WHERE composer_id=?", (composer_id,)
+                ).fetchone()
+                revision = row["revision"] if row else 0
+                if revision != expected_revision:
+                    if row and revision == expected_revision + 1 and row["text"] == text:
+                        self._conn.commit()
+                        return {"text": text, "revision": revision}
+                    raise DraftConflict("Der Entwurf wurde inzwischen geändert.")
+                revision += 1
+                self._conn.execute(
+                    "INSERT INTO conversation_drafts (composer_id,text,revision) VALUES (?,?,?) "
+                    "ON CONFLICT(composer_id) DO UPDATE SET text=excluded.text,revision=excluded.revision",
+                    (composer_id, text, revision),
+                )
+                self._conn.commit()
+            except Exception:
+                self._conn.rollback()
+                raise
+        return {"text": text, "revision": revision}
+
+    @staticmethod
+    def _handoff_payload(row) -> dict[str, Any]:
+        return {"conversation_id": row["conversation_id"],
+                "handoff": {"id": row["id"], "text": "" if row["state"] == "accepted" else row["text"], "state": row["state"]}}
+
+    def draft_bind(self, expected_revision: int) -> dict[str, Any]:
+        """Freeze one saved new-composer revision and atomically create its chat.
+
+        Binding neither sends a message nor claims a send attempt. An exact
+        revision retry retrieves its immutable binding even after later typing.
+        """
+        self._draft_revision(expected_revision)
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN IMMEDIATE")
+                existing = self._conn.execute(
+                    "SELECT * FROM conversation_draft_handoffs WHERE composer_revision=?", (expected_revision,)
+                ).fetchone()
+                if existing:
+                    self._conn.commit()
+                    return self._handoff_payload(existing)
+                draft = self._conn.execute("SELECT text,revision FROM conversation_drafts WHERE composer_id='new'").fetchone()
+                revision = draft["revision"] if draft else 0
+                if revision != expected_revision:
+                    raise DraftConflict("Der Entwurf wurde inzwischen geändert.")
+                if not draft or not draft["text"].strip():
+                    raise ValueError("Zum Senden wird ein nicht leerer Entwurf benötigt.")
+                conversation_id = f"c-{uuid.uuid4().hex[:12]}"
+                handoff_id = "h-" + uuid.uuid4().hex
+                timestamp = now().astimezone().isoformat()
+                self._conn.execute("INSERT INTO conversations (id,title,created_at,updated_at) VALUES (?,?,?,?)",
+                    (conversation_id, "Neues Gespräch", timestamp, timestamp))
+                self._conn.execute("INSERT INTO conversation_draft_handoffs (id,conversation_id,composer_revision,text,state) VALUES (?,?,?,?,'ready')",
+                    (handoff_id, conversation_id, revision, draft["text"]))
+                self._conn.execute("UPDATE conversation_drafts SET text='',revision=? WHERE composer_id='new'", (revision + 1,))
+                self._conn.commit()
+            except Exception:
+                self._conn.rollback()
+                raise
+        return {"conversation_id": conversation_id, "handoff": {"id": handoff_id, "text": draft["text"], "state": "ready"}}
+
+    def _draft_handoff_transition(self, conversation_id: str, handoff_id: str, *, finish: bool) -> dict[str, Any]:
+        self._draft_id(conversation_id)
+        if conversation_id == "new" or not isinstance(handoff_id, str) or not re.fullmatch(r"h-[0-9a-f]{32}", handoff_id):
+            raise ValueError("Ungültige Gesprächsübergabe.")
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN IMMEDIATE")
+                row = self._conn.execute("SELECT * FROM conversation_draft_handoffs WHERE id=? AND conversation_id=?",
+                    (handoff_id, conversation_id)).fetchone()
+                if row is None:
+                    raise KeyError(handoff_id)
+                state = row["state"]
+                claimed = not finish and state == "ready"
+                if finish and state == "ready":
+                    raise DraftConflict("Der Versand wurde noch nicht begonnen.")
+                if finish:
+                    # The message owns confirmed content now. Keep only the
+                    # binding/claim tombstone, never a second retained copy that
+                    # could outlive later message deletion or redaction.
+                    state = "accepted"
+                    self._conn.execute("UPDATE conversation_draft_handoffs SET state='accepted',text='' WHERE id=?", (handoff_id,))
+                elif claimed:
+                    state = "started"
+                    self._conn.execute("UPDATE conversation_draft_handoffs SET state='started' WHERE id=?", (handoff_id,))
+                self._conn.commit()
+            except Exception:
+                self._conn.rollback()
+                raise
+        result = self._handoff_payload(row)
+        result["handoff"]["state"] = state
+        if finish:
+            result["handoff"]["text"] = ""
+        if not finish:
+            result["claimed"] = claimed
+        return result
+
+    def draft_handoff_start(self, conversation_id: str, handoff_id: str) -> dict[str, Any]:
+        """Claim at most one send attempt; a lost reply never permits a retry."""
+        return self._draft_handoff_transition(conversation_id, handoff_id, finish=False)
+
+    def draft_handoff_finish(self, conversation_id: str, handoff_id: str) -> dict[str, Any]:
+        """Mark confirmed HTTP acceptance without changing any follow-up draft."""
+        return self._draft_handoff_transition(conversation_id, handoff_id, finish=True)
 
     def create(self, title: str = "Neues Gespräch", *, at: datetime | None = None) -> Conversation:
         timestamp = (at or now()).astimezone().isoformat()
@@ -211,9 +431,13 @@ class ConversationStore:
                 """SELECT c.id, c.title, c.updated_at,
                           COUNT(m.id) AS message_count,
                           COALESCE((
-                            SELECT CASE WHEN last.role = 'assistant' AND json_valid(last.metadata)
+                            SELECT CASE WHEN last.role = 'user' AND json_valid(last.metadata)
+                              AND json_type(last.metadata, '$.task_status_lookup') = 'true'
+                              THEN 'Frage zum Aufgabenstatus.'
+                              WHEN last.role = 'assistant' AND json_valid(last.metadata)
                               AND (json_extract(last.metadata, '$.context.answer_mode') = 'memory_evidence'
-                                OR json_array_length(json_extract(last.metadata, '$.context.knowledge_claim_ids')) > 0)
+                                OR json_array_length(json_extract(last.metadata, '$.context.knowledge_claim_ids')) > 0
+                                OR json_type(last.metadata, '$.context.task_status_answer') IS NOT NULL)
                               THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.'
                               ELSE last.content END
                             FROM conversation_messages AS last
@@ -265,11 +489,15 @@ class ConversationStore:
              OR COALESCE(json_array_length(json_extract(m.metadata, '$.context.knowledge_claim_ids')), 0) > 0
              OR json_type(m.metadata, '$.context.source_answer') IS NOT NULL
              OR json_type(m.metadata, '$.context.working_answer') IS NOT NULL
-             OR json_type(m.metadata, '$.context.mappe_answer') IS NOT NULL)
+             OR json_type(m.metadata, '$.context.mappe_answer') IS NOT NULL
+             OR json_type(m.metadata, '$.context.task_status_answer') IS NOT NULL)
             ELSE 1 END"""
+        typed_user = """CASE WHEN json_valid(m.metadata)
+            THEN COALESCE(json_type(m.metadata, '$.task_status_lookup') = 'true', 0) ELSE 0 END"""
         match = f"""(kingfisher_casefold(c.title) LIKE ? ESCAPE '\\' OR EXISTS (
             SELECT 1 FROM conversation_messages m WHERE m.conversation_id = c.id
-              AND (m.role = 'user' OR (m.role = 'assistant' AND NOT ({protected})))
+              AND ((m.role = 'user' AND NOT ({typed_user}))
+                   OR (m.role = 'assistant' AND NOT ({protected})))
               AND kingfisher_casefold(m.content) LIKE ? ESCAPE '\\'))"""
         parameters: list[Any] = [pattern, pattern]
         after = ""
@@ -277,7 +505,9 @@ class ConversationStore:
             after = " AND (kingfisher_time(c.updated_at) < ? OR (kingfisher_time(c.updated_at) = ? AND c.id < ?))"
         projection = f"""SELECT c.id, c.title, c.updated_at,
                 (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) AS message_count,
-                COALESCE((SELECT CASE WHEN m.role = 'assistant' AND ({protected})
+                COALESCE((SELECT CASE WHEN m.role = 'user' AND ({typed_user})
+                    THEN 'Frage zum Aufgabenstatus.'
+                    WHEN m.role = 'assistant' AND ({protected})
                     THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.' ELSE substr(m.content,1,600) END
                     FROM conversation_messages m WHERE m.conversation_id = c.id
                     ORDER BY kingfisher_time(m.created_at) DESC, m.rowid DESC LIMIT 1), '') AS preview
@@ -398,7 +628,14 @@ class ConversationStore:
         content = content.strip()
         if not content:
             raise ValueError("Eine Nachricht darf nicht leer sein")
+        from . import task_status_answers
         if (role == 'assistant' and isinstance(metadata, dict)
+                and isinstance(metadata.get('context'), dict) and task_status_answers.KEY in metadata['context']):
+            content = task_status_answers.NEUTRAL
+            metadata = {'context': task_status_answers.storage_context(metadata['context']),
+                        **({'retry_of': metadata['retry_of']} if 'retry_of' in metadata else {}),
+                        'conversation_source_lineage': []}
+        elif (role == 'assistant' and isinstance(metadata, dict)
                 and isinstance(metadata.get('context'), dict) and 'mappe_answer' in metadata['context']):
             # Die Mappe ist eine Ansicht: gespeichert wird nur, welche es war,
             # nie ein kopiertes Zitat. Beim Öffnen wird sie neu zusammengestellt.
@@ -438,7 +675,7 @@ class ConversationStore:
                     raise KeyError(conversation_id)
                 title = conversation["title"]
                 stored_metadata = copy.deepcopy(metadata or {})
-                if role == "user" and title == "Neues Gespräch":
+                if role == "user" and title == "Neues Gespräch" and stored_metadata.get(task_status_answers.USER_FLAG) is not True:
                     title = content[:60].rstrip()
                     stored_metadata["generated_conversation_title"] = True
                 self._conn.execute(
@@ -511,4 +748,4 @@ class ConversationStore:
         )
 
 
-__all__ = ["Conversation", "ConversationStore", "ConversationSummary", "Message"]
+__all__ = ["Conversation", "ConversationStore", "ConversationSummary", "DraftConflict", "Message"]

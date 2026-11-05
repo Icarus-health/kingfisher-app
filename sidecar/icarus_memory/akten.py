@@ -69,6 +69,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any, Callable, Iterable
 
+from .tasks import responsibility_label
 from . import mappe
 from .bezuege import ART_TEXT, Bezuege, zerlegen
 from .akten_entscheidungen import Entscheidungen, ziel_abschnitt, ziel_termin
@@ -807,9 +808,11 @@ class Akten:
         offen, erledigt, ziel = entschieden['offen'], entschieden['erledigt'], entschieden['ziel']
         termin_gesagt = entschieden['termine']
         eigene = self.bezuege.eigene_adressen()
-        offene_aufgaben = {a.provenance.source_ref[len('episode:'):]: a for a in aufgaben
-                           if getattr(a.status, 'value', a.status) == 'open'
-                           and (a.provenance.source_ref or '').startswith('episode:')}
+        offene_aufgaben: dict[str, list[Any]] = {}
+        for aufgabe in aufgaben:
+            source = aufgabe.provenance.source_ref or ''
+            if getattr(aufgabe.status, 'value', aufgabe.status) == 'open' and source.startswith('episode:'):
+                offene_aufgaben.setdefault(source[len('episode:'):], []).append(aufgabe)
         daten = {
             'sache': sache, 'art': art, 'art_text': ART_TEXT.get(art, art), 'stand': jetzt.isoformat(),
             'name': self.bezuege.beschriftung(sache, quellen=quellen),
@@ -1028,7 +1031,7 @@ class Akten:
                 'gekuerzt': gelesen['gekuerzt'] if gelesen else False, 'quelle_art': episode.kind.value})
         return {'eintraege': eintraege, 'gesamt': len(verlauf)}
 
-    def _offen_zeigen(self, offen: list[dict], erledigt: list[dict], aufgaben: dict[str, Any], leser: '_Leser',
+    def _offen_zeigen(self, offen: list[dict], erledigt: list[dict], aufgaben: dict[str, list[Any]], leser: '_Leser',
                       anzahl: int, eigene: list[str], ziel: Callable[[dict], str]) -> dict[str, Any]:
         def zeigen(liste: list[dict], bauen: Callable[[dict, dict], dict]) -> list[dict]:
             ergebnis = []
@@ -1042,10 +1045,16 @@ class Akten:
 
         def offen_bauen(eintrag: dict, zeile: dict) -> dict:
             danach = leser.zeile(eintrag['danach']) if eintrag.get('danach') else None
-            aufgabe = aufgaben.get(eintrag['ref']['episode_id'])
+            verknuepft = aufgaben.get(eintrag['ref']['episode_id'], [])
+            text = leser.voll(eintrag['ref']) if verknuepft else None
+            belegt = [a for a in verknuepft if text and a.provenance.verbatim and a.provenance.verbatim in text]
+            aufgabe = belegt[0] if len(belegt) == 1 else verknuepft[0] if len(verknuepft) == 1 else None
+            aufgaben_link = {'id': aufgabe.id, 'title': aufgabe.title} if aufgabe else None
+            if len(belegt) == 1 and aufgabe.responsibility is not None:
+                aufgaben_link['responsibility_label'] = responsibility_label(aufgabe)
             # `richtung`: von_mir (deine Zusage oder Bitte), an_mich (von jemand anderem), unklar (Notiz, Termin).
             return {**zeile, 'vermutlich': True, 'danach_geaendert': danach,
-                    'aufgabe': {'id': aufgabe.id, 'title': aufgabe.title} if aufgabe else None,
+                    'aufgabe': aufgaben_link,
                     'ziel': ziel(eintrag['ref']), 'richtung': _richtung(leser, eintrag['ref'], zeile, eigene),
                     'bestaetigt': bool(eintrag.get('bestaetigt'))}
 

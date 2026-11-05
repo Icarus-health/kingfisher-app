@@ -2,8 +2,9 @@
 """Explicit <=1 USD artificial-only Mistral EU source-package preparation.
 
 No default cloud authority and no application startup, saved credentials or
-personal data paths. Source jobs classify working-memory blocks and optional
-persons/categories; they do not run task extraction/review or deadline checks.
+personal data paths. This source-only probe leaves include_tasks disabled and
+checks working-memory blocks and optional persons/categories. The additional
+task extraction/review path is tested separately; this probe does not grade it.
 Consequently this runner can never return a full quality pass or CLI exit 0.
 """
 from __future__ import annotations

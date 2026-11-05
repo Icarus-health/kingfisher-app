@@ -1,11 +1,11 @@
 """Akten (D2): Verlauf, Offen, Fristen, Stand, Beteiligte, Termine; abgeleitet und mit Fingerabdruck."""
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
 
 import pytest
 
 from icarus_memory import EpisodeKind, Provenance, SourceType
 from icarus_memory.akten import Akten, gleicher_gegenstand, stamm_menge
+from icarus_memory.tasks import Task, TaskStatus
 from icarus_memory.working_memory_store import WorkingMemoryStore
 from tests.test_bezuege import ICH, JETZT, quelle, welt  # noqa: F401 - Fixture und Hilfen
 
@@ -143,12 +143,12 @@ def test_fremdes_thema_erledigt_nichts(welt, akten):
 def test_erledigte_aufgabe_zur_quelle_erledigt_die_bitte(welt, akten):
     episodes, _, _ = welt
     e = mail(episodes, 'Bitte', [('Bitte schicken Sie uns die Druckdaten.', 'request')], tage=10)
-    aufgabe = SimpleNamespace(id='t1', title='Druckdaten schicken', status=SimpleNamespace(value='open'), due=None,
-                              wartet_auf=None, created_at=JETZT, provenance=SimpleNamespace(source_ref=f'episode:{e.id}'))
+    aufgabe = Task(id='t1', title='Druckdaten schicken', created_at=JETZT,
+                   provenance=Provenance(SourceType.USER_STATED, source_ref=f'episode:{e.id}'))
     akten.aufgaben_liste.append(aufgabe)
     daten = neu_rechnen(akten).akte(SACHE, jetzt=JETZT)
     assert daten['offen']['eintraege'][0]['aufgabe'] == {'id': 't1', 'title': 'Druckdaten schicken'}
-    aufgabe.status = SimpleNamespace(value='done')
+    aufgabe.status = TaskStatus.DONE
     daten = akten.akte(SACHE, jetzt=JETZT)
     assert daten['offen']['gesamt'] == 0
     assert daten['offen']['erledigt']['eintraege'][0]['grund'] == 'aufgabe_erledigt'
@@ -367,3 +367,19 @@ def test_aenderung_einer_quelle_verwirft_den_zwischenspeicher(welt, akten):
                           [STIFTUNG, 'Ben <ben@druck.example>'])
     neu_rechnen(akten)
     assert akten.akte(SACHE, jetzt=JETZT)['aus_zwischenspeicher'] is False
+
+
+def test_responsibility_is_only_attached_to_the_supported_source_line(welt, akten):
+    episodes, _, _ = welt
+    first = 'Bitte schicken Sie die Druckdaten.'
+    second = 'Bitte prüfen Sie die Rechnung.'
+    source = mail(episodes, 'Zwei getrennte Bitten', [(first, 'request'), (second, 'request')], tage=10)
+    owner = {"version": 1, "decision": "person", "address": "alex@example.invalid", "label": None}
+    task = Task(id='t-source', title='Druckdaten schicken', created_at=JETZT, responsibility=owner,
+                provenance=Provenance(SourceType.USER_STATED, source_ref=f'episode:{source.id}', verbatim=first))
+    akten.aufgaben_liste.append(task)
+    dossier = neu_rechnen(akten).akte(SACHE, jetzt=JETZT)
+    by_text = {item['text']: item for item in dossier['offen']['eintraege']}
+    assert by_text[first]['aufgabe']['responsibility_label'] == 'alex@example.invalid'
+    assert 'responsibility_label' not in (by_text[second]['aufgabe'] or {})
+    assert dossier['aufgaben']['eintraege'][0]['responsibility_label'] == 'alex@example.invalid'

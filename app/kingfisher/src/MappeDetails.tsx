@@ -88,7 +88,7 @@ export function MappeDetails({ kind, id }: { kind: "project" | "person"; id: str
     {data.aufgaben.eintraege.length ? <section className="mappe-teil"><h3>Aufgaben</h3>
       {data.aufgaben.eintraege.map(aufgabe => <article key={aufgabe.id}>
         <strong>{aufgabe.title}</strong>
-        <small className={aufgabe.overdue ? "mappe-ueberfaellig" : undefined}>{aufgabe.due ? `${aufgabe.overdue ? "Überfällig seit" : "Fällig"} ${tag(aufgabe.due)}` : "Ohne Termin"}{aufgabe.wartet_auf ? ` · wartet auf ${displayLabel(aufgabe.wartet_auf).name}` : ""}</small>
+        <small className={aufgabe.overdue ? "mappe-ueberfaellig" : undefined}>{aufgabe.due ? `${aufgabe.overdue ? "Überfällig seit" : "Fällig"} ${tag(aufgabe.due)}` : "Ohne Termin"}{aufgabe.wartet_auf ? ` · wartet auf ${displayLabel(aufgabe.wartet_auf).name}` : ""}{aufgabe.responsibility_label ? ` · Zuständigkeit: ${aufgabe.responsibility_label}` : ""}</small>
       </article>)}
       <Mehr liste={data.aufgaben} alle={alle} onAlle={zeigeAlle} />
     </section> : null}

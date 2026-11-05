@@ -168,6 +168,7 @@ def _projekt_mappe(app: FastAPI, project_id: str, *, alle: bool = False):
 
 def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     """Die spät gebundenen Zusatzobjekte des Agenten, alle aus dem aktuellen Stand der Anwendung."""
+    agent._task_store = app.state.tasks
     agent._runtime_boundary = app.state.runtime_boundary
     agent._procedures = getattr(app.state, 'procedures', None)
     agent._projects = _project_directory(app)

@@ -10,8 +10,8 @@ const when = (value?: {dateTime?: string; date?: string} | null) => value?.dateT
   ? `${new Date(value.dateTime).toLocaleString('de-DE')} (${value.dateTime})` : value?.date || 'Nicht angegeben';
 const updates = {all:'Alle Gäste benachrichtigen', externalOnly:'Nur externe Gäste benachrichtigen', none:'Keine Google-Benachrichtigungen angefordert'};
 
-export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
-  event?: CalendarOverview['items'][number]; preparedDraft?: CalendarActionDraft; onClose: () => void; onDone: () => void;
+export function CalendarActionForm({event, preparedDraft, sourceVerified=true, onClose, onDone}: {
+  event?: CalendarOverview['items'][number]; preparedDraft?: CalendarActionDraft; sourceVerified?:boolean; onClose: () => void; onDone: () => void;
 }) {
   const [sources, setSources] = useState<CalendarActionSource[]>([]);
   const [sourceId, setSourceId] = useState(event?.source_id || '');
@@ -40,7 +40,8 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
     }).catch(() => {if (current === lifecycle.current) setError('Kalenderrechte konnten nicht geladen werden. Bitte erneut versuchen.');});
     return () => {lifecycle.current++;};
   }, [revision, event]);
-  async function run(action: () => Promise<void>) {
+  async function run(action: () => Promise<void>, requiresSource=true) {
+    if(requiresSource && !sourceVerified){setError('Der Kalenderstand ist ungeprüft. Deine Eingaben bleiben erhalten.');return;}
     if (lock.current) return;
     lock.current = true; setBusy(true); setError('');
     const current = lifecycle.current;
@@ -56,7 +57,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
     if (current !== lifecycle.current) return;
     setDraft(result); setMustRead(false);
     if (result.status === 'done') onDone();
-  });
+  }, false);
   return <section className="source-section calendar-action-form" aria-label="Terminänderung vorbereiten">
     <div className="calendar-action-kopf">
       <h2 ref={heading} tabIndex={-1}>{preparedDraft ? 'Termin aus der Mail prüfen' : event ? 'Termin ändern oder absagen' : 'Neuer Termin'}</h2>
@@ -64,6 +65,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
     </div>
     <p className="calendar-action-fussnote">{preparedDraft ? 'Prüfe Kalender und Zeiten. Die Mailgrundlage wird vor dem verbindlichen Schreiben erneut geprüft.' : event ? 'Erst die bestätigte Vorschau ändert deinen Google-Kalender. Serientermine und fremde Einladungen änderst du bei Google; absagen lässt sich hier nur die bestätigte Organisator-Kopie.' : 'Zeiten auf diesem Gerät. Erst die bestätigte Vorschau ändert deinen Google-Kalender.'}</p>
     {error && <p role="alert">{error}</p>}
+    {!sourceVerified && <p role="status">Der Kalenderstand ist ungeprüft. Deine Eingaben bleiben erhalten; Änderungen sind nach erfolgreichem Abgleich wieder möglich.</p>}
     {!draft && sourcesLoaded && !sources.length && <p className="calendar-action-leer">Verbinde zuerst einen Google-Kalender unter <a href="/settings#zugaenge">Zugänge</a>.</p>}
     {!draft && !(sourcesLoaded && !sources.length) && <form onSubmit={e => {
       e.preventDefault();
@@ -82,7 +84,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
         setRecovery(result.id); setDraft(result); setMustRead(false);
       });
     }}>
-      <fieldset disabled={busy}>
+      <fieldset disabled={busy || !sourceVerified}>
         <label>Kalender <select value={sourceId} disabled={!!event} onChange={e => {setSourceId(e.target.value); clear();}} required>
           <option value="">Kalender wählen</option>{sources.map(s => <option key={s.id} value={s.id}>{s.label} · {s.user}{s.can_write ? '' : ' · nur lesen'}</option>)}
         </select></label>
@@ -107,7 +109,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
       <p>Gäste: {draft.preview.attendees.join(', ') || 'Keine'}</p>
       <p>{updates[draft.preview.send_updates]}</p>
       <p role="status">{mustRead ? 'Antwort nicht erhalten. Prüfe zuerst den gespeicherten Status; die Änderung wird nicht automatisch wiederholt.' : status?.message}</p>
-      {status?.canExecute && !mustRead && <button type="button" className="g-knopf" disabled={busy} onClick={() => run(async () => {
+      {status?.canExecute && !mustRead && <button type="button" className="g-knopf" disabled={busy || !sourceVerified} onClick={() => run(async () => {
         const current = lifecycle.current;
         // Persist the ID before requesting any external effect. A lost response
         // must go through status recovery instead of a second blind submit.

@@ -1,0 +1,61 @@
+{
+  "base_commit": "b906d43956abee9caf33fee5a0602eb60fa0d3d9",
+  "code_commit": "5d65ed77ca025cda418c7f2ac7ab857a6072b1df",
+  "source_hashes": {
+    "app/kingfisher/src/TaskHistory.tsx": "508173cc1c09d4f56d7ef0e3f643274981f8430228e3fe3401f69ab46af21afb",
+    "sidecar/icarus_memory/agent.py": "94df453987851589fd0d38be0b54f6f8019ec915aa224bba0de2333c5c5dd9ae",
+    "sidecar/icarus_memory/policy.py": "ce41fc26092eddb0cfd5da1c93b7facaa5173556f8e2a5d51fb964e169e02c22",
+    "sidecar/icarus_memory/server.py": "7b644c0681cd7483a124ba0df3b989a2afbd30d2a7a16c64c5348f32daa19a7e",
+    "sidecar/icarus_memory/tasks.py": "e36386dd81b9a925a25897b8da675343935f7cf309fbecdc1fb10853bccc47ad",
+    "sidecar/icarus_memory/tools.py": "076a08a6490840418bb0e8374523137cde2fc779ef88effc84b1122b43a55ce9",
+    "sidecar/tests/test_task_completion_confirmation.py": "245dfd9d370a1973f5e23219dd2356ff2a7234a03c8c139eeb721b5e4ca6c10b"
+  },
+  "author_affected_runs": [
+    {
+      "passed": 391,
+      "failed": 2,
+      "exit_code": 1,
+      "scope": "19 affected test files, strict socket block; two expected loopback attempts interrupted by AssertionError"
+    },
+    {
+      "passed": 2,
+      "failed": 0,
+      "exit_code": 0,
+      "scope": "Only those two cases, socket connect stub returns ConnectionRefusedError without network"
+    }
+  ],
+  "distinct_affected_passing_cases": 393,
+  "new_completion_cases_included": 13,
+  "typescript": "passed in copied UI with existing dependencies",
+  "independent_review": {
+    "spec": "PASS",
+    "quality": "PASS",
+    "critical": 0,
+    "important": 0,
+    "minor": "Existing MCP guidance points to an unavailable conversation card for MCP-only requests; local authenticated API works, dedicated UI remains open."
+  },
+  "strict_task_recall": "NOT IMPLEMENTED by this patch; separate design only",
+  "real_model_quality": "NOT EVALUATED",
+  "native_gui": "NOT RUN",
+  "personal_app_updated": false,
+  "bulk_import_resumed": false,
+  "cloud_calls": 0,
+  "manual_ci_rerun": false,
+  "subsequent_ci": {
+    "commit": "c6903f931670de4f232334da0a79b4612a3097a1",
+    "run_id": 41942957100,
+    "jobs": {
+      "126968054421": "success",
+      "126968054633": "success",
+      "126968054872": "success"
+    },
+    "python312_log": {
+      "passed": 10247,
+      "skipped": 2,
+      "warnings": 4,
+      "subtests_passed": 26
+    },
+    "scope": "Part A and its documentation; does not validate subsequent task-status recall edits",
+    "manual_rerun": false
+  }
+}

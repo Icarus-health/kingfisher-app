@@ -17,15 +17,17 @@ es sich ausgedacht.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import threading
+import unicodedata
 import uuid
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, Literal
 
 from .datumstext import iso_lesen as _parse
 from .migrations import (
@@ -37,10 +39,31 @@ from .migrations import (
     verify_schema,
 )
 from .model import Provenance, SourceType, ensure_aware, now
+from .task_responsibility import (
+    RESPONSIBILITY_KINDS,
+    ResponsibilityLookupIncomplete,
+    citations_may_overlap,
+    responsibility_command,
+    unknown_responsibility,
+)
+
+
+CORRECTED_CITATION_REVIEW = (
+    "Eine Aufgabe mit bestätigter Zuständigkeit bezieht sich möglicherweise auf dieselbe Quellenstelle. "
+    "Bitte die vorhandene Aufgabe und den neuen Vorschlag prüfen."
+)
+_CORRECTED_CITATION_LIMIT = 64
 
 
 class TaskChangedError(ValueError):
-    """The displayed reminder no longer matches the stored task."""
+    """The displayed task revision no longer matches the stored task."""
+
+
+class TaskCompletionChanged(TaskChangedError):
+    """The task no longer matches the completion approval."""
+
+    def __init__(self) -> None:
+        super().__init__("Die Aufgabe wurde inzwischen geändert. Bitte stelle die Anfrage erneut.")
 
 
 class TaskRequestConflict(ValueError):
@@ -58,6 +81,63 @@ class TaskStatus(str, Enum):
     """
 
 
+@dataclass(frozen=True)
+class TaskCompletionSnapshot:
+    task_id: str
+    sequence: int
+
+
+class _RecallBudgetExceeded(Exception):
+    pass
+
+
+_RESPONSIBILITY_EVENT_FILTER = "kind IN ('responsibility_confirmed', 'responsibility_reset', 'responsibility_undone')"
+_RECALL_OPCODE_BUDGET = 250_000
+_RECALL_PROGRESS_STEPS = 1_000
+RECALL_OPERAND_MAX = 256
+_TASK_ID = re.compile(r"t-(?:[0-9a-f]{12}|[0-9a-f]{32}|suggestion-[a-zA-Z0-9_-]{1,128})")
+
+
+def is_task_id(value: object) -> bool:
+    return isinstance(value, str) and _TASK_ID.fullmatch(value) is not None
+
+
+def _normalize_title(value: str) -> str:
+    return ' '.join(unicodedata.normalize('NFC', value.lower()).split())
+
+
+def _recall_title_match(title: str, operand: str, quoted: int) -> int:
+    normalized = _normalize_title(title)
+    if normalized == operand:
+        return 1
+    if not quoted and re.search(r"(?<![\w-])" + re.escape(operand) + r"(?![\w-])", normalized):
+        return 2
+    return 0
+
+
+@dataclass(frozen=True)
+class TaskRecallProof:
+    task_id: str
+    title: str
+    state: TaskStatus
+    task_revision: int
+    state_event_sequence: int | None
+    confirmation_event_sequence: int | None
+    confirmed_at: str | None
+    done_at: str | None
+    history_incomplete: bool
+    manual_creation: bool
+    creation_episode: str | None
+    mail_completion: bool
+    completion_episode: str | None
+
+
+@dataclass(frozen=True)
+class TaskRecallLookup:
+    status: Literal["unique", "ambiguous", "not_found", "coverage_limited"]
+    proof: TaskRecallProof | None = None
+
+
 @dataclass
 class Task:
     id: str
@@ -70,16 +150,10 @@ class Task:
     done_at: datetime | None = None
     tags: list[str] = field(default_factory=list)
     wartet_auf: str | None = None
-    """Bei wem die Aufgabe gerade liegt.
-
-    Ein Stabschef unterscheidet zwei Dinge, die eine flache Liste in einen Topf
-    wirft: was **du** noch tun musst, und worauf du **wartest**. Beides ist
-    offen, aber nur das erste ist Arbeit für dich. Solange hier ein Name steht,
-    liegt die Aufgabe bei jemand anderem.
-    """
+    """Von wem noch eine Antwort oder Zuarbeit fehlt."""
 
     wartet_seit: datetime | None = None
-    """Seit wann sie dort liegt — die Grundlage jedes Nachfassens."""
+    """Seit wann diese Abhängigkeit besteht."""
 
     project_id: str | None = None
     """Zu welchem Projekt die Aufgabe gehört.
@@ -122,6 +196,14 @@ class Task:
     Klick zusammen mit anderen Vorschlägen übernommen, mit `gruppe`). Beides lässt sich zurücknehmen
     (`aufgaben_von_selbst.py`)."""
 
+    responsibility: dict[str, Any] | None = None
+    revision: int | None = field(default=None, repr=False, compare=False)
+
+    @property
+    def user_actionable(self) -> bool:
+        return (self.status is TaskStatus.OPEN and self.wartet_auf is None
+                and effective_responsibility(self) in {"self", "unconfirmed"})
+
     def is_overdue(self, at: datetime | None = None) -> bool:
         """Überfällig ist nur, was bei **dir** liegt.
 
@@ -131,8 +213,7 @@ class Task:
         eigentlich handlungsfähig machen soll, wird zur Anklage.
         """
         return (
-            self.status is TaskStatus.OPEN
-            and self.wartet_auf is None
+            self.user_actionable
             and self.due is not None
             and (at or now()) > self.due
         )
@@ -164,11 +245,42 @@ class Task:
             "wartet_seit": iso(self.wartet_seit),
             "wartet_tage": self.wartet_tage(),
             "overdue": self.is_overdue(),
+            "user_actionable": self.user_actionable,
+            "effective_responsibility": effective_responsibility(self),
             "erledigt_grund": dict(self.erledigt_grund) if self.erledigt_grund else None,
             "geaendert_grund": dict(self.geaendert_grund) if self.geaendert_grund else None,
             "person": dict(self.person) if self.person else None,
+            "responsibility": dict(self.responsibility) if self.responsibility is not None else None,
             "angelegt": dict(self.angelegt) if self.angelegt else None,
         }
+
+
+def effective_responsibility(task: Task | dict[str, Any]) -> str:
+    """An explicit decision, or the provisional classification of an older task."""
+    decision = task.get("responsibility") if isinstance(task, dict) else task.responsibility
+    return decision["decision"] if decision else "unconfirmed"
+
+
+def responsibility_label(task: Task | dict[str, Any]) -> str:
+    responsibility = task.get("responsibility") if isinstance(task, dict) else task.responsibility
+    decision = effective_responsibility(task)
+    if decision == "person" and responsibility:
+        address = responsibility["address"]
+        return f'{responsibility["label"]} <{address}>' if responsibility.get("label") else address
+    return {"self": "Ich", "unknown": "Ungeklärt", "unconfirmed": "Nicht bestätigt"}[decision]
+
+
+# Shared by the page and project queries. Keep the mine predicate equivalent
+# to Task.user_actionable. Waiting is independent of the explicit decision.
+TASK_WAITING_SQL = "json_extract(document, '$.wartet_auf')"
+_TASK_DECISION_SQL = "json_extract(document, '$.responsibility.decision')"
+TASK_VIEW_SQL = {
+    "mine": f"{TASK_WAITING_SQL} IS NULL AND coalesce({_TASK_DECISION_SQL}, 'unconfirmed') IN ('self', 'unconfirmed')",
+    "waiting": f"{TASK_WAITING_SQL} IS NOT NULL",
+    "others": f"{_TASK_DECISION_SQL} = 'person'",
+    "unassigned": f"{_TASK_DECISION_SQL} = 'unknown'",
+}
+_TASK_REVISION_SQL = "(SELECT max(sequence) FROM task_events WHERE task_id = tasks.id)"
 
 
 _CREATE_TASKS = """
@@ -245,6 +357,7 @@ def _verify_v1(connection: sqlite3.Connection) -> None:
 # No copied title, notes, source quote or claimed authenticated actor.
 _HISTORY_FIELDS = ("id", "created_at", "status", "due", "remind_at", "done_at", "project_id", "goal_id",
                    "wartet_auf", "wartet_seit")
+_HISTORY_FIELDS += ("responsibility",)
 _HISTORY_SCHEMA = {"sequence", "task_id", "kind", "recorded_at", "business_at",
                    "before_state", "after_state"}
 _HISTORY_INDEX = IndexContract("task_events", ("task_id", "sequence"))
@@ -264,7 +377,10 @@ _HISTORY_TRIGGERS["task_events_no_replace"] = (
 
 
 def _state(document: dict[str, Any]) -> dict[str, Any]:
-    return {key: document.get(key) for key in _HISTORY_FIELDS}
+    # Keep unconfirmed state byte-compatible with legacy history snapshots.
+    # Status recall compares removal and restore snapshots to bind proof.
+    return {key: document.get(key) for key in _HISTORY_FIELDS
+            if key != "responsibility" or document.get(key) is not None}
 
 
 def _migrate_v2(connection: sqlite3.Connection) -> None:
@@ -420,6 +536,7 @@ class TaskStore:
         # Wie SqliteBackend: FastAPI bedient aus einem Threadpool.
         self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
+        self._conn.create_function("recall_title_match", 3, _recall_title_match, deterministic=True)
         self._lock = threading.Lock()
         try:
             with self._lock:
@@ -497,10 +614,15 @@ class TaskStore:
 
     def from_suggestion(self, proposal_id: str, title: str, provenance: Provenance, *, due: datetime | None = None,
                         project_id: str | None = None, waiting_for: str | None = None,
-                        person: dict[str, str] | None = None, angelegt: dict[str, Any] | None = None) -> Task:
+                        person: dict[str, str] | None = None, angelegt: dict[str, Any] | None = None,
+                        proven_retry_id: str | None = None,
+                        create_project: Callable[[], str] | None = None,
+                        source_text: str | None = None) -> Task:
         """Eine ausdrückliche Übernahme bleibt auch nach einem Abbruch einmalig."""
         if not proposal_id or not title.strip():
             raise ValueError("Vorschlag und Aufgabentitel dürfen nicht leer sein.")
+        if create_project is not None and project_id is not None:
+            raise ValueError("Bitte ein vorhandenes oder ein neues Projekt wählen.")
         at = now()
         task = Task(
             id=f"t-suggestion-{proposal_id}", title=title.strip(), provenance=provenance,
@@ -512,9 +634,44 @@ class TaskStore:
             row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task.id,)).fetchone()
             if row:
                 return self._from_row(row)
+            source_ref, quote = provenance.source_ref or "", provenance.verbatim or ""
+            if source_ref.startswith("episode:"):
+                corrected = self._corrected_source_citations(source_ref, quote, source_text)
+                exact = [task_id for task_id, saved_quote in corrected if quote and saved_quote == quote]
+                if proven_retry_id is not None and exact == [proven_retry_id]:
+                    existing = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (proven_retry_id,)).fetchone()
+                    return self._from_row(existing)
+                if corrected or proven_retry_id is not None:
+                    raise TaskRequestConflict(CORRECTED_CITATION_REVIEW)
+            if create_project is not None:
+                # The local, deterministic project write must follow the final
+                # correction barrier and must never run for a reused task.
+                task.project_id = create_project()
             self._write(task)
             self._append_event(task, "from_suggestion", None, None)
         return task
+
+    def corrected_source_citations(self, source_ref: str, quote: str, source_text: str | None) -> list[tuple[str, str]]:
+        """Corrected task IDs and citations whose source positions may overlap."""
+        with self._lock:
+            return self._corrected_source_citations(source_ref, quote, source_text)
+
+    def _corrected_source_citations(self, source_ref: str, quote: str, source_text: str | None) -> list[tuple[str, str]]:
+        try:
+            with self._responsibility_budget():
+                rows = self._conn.execute(
+                    """SELECT id, json_extract(document, '$.provenance.verbatim') AS quote FROM tasks
+                       WHERE json_extract(document, '$.provenance.source_ref') = ?
+                         AND json_extract(document, '$.responsibility.decision') IS NOT NULL
+                       LIMIT ?""", (source_ref, _CORRECTED_CITATION_LIMIT + 1),
+                ).fetchall()
+        except ResponsibilityLookupIncomplete as exc:
+            raise TaskRequestConflict(CORRECTED_CITATION_REVIEW) from exc
+        if len(rows) > _CORRECTED_CITATION_LIMIT:
+            raise TaskRequestConflict(CORRECTED_CITATION_REVIEW)
+        citations = [(row["id"], row["quote"] or "") for row in rows]
+        return [(task_id, saved_quote) for task_id, saved_quote in citations
+                if citations_may_overlap(saved_quote, quote, source_text)]
 
     def complete(self, task_id: str, at: datetime | None = None) -> Task:
         def change(task: Task) -> None:
@@ -522,6 +679,150 @@ class TaskStore:
                 task.status = TaskStatus.DONE
                 task.done_at = ensure_aware(at) or now()
         return self._change(task_id, "completed", change, at)
+
+    def responsibility_snapshot(self, task_id: str) -> dict[str, Any]:
+        """Read the task, its revision and active decision in one read transaction."""
+        with self._recall_snapshot(), self._responsibility_budget():
+            return self._read_responsibility(task_id)[0]
+
+    def change_responsibility(
+        self, task_id: str, *, request_id: str, expected_revision: int, operation: str,
+        decision: dict[str, Any] | None = None, target_event_sequence: int | None = None,
+    ) -> dict[str, Any]:
+        """Commit a decision and its retry receipt under the same SQLite write lock."""
+        state, receipt = responsibility_command(request_id, expected_revision, operation, decision, target_event_sequence)
+        with self._transaction():
+            with self._responsibility_budget():
+                # Removed tasks never return a receipt, even though history persists.
+                if self._conn.execute("SELECT 1 FROM tasks WHERE id = ?", (task_id,)).fetchone() is None:
+                    raise KeyError(task_id)
+                previous = self._conn.execute(
+                    f"""SELECT sequence, json_extract(after_state, '$.responsibility_operation.digest') AS digest
+                        FROM task_events WHERE task_id = ? AND {_RESPONSIBILITY_EVENT_FILTER}
+                        AND json_extract(after_state, '$.responsibility_operation.request_id') = ?
+                        ORDER BY sequence DESC LIMIT 1""", (task_id, request_id),
+                ).fetchone()
+                if previous is not None and (
+                    previous["digest"] != receipt["digest"]
+                    or previous["sequence"] <= self._responsibility_lifetime_start(task_id)
+                ):
+                    raise TaskRequestConflict("Der Auftrag gehört bereits zu einer anderen Änderung.")
+                snapshot, active = self._read_responsibility(task_id)
+                if previous is not None:
+                    return {**snapshot, "applied_event_sequence": previous["sequence"], "replayed": True}
+                if snapshot["revision"] != expected_revision:
+                    raise TaskChangedError("Die Aufgabe wurde inzwischen geändert. Bitte neu laden.")
+                if operation == "undo":
+                    if active is None or active["sequence"] != target_event_sequence:
+                        raise TaskChangedError("Diese Zuständigkeitsänderung ist nicht mehr die letzte.")
+                    state = json.loads(active["before_state"]).get("responsibility") or unknown_responsibility()
+
+            task = snapshot["task"]
+            before = _state(task.to_dict())
+            task.responsibility = state
+            self._write(task)
+            sequence = self._append_event(task, RESPONSIBILITY_KINDS[operation], before, None,
+                                          responsibility_operation=receipt)
+            return {"task": task, "revision": sequence, "responsibility_event_sequence": sequence,
+                    "applied_event_sequence": sequence, "replayed": False}
+
+    @contextmanager
+    def _responsibility_budget(self) -> Iterator[None]:
+        try:
+            with self._recall_sql_budget():
+                yield
+        except _RecallBudgetExceeded as exc:
+            raise ResponsibilityLookupIncomplete() from exc
+
+    def _responsibility_lifetime_start(self, task_id: str) -> int:
+        creations = self._conn.execute(
+            """SELECT sequence FROM task_events WHERE task_id = ?
+               AND kind IN ('created', 'from_suggestion', 'preexisting_snapshot')
+               ORDER BY sequence DESC LIMIT 2""", (task_id,),
+        ).fetchall()
+        if not creations:
+            raise ResponsibilityLookupIncomplete()
+        start = creations[0]["sequence"]
+        if len(creations) > 1:
+            # An unbound tombstone can restore an older incarnation. A restore
+            # paired with the latest removal keeps the preceding lifetime.
+            restored = self._conn.execute(
+                """SELECT max(sequence) FROM task_events WHERE task_id = ? AND sequence > ?
+                   AND kind = 'auto_restored'
+                   AND json_extract(after_state, '$.restored_removal_sequence') IS NULL""", (task_id, start),
+            ).fetchone()[0]
+            if restored is not None:
+                start = restored
+        return start
+
+    def _read_responsibility(self, task_id: str) -> tuple[dict[str, Any], sqlite3.Row | None]:
+        row = self._conn.execute(
+            """SELECT document, (SELECT max(sequence) FROM task_events WHERE task_id = tasks.id) AS revision
+               FROM tasks WHERE id = ?""", (task_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(task_id)
+        if row["revision"] is None:
+            raise ResponsibilityLookupIncomplete()
+        task = self._from_row(row)
+        active = None
+        if task.responsibility is not None:
+            active = self._conn.execute(
+                f"""SELECT sequence, before_state, json_extract(after_state, '$.responsibility') AS decision
+                    FROM task_events WHERE task_id = ? AND sequence > ? AND {_RESPONSIBILITY_EVENT_FILTER}
+                    ORDER BY sequence DESC LIMIT 1""",
+                (task_id, self._responsibility_lifetime_start(task_id)),
+            ).fetchone()
+            if active is not None and json.loads(active["decision"]) != task.responsibility:
+                active = None
+        return {"task": task, "revision": row["revision"],
+                "responsibility_event_sequence": active["sequence"] if active else None}, active
+
+    def completion_snapshot(self, task_id: str) -> tuple[TaskCompletionSnapshot, str, TaskStatus]:
+        """Read the approval title and revision in one SQLite snapshot."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT title, status, (SELECT max(sequence) FROM task_events WHERE task_id = tasks.id) AS sequence "
+                "FROM tasks WHERE id = ?", (task_id,),
+            ).fetchone()
+        if row is None or row["sequence"] is None:
+            raise TaskCompletionChanged()
+        return TaskCompletionSnapshot(task_id, row["sequence"]), row["title"], TaskStatus(row["status"])
+
+    def confirm_completion(self, task_id: str, *, expected: TaskCompletionSnapshot | None = None) -> Task:
+        """Record an explicit user action, optionally bound to a prior approval preview."""
+        with self._transaction():
+            row = self._conn.execute(
+                "SELECT document FROM tasks WHERE id = ?", (task_id,),
+            ).fetchone()
+            if expected is not None:
+                sequence = self._conn.execute(
+                    "SELECT max(sequence) FROM task_events WHERE task_id = ?", (task_id,),
+                ).fetchone()[0]
+                if row is None or (task_id, sequence) != (expected.task_id, expected.sequence):
+                    raise TaskCompletionChanged()
+            if row is None:
+                raise KeyError(f"Unbekannte Aufgabe: {task_id}")
+            task = self._from_row(row)
+            before = _state(task.to_dict())
+            if task.status is TaskStatus.DONE:
+                # Edits keep the active completion. A new status/time or a
+                # restored task starts a different run, even at the same time.
+                latest = self._conn.execute(
+                    """SELECT kind FROM task_events WHERE task_id = ? AND (
+                        kind = 'user_confirmed_completion' OR before_state IS NULL
+                        OR json_extract(before_state, '$.status') IS NOT json_extract(after_state, '$.status')
+                        OR json_extract(before_state, '$.done_at') IS NOT json_extract(after_state, '$.done_at')
+                    ) ORDER BY sequence DESC LIMIT 1""", (task_id,),
+                ).fetchone()
+                if latest is not None and latest["kind"] == "user_confirmed_completion":
+                    return task
+            else:
+                task.status = TaskStatus.DONE
+                task.done_at = now()
+                self._write(task)
+            self._append_event(task, "user_confirmed_completion", before, None)
+            return task
 
     def drop(self, task_id: str, at: datetime | None = None) -> Task:
         def change(task: Task) -> None:
@@ -560,20 +861,22 @@ class TaskStore:
 
     _VORHER = ("status", "done_at", "wartet_auf", "wartet_seit")
 
-    def post_erledigen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None) -> Task:
+    def post_erledigen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None,
+                       *, expected_revision: int | None = None) -> Task:
         """Erledigt durch die eigene Post. Nur eine offene Aufgabe, die bei dir liegt; sonst `ValueError`."""
         def change(task: Task) -> None:
-            if task.status is not TaskStatus.OPEN or task.wartet_auf is not None:
+            if not task.user_actionable:
                 raise ValueError("Nur eine offene Aufgabe, die bei dir liegt, kann die Post erledigen.")
             vorher = {k: v for k, v in task.to_dict().items() if k in self._VORHER}
             task.status = TaskStatus.DONE
             task.done_at = ensure_aware(at) or now()
             task.erledigt_grund = {**grund, "vorher": vorher}
             task.geaendert_grund = None
-        return self._change(task_id, "post_completed", change, at)
+        return self._change(task_id, "post_completed", change, at, expected_revision=expected_revision)
 
-    def post_zurueckholen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None) -> Task:
-        """Wieder bei dir, weil die Person geantwortet hat. Nur eine offene, wartende Aufgabe; sonst `ValueError`."""
+    def post_zurueckholen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None,
+                          *, expected_revision: int | None = None) -> Task:
+        """Löst die Warteabhängigkeit einer offenen Aufgabe auf."""
         def change(task: Task) -> None:
             if task.status is not TaskStatus.OPEN or task.wartet_auf is None:
                 raise ValueError("Nur eine Aufgabe, die bei jemandem liegt, kann die Post zurückholen.")
@@ -581,7 +884,7 @@ class TaskStore:
             task.wartet_auf = None
             task.wartet_seit = None
             task.geaendert_grund = {**grund, "vorher": vorher}
-        return self._change(task_id, "post_returned", change, at)
+        return self._change(task_id, "post_returned", change, at, expected_revision=expected_revision)
 
     def post_rueckgaengig(self, task_id: str, at: datetime | None = None) -> Task:
         """Stellt den Zustand vor der Änderung durch die Post wieder her und trennt Aufgabe und Mail dauerhaft.
@@ -708,11 +1011,14 @@ class TaskStore:
                 "SELECT 1 FROM aufgaben_auto_zurueck WHERE episode_id = ? AND (titel_schluessel = ? OR zitat_schluessel = ?)",
                 (episode_id, titel_schluessel, zitat_schluessel)).fetchone() is not None
 
-    def mit_quelle(self, source_ref: str) -> list[Task]:
-        """Alle Aufgaben (jeder Zustand) aus dieser Quelle (`episode:<id>`)."""
-        with self._lock:
-            rows = self._conn.execute("SELECT document FROM tasks WHERE json_extract(document,'$.provenance.source_ref') = ?",
-                                      (source_ref,)).fetchall()
+    def mit_quelle(self, source_ref: str, *, limit: int | None = None) -> list[Task]:
+        """Alle Zustände aus dieser Quelle; optional bounded for conversation reads."""
+        if limit is not None and (type(limit) is not int or not 1 <= limit <= 100):
+            raise ValueError("invalid source task limit")
+        with self._lock, (self._responsibility_budget() if limit is not None else nullcontext()):
+            rows = self._conn.execute(
+                "SELECT document FROM tasks WHERE json_extract(document,'$.provenance.source_ref') = ? "
+                "ORDER BY id LIMIT ?", (source_ref, limit if limit is not None else -1)).fetchall()
         return [self._from_row(row) for row in rows]
 
     def angelegt_seit(self, seit: datetime, art: str = "automatisch", limit: int = 200) -> list[Task]:
@@ -749,18 +1055,20 @@ class TaskStore:
                 raise LookupError("Diese Aufgabe hat Kingfisher nicht selbst angelegt; sie bleibt.")
             before = _state(task.to_dict())
             self._conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-            self._conn.execute(
+            removal = self._conn.execute(
                 "INSERT INTO task_events (task_id, kind, recorded_at, business_at, before_state, after_state) "
                 "VALUES (?, 'auto_removed', ?, NULL, ?, ?)",
                 (task.id, now().isoformat(), json.dumps(before, ensure_ascii=False),
                  json.dumps({**before, "status": "removed"}, ensure_ascii=False)))
             if merken:
+                tombstone = json.loads(row["document"])
+                tombstone["removal_event_sequence"] = removal.lastrowid
                 self._conn.execute(
                     "INSERT INTO aufgaben_auto_zurueck (proposal_id, episode_id, titel_schluessel, zitat_schluessel, "
                     "task_id, dokument, zurueck_am) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(proposal_id) DO UPDATE SET "
                     "task_id=excluded.task_id, dokument=excluded.dokument, zurueck_am=excluded.zurueck_am",
                     (merken["proposal_id"], merken["episode_id"], merken["titel_schluessel"], merken["zitat_schluessel"],
-                     task.id, row["document"], now().isoformat()))
+                     task.id, json.dumps(tombstone, ensure_ascii=False), now().isoformat()))
             return task
 
     def anlage_wiederherstellen(self, task_id: str) -> tuple[Task, str]:
@@ -769,15 +1077,33 @@ class TaskStore:
         Gibt die Aufgabe und den Vorschlag zurück. `KeyError`, wenn es nichts wiederherzustellen gibt; `ValueError`,
         wenn unter der Kennung inzwischen wieder eine Aufgabe steht."""
         with self._transaction():
-            row = self._conn.execute("SELECT proposal_id, dokument FROM aufgaben_auto_zurueck WHERE task_id = ? "
-                                     "ORDER BY zurueck_am DESC LIMIT 1", (task_id,)).fetchone()
+            row = self._conn.execute(
+                """SELECT proposal_id, dokument,
+                          json_extract(dokument, '$.removal_event_sequence') AS removal_event_sequence
+                   FROM aufgaben_auto_zurueck WHERE task_id = ? ORDER BY zurueck_am DESC LIMIT 1""",
+                (task_id,),
+            ).fetchone()
             if row is None:
                 raise KeyError(f"Nichts wiederherzustellen: {task_id}")
             if self._conn.execute("SELECT 1 FROM tasks WHERE id = ?", (task_id,)).fetchone():
                 raise ValueError("Diese Aufgabe steht schon wieder in der Liste.")
             task = self._from_row({"document": row["dokument"]})  # type: ignore[arg-type]
+            restored_removal_sequence = None
+            if row["removal_event_sequence"] is not None:
+                # The latest event belongs to the current lifetime. A tombstone
+                # for an earlier removal may carry exactly the same task state.
+                latest = self._conn.execute(
+                    """SELECT sequence, kind, before_state FROM task_events
+                       WHERE task_id = ? ORDER BY sequence DESC LIMIT 1""", (task_id,),
+                ).fetchone()
+                if (latest is not None and latest["kind"] == "auto_removed"
+                        and latest["sequence"] == row["removal_event_sequence"]
+                        and latest["before_state"] is not None
+                        and json.loads(latest["before_state"]) == _state(task.to_dict())):
+                    restored_removal_sequence = latest["sequence"]
             self._write(task)
-            self._append_event(task, "auto_restored", None, None)
+            self._append_event(task, "auto_restored", None, None,
+                               restored_removal_sequence=restored_removal_sequence)
             self._conn.execute("DELETE FROM aufgaben_auto_zurueck WHERE proposal_id = ?", (row["proposal_id"],))
             return task, row["proposal_id"]
 
@@ -828,6 +1154,165 @@ class TaskStore:
 
     # -- Lesen -------------------------------------------------------------
 
+    @contextmanager
+    def _recall_snapshot(self) -> Iterator[None]:
+        with self._lock:
+            self._conn.execute("BEGIN")
+            try:
+                yield
+            finally:
+                self._conn.rollback()
+
+    @contextmanager
+    def _recall_sql_budget(self) -> Iterator[None]:
+        remaining = _RECALL_OPCODE_BUDGET
+
+        def progress() -> int:
+            nonlocal remaining
+            remaining -= _RECALL_PROGRESS_STEPS
+            return int(remaining <= 0)
+
+        self._conn.set_progress_handler(progress, _RECALL_PROGRESS_STEPS)
+        try:
+            yield
+        except sqlite3.OperationalError as exc:
+            if remaining <= 0:
+                raise _RecallBudgetExceeded from exc
+            raise
+        finally:
+            # All progress handlers on this private connection run under its lock.
+            self._conn.set_progress_handler(None, 0)
+
+    def status_for_recall(self, reference: str, *, quoted: bool = False) -> TaskRecallLookup:
+        """Literal whole-title lookup across all states; partial titles never resolve."""
+        if not 0 < len(reference) <= RECALL_OPERAND_MAX:
+            return TaskRecallLookup("coverage_limited")
+        operand = _normalize_title(reference)
+        if not operand:
+            return TaskRecallLookup("not_found")
+        with self._recall_snapshot():
+            try:
+                with self._recall_sql_budget():
+                    matches = self._conn.execute(
+                        "SELECT id, recall_title_match(title, :operand, :quoted) AS match FROM tasks "
+                        "WHERE match > 0 LIMIT 2", {"operand": operand, "quoted": int(quoted)},
+                    ).fetchall()
+            except _RecallBudgetExceeded:
+                return TaskRecallLookup("coverage_limited")
+            if not matches:
+                return TaskRecallLookup("not_found")
+            if len(matches) > 1 or matches[0]["match"] != 1:
+                return TaskRecallLookup("ambiguous")
+            return self._task_recall_proof(matches[0]["id"])
+
+    def status_for_recall_id(self, task_id: str) -> TaskRecallLookup:
+        if not is_task_id(task_id):
+            return TaskRecallLookup("not_found")
+        with self._recall_snapshot():
+            return self._task_recall_proof(task_id)
+
+    def _recall_state_event(self, task_id: str, *, before: int | None = None) -> sqlite3.Row | None:
+        bound = "AND sequence < ?" if before is not None else ""
+        parameters = (task_id, before) if before is not None else (task_id,)
+        return self._conn.execute(
+            f"""SELECT sequence, kind, after_state, json_extract(after_state, '$.status') AS status,
+                       json_extract(after_state, '$.done_at') AS done_at
+                FROM task_events WHERE task_id = ? {bound} AND (
+                    before_state IS NULL OR kind IN ('auto_removed','auto_restored','post_undone')
+                    OR json_extract(before_state, '$.status') IS NOT json_extract(after_state, '$.status')
+                    OR json_extract(before_state, '$.done_at') IS NOT json_extract(after_state, '$.done_at')
+                ) ORDER BY sequence DESC LIMIT 1""", parameters,
+        ).fetchone()
+
+    def _restored_completion_origin(self, task_id: str, restored: sqlite3.Row) -> str | None:
+        # A remembered document can outlive recreation under the same ID.
+        # The old event history cannot pair such a document with a removal.
+        creations = self._conn.execute(
+            """SELECT sequence FROM task_events WHERE task_id = ?
+               AND kind IN ('created','from_suggestion','preexisting_snapshot')
+               ORDER BY sequence DESC LIMIT 2""", (task_id,),
+        ).fetchall()
+        if len(creations) != 1:
+            return None
+        for _ in range(8):
+            removal = self._conn.execute(
+                """SELECT sequence, kind, before_state FROM task_events
+                   WHERE task_id = ? AND sequence < ? ORDER BY sequence DESC LIMIT 1""",
+                (task_id, restored["sequence"]),
+            ).fetchone()
+            if removal is None or removal["kind"] != "auto_removed" or removal["before_state"] is None:
+                return None
+            restored_state = json.loads(restored["after_state"])
+            restored_sequence = restored_state.pop("restored_removal_sequence", None)
+            if ((restored_sequence is not None and restored_sequence != removal["sequence"])
+                    or json.loads(removal["before_state"]) != restored_state):
+                return None
+            origin = self._recall_state_event(task_id, before=removal["sequence"])
+            if (origin is None or origin["status"] != "done"
+                    or origin["done_at"] != restored["done_at"]):
+                return None
+            if origin["kind"] in ("post_completed", "completed", "user_confirmed_completion"):
+                return origin["kind"]
+            if origin["kind"] != "auto_restored":
+                return None
+            restored = origin
+        return None
+
+    def _task_recall_proof(self, task_id: str) -> TaskRecallLookup:
+        row = self._conn.execute(
+            """SELECT title, status, json_extract(document, '$.done_at') AS done_at,
+                json_extract(document, '$.provenance.source_type') AS source_type,
+                json_extract(document, '$.provenance.source_ref') AS source_ref,
+                json_extract(document, '$.provenance.extracted_by') AS extracted_by,
+                NULLIF(json_type(document, '$.angelegt'), 'null') AS creation_kind,
+                json_extract(document, '$.erledigt_grund.episode_id') AS completion_episode,
+                (SELECT max(sequence) FROM task_events WHERE task_id = tasks.id) AS revision
+                FROM tasks WHERE id = ?""", (task_id,),
+        ).fetchone()
+        if row is None:
+            return TaskRecallLookup("not_found")
+        if row["revision"] is None:
+            return TaskRecallLookup("coverage_limited")
+
+        # Read the active interval and any restored completion origin under one budget.
+        state_event = confirmation = None
+        restored_origin = None
+        history_interrupted = False
+        try:
+            with self._recall_sql_budget():
+                state_event = self._recall_state_event(task_id)
+                if state_event and row["status"] == "done" and state_event["status"] == "done":
+                    if state_event["kind"] == "auto_restored":
+                        restored_origin = self._restored_completion_origin(task_id, state_event)
+                    confirmation = self._conn.execute(
+                        """SELECT sequence, recorded_at FROM task_events WHERE task_id = ?
+                           AND sequence >= ? AND kind = 'user_confirmed_completion'
+                           AND json_extract(after_state, '$.status') = 'done'
+                           ORDER BY sequence DESC LIMIT 1""", (task_id, state_event["sequence"]),
+                    ).fetchone()
+        except _RecallBudgetExceeded:
+            history_interrupted = True
+        if state_event is not None:
+            if (state_event["status"], state_event["done_at"]) != (row["status"], row["done_at"]):
+                state_event = confirmation = None
+            elif row["status"] == "done" and state_event["kind"] == "auto_restored" and restored_origin is None:
+                state_event = confirmation = None
+        source_ref = row["source_ref"]
+        creation = source_ref[8:] if isinstance(source_ref, str) and source_ref.startswith("episode:") else None
+        manual = (row["source_type"] in ("user_stated", "manual_correction") and source_ref is None
+                  and row["extracted_by"] is None and row["creation_kind"] is None)
+        mail_completion = (row["status"] == "done" and state_event is not None
+                           and (restored_origin or state_event["kind"]) == "post_completed")
+        return TaskRecallLookup("unique", TaskRecallProof(
+            task_id, row["title"], TaskStatus(row["status"]), row["revision"],
+            state_event["sequence"] if state_event else None,
+            confirmation["sequence"] if confirmation else None,
+            confirmation["recorded_at"] if confirmation else None,
+            row["done_at"] if row["status"] == "done" else None,
+            history_interrupted or state_event is None or state_event["kind"] in ("preexisting_snapshot", "auto_restored"),
+            manual, creation, mail_completion, row["completion_episode"] if mail_completion else None,
+        ))
+
     def history(self, task_id: str, limit: int = 100) -> list[dict[str, Any]]:
         """Newest recorded events first, bounded to 200; [] for an unknown task.
 
@@ -846,17 +1331,27 @@ class TaskStore:
                 "SELECT * FROM task_events WHERE task_id = ? ORDER BY sequence DESC LIMIT ?",
                 (task_id, limit),
             ).fetchall()
-        return [{"sequence": row["sequence"], "task_id": row["task_id"],
-                 "kind": row["kind"], "recorded_at": row["recorded_at"],
-                 "business_at": row["business_at"], "actor_id": None,
-                 "before": json.loads(row["before_state"]) if row["before_state"] else None,
-                 "after": json.loads(row["after_state"])} for row in rows]
+        return [self._history_document(row) for row in rows]
 
-    def get(self, task_id: str) -> Task | None:
+    def history_event(self, task_id: str, sequence: int) -> dict[str, Any] | None:
         with self._lock:
             row = self._conn.execute(
-                "SELECT document FROM tasks WHERE id = ?", (task_id,)
+                "SELECT * FROM task_events WHERE task_id = ? AND sequence = ?", (task_id, sequence),
             ).fetchone()
+        return self._history_document(row) if row else None
+
+    @staticmethod
+    def _history_document(row: sqlite3.Row) -> dict[str, Any]:
+        return {"sequence": row["sequence"], "task_id": row["task_id"],
+                "kind": row["kind"], "recorded_at": row["recorded_at"],
+                "business_at": row["business_at"], "actor_id": None,
+                "before": json.loads(row["before_state"]) if row["before_state"] else None,
+                "after": json.loads(row["after_state"])}
+
+    def get(self, task_id: str, *, include_revision: bool = False) -> Task | None:
+        columns = f"document, {_TASK_REVISION_SQL} AS revision" if include_revision else "document"
+        with self._lock:
+            row = self._conn.execute(f"SELECT {columns} FROM tasks WHERE id = ?", (task_id,)).fetchone()
         return self._from_row(row) if row else None
 
     def reminders_due(self, at: datetime | None = None, limit: int = 100) -> list[Task]:
@@ -887,16 +1382,17 @@ class TaskStore:
         page['tasks'] = [self._from_row(row).to_dict() for row in page.pop('rows')]
         return page
 
-    def open_tasks(self, limit: int | None = 200) -> list[Task]:
+    def open_tasks(self, limit: int | None = 200, *, include_revision: bool = False) -> list[Task]:
         """Offene Aufgaben, überfällige und bald fällige zuerst.
 
         Aufgaben ohne Fälligkeit landen hinten — sonst verdrängen sie das,
         was tatsächlich ansteht.
         Für vollständige fachliche Auswertungen hebt None die Listengrenze auf.
         """
+        columns = f"document, {_TASK_REVISION_SQL} AS revision" if include_revision else "document"
         with self._lock:
             rows = self._conn.execute(
-                "SELECT document FROM tasks WHERE status = ? "
+                f"SELECT {columns} FROM tasks WHERE status = ? "
                 "ORDER BY due IS NULL, due ASC, created_at ASC LIMIT ?",
                 (TaskStatus.OPEN.value, -1 if limit is None else limit),
             ).fetchall()
@@ -906,12 +1402,12 @@ class TaskStore:
         at = at or now()
         limit = at + timedelta(days=days)
         return [
-            t for t in self.open_tasks()
-            if t.due is not None and t.due <= limit
+            t for t in self.open_tasks(limit=None)
+            if t.user_actionable and t.due is not None and t.due <= limit
         ]
 
     def wartend(self, at: datetime | None = None) -> list[Task]:
-        """Alles, was gerade bei anderen liegt — am längsten Wartendes zuerst."""
+        """Offene Warteabhängigkeiten, am längsten Wartendes zuerst."""
         offen = [t for t in self.open_tasks() if t.wartet_auf is not None]
         return sorted(offen, key=lambda t: t.wartet_seit or t.created_at)
 
@@ -938,26 +1434,29 @@ class TaskStore:
         completed tasks. No task, event, or deadline is changed by this read.
         """
         moment = ensure_aware(at) or now()
-        waiting = "json_extract(document, '$.wartet_auf')"
+        mine_filter = TASK_VIEW_SQL["mine"]
+        waiting_filter = TASK_VIEW_SQL["waiting"]
         with self._lock:
             self._conn.execute('BEGIN')
             try:
                 counts = self._conn.execute(f"""
                     SELECT
-                      coalesce(sum(status='open' AND {waiting} IS NULL),0) AS mine,
-                      coalesce(sum(status='open' AND {waiting} IS NOT NULL),0) AS waiting,
+                      coalesce(sum(status='open' AND {mine_filter}),0) AS mine,
+                      coalesce(sum(status='open' AND {waiting_filter}),0) AS waiting,
+                      coalesce(sum(status='open' AND {TASK_VIEW_SQL['others']}),0) AS others,
+                      coalesce(sum(status='open' AND {TASK_VIEW_SQL['unassigned']}),0) AS unassigned,
                       coalesce(sum(status='done'),0) AS done,
                       coalesce(sum(status='dropped'),0) AS dropped,
-                      coalesce(sum(status='open' AND {waiting} IS NULL AND julianday(due)<julianday(?)),0) AS overdue,
-                      coalesce(sum(status='open' AND {waiting} IS NULL AND due IS NULL),0) AS undated
+                      coalesce(sum(status='open' AND {mine_filter} AND julianday(due)<julianday(?)),0) AS overdue,
+                      coalesce(sum(status='open' AND {mine_filter} AND due IS NULL),0) AS undated
                     FROM tasks WHERE project_id=?
                 """, (moment.isoformat(), project_id)).fetchone()
                 mine = self._conn.execute(f"""
-                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NULL
+                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {mine_filter}
                     ORDER BY due IS NULL, julianday(due), julianday(created_at), id LIMIT 3
                 """, (project_id,)).fetchall()
                 waiting_rows = self._conn.execute(f"""
-                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NOT NULL
+                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting_filter}
                     ORDER BY coalesce(julianday(json_extract(document,'$.wartet_seit')),julianday(created_at)), id LIMIT 3
                 """, (project_id,)).fetchall()
             finally:
@@ -995,12 +1494,15 @@ class TaskStore:
                 raise
 
     def _change(self, task_id: str, kind: str, mutate: Callable[[Task], None],
-                at: datetime | None = None) -> Task:
+                at: datetime | None = None, *, expected_revision: int | None = None) -> Task:
+        columns = f"document, {_TASK_REVISION_SQL} AS revision" if expected_revision is not None else "document"
         with self._transaction():
-            row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task_id,)).fetchone()
+            row = self._conn.execute(f"SELECT {columns} FROM tasks WHERE id = ?", (task_id,)).fetchone()
             if row is None:
                 raise KeyError(f"Unbekannte Aufgabe: {task_id}")
             task = self._from_row(row)
+            if expected_revision is not None and task.revision != expected_revision:
+                raise TaskChangedError("Die Aufgabe wurde inzwischen geändert. Bitte erneut prüfen.")
             before = _state(task.to_dict())
             mutate(task)
             if _state(task.to_dict()) != before:
@@ -1009,15 +1511,23 @@ class TaskStore:
             return task
 
     def _append_event(self, task: Task, kind: str, before: dict[str, Any] | None,
-                      at: datetime | None) -> None:
+                      at: datetime | None, *, responsibility_operation: dict[str, Any] | None = None,
+                      restored_removal_sequence: int | None = None) -> int:
         business_at = ensure_aware(at)
-        self._conn.execute(
+        after = _state(task.to_dict())
+        if responsibility_operation is not None:
+            after["responsibility_operation"] = responsibility_operation
+        if restored_removal_sequence is not None:
+            after["restored_removal_sequence"] = restored_removal_sequence
+        cursor = self._conn.execute(
             "INSERT INTO task_events (task_id, kind, recorded_at, business_at, before_state, after_state) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (task.id, kind, now().isoformat(), business_at.isoformat() if business_at else None,
              json.dumps(before, ensure_ascii=False) if before is not None else None,
-             json.dumps(_state(task.to_dict()), ensure_ascii=False)),
+             json.dumps(after, ensure_ascii=False)),
         )
+        assert cursor.lastrowid is not None
+        return cursor.lastrowid
 
     def _write(self, task: Task) -> None:
         """Write only inside the same transaction as the matching event."""
@@ -1038,6 +1548,7 @@ class TaskStore:
         p = d["provenance"]
         return Task(
             id=d["id"],
+            revision=row["revision"] if "revision" in row.keys() else None,
             title=d["title"],
             provenance=Provenance(
                 source_type=SourceType(p["source_type"]),
@@ -1061,6 +1572,7 @@ class TaskStore:
             geaendert_grund=d.get("geaendert_grund") or None,
             person=d.get("person") or None,
             angelegt=d.get("angelegt") or None,
+            responsibility=d.get("responsibility"),
         )
 
 

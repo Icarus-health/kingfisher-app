@@ -3,9 +3,11 @@ import {test} from 'node:test';
 import {createServer} from 'vite';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('..',import.meta.url));
+process.env.TZ='Europe/Berlin';
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);for(const c of [n.props?.children].flat(10))nodes(c,p,out);return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(10).map(text).join(''):String(n);}
 const ready=()=>({episode_id:'e1',source_digest:'sha256:'+'b'.repeat(64),fingerprint:'a'.repeat(64),status:'ready',quotes:['Bitte prüfe die Belege.'],items:[{id:'v1',statement:'Belege prüfen',evidence:[{quote:'Bitte prüfe die Belege.'}],review_required:true}],projects:[],temporal_reason:'Historische Quelle.',detail:'Originalpassagen.'});
+const withDeadline=()=>({...ready(),temporal_status:'recent',items:[{...ready().items[0],review_required:false,frist_vorschlag:'2026-11-30T14:30:00+01:00',person_vorschlag:{name:'Anna Berg',adresse:'anna.berg@example.org'}}]});
 function shownText(n){if(n==null)return '';if(typeof n!=='object')return String(n);const children=[n.props?.children].flat(10);return (n.type==='details'&&!n.props.open?children.filter(c=>c?.type==='summary'):children).map(shownText).join('');}
 async function harness(run){
  const server=await createServer({root,cacheDir:`/private/tmp/kf-saved-mail-ui-${process.pid}`,configFile:false,plugins:[{name:'saved-mail-hooks',enforce:'pre',resolveId(id){if(id==='virtual:saved-mail-hooks')return '\0'+id;},load(id){if(id==='\0virtual:saved-mail-hooks')return 'export const useState=(...a)=>globalThis.__savedMailDriver.state(...a);export const useRef=(...a)=>globalThis.__savedMailDriver.ref(...a);export const useEffect=(...a)=>globalThis.__savedMailDriver.effect(...a);export const useCallback=f=>f;';},transform(code,id){if(/\/(SavedMailWorkflow|MailReader)\.tsx$/.test(id))return code.replace(/from ["']react["']/g,'from "virtual:saved-mail-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
@@ -46,13 +48,58 @@ test('unverified source disables confirmation and preparation',()=>harness(async
  api.read=async()=>ready();const props={episodeId:'e1',sourceDigest:ready().source_digest,sourceVerified:false};const d=driver(SavedMailWorkflow,props);d.render();await d.flush();
  assert.equal(nodes(d.render(),n=>n.type==='button'&&/Aufgabe bestätigen/.test(text(n)))[0].props.disabled,true);
 }));
+test('source person and exact due time are visible before one-step task confirmation',()=>harness(async(server,driver)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ api.read=async()=>withDeadline();const calls=[];api.accept=async(...args)=>{calls.push(args);return{title:args[2].title};};
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();const tree=d.render();
+ assert.match(shownText(tree),/Anna Berg/);assert.match(shownText(tree),/14:30/);
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();
+ assert.equal(calls.length,1);assert.equal(calls[0][2].due,'2026-11-30T14:30:00+01:00');
+ assert.equal(calls[0][2].waiting_for,null);
+}));
+test('due day and waiting person can be changed together and survive failed saving',()=>harness(async(server,driver)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ api.read=async()=>withDeadline();const calls=[];api.accept=async(...args)=>{calls.push(args);if(calls.length===1)throw Error('HTTP 500');return{title:args[2].title};};
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
+ const date=nodes(tree,n=>n.type==='input'&&n.props.type==='date')[0];assert.ok(date,'date field');
+ date.props.onChange({target:{value:'2026-12-01'}});tree=d.render();
+ const waiting=nodes(tree,n=>n.type==='label'&&/Warte auf/.test(text(n)))[0];assert.ok(waiting,'waiting field');
+ nodes(waiting,n=>n.type==='input')[0].props.onChange({target:{value:'Jonas Keller'}});
+ const submit=()=>nodes(d.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});
+ submit();await d.flush();tree=d.render();assert.match(text(tree),/Eingaben bleiben erhalten/);
+ assert.equal(nodes(tree,n=>n.type==='input'&&n.props.type==='date')[0].props.value,'2026-12-01');
+ assert.equal(calls[0][2].waiting_for,'Jonas Keller');assert.equal(new Date(calls[0][2].due).getHours(),23);
+ submit();await d.flush();assert.deepEqual(calls[1],calls[0]);
+}));
+test('changed review context cannot silently rebind an edited task to a fresh fingerprint',()=>harness(async(server,driver,listeners)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ let view=withDeadline();api.read=async()=>view;let saves=0;api.accept=async()=>{saves++;return{title:'Belege prüfen'};};
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
+ nodes(tree,n=>n.type==='textarea')[0].props.onChange({target:{value:'Meine Prüfung'}});
+ view={...view,fingerprint:'c'.repeat(64)};listeners.focus();await d.flush();tree=d.render();
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();assert.equal(saves,0);
+ assert.equal(nodes(d.render(),n=>n.type==='textarea')[0].props.value,'Meine Prüfung');
+ const confirm=nodes(d.render(),n=>n.type==='button'&&/Eingaben.*geprüft/.test(text(n)))[0];assert.ok(confirm,'explicit new context review');
+ confirm.props.onClick();tree=d.render();nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();assert.equal(saves,1);
+}));
+test('failed confirmation freezes accepted defaults before a changed context is read',()=>harness(async(server,driver,listeners)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ let view=withDeadline();api.read=async()=>view;const calls=[];api.accept=async(...args)=>{calls.push(args);throw Error('HTTP 500');};
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();
+ view={...view,fingerprint:'c'.repeat(64),items:[{...view.items[0],frist_vorschlag:'2026-12-05T10:00:00+01:00'}]};listeners.focus();await d.flush();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe bestätigen')[0].props.disabled,true);
+ assert.equal(nodes(tree,n=>n.type==='input'&&n.props.type==='date')[0].props.value,'2026-11-30');
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();assert.equal(calls.length,1);
+}));
 
 test('task and project remain directly editable and confirmable while lengthy evidence stays under details',()=>harness(async(server,driver)=>{
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
  const quote='Originalbeleg mit langen Absätzen. '.repeat(80);api.read=async()=>({...ready(),quotes:[quote],items:[{...ready().items[0],evidence:[{quote}]}]});
  const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();const tree=d.render();
  assert.doesNotMatch(shownText(tree),/Originalbeleg mit langen Absätzen/);assert.match(text(tree),/Originalbeleg mit langen Absätzen/);
- assert.match(shownText(tree),/Historische Quelle/);assert.equal(nodes(tree,n=>n.type==='input'||n.type==='textarea').length,1);assert.equal(nodes(tree,n=>n.type==='select').length,1);
+ assert.match(shownText(tree),/Historische Quelle/);assert.equal(nodes(tree,n=>n.type==='textarea').length,1);assert.equal(nodes(tree,n=>n.type==='select').length,1);
+ assert.doesNotMatch(shownText(tree),/Fällig am|Niemanden/);assert.match(text(tree),/Fällig am/);
  assert.equal(nodes(tree,n=>n.type==='button'&&/Aufgabe bestätigen/.test(text(n)))[0].props.disabled,false);
 }));
 

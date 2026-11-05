@@ -87,11 +87,12 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
       <option value="chatgpt">ChatGPT-Abo</option><option value="anthropic">Anthropic · Claude API</option><option value="mistral">Mistral · EU</option>
     </select></label>
     {provider==="anthropic" ? <p className="source-hint">Claude API nutzt den unter Cloud-Zugänge gespeicherten Schlüssel und das dort gewählte Modell. Der Alltag läuft lokal, oder über die Cloud-Einordnung neuer Mails unter Was Kingfisher darf. Modell: {selectedModel||"noch nicht eingerichtet"}.</p>:null}
-    {provider==='mistral'?<><p className="source-hint">Small 4 für dieses Quellenpaket · EU-Endpunkt. Die gewählten Alltagsmodelle bleiben erhalten.</p>
+    {provider==='mistral'?<><p className="source-hint">Small 4 für dieses Quellenpaket · EU-Endpunkt. Quellen und Abläufe teilen dasselbe Mistral-Kostenlimit. Die gewählten Alltagsmodelle bleiben erhalten.</p>
       {!credentialReady?<p><a href="/settings#ki">Mistral-Zugang unter KI &amp; Modelle einrichten</a></p>:null}
       <MistralSourceBudget refreshKey={job?.provider==='mistral'?job.updated_at:undefined} disabled={busy} onChange={budgetChanged}/></>:null}
     <details className="quiet-details"><summary>Wie die Einordnung funktioniert</summary>
       <p>Der gewählte Anbieter prüft Aussagen, Themen und erwähnte Menschen anhand der Originalmails. Ergebnisse bleiben Quellenbefunde; sie werden nicht automatisch zu bestätigten Fakten oder erledigten Aufgaben.</p>
+      {provider==='mistral'?<p>Zusätzlich erkennt Mistral Aufgaben und prüft sie in einem zweiten Schritt gegen die Mail. Fristen und Belege prüft Kingfisher lokal. Lange Mails und Anhänge können als offene Aufgabenprüfung zurückbleiben.</p>:null}
       <p>Deine Originale und bestätigten Korrekturen bleiben erhalten. Der bestehende Mailabruf und seine Pause werden hierdurch nicht geändert.</p>
       <p>Größere Pakete enthalten höchstens 1.000 Mails und werden erst nach einem vollständig verarbeiteten ersten Paket freigegeben. Nachprüfen kannst du auch bereits eingeordnete Mails.</p>
     </details>
@@ -105,6 +106,7 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
     {preview ? <div className="cloud-memory-preview">
       <h4>{preview.purpose === "pilot" ? "Erstes Paket" : preview.purpose === "recheck" ? "Nachprüfung" : "Nächstes Paket"}: {selectionLabel}</h4>
       <p>Diese Vorschau hat noch nichts an {recipient} gesendet.</p>
+      {preview.include_tasks?<p>Enthält Aufgabenvorschläge mit Gegenprüfung. Übernehmen entscheidest du anschließend.</p>:null}
       {preview.request_limit!==undefined&&preview.count>0 ? <p className="source-hint">Für dieses Paket sind höchstens {preview.request_limit} Modellaufrufe freigegeben. Längere Mailverläufe werden in Abschnitten geprüft.</p>:null}
       {(preview.filtered_count||preview.review_count) ? <p className="source-hint">{preview.filtered_count||0} Mails durch Filter zurückgehalten{preview.review_count ? ` · ${preview.review_count} zur Prüfung zurückgestellt`:""}. Dafür erfolgt kein Cloud-Aufruf. Originalmails bleiben erhalten; gewünschte Absender kannst du im Mailfilter erlauben.</p>:null}
       {preview.sampling_note ? <p className="source-hint">{preview.sampling_note}</p> : null}
@@ -112,7 +114,7 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
       {!preview.count&&preview.next_cursor ? <button type="button" className="secondary-action" disabled={busy} onClick={()=>prepare(preview.purpose,preview.next_cursor!)}>Nächsten Quellenabschnitt prüfen</button>:null}
       <ul>{preview.sources.slice(0,5).map(source=><li key={source.id}>{source.title||"Ohne Betreff"}{source.occurred_at ? ` · ${new Date(source.occurred_at).toLocaleDateString("de-DE")}`:" · Datum ungeklärt"}</li>)}</ul>
       {preview.count>5 ? <p className="source-hint">Und {preview.count-5} weitere Mails aus diesem Paket.</p>:null}
-      <label className="chatgpt-consent"><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/><span>Ich erlaube, den Inhalt und die zugehörigen Metadaten dieser {selectionLabel} an {recipient} zu senden. {provider==='mistral'?'Die Inferenz nutzt den EU-Endpunkt (EU/EFTA); Konto- und Verwaltungsmetadaten können getrennt verarbeitet werden.':'Die Verarbeitung ist nicht ausschließlich lokal oder auf die EU begrenzt.'}</span></label>
+      <label className="chatgpt-consent"><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/><span>Ich erlaube, den Inhalt und die zugehörigen Metadaten dieser {selectionLabel} an {recipient} zu senden.{preview.include_tasks?' Das umfasst die Aufgaben-Erkennung und Gegenprüfung. ': ' '}{provider==='mistral'?'Die Inferenz nutzt den EU-Endpunkt (EU/EFTA); Konto- und Verwaltungsmetadaten können getrennt verarbeitet werden.':'Die Verarbeitung ist nicht ausschließlich lokal oder auf die EU begrenzt.'}</span></label>
       <p className="source-hint">{provider==='mistral'?'Verwendet separat bezahlte Mistral-API-Nutzung innerhalb des freigegebenen Mistral-Kostenrahmens. Die Ergebnisse werden weiterhin gegen die Quellen geprüft.':provider==="anthropic" ? "Verwendet separat bezahltes Anthropic-API-Guthaben. Die Paket-, Anfrage- und Tokenlimits sind keine garantierte Euro-Obergrenze. Guthaben und Kosten vor Freigabe im Anthropic-Konto prüfen." : "Verwendet dein ChatGPT-Abo und dessen Kontingent. Kein Wechsel auf eine zusätzlich bezahlte API."} Der Lauf stoppt an der Paket- oder Anfragegrenze.</p>
       <p className="source-hint">Ein verarbeiteter Auftrag bestätigt noch keine fachliche Qualität. Ergebnisse anschließend unabhängig gegen Originalquellen prüfen.</p>
       <button type="button" className="primary-action" disabled={busy||!ready||!consent||!preview.count||active||!mistralBindingCurrent(preview,budget)} onClick={()=>void action(async()=>{
@@ -124,6 +126,7 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
       <h4>{job.state === "running" ? "Einordnung läuft" : job.state === "complete" ? "Paket durchgesehen" : job.state === "complete_with_gaps" ? "Paket mit offenen Quellen durchgesehen" : job.state === "paused" ? "Einordnung pausiert" : "Einordnung gestoppt"}</h4>
       <progress max={Math.max(1,job.selected)} value={job.position} aria-label="Durchgesehene Mails"/>
       <p>{job.position} von {job.selected} Mails durchgesehen · {job.completed} vollständig eingeordnet{job.failed ? ` · ${job.failed} offen oder fehlgeschlagen`:""}</p>
+      {job.include_tasks?<p className="source-hint">Aufgaben werden als Vorschläge geprüft. <a href="/tasks?pruefen=1">Aufgabenvorschläge ansehen</a></p>:job.provider==='mistral'?<p className="source-hint">Aufgabenprüfung war nicht Teil dieses Pakets.</p>:null}
       <p className="source-hint">{job.requests} von höchstens {job.request_limit} Modellaufrufen · {sourceProviderLabel(job.provider)} · Modell {job.model}</p>
       {job.stop_reason ? <p role="status">{job.stop_reason}</p>:null}
       {job.state === "complete_with_gaps" ? <p>Einige Quellen konnten nicht vollständig eingeordnet werden. Diese Probe gibt den größeren Lauf noch nicht frei.</p>:null}

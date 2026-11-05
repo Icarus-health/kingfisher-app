@@ -10,7 +10,14 @@ def legacy_hex(key):
     return format(key % 2 ** 64, '016x') + '0' * 48
 
 
+def drop_recall_archive_generation(connection):
+    if 'recall_archive_generation' in {row[1] for row in connection.execute('PRAGMA table_info(episodes)')}:
+        connection.execute('DROP TRIGGER IF EXISTS trg_episode_recall_archive_generation')
+        connection.execute('ALTER TABLE episodes DROP COLUMN recall_archive_generation')
+
+
 def drop_task_rechecks(connection):
+    drop_recall_archive_generation(connection)
     # Vor Migration 26 gab es keinen Marker für einen einmaligen MIME-Wiederabruf.
     if 'mime_refresh_version' in {row[1] for row in connection.execute('PRAGMA table_info(mail_intake_items)')}:
         connection.execute('ALTER TABLE mail_intake_items DROP COLUMN mime_refresh_version')

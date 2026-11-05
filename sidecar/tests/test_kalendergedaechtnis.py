@@ -453,12 +453,17 @@ def server_client(tmp_path, monkeypatch):
 
 
 def test_trennen_einer_kalenderquelle_entzieht_ihre_termine(tmp_path, monkeypatch):
-    from icarus_memory.connectors import collections
-    letzter = datetime.now(timezone.utc)
-    monkeypatch.setattr(collections.ICalendarSubscription, 'events', lambda self, days=7, at=None: [
-        Event(uid='u1', summary='Bilanzgespräch', start=letzter - timedelta(days=400), end=letzter - timedelta(days=400, hours=-1),
-              notes='Zahlen 2024')])
+    import httpx
+
+    beginn = datetime.now(timezone.utc) - timedelta(days=400)
+    ende = beginn + timedelta(hours=1)
+    kalender = (
+        'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:u1\r\n'
+        f'DTSTART:{beginn:%Y%m%dT%H%M%SZ}\r\nDTEND:{ende:%Y%m%dT%H%M%SZ}\r\n'
+        'SUMMARY:Bilanzgespräch\r\nDESCRIPTION:Zahlen 2024\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
+    )
     app, client = server_client(tmp_path, monkeypatch)
+    app.state.ical_transport = httpx.MockTransport(lambda request: httpx.Response(200, text=kalender))
     quelle = client.post('/api/v1/integrations/calendar', json={
         'label': 'Kanzlei', 'kind': 'ical', 'url': 'https://kalender.example.test/kanzlei.ics'}).json()['calendar_sources'][0]['id']
     antwort = client.post('/api/v1/calendar-memory/sync').json()

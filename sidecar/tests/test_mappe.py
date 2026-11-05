@@ -248,7 +248,7 @@ def test_all_day_appointments_and_names_versus_addresses(core, tmp_path, monkeyp
         client.close()
 
 
-def test_waiting_task_with_passed_date_is_overdue(core, tmp_path, monkeypatch):
+def test_waiting_task_with_passed_date_is_not_personal_overdue(core, tmp_path, monkeypatch):
     app, client, _ = _api(core, tmp_path, monkeypatch)
     try:
         _quelle(app, 'Druckdaten', [(BITTE, 'request')], 'Anna Keller')
@@ -256,7 +256,7 @@ def test_waiting_task_with_passed_date_is_overdue(core, tmp_path, monkeypatch):
                                    due=datetime.now(timezone.utc) - timedelta(days=2))
         app.state.tasks.warten_auf(task.id, 'Anna Keller')
         [eintrag] = client.get('/api/v1/memory/people/Anna%20Keller/einzelheiten').json()['aufgaben']['eintraege']
-        assert eintrag['overdue'] is True
+        assert eintrag['due'] is not None and eintrag['overdue'] is False
     finally:
         client.close()
 

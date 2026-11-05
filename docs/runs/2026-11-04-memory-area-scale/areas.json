@@ -1,0 +1,148 @@
+{
+  "status": "passed",
+  "suite": "memory-area-scale-v1",
+  "synthetic_only": true,
+  "network_used": false,
+  "models_called": false,
+  "body_chars": 2048,
+  "annotation": "controlled work topics; 31 oldest sources manually assigned health",
+  "measurements": [
+    {
+      "sources": 10000,
+      "cumulative_elapsed_seconds": 9.270291750086471,
+      "pages": {
+        "all": {
+          "seconds": [
+            0.012569083017297089,
+            0.011662916978821158,
+            0.011517209000885487
+          ],
+          "median_seconds": 0.011662916978821158,
+          "returned": 25,
+          "checked": 26,
+          "scan_limited": false,
+          "has_more": true
+        },
+        "work": {
+          "seconds": [
+            0.014647708041593432,
+            0.014014624990522861,
+            0.01394495798740536
+          ],
+          "median_seconds": 0.014014624990522861,
+          "returned": 25,
+          "checked": 26,
+          "scan_limited": false,
+          "has_more": true
+        },
+        "health": {
+          "seconds": [
+            0.06111299991607666,
+            0.060027583967894316,
+            0.09589866606984288
+          ],
+          "median_seconds": 0.06111299991607666,
+          "returned": 25,
+          "checked": 26,
+          "scan_limited": false,
+          "has_more": true
+        },
+        "finance": {
+          "seconds": [
+            0.05532770790159702,
+            0.058979582972824574,
+            0.05316304205916822
+          ],
+          "median_seconds": 0.05532770790159702,
+          "returned": 0,
+          "checked": 0,
+          "scan_limited": false,
+          "has_more": false
+        },
+        "other": {
+          "seconds": [
+            0.2140877089696005,
+            0.2394502500537783,
+            0.21662304201163352
+          ],
+          "median_seconds": 0.21662304201163352,
+          "returned": 0,
+          "checked": 500,
+          "scan_limited": true,
+          "has_more": true
+        }
+      },
+      "rss_peak_bytes": 47726592,
+      "database_bytes": 126427136
+    },
+    {
+      "sources": 50000,
+      "cumulative_elapsed_seconds": 51.621770167024806,
+      "pages": {
+        "all": {
+          "seconds": [
+            0.011608749977312982,
+            0.011360000004060566,
+            0.01126512500923127
+          ],
+          "median_seconds": 0.011360000004060566,
+          "returned": 25,
+          "checked": 26,
+          "scan_limited": false,
+          "has_more": true
+        },
+        "work": {
+          "seconds": [
+            0.015132458065636456,
+            0.014825041056610644,
+            0.01541283295955509
+          ],
+          "median_seconds": 0.015132458065636456,
+          "returned": 25,
+          "checked": 26,
+          "scan_limited": false,
+          "has_more": true
+        },
+        "health": {
+          "seconds": [
+            0.29458891705144197,
+            0.2877336669480428,
+            0.28664787497837096
+          ],
+          "median_seconds": 0.2877336669480428,
+          "returned": 25,
+          "checked": 26,
+          "scan_limited": false,
+          "has_more": true
+        },
+        "finance": {
+          "seconds": [
+            0.28291133290622383,
+            0.2765984999714419,
+            0.27818608400411904
+          ],
+          "median_seconds": 0.27818608400411904,
+          "returned": 0,
+          "checked": 0,
+          "scan_limited": false,
+          "has_more": false
+        },
+        "other": {
+          "seconds": [
+            0.21525604103226215,
+            0.2266370829893276,
+            0.22273654199671
+          ],
+          "median_seconds": 0.22273654199671,
+          "returned": 0,
+          "checked": 500,
+          "scan_limited": true,
+          "has_more": true
+        }
+      },
+      "rss_peak_bytes": 47857664,
+      "database_bytes": 630202368
+    }
+  ],
+  "withdrawal_verified": true
+}

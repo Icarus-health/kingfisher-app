@@ -30,6 +30,7 @@ from .security import (
 from .episodes import EpisodeKind
 from .ingest import ADAPTERS, ingest_directory
 from .mcp_client import MAX_NAMENSLAENGE
+from .tasks import TaskCompletionChanged, TaskCompletionSnapshot, TaskStatus
 from .workspace import NoteKind, Priority, ProjectStatus
 
 
@@ -61,6 +62,12 @@ class Tool:
 
     self_model_recall: bool = False
     """Agent rendert dieses Werkzeug mit seinen aktuellen Quellen- und Providergrenzen."""
+
+    prepare_approval: Callable[..., tuple[str, Any]] | None = None
+    """Liefert lokale Vorschau und einen internen, flüchtigen Ausführungsstand."""
+
+    run_approved: Callable[[Any], str] | None = None
+    """Verarbeitet nur den Stand einer erteilten Freigabe und antwortet ohne Modell."""
 
     def classify(self, arguments: dict[str, Any]) -> ActionClass:
         return self.class_for(arguments) if self.class_for else self.action_class
@@ -299,8 +306,25 @@ def _task_tools(store_tasks: Any, tools: list[Tool], workspace: Any = None) -> N
             lines.append(f"- [{t.id}] {mark}{t.title}{when}{where}")
         return "\n".join(lines)
 
-    def aufgabe_erledigt(id: str, **_: Any) -> str:
+    def aufgabe_erledigt(id: str) -> str:
+        if not isinstance(id, str) or not id:
+            raise ValueError("Bitte die Kennung der Aufgabe angeben.")
         return f"Erledigt: {store_tasks.complete(id).title}"
+
+    def completion_approval(id: str) -> tuple[str, TaskCompletionSnapshot]:
+        if not isinstance(id, str) or not id:
+            raise ValueError("Bitte die Kennung der Aufgabe angeben.")
+        snapshot, title, status = store_tasks.completion_snapshot(id)
+        title = title if len(title) <= 4096 else title[:4096] + "…"
+        if status is TaskStatus.DONE:
+            return f"Erledigung der Aufgabe {title!r} ({id}) bestätigen.", snapshot
+        return f"Aufgabe {title!r} ({id}) als erledigt markieren.", snapshot
+
+    def confirm_task_completion(snapshot: TaskCompletionSnapshot) -> str:
+        if not isinstance(snapshot, TaskCompletionSnapshot):
+            raise TaskCompletionChanged()
+        store_tasks.confirm_completion(snapshot.task_id, expected=snapshot)
+        return "Erledigung der Aufgabe bestätigt."
 
     tools.append(Tool(
         name="aufgaben",
@@ -350,10 +374,13 @@ def _task_tools(store_tasks: Any, tools: list[Tool], workspace: Any = None) -> N
             "type": "object",
             "properties": {"id": {"type": "string"}},
             "required": ["id"],
+            "additionalProperties": False,
         },
         action_class=ActionClass.WRITE_LOCAL,
         run=aufgabe_erledigt,
         dry_run=lambda a: f"Aufgabe {a.get('id')} als erledigt markieren.",
+        prepare_approval=completion_approval,
+        run_approved=confirm_task_completion,
     ))
 
 

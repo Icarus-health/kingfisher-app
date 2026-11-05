@@ -9,12 +9,14 @@
 * `GET /api/v1/rueckmeldungen/faelle`: alle Meldungen als Datei im Fragenformat der Messlatte
   (Frage- und Antworttexte, nur für diesen Rechner).
 
-Nichts davon ist außenwirksam, und nichts davon schreibt ins Gedächtnis, in Quellen, Akten oder
-Vorschläge. Die Meldung ist eine Notiz des Nutzers.
+Normale Meldungen bleiben reine Notizen. Die ausdrückliche Kennzeichnung als Arbeitsweise
+erlaubt zusätzlich eine begrenzte lokale Prüfung wiederholter Korrekturen. Daraus entstehen
+ausschließlich inaktive Ablaufvorschläge; Fakten, Quellen und Akten bleiben unverändert.
 """
 from __future__ import annotations
 
 from typing import Any, Literal
+import threading
 
 from fastapi import HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -22,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from . import logbuch, rueckmeldung_faelle
 from .model_roles import ROLLEN, rollen_von
-from .rueckmeldung import ART_TEXTE, ARTEN, RueckmeldungFehler, Rueckmeldungen
+from .rueckmeldung import ART_TEXTE, ARTEN, MAX_ANTWORT, RueckmeldungFehler, Rueckmeldungen
 
 
 class RueckmeldungIn(BaseModel):
@@ -31,6 +33,7 @@ class RueckmeldungIn(BaseModel):
     message_id: str = Field(min_length=1, max_length=200)
     art: Literal['falsch', 'unvollstaendig', 'veraltet', 'zu_langsam', 'sonstiges']
     richtig: str = Field(default='', max_length=2000)
+    arbeitsweise: bool = False
 
 
 def belege_der_antwort(metadaten: dict[str, Any]) -> list[str]:
@@ -46,8 +49,8 @@ def belege_der_antwort(metadaten: dict[str, Any]) -> list[str]:
     return sorted({k for k in kennungen if isinstance(k, str) and k})
 
 
-def struktur_der_antwort(metadaten: dict[str, Any]) -> dict[str, Any]:
-    """Satz- und Belegstruktur ohne Quellentext: Sätze mit Belegnummern, Belege mit Nummer, Kennung und Titel."""
+def struktur_der_antwort(metadaten: dict[str, Any], antwort: str) -> dict[str, Any]:
+    """Satz- und Belegstruktur ohne Quellentext sowie der gespeicherte Teil des Mailaufnahmehinweises."""
     kontext = (metadaten or {}).get('context') or {}
     satz = kontext.get('satzantwort') or {}
     struktur: dict[str, Any] = {}
@@ -58,6 +61,14 @@ def struktur_der_antwort(metadaten: dict[str, Any]) -> dict[str, Any]:
     status = (kontext.get('answer_contract') or {}).get('status')
     if status:
         struktur['status'] = status
+    hinweis = kontext.get('mail_intake_notice')
+    if isinstance(hinweis, str) and hinweis.strip() and antwort.endswith('\n\n' + hinweis):
+        # Der Speicher trimmt zuerst und schneidet dann ab. Nur der Teil des echten Hinweises
+        # hinter dem Antworttext kann damit im Snapshot stehen.
+        antwort = antwort.lstrip()
+        hinweis_ab = len(antwort) - len(hinweis)
+        if hinweis_ab < MAX_ANTWORT:
+            struktur['mail_intake_notice'] = antwort.rstrip()[hinweis_ab:MAX_ANTWORT]
     return struktur
 
 
@@ -79,13 +90,14 @@ def modellstand(app) -> dict[str, Any]:
 
 def register(app, guard, data_dir) -> None:
     app.state.rueckmeldungen = Rueckmeldungen(data_dir() / 'rueckmeldungen.sqlite3')   # nach einer Wiederherstellung neu geöffnet
+    app.state.workflow_learning_lock = threading.Lock()
 
     def ablage() -> Rueckmeldungen:
         return app.state.rueckmeldungen
 
     @app.post('/api/v1/rueckmeldungen', dependencies=guard, status_code=201)
     def melden(body: RueckmeldungIn) -> dict[str, Any]:
-        """Hält fest, dass eine Antwort nicht stimmt. Ändert nichts außer dieser Notiz."""
+        """Speichert die Notiz; nur ausdrücklich markierte Arbeitsweisen werden lokal geprüft."""
         # Die Ansicht des Gesprächs, nicht der Rohspeicher: Quellenantworten stehen dort nur als Verweis und werden
         # erst beim Anzeigen zu Text. Gemeldet wird, was der Nutzer gelesen hat.
         nachrichten = app.state.gespraech_ansicht(body.conversation_id)['messages']
@@ -98,20 +110,33 @@ def register(app, guard, data_dir) -> None:
         frage = next((m['content'] for m in reversed(nachrichten[:stelle]) if m['role'] == 'user'),
                      next((m['content'] for m in reversed(nachrichten) if m['role'] == 'user'), ''))
         try:
+            from .workflow_learning import capture, review
+            workflow = capture(app, body.conversation_id, body.message_id, body.richtig) if body.arbeitsweise else {}
             meldung = ablage().melden(
                 frage=frage, antwort=antwort['content'], art=body.art, richtig=body.richtig,
                 nachricht_id=antwort['id'], gespraech_id=body.conversation_id,
-                struktur=struktur_der_antwort(antwort.get('metadata')), belege=belege_der_antwort(antwort.get('metadata')),
-                modell=modellstand(app))
+                struktur=struktur_der_antwort(antwort.get('metadata'), antwort['content']),
+                belege=belege_der_antwort(antwort.get('metadata')),
+                modell=modellstand(app), workflow=workflow)
         except RueckmeldungFehler as fehler:
             raise HTTPException(status_code=422, detail=str(fehler)) from None
         logbuch.vermerke('rueckmeldung', sorte=body.art)
-        return {'meldung': meldung, **ablage().zaehlen()}
+        result = {'meldung': meldung, **ablage().zaehlen()}
+        if body.arbeitsweise:
+            result['lernen'] = review(app, meldung)
+        return result
 
     @app.get('/api/v1/rueckmeldungen', dependencies=guard)
     def liste(status: Literal['offen', 'erledigt'] | None = Query(None)) -> dict[str, Any]:
         return {'meldungen': ablage().liste(status=status), 'zaehlung': ablage().zaehlen(),
                 'arten': [{'id': art, 'text': ART_TEXTE[art]} for art in ARTEN]}
+
+    @app.post('/api/v1/rueckmeldungen/{kennung}/arbeitsweise-zuruecknehmen', dependencies=guard)
+    def withdraw_workflow(kennung: str):
+        with app.state.conversation_lock:
+            if not ablage().withdraw_workflow(kennung):
+                raise HTTPException(404,'Diese Korrektur gibt es nicht mehr.')
+        return {'withdrawn':True}
 
     @app.get('/api/v1/rueckmeldungen/faelle', dependencies=guard)
     def faelle() -> JSONResponse:

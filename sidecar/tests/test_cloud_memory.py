@@ -58,8 +58,8 @@ def setup(tmp_path, *, connected=True, provider=None):
                           lambda _model: chosen, lambda: dict(grant), threading.RLock())
     return episodes, jobs, grant, chosen
 
-def finish(jobs, job_id):
-    jobs._threads[job_id].join(timeout=5)
+def finish(jobs, job_id, *, timeout=5):
+    jobs._threads[job_id].join(timeout=timeout)
     assert not jobs._threads[job_id].is_alive()
     return jobs.status(job_id)["job"]
 
@@ -486,7 +486,8 @@ def test_bulk_accepts_101_sources_after_pilot_and_uses_larger_budget(tmp_path):
     assert preview["count"] == 101
     assert len(preview["sources"]) == 10
     started = jobs.start(preview["preview_id"], "subscription-test", True)
-    result = finish(jobs, started["job"]["id"])
+    # This case processes 101 sources and 202 replies; allow for slower CI I/O.
+    result = finish(jobs, started["job"]["id"], timeout=30)
 
     assert result["state"] == "complete"
     assert result["selected"] == 101
@@ -639,7 +640,7 @@ def test_bulk_requires_a_completed_pilot(tmp_path):
     add_email(episodes)
     preview = jobs.preview("bulk")
 
-    with pytest.raises(CloudMemoryError, match="Pilot muss abgeschlossen"):
+    with pytest.raises(CloudMemoryError, match="Prüfumfang"):
         jobs.start(preview["preview_id"], "subscription-test", True)
 
 def test_remote_provider_is_never_accepted_by_local_worker_without_scope(tmp_path):

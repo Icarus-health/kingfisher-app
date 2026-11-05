@@ -1,0 +1,125 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_restored_mail_completion_keeps_its_source_proof_without_reviving_a_receipt _
+
+session = (<fastapi.applications.FastAPI object at 0x10bc3f500>, <starlette.testclient.TestClient object at 0x10bd84d70>, <tests.test_task_completion_confirmation.SyntheticProvider object at 0x10bd7d910>)
+
+    def test_restored_mail_completion_keeps_its_source_proof_without_reviving_a_receipt(session):
+        from icarus_memory.episodes import EpisodeKind
+
+        app, client, _ = session
+        episodes, tasks = app.state.episodes, app.state.tasks
+        source, _ = episodes.record(EpisodeKind.MESSAGE, 'Bitte', 'Aster prüfen', Provenance(SourceType.EMAIL))
+        completion, _ = episodes.record(EpisodeKind.MESSAGE, 'Antwort', 'Aster geprüft', Provenance(SourceType.EMAIL))
+        task = tasks.from_suggestion('v-101010101011', 'Aster prüfen',
+            Provenance(SourceType.INFERENCE, source_ref='episode:' + source.id), angelegt={'art': 'automatisch'})
+        tasks.post_erledigen(task.id, {'episode_id': completion.id}, at=AT)
+        tasks.confirm_completion(task.id)
+        question = f'Wie ist der Status der Aufgabe {task.id}?'
+        before_restore = conversation(client)
+        confirmed = ask(client, before_restore, question)
+        assert 'ausdrücklich bestätigt' in confirmed['messages'][-1]['content']
+
+        remember = {'proposal_id': 'v-101010101011', 'episode_id': source.id,
+                    'titel_schluessel': 'aster', 'zitat_schluessel': 'aster prüfen'}
+        # A second restore must still find the completion through the first pair.
+        for _ in range(2):
+            tasks.anlage_entfernen(task.id, merken=remember)
+            tasks.anlage_wiederherstellen(task.id)
+        assert 'task_link' not in read(client.get(before_restore))['context']
+
+        restored_url = conversation(client)
+        restored = ask(client, restored_url, question)
+>       assert 'stützt sich auf eine Mail' in restored['messages'][-1]['content']
+E       AssertionError: assert 'stützt sich auf eine Mail' in 'Kingfisher führt die Aufgabe „Aster prüfen“ als erledigt. Gespeicherter Erledigungszeitpunkt: 24. September 2026, 16:.... Wer die Erledigung veranlasst hat, ist nicht bekannt. Die frühere Aufgabengeschichte ist nicht vollständig belegbar.'
+
+sidecar/tests/test_task_status_recall.py:553: AssertionError
+_ test_archive_and_readmission_never_revive_a_saved_task_answer[direct-source] _
+
+session = (<fastapi.applications.FastAPI object at 0x10c47f050>, <starlette.testclient.TestClient object at 0x10c4846e0>, <tests.test_task_completion_confirmation.SyntheticProvider object at 0x10c487650>)
+attachment = False
+
+    @pytest.mark.parametrize('attachment', [False, True], ids=['direct-source', 'attachment-parent'])
+    def test_archive_and_readmission_never_revive_a_saved_task_answer(session, attachment):
+        from icarus_memory.episodes import EpisodeKind
+
+        app, client, _ = session
+        episodes = app.state.episodes
+        provenance = Provenance(SourceType.EMAIL)
+        key = 'mail:' + 'b' * 64
+        parent, _ = episodes.record(EpisodeKind.MESSAGE, 'Probe', 'Unveränderte Mail',
+                                    provenance, at=AT, source_key=key)
+        episodes.advance_source_head(key, None, parent.id)
+        source = parent
+        if attachment:
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Anlage', 'Unveränderte Anlage', provenance,
+                                       source_key=key + ':anhang:1', tags=['anhang', 'mail-parent:' + parent.id])
+            episodes.advance_source_head(key + ':anhang:1', None, source.id)
+        task = app.state.tasks.add('Quelle prüfen', Provenance(SourceType.EMAIL, source_ref='episode:' + source.id))
+        question = f'Wie ist der Status der Aufgabe {task.id}?'
+        url = conversation(client)
+        initial = ask(client, url, question)
+        assert initial['context']['task_link']['id'] == task.id
+        default_fingerprint = episodes.belegbarer_snapshot(source.id).support_fingerprint()
+        original_history = app.state.tasks.history(task.id)
+
+        episodes.mark_consolidated(parent.id, at=AT)
+        assert episodes.archive_before(datetime(2026, 11, 1, tzinfo=timezone.utc)) == 1
+        assert 'task_link' not in read(client.get(url))['context']
+        # Use the same time to rule out tying validity to a processing timestamp.
+        episodes.mark_consolidated(parent.id, produced=['synthetic-assertion'] if attachment else None, at=AT)
+        assert episodes.belegbarer_snapshot(source.id).support_fingerprint() == default_fingerprint
+>       assert 'task_link' not in read(client.get(url))['context']
+E       AssertionError: assert 'task_link' not in {'items': [], 'answer_mode': 'memory_evidence', 'history_egress': 'local_only', 'model_called': False, ...}
+
+sidecar/tests/test_task_status_recall.py:597: AssertionError
+_ test_archive_and_readmission_never_revive_a_saved_task_answer[attachment-parent] _
+
+session = (<fastapi.applications.FastAPI object at 0x10c485d90>, <starlette.testclient.TestClient object at 0x10c488e00>, <tests.test_task_completion_confirmation.SyntheticProvider object at 0x10e3f5c40>)
+attachment = True
+
+    @pytest.mark.parametrize('attachment', [False, True], ids=['direct-source', 'attachment-parent'])
+    def test_archive_and_readmission_never_revive_a_saved_task_answer(session, attachment):
+        from icarus_memory.episodes import EpisodeKind
+
+        app, client, _ = session
+        episodes = app.state.episodes
+        provenance = Provenance(SourceType.EMAIL)
+        key = 'mail:' + 'b' * 64
+        parent, _ = episodes.record(EpisodeKind.MESSAGE, 'Probe', 'Unveränderte Mail',
+                                    provenance, at=AT, source_key=key)
+        episodes.advance_source_head(key, None, parent.id)
+        source = parent
+        if attachment:
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Anlage', 'Unveränderte Anlage', provenance,
+                                       source_key=key + ':anhang:1', tags=['anhang', 'mail-parent:' + parent.id])
+            episodes.advance_source_head(key + ':anhang:1', None, source.id)
+        task = app.state.tasks.add('Quelle prüfen', Provenance(SourceType.EMAIL, source_ref='episode:' + source.id))
+        question = f'Wie ist der Status der Aufgabe {task.id}?'
+        url = conversation(client)
+        initial = ask(client, url, question)
+        assert initial['context']['task_link']['id'] == task.id
+        default_fingerprint = episodes.belegbarer_snapshot(source.id).support_fingerprint()
+        original_history = app.state.tasks.history(task.id)
+
+        episodes.mark_consolidated(parent.id, at=AT)
+        assert episodes.archive_before(datetime(2026, 11, 1, tzinfo=timezone.utc)) == 1
+        assert 'task_link' not in read(client.get(url))['context']
+        # Use the same time to rule out tying validity to a processing timestamp.
+        episodes.mark_consolidated(parent.id, produced=['synthetic-assertion'] if attachment else None, at=AT)
+        assert episodes.belegbarer_snapshot(source.id).support_fingerprint() == default_fingerprint
+>       assert 'task_link' not in read(client.get(url))['context']
+E       AssertionError: assert 'task_link' not in {'items': [], 'answer_mode': 'memory_evidence', 'history_egress': 'local_only', 'model_called': False, ...}
+
+sidecar/tests/test_task_status_recall.py:597: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../../private/tmp/kf-core-20261104-env/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /private/tmp/kf-core-20261104-env/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_task_status_recall.py::test_restored_mail_completion_keeps_its_source_proof_without_reviving_a_receipt
+FAILED sidecar/tests/test_task_status_recall.py::test_archive_and_readmission_never_revive_a_saved_task_answer[direct-source]
+FAILED sidecar/tests/test_task_status_recall.py::test_archive_and_readmission_never_revive_a_saved_task_answer[attachment-parent]
+3 failed, 23 deselected, 1 warning in 2.55s

@@ -412,3 +412,71 @@ def test_uebernahme_von_heute_nimmt_den_projekthinweis_mit(client):
     _, q = bitte(episodes, proposals, an=[JONAS], cc=[LENA], titel='Rechnung 4711 prüfen', text='Bitte prüfe die Rechnung 4711.', ref='konto:n2')
     ausdruecklich = client.post(f'/api/v1/task-candidates/{q.id}/accept', json={'title': q.statement, 'project_id': None}).json()
     assert ausdruecklich['project_id'] is None  # „Ohne Projekt“ gewählt bleibt ohne Projekt
+
+
+@pytest.mark.parametrize('old_quote,new_quote,owner', [
+    (BITTE, BITTE + ' Vielen Dank!', None),
+    (BITTE + ' Vielen Dank!', BITTE, {'decision': 'person', 'address': 'alex@example.invalid'}),
+    ('Für die Freigabe gilt: ' + BITTE, BITTE + ' Vielen Dank!', None),
+])
+def test_changed_quote_boundaries_keep_corrected_work_in_review(welt, old_quote, new_quote, owner):
+    episodes, tasks, proposals, _, lauf, _ = welt
+    body = 'Für die Freigabe gilt: ' + BITTE + ' Vielen Dank!'
+    episode = mail(episodes, 'Druckdaten und Freigabe', body, von=ANNA, an=[LENA])
+    original = tasks.from_suggestion('original-citation', 'Druckdaten schicken',
+        Provenance(SourceType.USER_STATED, source_ref=f'episode:{episode.id}', verbatim=old_quote))
+    corrected = tasks.change_responsibility(original.id, request_id='synthetic-overlapping-citation',
+        expected_revision=tasks.responsibility_snapshot(original.id)['revision'],
+        operation='set' if owner else 'reset', decision=owner)
+    tasks.edit(original.id, title='Von mir umbenannter ursprünglicher Auftrag')
+    candidate = vorschlag(proposals, episodes, episode, 'Flyer-Druckdaten an Anna schicken', new_quote)
+    assert lauf.schritt() == {'geprueft': 1, 'angelegt': 0, 'vorschlaege': 1}
+    assert tasks.auto_ergebnis(candidate.id) == 'dublette'
+    assert proposals.get(candidate.id).state is ProposalState.PENDING
+    [task] = tasks.open_tasks()
+    assert task.responsibility == corrected['task'].responsibility
+    assert not task.user_actionable
+    assert task.provenance.verbatim == old_quote
+
+
+def test_disjoint_quote_in_same_mail_can_create_its_own_task(welt):
+    episodes, tasks, proposals, _, lauf, _ = welt
+    distinct = 'Kannst du bitte die Falzmaschine kontrollieren?'
+    episode = mail(episodes, 'Zwei Aufträge', BITTE + '\n\n' + distinct, von=ANNA, an=[LENA])
+    original = tasks.from_suggestion('original-disjoint', 'Druckdaten schicken',
+        Provenance(SourceType.USER_STATED, source_ref=f'episode:{episode.id}', verbatim=BITTE))
+    tasks.change_responsibility(original.id, request_id='synthetic-disjoint-original',
+        expected_revision=tasks.responsibility_snapshot(original.id)['revision'], operation='reset')
+    candidate = vorschlag(proposals, episodes, episode, 'Falzmaschine kontrollieren', distinct)
+    assert lauf.schritt() == {'geprueft': 1, 'angelegt': 1, 'vorschlaege': 0}
+    created = tasks.get(proposals.get(candidate.id).produced)
+    assert created.id != original.id and created.user_actionable
+    assert created.provenance.verbatim == distinct
+
+
+def test_final_automatic_writer_rechecks_overlap_after_screening(welt, tmp_path, monkeypatch):
+    episodes, tasks, proposals, _, lauf, _ = welt
+    expanded = BITTE + ' Vielen Dank!'
+    episode = mail(episodes, 'Druckdaten', expanded, von=ANNA, an=[LENA])
+    original = tasks.from_suggestion('before-race', 'Druckdaten schicken',
+        Provenance(SourceType.USER_STATED, source_ref=f'episode:{episode.id}', verbatim=BITTE))
+    candidate = vorschlag(proposals, episodes, episode, 'Flyer-Druckdaten an Anna schicken', expanded)
+    writer = TaskStore(tmp_path / 'tasks.sqlite3')
+    create = lauf._anlegen
+    reached = []
+
+    def correct_after_screening(proposal, source, judgement, at):
+        reached.append(judgement.eindeutig)
+        writer.change_responsibility(original.id, request_id='synthetic-overlap-race',
+            expected_revision=writer.responsibility_snapshot(original.id)['revision'], operation='reset')
+        return create(proposal, source, judgement, at)
+
+    monkeypatch.setattr(lauf, '_anlegen', correct_after_screening)
+    try:
+        assert lauf.schritt() == {'geprueft': 1, 'angelegt': 0, 'vorschlaege': 1}
+        assert reached == [True]
+        assert proposals.get(candidate.id).state is ProposalState.PENDING
+        [task] = tasks.open_tasks()
+        assert task.id == original.id and not task.user_actionable
+    finally:
+        writer.close()

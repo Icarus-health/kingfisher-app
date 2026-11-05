@@ -371,7 +371,8 @@ class _Schreiber:
         for z in a['eintraege']:
             faellig = f' (fällig {tag(z["due"])})' if z.get('due') else ''
             wartet = f', wartet auf {_kurz(z["wartet_auf"])}' if z.get('wartet_auf') else ''
-            zeilen.append(f'- {_kurz(z["title"])}{faellig}{wartet}\n')
+            zustaendig = f', Zuständigkeit: {_kurz(z["responsibility_label"])}' if z.get('responsibility_label') else ''
+            zeilen.append(f'- {_kurz(z["title"])}{faellig}{wartet}{zustaendig}\n')
         if a['gesamt'] > len(a['eintraege']):
             zeilen.append(f'- … und {a["gesamt"] - len(a["eintraege"])} weitere\n')
         return ''.join(zeilen)

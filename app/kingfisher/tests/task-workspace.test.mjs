@@ -14,6 +14,7 @@ test('deadlines group by actual local day, without turning unknown dates into ov
 test('list and board share task identities and explicit waiting status', () => {
   const tasks = [{id:'mine',status:'open'}, {id:'wait',status:'open',wartet_auf:'Alex'}, {id:'done',status:'done'}, {id:'drop',status:'dropped'}];
   const columns = projectColumns(tasks);
-  assert.deepEqual(columns.map(col=>col.items.map(t=>t.id)), [['mine'],['wait'],['done']]);
+  assert.equal(columns[0].label, "Meine Aufgaben");
+  assert.deepEqual(columns.map(col=>col.items.map(t=>t.id)), [['mine'],['wait'],['done'],[],[]]);
   assert.equal(columns[1].items[0], tasks[1]);
 });

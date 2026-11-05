@@ -21,7 +21,7 @@ struct AppConfiguration: Decodable {
 }
 
 @available(macOS 11.3, *)
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var window: NSWindow!
     var surface: WebSurface?
     var status: NSTextField!
@@ -31,6 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var startup: Process?
     var starting = false
     var powerReporter: PowerReporter?
+    private var closeConfirmed = false
+    private var quitConfirmed = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         installMenu()
@@ -40,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.minSize = NSSize(width: 900, height: 620)
         window.center()
         window.isReleasedWhenClosed = false
+        window.delegate = self
         let content = NSView()
         window.contentView = content
         loadingView = NSView()
@@ -113,7 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = main
     }
 
-    @objc func reloadPage() { if !starting { surface?.webView.reload() } }
+    @objc func reloadPage() { if !starting { surface?.reload(fallbackPath: "today") } }
 
     @objc func startBackend() {
         guard !starting, configuration != nil, let surface = surface else { return }
@@ -191,6 +194,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startup?.terminate()
         powerReporter?.stop()
         surface?.cancelDownloads()
+    }
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        guard let surface = surface, !closeConfirmed else { return true }
+        surface.confirmLeaving { [weak self, weak sender] in
+            self?.closeConfirmed = true; sender?.performClose(nil); self?.closeConfirmed = false
+            surface.cancelDraftLeave()
+        }
+        return false
+    }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let surface = surface, !quitConfirmed else { return .terminateNow }
+        surface.confirmLeaving { [weak self] in
+            self?.quitConfirmed = true; NSApp.terminate(nil); self?.quitConfirmed = false
+            surface.cancelDraftLeave()
+        }
+        return .terminateCancel
     }
 }
 

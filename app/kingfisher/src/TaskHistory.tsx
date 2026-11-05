@@ -1,3 +1,4 @@
+import {responsibilityLabel} from "./taskResponsibilityModel";
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { reminderLabel } from "./reminderDates";
@@ -5,14 +6,21 @@ import { reminderLabel } from "./reminderDates";
 type History = Awaited<ReturnType<typeof api.taskHistory>>;
 const labels: Record<string, string> = {
   created: "Aufgabe angelegt", from_suggestion: "Vorschlag als Aufgabe übernommen",
-  completed: "Als erledigt markiert", dropped: "Fallengelassen", reopened: "Wieder geöffnet",
-  waiting_for: "Wartestatus geändert", returned: "Zurück zu mir", project_assigned: "Projektzuordnung geändert",
+  completed: "Als erledigt markiert", user_confirmed_completion: "Erledigung ausdrücklich bestätigt",
+  dropped: "Fallengelassen", reopened: "Wieder geöffnet",
+  post_completed: "Erledigung mit Mailbezug erfasst", post_undone: "Änderung durch die Post zurückgenommen",
+  waiting_for: "Wartestatus geändert", returned: "Warten beendet", post_returned: "Warten nach Antwort beendet", project_assigned: "Projektzuordnung geändert",
   edited: "Details bearbeitet",
+  responsibility_confirmed: "Zuständigkeit bestätigt",
+  responsibility_reset: "Zuständigkeit auf Ungeklärt gesetzt",
+  responsibility_undone: "Zuständigkeitsänderung zurückgenommen",
   reminder_changed: "Wiedervorlage geändert", remind_at_changed: "Wiedervorlage geändert",
   preexisting_snapshot: "Bereits vorhandener Stand erfasst",
 };
-export function TaskHistory({ taskId, revision }: { taskId: string; revision: string }) {
-  const [open, setOpen] = useState(false);
+export function TaskHistory({ taskId, revision, sequence }: { taskId: string; revision: string; sequence?: string }) {
+  const [open, setOpen] = useState(Boolean(sequence));
+  const [showRecent, setShowRecent] = useState(false);
+  const selected = showRecent ? undefined : sequence;
   const [data, setData] = useState<History | null>(null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -20,13 +28,14 @@ export function TaskHistory({ taskId, revision }: { taskId: string; revision: st
     if (!open) return;
     let active = true;
     setData(null); setError(false);
-    api.taskHistory(taskId).then(value => { if (active) setData(value); })
+    api.taskHistory(taskId, selected).then(value => { if (active) setData(value); })
       .catch(() => { if (active) setError(true); });
     return () => { active = false; };
-  }, [taskId, revision, open, retry]);
+  }, [taskId, revision, open, retry, selected]);
   return <div className="task-source">
     <button type="button" className="task-aufklapper" aria-expanded={open} onClick={() => setOpen(value => !value)}>Verlauf</button>
     {open && <section aria-label="Aufgabenverlauf">
+      {sequence && <button type="button" className="text-action" onClick={() => setShowRecent(value => !value)}>{showRecent ? "Verknüpften Eintrag ansehen" : "Neueste Änderungen ansehen"}</button>}
       {error ? <p role="alert">Der Verlauf ist gerade nicht erreichbar. <button type="button" onClick={() => setRetry(value => value + 1)}>Erneut versuchen</button></p> : !data ? <p role="status">Verlauf wird geladen …</p> : <>
         <p>{data.scope}</p>
         {data.items.length === 0 && <p>Keine Änderungen aufgezeichnet.</p>}
@@ -40,6 +49,10 @@ export function TaskHistory({ taskId, revision }: { taskId: string; revision: st
               {changed && <p>Wieder vorlegen: {after.remind_at ? reminderLabel(after.remind_at) : "keine Wiedervorlage"}</p>}</>;
           })()}
           <p>Aufgezeichnet: {new Date(event.recorded_at).toLocaleString("de-DE")}</p>
+          {event.kind.startsWith("responsibility_") && <>
+            <p>Zuständigkeit: {responsibilityLabel(event.after.responsibility)}</p>
+            <p>Bestätigende Person: nicht erfasst.</p>
+          </>}
           {event.kind === "preexisting_snapshot" && <p>Frühere Änderungen sind nicht bekannt. Dieser Eintrag rekonstruiert keine Vergangenheit.</p>}
           {event.after.wartet_auf && event.before?.wartet_auf !== event.after.wartet_auf && <p>Wartet auf: {event.after.wartet_auf}</p>}
         </li>)}</ol>

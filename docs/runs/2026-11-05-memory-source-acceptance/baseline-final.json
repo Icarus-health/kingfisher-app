@@ -1,0 +1,3782 @@
+{
+  "freeze_sha256": "5f9e54252b0513d58dffaa0e943e471431e0f3759866af171f559b37e289a39e",
+  "file_digests": {
+    "README.md": "baa5f5371352e8af8311c419e7054e88a93f4332451be6c8bb3f650194c86144",
+    "catalog.json": "18645c35a8ec2c6cbcb88fb14e79fc6d011201234b392de68beda9244ab7c8de",
+    "native/besprechung-tanne.txt": "bfbe7ac6bab721f3e9d701a1fdcb7c6803b8d6dc25c30762b31901a1f51c741d",
+    "native/birkensteg-auftrag.docx": "945f89c0c3a4a753603cf3bbb84482b86b6e897279545559715715ec0840a466",
+    "native/erle-lizenzbogen.pdf": "e7c11812ace436d5e2fde772c6768e8d39dac2c678ede5ce8b254e8215a5b505",
+    "native/erle-parent.eml": "8eb498bea13847bb4e5c7c9145bf8a38ff9278aa93bf7b8b436db2a07e58e1a4",
+    "native/erle-sichtpruefung-absage.ics": "72141215504b60eab7bde9426f2f3d25e122cb6547df1e89ecd1b1495e8961ea",
+    "native/erle-sichtpruefung.ics": "f6024175ab1ee774cdc7fcbd974c12c5c88ea19c2c4c9e97b4ae1c525752c87c",
+    "native/erlenhof-aufgaben.pdf": "cec9c46b3eebe397a861a7d5a44de224a954759c56bd38e4fb5e9fcc59a72129",
+    "native/erlenhof-parent.eml": "bb1003bed7607f38bd527294c17612313ae0e02158d9d2ffb013638dec178c43",
+    "native/transkript-stimme-unklar.txt": "356da6f46ece96b55ec2b3c59b755779ced4d279a541710036d498cec251d74b",
+    "native/transkript-weiler.txt": "5ab3b68ad4040d890d9e0f9ff0cd9eab0a5eaa1e1e1c498117d06866363ad94c",
+    "reference.json": "a345764635301cfff6f6ee2968c8086e9c70581ed3d5554eaa6b740f36e0f0ef",
+    "sources.json": "7fcb7c5aca661cc34f88fe57a29b1143ca595ff4294451e4dce7af7d1086d4b7",
+    "state-phases.json": "cd8f4cb598392de15fe598cf58a61ec7ae7abaced848c3b2ab8d1a2236b83fd6"
+  },
+  "clock": "2026-11-04T16:00:00+01:00",
+  "timezone": "Europe/Berlin",
+  "product_quality": "NOT EVALUATED",
+  "bulk_import_authorized": false,
+  "coverage": {
+    "admitted": 105,
+    "withheld": 1,
+    "partial": 4
+  },
+  "mail_intake": {
+    "account_id": "heldout-v2",
+    "started": true,
+    "paused": false,
+    "folders": [
+      {
+        "folder": "INBOX",
+        "inventory_complete": true,
+        "total": 94,
+        "filtered": 0,
+        "filtered_by": {},
+        "captured": 94,
+        "duplicates": 0,
+        "failed": 0,
+        "pending": 0,
+        "live_pending": 0,
+        "live_failed": 0,
+        "live_filtered": 0,
+        "live_filtered_by": {},
+        "failed_by": {},
+        "failed_technik": null,
+        "analyzed": 0,
+        "deferred": 0,
+        "excluded": 0,
+        "analysis_failed": 0,
+        "categorized": 0,
+        "categories_pending": 94,
+        "categories_failed": 0,
+        "categories_deferred": 0,
+        "categories_failed_by": {},
+        "categories_unverified": 0
+      },
+      {
+        "folder": "Sent",
+        "inventory_complete": true,
+        "total": 8,
+        "filtered": 0,
+        "filtered_by": {},
+        "captured": 8,
+        "duplicates": 0,
+        "failed": 0,
+        "pending": 0,
+        "live_pending": 0,
+        "live_failed": 0,
+        "live_filtered": 0,
+        "live_filtered_by": {},
+        "failed_by": {},
+        "failed_technik": null,
+        "analyzed": 0,
+        "deferred": 0,
+        "excluded": 0,
+        "analysis_failed": 0,
+        "categorized": 0,
+        "categories_pending": 8,
+        "categories_failed": 0,
+        "categories_deferred": 0,
+        "categories_failed_by": {},
+        "categories_unverified": 0
+      }
+    ],
+    "step": "analysis",
+    "error": null,
+    "mime_refreshable": 0,
+    "mime_incomplete": 0,
+    "scope": "INBOX, Sent",
+    "aktualisiert": 1793837408.278836,
+    "history_waiting_for_analysis": false
+  },
+  "receipts": [
+    {
+      "fixture_id": "E01-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-39d68c28aee3",
+          "kind": "message",
+          "source_key": "mail:3374cd6d6c4be7d1c13623c86e006e1ee906cbb62de1f4f534e254ff467333fa",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:19c0c6f27cae0ce110ae12714e992c3aef417eaa9825ee518754131e001cb3e0",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "bbfff2e967d3fdb6fd52b415ca453a8abdb9fbcac560d428c0f86a65c0317896",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "69e258a09e204195ccbe7af53dcbee6d157fc9382af04b6625b25be7aa911636",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 9,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-20cbd6775d24",
+          "kind": "message",
+          "source_key": "mail:650ac4c94d2fde9b42bae6271bfa0767f1b40523f0ab0c6d0b7c3363d52b5ca2",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:e4e5d950cadd115fb321a13f23bce3f3d88d8920a3d04a3f5b18b5a6d94411b4",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0ca48d24ae6af3e928819c94d0ff2f546faa11d929d095508724058ebe6c2b13",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "c1a18edac0fc7b625c16e03dad873c7d488de7b1df1c3bed69da41f402787be0",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 10,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-73e1136fc020",
+          "kind": "message",
+          "source_key": "mail:b4fae2b35c0910343f847fc34b476539c4b140f21f9526e2ab18cd2faeb2f8cb",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:5d6ffb8787c3950e1dbfcac267b7c05577ef907be3864b505916a1d4b3e4481a",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "c99e4ae7c5a6bf9316ac76ac34b68e31e3dff7b4105b669ddb9a8c41c7525bbe",
+      "mail_folder": "Sent",
+      "original_body_sha256": "516c2c95641b96a3dcf0deb632c47abed6207a2dfdf32fd27489c0482ee6d35c",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 1,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-fbd8fbd19dd9",
+          "kind": "message",
+          "source_key": "mail:f34e55a4fb476f917b77775c9225b0eb9959547d8fafc956610d619dac96523a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:46e2ba58fd0aae6aec736be5956c4acb05d8f5d5051d01c83f7f01df9dccb861",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "cc1d98e5a80322a0a748eea127b491bb75ef6631494a71b791faabe0e97389d6",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "e26ef8d68e7625cf29bbca785969b522a3e9eeaa02fa76e9feeb6d007efebc2c",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 11,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-1fb31046e121",
+          "kind": "message",
+          "source_key": "mail:bc277796e3960e89b8ecf270e40ae26ba76dd15a66bb0c9a13dc39d906ed2473",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6f8f4f9b27947e89526c0b481f5b0ac4c7d1c6650e475625f5b93fa279158f54",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1f8c4001e5d71247f74a98656c0efa32b7d0bba733effcf8ff91901d68f9de21",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "2f0a1bbfd23a7af707b598a54bbf333f570b152508ad200d4256aefca4e5f956",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 12,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-f5d3941032e9",
+          "kind": "message",
+          "source_key": "mail:07986937607dbb7c5f6034ae7a60ed12958a45429c48f13ea1ca543728b6954a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6dcfb82d6d5787b7f3bf1e02a443fb62f27e9c4be0493d5473ca16dc2236e48d",
+          "occurred_at": "2022-11-05T08:00:00+00:00",
+          "captured_at": "2022-11-05T08:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2022-11-05T09:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "d8e28284cf6e72c84207cf87d30a9e086aa7e32b5016211306d2616a712cce1c",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "a988b2d91294cf461c2ea263662da53a0bac8790e7463261b8dc47f01d30a32f",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 6,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-d1839dbaa984",
+          "kind": "message",
+          "source_key": "mail:550a0f3b504cdefb94e20461cb39978a846108d20ed67410a1ce450ad4d4f671",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:11fe8f81829072bf251df0063feee7b0eca597abf1837a5cc747f15549b92f89",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "a42b0ec2d92a4284630ff0accd2540cc5bb9ce7f4c8cdf4d99c60b3c49bd74f2",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "0adf7d6c3c8c256b9c72294a6e16e557d863f6ef336c83df1af035b10b2132b5",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 13,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-b666f0b8503c",
+          "kind": "message",
+          "source_key": "mail:04e1df3279a088e41d62c8326d1cd3d6da79de4e620ca8dcdcdaa92394f0b98f",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c7b554f5f27d36800801f48825534f01b2b80ad4f5059ac1347b15517aba982b",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "17eb95eec380e27b07cd817c085a739ed65ea6cc3aee8b8c6941a5209c50ffff",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "e7017c36bfac7d7bba2d9f5a67f42707d3de5f837effafe95d0b4e5a1e90900f",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 14,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-c7675ac8d65e",
+          "kind": "message",
+          "source_key": "mail:e03d011c6fe34888038e7099e48190273d14c00d76f1fa72156decb23b5ff4f4",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:315f398c81b55af1af53afe7cea6c627c9fb10694d748ebf64590e745b57f1d1",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "8e7fdc93935e0a8973fe0c77d8f0c0d6003eaa3b2c75c3b0d60aa95f25453090",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "cf19962a9eb2845c36dd289826ffabe882a618033d4172b83d46055ce78043c4",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 15,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E01-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-69820eddc320",
+          "kind": "message",
+          "source_key": "mail:815fcdd87bff3ee4c41a1afac8579b167b1de886b7fd494b617f56e183bfd073",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E01-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:2cc560451c196b09d615321045ac37ccd195b47827731b25941896eef7320984",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "93769a05ce8b159213d9fe90434a0e12b06aa4dc790767b2f9118b3cca06e7fe",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "03afdb89d145d41e8ed292551bacbd1e62385853d35120a189a9d67b081d2529",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 16,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-f73267327830",
+          "kind": "message",
+          "source_key": "mail:6c9114e55ba08c80b4d184b406bfa0fb6fa4beb30b5ac108c69ca7e36adc7aed",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:700267371aee5c5def5ac7f9046845a43317fd0eb66498816fd42da15c753abb",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "4473d18fd7206fd138e3f94f31c5e347e4997440141e5b96abde1fb1536c60e4",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "a71fdc06257eec65d459595cd1c96e628cc97d55ff50bfee5c643c3a9a42e864",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 17,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-2d8e119e5df4",
+          "kind": "message",
+          "source_key": "mail:b683573aafd59e32e79f0b15232c5dd3ff55f940fe4dabfa8ff891d2ddc1614b",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:62a80e054028f95cda554be8510a2e2336ed43cb6641540b768cf99e00220409",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "7c7c84235d2ebf3e84066c6cec9b96fdd955f760f35ca14080b9b5e30c959558",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "98c916b6c31acc81316c885cd6f9e58a68a6ee86ccf41cd390fbaef8e89876b6",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 18,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-2abeff56ff3e",
+          "kind": "message",
+          "source_key": "mail:ccd5557030923037dc90c838f9f7be5c02cf3264bba5c7632c2d2a77a9fd268a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c0c7f6816eb03f5df2b10ba9be72bd05ee292c5aa9b0dd826eb4f2d8a48c441f",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "746cb3d25a8025af37d7fb186ab3d2d239ff069f86e4810ebd34814e255cef2f",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "40c4efe3876c68d667883a444a712e2d769b72f3e31bb332400cb79c8484cba1",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 19,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-8956bd9850f5",
+          "kind": "message",
+          "source_key": "mail:d6f547dded7ced38e55ef1aad5fc759fdd33a04a432421ec74980b31b5480c77",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:293a3642be234e8761957f687f00ed9b7ab16d3e8e481263e61991db11807fc9",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "d04739e0d8579d679e39833377cb01661a3d2c23d392a0380b37056a87ee2a98",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "6f86cde4491b5d4c6cf762eda9b3697e5605ae0932dea644200b65e27cb845d5",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 20,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-59e1df85367e",
+          "kind": "message",
+          "source_key": "mail:19692188852d24651a47987da5b60f5a58f1b1aa6aae6b8dbc7bbd13976f2fc2",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:f56ba0e005fbe92f7960c54e3204c8c2b834e770658856057ec4812294582197",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "df0e87bc7f695ccbdcb3646fff546b177d88ba9dbdca192074080f73a007084c",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "be82e143a79c22837e70fd651b9483aabee63a40f0ab2b9aa6ca567b3b673787",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 21,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-ad749b55587f",
+          "kind": "message",
+          "source_key": "mail:a6f9009d44ac77ea5b381d62e92a678a7d1061bf14c31c9655d8c27d9046249b",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:30912a93afdf79b9d7bbce9b3d4133767c7d03e8667d4ba75069d5141f4a2d39",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "43387fd620fd7f0210e39de14cfa72d5b32f74aa07b163d98c46aaa348982bd2",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "e6056c35fd9b83f12d3cc57ba134a6da4446c164cfba08b9965e15db1174835d",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 22,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-f14da619c16f",
+          "kind": "message",
+          "source_key": "mail:c05e370c0070258106800c9de45dffb7d4184407719d640dc41e0cc474e46155",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:ef0895b7d59a016beab9ad200861a06480f8933bc154149d9fcfd18b01742f25",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "8b4cc1b6b2ac3b4629df1da02223dffeac6234b6e0588eff72bac0ecbbce55aa",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "4866c67c13008fb48e2292006d01c257dc81877e10f390ee1067f0b74227f6e1",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 23,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-c6c8013111ef",
+          "kind": "message",
+          "source_key": "mail:0c1857890f6a4a4eff95f3d5f2415246ae82583d48f53fac781b0e592663421c",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:0672f834cb1f0c84fb94d36aefab96a564077c6c6ebcd3d5aaa1838145d50b4b",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "a88cc642fd22aae9cff8ab19d72a7c1922c04d363bb18376f049fba1076b9d76",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "3cde6fc76d4dab6097c2840881a798453aaab963bad913797096b2635c0a2a3e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 24,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-dfa9adf40b9c",
+          "kind": "message",
+          "source_key": "mail:ab51993f3aa782b1060b548f9aa27c2f2a25cf5b0c5b58401222cc72be6c51b9",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:4e598f13967e0d9e1273ace786809c392a2c15f809c242c7442666b062886de1",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "f701edbe22226fb98eb4b24da4edcb410d4984c94cfc7a6a0222ace40fea2ecc",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "92a04779e602536f554868371b6e11855f75779a08c9a7522404453fb3c05da9",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 25,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E02-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-fd0407dde683",
+          "kind": "message",
+          "source_key": "mail:884dde21749237b582f7a6de12c968e9411634f94a6886d89fc25b611d8d5364",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E02-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:b2905286abc2e102daa110c44449a606f9fd9f8969678645c814c562a5efb303",
+          "occurred_at": "2019-06-12T06:00:00+00:00",
+          "captured_at": "2019-06-12T06:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2019-06-12T08:00:00+02:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "f2bef3be7b47923765c4c10a56793afebb859bbe81310f019c589fe5f02237e5",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "06c4b64b0e36fd5cd12f1a8877e4bc423c157811452389dbff1d2eea9fc65004",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 3,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-f831781fda64",
+          "kind": "message",
+          "source_key": "mail:fc14957c06fcb16dca945db0cfd8676558fbc222d01a8b6ea01858e7e9ee29b2",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:73c1e7a0fefffdbee5fffb9005b8f2f27009f4e8cd8edb302b4c2afe8253e370",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "2b3de437a4824bbec0968aa367440164551fe32a68fa48fc4c61f7f67fee7c08",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "0fed0697f0d648e89be51b48a12ad0ec95a476f39268acdc6aa0fe58c9915e7a",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 26,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-7d04473b56d2",
+          "kind": "message",
+          "source_key": "mail:3b8f04ccbcfafb61dc7f2b4e40ec61f4b7d460f6067a73e617cfd267b6fde261",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:51240c0b16f5194eaeb6d939d3c4612715e92bfdf7f23be8a181a4ebfc9364b5",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "479578d14311b9811ceed046a4124d8e70d61ca848314272f42a46a8dfe18461",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "7438a4af82c30d05c82cd2b4a93c96711e9f18a0060523e13c93646652c158d7",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 27,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-01f657f12a13",
+          "kind": "message",
+          "source_key": "mail:d2d1798cada529d3cf30eb0d388badda43fa7029b2b383794a6c38e41d8b7f1f",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:5a795899751a94a566540d445adc197b6064e0b9d10a77e41ad183c7b85819fd",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1d07689c9173e8e0100b147d63ce8378629dce87c0bf0bef2eb87dacac835977",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "cce695fb603abb10d3d59f23938a706be3c161e2ee6bb67cd5c185f83dad1a36",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 28,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-b51e4b9b505d",
+          "kind": "message",
+          "source_key": "mail:a0612339186c59ecff194644e2483b74e0a124833392272586d8631493a71993",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c1093c3bc9c80d3306ee87c47e49dedc358c4ea6b5e79d07732567e6dcc9d462",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0744af5b6180b7e4d23a1ea2040c7c5fa2308d2d4fc5fbbaefd7ba22620f0625",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "c1d54d96e03e2f6bcac89b65abdf72dccf51d6b1b4aacd5382accb94fbecd59d",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 29,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-419e014789c2",
+          "kind": "message",
+          "source_key": "mail:125a3616f3b1de7dc4064b9b81bf11f45551820c0c68daab38f7a3c106b6c0fe",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:d1eaa87e82e4e0e2f746322bc38d31109ce3fb96cecee0b94560648a1ad693b6",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "e6f890a8da47d99b6c27a2dd6f8dc3398f7f6b98fa7cd636e4dda6a1d835031a",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "93a2095e474bf1a7c5cb7c010125818d7bd3dfdd68dbefd9b0586577f7fe9fd1",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 30,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-322c1cc27c9c",
+          "kind": "message",
+          "source_key": "mail:6829b53f863677d5dde6a324504937e72cfd91be5a876c212a43b25bd4589add",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:2b3fc711c196ed1ed36812c3d470c5f2bce892e467810591c00ccb4cc8f71f00",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0c9c72c7098867cddefe3db66de778748bc31f41bd6d10d131b363909e730b04",
+      "mail_folder": "Sent",
+      "original_body_sha256": "dbcd23d2b02b0ebe6bd5f71d9f75e8a2a632aaf58a3d9f6fb0e4e4f49592cee7",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 2,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-4ac58db33a08",
+          "kind": "message",
+          "source_key": "mail:c4ca66a369fc60c45d38c25f6c4cf0712faf7bed94bf0da3312767847e8ea088",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:429e912d6e86c003b898a76231a250ca2e9cb06ce7688a02dcd76a78b652225f",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "08ecb229ba79ad42b128f19a57be2fe7ba4914dcb67afdc81d7152ba2a472594",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "69d13a25285de1fb83be9b9c218b73e926775617dd434d9e46d4be4175c7b3d5",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 31,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-40634f2cf6a4",
+          "kind": "message",
+          "source_key": "mail:acd820cd942bb646129b200acacb8296847134470bc3ea04f24f63173bd0be87",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:988a6a1862bfb23708cf73edb04245a92a1cfb4fcdfdb51c2696b8018e8d8081",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0f5b3cbe0e021c88e6ab773522aea2f7b5fa61d037c1030d7cd818a86ea80115",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "46a83c961565e408a54dd4a3c467271a5b2848c10d515e29495e3ec9a4eec433",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 32,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-27be26867b63",
+          "kind": "message",
+          "source_key": "mail:1d454f9e5d58afaa9786dcfba3b3029b80126d3c8d7ab31aed127ddf7c1f5e1d",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c83f5690e5213766328e1ca7e410306e30b3e618e61f442d7cca05ef1cae755a",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "03b536f5957c3387f49a56bea2d80c301295d1ad406d9de7889fa95f76467c19",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "d2d90f620b215e313b2b633fa0334a4f6e01fe63972e6110396537577e2248d5",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 33,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E03-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-09db8b62aca8",
+          "kind": "message",
+          "source_key": "mail:a6aab25e32cfc79afbc2f6f9376df3f2775b19eb7f395b5e159baacfbcde5489",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E03-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:0210ff6d3561d18de03524b1820b3c9faa09de6ae9f8c577e2dda4deffcaee8a",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1553867b97c8e8dc7b53a6890d90226428472bcb0a1eb00e8675cb8739b83c0b",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "06edd8d8c463ab131690d7452a53b230f5158c152862219b642a7f48d052ea56",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 34,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-69b250e35bf9",
+          "kind": "message",
+          "source_key": "mail:ba28a4d3a439af37da596d71a1c3ffa35aecb0a89ec11a28fac06fc981465bd5",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6bfe03eb1b2be1fd443cf275046a20dba531cd99b3d6290072c869b918e42b99",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "6e24d8ff7f6d38c83c6034828774b14d512d51b1294e8235e1ec38d505904563",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "0c6ec7b3941d768318605aa4609924c028ae8b19db04f322fe16662353f6a909",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 35,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-e8c66b837dcb",
+          "kind": "message",
+          "source_key": "mail:440d42132c29f916432763cc3940f676a2b4aa9e918929581f3b156d2ba75509",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:4d00d58d02c8a565988b6aaf99aac3c1fec82a4937bce8ce21dc88937ff35669",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "3b1ee8ef403fb4bd20a51569c13f7d215e014a7b4980d70e237c07773f745f0e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "29fbfa5c6e755818cdce465d2c8ee492b76fd48eeda73c7bc0234b53fe65f52f",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 36,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-f2efd95375a0",
+          "kind": "message",
+          "source_key": "mail:a60d6564c0051e1590fc6f5342ab7ee27f0661bf1277123fbbc8ac692cb4f526",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:a897af8ddabc281680f2052eb711f1a0959c665eea1a5f95cbe35368350bc183",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1e2954b176c7b718744f9fc0598c95da4b752ac7b5741a12349d30067a18e1a9",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "1e982f57ff8dbc32174aa5c397d47f26bea1ae275c2693105eb947359cddefc9",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 37,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-5d32b55ca430",
+          "kind": "message",
+          "source_key": "mail:b91497eee03ea64e77ce0f8c0c31eaee57010338304c6831c09c5be73b64a701",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:338eae8a9fc69933b52e50830a304cb64d3b807f564ed37d1d87363dbf18bd3a",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "483c2d4671160c7602f081a425305897f32796a8f0413b088d05c3a9c23240a7",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "c74d4a75b86ec0eb72180295026449df1c3e1045715cbdda9fe22505f18ba186",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 38,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-bfe4cab9fdfe",
+          "kind": "message",
+          "source_key": "mail:561a69cf43fd391041514da0ca5e00b52ce3517e9c83d0ec4b445f37b1bde9ef",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:2f0b38c5fa414da51e8c64e70483447c11e942bd8d463d78b8e6a115b2b43c96",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "84c825a1209abe2dcf0c40e3fc6e95b82120d4fe02c6b83ac3c895b6f9ba8abe",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "f4a47fdfbffa0fc2517182551db3006dccc9713588981c723722e75612773b6f",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 39,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-6280a2267333",
+          "kind": "message",
+          "source_key": "mail:4d589a00cefc0a31bbb14e6a6b7d7eaafb9558bc664e01045efeb8937e49ae52",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:442aa76c1d93964c679b8b6c8714f4576af41dcbfe52d580f80526ae2f59a85d",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "9e840800381e06cc492479aa5a8b4173ee9c48856b0b720741533455a5b0f050",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "8cf8c34e67b2d2b59e2fb2564c623ad99e9051a2e90afe4f57d905d793e8e1fa",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 40,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-6612d59ca866",
+          "kind": "message",
+          "source_key": "mail:38d281dd842968fa930ba3acecb4663abcb1d92ee6540278f3fc138b3e70a183",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:865fa04b955b740e735e9246bf232c5cfbe551610c9121cd662df894076ea496",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1745300a1315c1382a29e78fd4cbdde11b97325e2467b0de640c6cf180cbaf3e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "cbae9bfad5f3551ae88eab6a727f6be9346937395ab9b17bb511c9b1d6f0309d",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 41,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-165a9f774d10",
+          "kind": "message",
+          "source_key": "mail:ac600e995645c0d625006509c564e81c145494a801f0a10da0c7f679ec034065",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:2853f2419dc79ecfd68f0003629bb60cbf9d56caa5f69f364442d0da1bf37228",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "89837514f16becd09dedb0f937451328da106d19e7974fd3aed236c93b234432",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "87ac232f8bff63ced83beaeae35aaac33c0b49204d30da0f6abe4d89c96bf4fc",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 42,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-81819851eb11",
+          "kind": "message",
+          "source_key": "mail:6729ab59c8a7f6dab60e15b2d6b8127dc368a990b0fbad34933fd5fbda6c6562",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:4017ac07a8badd07f81c84dd8ee5f8a2f95acfccd618116f9b62e98749187fd1",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "a95311a84a265f7e20a41282b010ab2c1a0f35c0756d5dff60f2910869cc53fe",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "a3e258d72c8c702295d1d658102f44446815eb2028250b288f3c39b5103d0038",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 43,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E04-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-9bccb72f85d7",
+          "kind": "message",
+          "source_key": "mail:53a1685e06e135371e30ba1e72a84ff7c635057f94e139ba055ad1afb4f6922a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E04-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:5d49d3ab287b9b30114201f43be7a573ee24769c183f75329d9e96ad2b0c4c1e",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "447b64c04e4864b8894ffc136503bde768be0dd322a9953e7fd49fb4bc302100",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "877b4cac5db313f05aba515af152c11d53524775e0e326153e5e50292048e8a8",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 44,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-5215439ccf21",
+          "kind": "message",
+          "source_key": "mail:23331c965243c53d6cf10d2a7f4e614ce8428901819114bc4fca8e1a04a072eb",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:93e0bb6afe3f23bb146fb153af49a217935a7b7fcf7fae3bdbff7bf23b197fdd",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "fad1b00704ded6e70dc2284d5988755cbc75ae40b2bca29068f6336f13e88748",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "0876e5ffe7f3a7b24dcd32ab7789503ba7580ff659e865b82860e42aadb2340e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 45,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-18e75ab8c13b",
+          "kind": "message",
+          "source_key": "mail:7744b893db6b7aaff0949027fdafe440bbc856c286cf692629a707fdfbd27ffe",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:64f6d83f1f26f4aa79b31fd5a499448968c689582c0526a173d3c57498a7885b",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "e936883ed9d6f9ea6b61017965ad998c3d7de687dc93c3f230a75b70e9be87da",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "823282693c0195ccc20a7f11a195f0bff8d279a5e2bfed2560c6cf02d8421c95",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 46,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-2b58ac1ac869",
+          "kind": "message",
+          "source_key": "mail:375f4ae4604c187cca486590fe96e9437e29f77905bed40e51c75754ffe87e05",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:082885a6ee46cdd8cb3d859ac9f1071572cc092f4177b0ebe36c694020a7851e",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "9f3c09d83ec44066152696427582d7ca9fb920e7147b3df8c8b72bc54318a0a0",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "ec09d293a753d34b358db25f83fd9dcf3e4739e6fad33c3aaf59fa3db0f0a5ca",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 47,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-d501c4169aab",
+          "kind": "message",
+          "source_key": "mail:3f872d8df9bcfdaaf2e50c393f072b12f3ce2ae1fa71314fdadd1380d3ffba51",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:9e77165d04af9c879036e4d57709e776faec17f2e159bdd936845963214aecf0",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "f156dd0a82d08cca2ebd30ab5ff2c29cca48f5af423aa293e49800ec6ec162cb",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "5ea52d9d67cacf520671c82c6054439de5e292d25d01666eab6cf0a022ea20f5",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 48,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-e207163f3f7b",
+          "kind": "message",
+          "source_key": "mail:735ae321b0f00d056249e23ff8cf729c70b9886d8bdc55dd51791738886449e0",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:35948e3479916189bbf26025409bcbdf66b0b8d9d028106bbadb9e6575356817",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0af744d30b7e3ed19dc976212ff7f44cda7d3eb2c8e8c917f8b6a3663c07c210",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "57da4d2fa0a17d63f1f4a7b9015c14d63ef4dad677a31da0fc4fa27e302507ae",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 49,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-fea6f7ea2a6f",
+          "kind": "message",
+          "source_key": "mail:ea55568f08baf7bfd03ec07d221a2d7638e008c12c123b4bf08c32e1b66d5200",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:d72b176dc3d3de57c6b1b05de2bf62774801945f29aef9bc2255da7f90fa4609",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "efe3f5fd1aeb6509fa58ff6a03ae51afe0fda857bee66b5025fad8984f7c6a95",
+      "mail_folder": "Sent",
+      "original_body_sha256": "db3f9953487295730de6b3aed237b718afe7191ba7a9e5602e7b8dc7529121ff",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 3,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-12bb52675e8a",
+          "kind": "message",
+          "source_key": "mail:07782f9da14c4c6a85c38fd018b54d63dc27ab566056d9d2c4bbacfe9704b722",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:03e4bfa9a6c60a5519bc5c448cb6d67dbd5634e0c1239222827061b5b336e792",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "cf70f716ecdac4de9db052c48ec35345d26de24c58d3e3fb9ff731a6ab398a88",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "90ed46e0cc472cdc4640673f4ea90dbe7ca34bbaf0ec7c1aabafcdf2816148ff",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 50,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-b53676000aee",
+          "kind": "message",
+          "source_key": "mail:f14fe53b0e39542635ffe931f307a59fba7c80f584e4ae9438e307af1ba045c0",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:20f3be6eb9d429e217ca78d068ad4ccab42d6779d6b64255a03116cb7f2921da",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1d5675488f2767b3593d774662629a02c4b549f4ecdc5797fa3b6fdf5a5fb1d6",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "3a45f1afa4d840533788d9e2e52478ce12a0d9d65a536e88c5d3a0e71e9bedd2",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 51,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-d058dcb3e9a8",
+          "kind": "message",
+          "source_key": "mail:d584992056372f18c4f583308f4f377590af3147c698c52ceed95f04f6f73f6a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:50b49c4260f5832bae19f59c94d0248a15f9261e54dd11dde129af090cb2114a",
+          "occurred_at": "2023-12-02T10:00:00+00:00",
+          "captured_at": "2023-12-02T10:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2023-12-02T11:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "cc260988ab15296a1afdfb961b7a1ecb01bd712505ba3636543cdddd98ff82fb",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "bcd00921bd9ce629969f8f4e061b36d78859448911272c4cd5887933365f927a",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 7,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E05-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-44355fbc40d5",
+          "kind": "message",
+          "source_key": "mail:87aeb9c63dd4192faccd878d187ff3594593ddc7e17094890e8762bb1483db63",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E05-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:979662a826d0eb1e23ab6b0517dff89a309897e92b72be7359a4cf28e3c7b063",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "60d8cb2ee8b03b7be1e44033c969b86da07838eee57e8cc269690008814465e1",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "e8f412e8d51ae3aa500f9a819959a820845c0baa83998c132c676b489cb32031",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 52,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-9e13fa070d0d",
+          "kind": "message",
+          "source_key": "mail:9304c0426545698951ed3d3b6f3011e182dfb9ddb00b1b533107ea8d45a8ab00",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:e5f44e4fbb2c032736172edbea4187eac064bdf3bc5f3afeb2de32d32d804f34",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "a64ddef10438318727a9b0a8498bd684132b591589ee46b4f80b469b167f5a4d",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "036463aae0bf59b114f486c57aa7e43ea1861c7e266837eea92eb97a0689216e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 53,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-1e2b27e2bf80",
+          "kind": "message",
+          "source_key": "mail:9bfdd076e4233749e2dac382983ffb41fc80bed62359f788b1f94cdaa4f8f120",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6f62631e64cb2e91e414896a8f4098e4a6cf55a87e845bfc91b04c94763dc568",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "61dc9b201151e9bacfac63455b95344ed0f2158f10af49da32b0c4987f06963e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "dbe41c396fd829363f4788cdcd62e1bf4cf211ae3059579cf932d29b34359c7b",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 54,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-cb7ad30cc1bb",
+          "kind": "message",
+          "source_key": "mail:39f5f6211f787b5834b71c61eb0de57d27248378467438ed933b1eb0a5610ea7",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:d32f84996675fa80e6b0d9bb3b2ec69017b2c646ffc3586e5828d8c47c04b624",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1d14535fc1d6005273de32a5f5e3b4456575b2b45ce8197b1d87c324a3c60e0b",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "0a248a6270719a5d2ff5ee18e6cf1be63c894711b4f0a547126759128646aa4e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 55,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-ecfc96348b98",
+          "kind": "message",
+          "source_key": "mail:a6db14a381a0f0a74403448b7bb3d8cfdaef2d70c857568cb2bd534fd1c5bae9",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c5e78e7fb61255ac82a947ec66474c3bda3407911e72ace2b47a7baf38fc8bc0",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "63283ce0eb0e1edfbaa276bdd9d3001c561d9000bd59c7bf3a2491e890dc2a6c",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "4742939e58ca8f0b9726613317556cd424f7c2ab26337318208b6e79633e3915",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 56,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-73ebd42725bc",
+          "kind": "message",
+          "source_key": "mail:edfb49d72b9e943a51280b3474d34c864244edd8602e25aeb003f26caf759d7a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:70b4a90adc931251086b3c6afd70cae23a22e5ccaa90baabb76b2a01c72f87f0",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "a04c7e38132b1b88e58896d030bb67d7d09eb810c9a67a1a3ecb40796817812e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "19ad60d77c5c15edf220bd1b240704cf1ebddc3eb5b71d6191e4d5523db8cabc",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 57,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-5be6af4bd827",
+          "kind": "message",
+          "source_key": "mail:f13b68fc35a2da9ec315b224afa5cdb6135a8163c333fa3a086a9f2fa9af31de",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:3cf8586bf8a732a0a977ff9d85c54d487828e7514b3ebb2e491fcacff3d1470b",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "7cf8dea21cb32403746aa30677c7fe9c3f73fc6f48b1330e04f261ca91237ff8",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "24acb8b77c27473458a37951252e0aea99b0daaca8553721c88fd01130c83ef3",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 58,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-188d39a45793",
+          "kind": "message",
+          "source_key": "mail:7690b2a96bdb6aea79a37dd21aa0ce55a8e36d8246d6d0925b5b9875485d613c",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:76928c4d439166b2e443b02bc62a155fa07dda929e68142f6da65a4607d74e06",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "be647e87702ef31ae270ab316394dd2ed73e5e3d915396131d7be69688c4b443",
+      "mail_folder": "Sent",
+      "original_body_sha256": "70ed56ebd455c711d9af698ac90fe4778f771081eb1d5c98b82e46e8b508ce13",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 4,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-425ad52b4371",
+          "kind": "message",
+          "source_key": "mail:d904645c4d94d2b728955c6d9329dad98aa3bd5a389c5efa418bd9d6f814ad43",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:d379da4fcacd890e3beb5c80a59d3af19e039a836f53695b14bdb4f8a758a061",
+          "occurred_at": "2020-11-12T08:00:00+00:00",
+          "captured_at": "2020-11-12T08:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2020-11-12T09:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "e5dc582bb79563771870fcde8577f70cf7ec5540ae9859fb15990190f16a1fb9",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "63d4c462a5371a973cfb4a5473816b401ddd5b8d91f24211f86f7fb95bab7c81",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 4,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-cdf93f28e1c6",
+          "kind": "message",
+          "source_key": "mail:4b26855d4c77a9bed11087d5e84bf409828676fa4bb2f8fc02529669a86e5b80",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:ad6ffaa261daeff064793cfad842bb66ef4825b38679efc85bce7329472ca54a",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "341c7671190e738aeb437f6eb57b705bf204f62699906e9441df5f287af94766",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "44406d3abc7b23ac0f9e75604290042b4093c0026ddc320c60ed531ba469a8f7",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 59,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E06-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-b4014765ad52",
+          "kind": "message",
+          "source_key": "mail:90693196b57b535b0633677b2cd39d07a1490d187d58d22893a8985d1cf9090c",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E06-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:90126f8b2339864bfe1fd7a0229f8425bb5f4ff6a1cf032a58d0b17004066315",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "82dba1313ac37e1a6533656ddbf85119a9f14542ef3ae3a228e729fbb84f7183",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "be86a846e5112067c57c14872a2ae236cab0f599289292a31950bb17bb6d3fce",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 60,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-5725543276a7",
+          "kind": "message",
+          "source_key": "mail:9c07ccfd90959ae43d829eccbfb41ff4c07cf8f1772784d2e7761c77fe4eb0c9",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:73783eb1790e305889a937a183f859226021f8ed5ba167f85e32c2842b1a7d04",
+          "occurred_at": "2026-10-29T07:15:00+00:00",
+          "captured_at": "2026-10-29T07:15:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-10-29T08:15:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "fa797e579b9e122260fa33bbd946585e3a8f082211c742835da7daf1c057c465",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "f596123e9b938e486f8fe5f6f363150fa78c6be24843addbeec25e4e15c90c87",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 8,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-6b475de33911",
+          "kind": "message",
+          "source_key": "mail:f3e7c7d144398450a300cc4f133560324b49af9cc889b04a46591f4e05353fb9",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:9ac9e1482e99cf40b44b27b3850f03f867ee58f8bb06cf2441ab704b4456c310",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "b1bb4ba3ab89ce2806328eed90785f8f9e5a34dec8d94985723bcaf4636e5c55",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "1f57a99c2b3501a7cb8c4eb45814c2c8173bef588d349a7c565c24a08cf03c55",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 61,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-77c8c131aaf2",
+          "kind": "message",
+          "source_key": "mail:6fae35f3bef4ac3ed544ebeec98c18b25ea7a319905e63d1b7894f6e1180201a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:60321d169349e5f380f5b3fbd6bf81d8192262d5dba450c17f3f77ddbef8f012",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "9a2c36051375c219a54b57ef38c60764817bdf425ef722705381e7d0c1522111",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "c1d01271d05397702b3afb15e53c6c3f7abbb728aa35a3bef40b0dd79c18b34e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 62,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-cb091affbd1a",
+          "kind": "message",
+          "source_key": "mail:a06dafee926afc5343f7a9d576615218d46136766fbfa97b96c1b84649551616",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:9fa4d3223a9d63d5c6d0f6f24f5d45584eaf5dc94a285500c4a2b88a3822f47e",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "31d18de2b8542a1cd5b4dfef38cc4719255c04b5ab61a8fb329372f9834fc5ce",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "a877ecf88f2770609dc07f43f1ff19dbe9445a485e8f61680d3d9629c05f03dc",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 63,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-796b63e5e5b3",
+          "kind": "message",
+          "source_key": "mail:898f0fcc7d24d660145caf84f9c57f6c81e4d57e60aa90fa089d0f0f4d5b60c6",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:33e2445bc424ed91b2bfbd2c92eaa8be74c7fef7b4c6d2c53157df8f4e2fd09f",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "982e708b16b4e1880afd164575832962ce71d67c71806b5b480f1ec5071a2d52",
+      "mail_folder": "Sent",
+      "original_body_sha256": "686aeda2563247116a5a7d28f54cae0e744f69658ce2cb3797f4620c0e1b8b9a",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 5,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-a685c789d76f",
+          "kind": "message",
+          "source_key": "mail:da7143396d0931d3c51196ecb8d92f35c9b45805166eb091fe0f3748bef11072",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:481220fcb4f0884df9d53715974a8a259d885eab4537fd2e29e22048ade1bec2",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "54a93fb3b211fc842b294043f674ee3a3c359452c960dc91afecaa0edb665925",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "4a4ac51ae3c814a0498b6a677b992626bbf182297c2e5f62c388d67b8155de3f",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 64,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-195b577153ad",
+          "kind": "message",
+          "source_key": "mail:4dfd63c1c0398b896d6e4babb0a0499f680939d998e07524bf517aa75f8e9e7d",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6a8f0c9c95a01ca773f95d20c071a8a7970485683589e286e2e8235540335215",
+          "occurred_at": "2018-07-21T08:00:00+00:00",
+          "captured_at": "2018-07-21T08:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2018-07-21T10:00:00+02:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "5222294558f066ef656f27d2337822811462cf9fc0313c709da1536fe178cf52",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "59ef2a8d9476bc946dd38c878c0781df90eafc127ea9af695bbf2e504a712b7e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 2,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-61d409ae780d",
+          "kind": "message",
+          "source_key": "mail:74cf60d5bed0354ff4b7ddcbd01ee1eac2f23612b20f44f7fbc65cf1121279e9",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:e7ed42203590c02bd9fb6cf6b192faedc20c1353cf501f50246e9a1cf5eaa66b",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "9ecda5661d2bd614acdd40cffa9ec7e370bbf97aaa2723b3b78ea013cca9c7a6",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "db9b3417b956db44bd6a839dd2a89660483ffa447943500f7569e2f26001d300",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 65,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-0afa530c6f5a",
+          "kind": "message",
+          "source_key": "mail:fcde8bc7167b54306c0a47aa52cf2be0d3dfa53b806ae60187ac6b3acbd4f5aa",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:d0fc410e63c880bea132db7b5c69f48a8fcfe6d72057b87f5e340878cc7c15d8",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "90703ccc87bc6010e073c2d16b0565c0e5893585bebac3244c81f75b5016afe3",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "49526ff32320139a4e97842c38d174a6e2f70b3bbe1ae7ef561f4adec9bfc522",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 66,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E07-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-1bd50d370dc5",
+          "kind": "message",
+          "source_key": "mail:d269c1dec2fa463b46850a5d2cc6fdd89dc0aafc22775bbb1f3c6f00786fdf61",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E07-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:e74c816e8aa7e28c05d8b29ff4d3dc86ece7f1f38b46862de88cd79263538925",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "1741d5255c21a1c5a4910451776ddcf11daa7d8650fee81422ae276cc76ea699",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "7611375f6773b1b485a72fa643241ca1c36ae4e0bc3c57158592b7d87264166b",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 67,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-57a22b29577f",
+          "kind": "message",
+          "source_key": "mail:442ac218d36a2e75a148b037a0b3e7873b4f56e7b6877b7f61e4b01e37f3382a",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:e7318241e5f7952aa18d31e77bb579fcc8499c41d03821a70d440537e55adca8",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "c78a5535d50b0e4ad6bfc96c2faa7f9490d70543029bf1548c8393889ca7f04c",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "df51d064eb0f620dccac4597b7c6fb64457a50adca75a214f52f1c33909cd743",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 68,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-022cd0ba9786",
+          "kind": "message",
+          "source_key": "mail:81d74d782d5bd0f7ad06cf9eb35f87add6c97998925de874fc78fe6284c3a3ab",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:ad84d4254cdafc76794adb504258984e1517575e17305b91d36a106e0afc01c7",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "03b991f2348ce242b2e4d9f2ee2aca9f07a5bc223c5f4302c43582d9c409dfee",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "bd6234b590ae63a67260dd0f59ce44179399c54375eb8663b47a0e7fa15ebddc",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 69,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-7fda5b0545c2",
+          "kind": "message",
+          "source_key": "mail:8ea8812823914a8175a7ef517a8ded3d7f3601bed6a2f9e6e44097138a7e9aa5",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:3b5b4c107b77d33ed5107a246a15a01f07610b3db3426971a2252811ec7896a1",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "4e3047e48ab6122ee13782933cfba45ed04f7a00a24234c11a646f24b0f7d3f0",
+      "mail_folder": "Sent",
+      "original_body_sha256": "31bd5c2f005f2c9017b0ac7107930ecce57a44ee4f9a97ef97cb9f275209dd28",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 6,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-56667ddef964",
+          "kind": "message",
+          "source_key": "mail:ffdd838bc7c69e90b9d5949a8c8f42f58776c008251926b0fa22ef8d3d838028",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c3ce7c0c5e18f6f99e67c79db45118c2355b42fecd9891a523ebc19ee0211ba6",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "d3167ecdc93234be23ee55e5454609e0460741ca6dd68fa8c5e2a8d7aadf6479",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "0ccb45c9d19aa01236eb7c684e0961f767a94bbf1d04370c05273efe2c50a885",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 70,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-b54e17bdb043",
+          "kind": "message",
+          "source_key": "mail:054bdd02f0aa135482aa5b58741914f84f0734b8e7430cddc83267338a432e17",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:1a896415d3e84e6044677b0993ce8928b51aeb6e398d62c530dc500fd7565445",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "6ce3dea3a2e0958457c59f9ef65707073843f0694862e69d7567d0e817c8a49d",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "8c30dfbfe5541d5d412f6fa15375ac75b4b5c85372d2447a20f44487089dd9a5",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 71,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-f6fac448e4b1",
+          "kind": "message",
+          "source_key": "mail:b3b4eda5eda02fb4bd30b234701d57bb6098a5208c6253583d444cefb6698016",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:e7e473840cb47853695257a9bb3b0c8ef412da11b848416c06ffbea746fafdc0",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0faec80bf1c4ffea95b82c27d8afc419562c1415277cd9dba2948a7385155fa4",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "15c90adbd5695ae0fca0da81cb6d02b63613f4d852ae02e4740018018240af2b",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 72,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-efc406f7da64",
+          "kind": "message",
+          "source_key": "mail:1eedcc3ac1c4f7d7de1da7c4373f9af97c62faa8d3d565e91609bce8274da7ed",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:83c0e1abf2500411da5819cc0195e2164bb5d40c5fcb7e0fa98ba0bf0f64c798",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "dbc678080cd211cfa9cc82637bfd2b5b196b1ae1c34bece63152c77c1b714b8a",
+      "mail_folder": "Sent",
+      "original_body_sha256": "be234d1783d08586b962caf864fa91c0629555883ed7a78ca16bd9bd854b7859",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 7,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-bb8cd2e9d827",
+          "kind": "message",
+          "source_key": "mail:42c9a4dad783c866c7a66499aaf835245087d8c57de3f2b4eb7e7126016de935",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c99e5e0a3c67e503e368b4d9fe2df472e001252612f03ce5536c5c9e02b57afc",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "32cdcf6623e4cab521eb8c7afaaafc2992d0adea4afc1dfe19791cd43ff7c7df",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "9ef691f94f58014eed3c54aa65536f3c0e0a0e62e52089ed141513227be86492",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 73,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-64be5a4c31f6",
+          "kind": "message",
+          "source_key": "mail:8af3d158a7ba1cf752bc07855ab8ab299355e641e9da7c221c3753deff655344",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:63762f492695b0b7e44a612985f82b6a713e6eaa05a0bddc3040b015df7318f1",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "82b3b77a54003fdc32f024216702c4a457e11e3521d7e7b51a38ae1d94503398",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "6a676f95c0c42219be446729a9d806b7ba8ad7de272cea1c33cf9d9bb407cc63",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 74,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E08-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-eafb6f8b8071",
+          "kind": "message",
+          "source_key": "mail:6badf667ef855d0f6b3fa8732fdc0392b35bd4988b072da598a4d3adc1c3ef62",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E08-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:00a6aca44910afe66637fc6d1c775bf6fe2dcbeb9f52be5763b850f081e78770",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "de18123a9eaa8c718422270287fef1513667cce4c7e610927fbf847649105f2d",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "a8910bf271a6d7953e18fa2909f3aa80a76392ff75a4b212cf5080c3ab997072",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 75,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-8bdafce9ef38",
+          "kind": "message",
+          "source_key": "mail:8357a3989b63dfb935d53905d78a1f2f15fb0fb73737da0a73c594fd4de9d0b8",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:59c2865ed29cafea9b3621af2a40bbd5bc0f9f4d1fd5b099d6ec567dcfb0dbe5",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "11bdba706ec58c9351927f665c3d2fb5cb1ac735c4df87984b3c8851613a214b",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "b5260816787ce39a6798f9fc6e0c0fdea3991fa18be1801ceed81e0c9da7993e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 76,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-aa26dca7256e",
+          "kind": "message",
+          "source_key": "mail:b335cf93f6dbd80355e69991398aef71d4d223b43f63c08af00980a268f22d75",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:a9055ecd827b23fde706a50903a620588cee1b5662d12d6287883339a5ec21fe",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "350ae29900218feb92a4a86503c42be03bdf55932b17c528e783517103c21dd9",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "d94f8a0cea9dbdd7f7ac9be2a916c53871fd3448685786afabe11e0c3061f409",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 77,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-c0268017dc46",
+          "kind": "message",
+          "source_key": "mail:76b6c4ab385fa4e6b12791b881225a90119f322be249b09b933022cb1222391b",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:acaf41431936bf007f1e599dcc3c8a679d11ba4d2690c4f73d03e26b3e947d3c",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "cfa9624c9363cb4837e4c3d413fb4174cf5469569292397f1b4dcb2f2b52ddb2",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "8ad4d58cbea818effaa78a2d9959afd4c5327c1cb2f169f7f718f5fa2ef08e60",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 78,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-19d6a169f199",
+          "kind": "message",
+          "source_key": "mail:ce54d10420dd9f5f759d0b59c8600ca9cf97f0aa0123b535f20bbd47eaddfcf2",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:02a8a2ab2b9fbb0e56564271ec5836507d3ffd6b7a4968f48c74e92f8c9f21e2",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "2b5f58a5146da9a60dc6acc617a1bc11b52af1963a3dfa61c917a60fc91bc01d",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "c377a4d0b5362cc87161336b933803b7c7436782cc50eff9777f20c720ae1709",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 79,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-56cd02edc496",
+          "kind": "message",
+          "source_key": "mail:5c0f921e74c7025337a75d4486c17e4e5852d1bb290a2b5b32fa3b6f7a060a39",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:7f3010e81d235a75a93f01b10665a1b95ca0e5851f9890f517beacda95d12a75",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "79c6fa0fcdc3fa4962d7a0949f921e89016087db514119b7c4acb51b5ae5d165",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "3195f894350aa5af05f1bd79693e51624b4d93b974a07adf081c82a2784970bb",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 80,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-6eec1ada0c12",
+          "kind": "message",
+          "source_key": "mail:e73aaa26bb98f40cb8bef8185a98cda1e076acc5ef8460478de70fc0d39851db",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:77b4a0c371ebfbe42311f1c07a92b19fa04ec585df3d9e719265a266397b43bc",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "771e133449f9faa38724e77e41a8f9eb6adf542f22445fd623a81baac6b08d2a",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "80ddc716fb31994b53851cde6c88c68c2a19afa3d8cf6397ffe7457e4afe8aba",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 81,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-04bd785be5ed",
+          "kind": "message",
+          "source_key": "mail:7ed77b5eb60dc0f1865358c146396657e7c851dee5344c20c7817f48e51cf652",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:760605efc8bde6f420be62fc1b9d054d7d220f5f040c7e49b9a960cf37373664",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "05df9c71fa74545852a698be8234faa2b3b43d4bace8dce95ea6956d9cff9148",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "a87f5d3a5316b6a7cb2fecb47c8b38fa5b3db4c0014bfcefc0406da42d58be70",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 82,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-9b9150e01edd",
+          "kind": "message",
+          "source_key": "mail:584203c1f322dc2bd0ad6c4335104caa5cf03b6bec374de6e4b740a2c6dbc095",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:dd1fe2f336d781fd917e0bff6275984d69fcf27f8631166f9d43c49cce410665",
+          "occurred_at": "2020-12-04T11:00:00+00:00",
+          "captured_at": "2020-12-04T11:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2020-12-04T12:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "b419fd56b91989c29bd6166a6fece16edc65a3ccba1efa28402b769f43afae4e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "75369d65ad76abe5916fcefed496d42a1675d51c8ba9afa10510fc5065a7fb90",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 5,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-cb0e60fe0a89",
+          "kind": "message",
+          "source_key": "mail:25bc92c4f1e33c19883d3b310400b444a64b397ef5ba03b2d604e68766fbb9f6",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6a1ccd15c95b72c593a6a61c8283f273dade9aac97ce23198ccedd2b3c197f35",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "0f7321a032b25ebfc2dcb2808b2346795a4f8d37aa38b664c6ddf2e61056063c",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "5859dc32037ddc85a908bac63a3df9582dd884e327aa7a60628fef04f02ec950",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 83,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E09-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-7242e919e606",
+          "kind": "message",
+          "source_key": "mail:dece38081276e6064f2968dd5319c0c01501e743474371f8da70cc50739ce30f",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E09-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:3f55faa849ed25bde26d41ad1598ca44249b015987b19c54c640ea1633a8fd48",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "5efa2f0a69909a8db1734db99eb6a9770ec342d9056576c174d59ef30ea4890e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "438a33109b2daf2bc2b172155095e4c8911bfbba82e6524b7633f2925ab8b68c",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 84,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-bef80bc6b4cf",
+          "kind": "message",
+          "source_key": "mail:a9f8c86021c976e719f95a0cb256aa0706c29fd65f35e68370ab6526fb70e794",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-01@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:1a29d2dada967185f6ccac5d2c8f79cfe9c9f99d6efd03f3fffb160d39baa30a",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "f83dc4fe0df6c51edf7c1e1a0522fb360dfc7441a4bf7cc2328e20a4a3bc8440",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "63c5bcbbe528e507776ec6deb0814ec8a50c0f05d47dfe9825a283cd5b5e21a2",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 85,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-88a924eac3b7",
+          "kind": "message",
+          "source_key": "mail:0bfdb53098bb3bec9da99331c9cd55d41e04e933deb6cd35e4b55523086402dd",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-02@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:7493c39f6d0b12e6b211047a2dac24f7b440242f510cd990235eadc8ef060129",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "22a5e612e1500e72dc1be7811e53817ad82c78774c7ede3dd0351d03be63f6d3",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "7503c0e88eeedbdaf9b93d23fc99cd450fedb36887b1effb19922a10021ec7f0",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 86,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-abff9fbe7225",
+          "kind": "message",
+          "source_key": "mail:a73f89f622dd15f62b6143ecb4198c82dc0f035205452d5422e5b59f6b2e7a2b",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-03@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:ab8f825c10be96c7930bafd390a203bf3b9f55d64b81f9c9aaa318966a3d1030",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "42b9db671db742b46b4faa6263333e6f85e87da11cfda688337e19c0435b407e",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "af5c807552b1d2b1123131fb8d848bd363d42c5edf1a4a57db178b7c749a2b14",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 87,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-e12028d51812",
+          "kind": "message",
+          "source_key": "mail:f0f42e9788a494068bfd20775bddf7fe75fe10323a7309048e26bff86bda4a6b",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-04@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:a0ad726debce571de2cd595154c151f5740b63dcfb4e9580a69743400b3314f9",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "918249f04a113b19efa16ba0bf7c4daaad4373bc9e5b3b64216cbd2bb2c53658",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "6cd14d40c884d7d2881eb3bd2db3eb67922c027ba4b4e183f05fdf613b785fb4",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 88,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-05",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-183fa9a496b4",
+          "kind": "message",
+          "source_key": "mail:7b2736fb55e855a00e27ede0a72eb5dbb80880e9fcb2484d3bcb8ce1a50331ea",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-05@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:befb38558726276323a58676f9e15d0c4fc7f0465238611078800e2b8d872555",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "a2ceb5c9d46e4996e00a725349fa1854d39ec368f3c2ffead6eedbcc76c89a4c",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "96f814a88c43450a4704300dd2e49e6fa93a6043057c60c5dd2317b240150a21",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 89,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-06",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-5597d3537f88",
+          "kind": "message",
+          "source_key": "mail:7a61af41619d481794a5e29076ba557031b9573b03606dd1573276b61ff509e5",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-06@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:07da1a415825639f886198729a5b88d3168673639c437ce1bb855370ffef6cfe",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "530696d1aa265877a774959d24523c094f85aaa2d6e3fcc0dc0a4dc69f0cec98",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "58a7cf047454f8152ef9e5156cc901843b7b7920dfdfe0cbbaf3a66049bc5f2e",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 90,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-07",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-b7f59bd3886c",
+          "kind": "message",
+          "source_key": "mail:99614ab1bd0f21a7ea58f55d810555321eaabba30c484eb4d265498836e188ea",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-07@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:c793ccb238a48fbe002a1d991fa7100f9cbcf2a477f881ade503c286c130cd13",
+          "occurred_at": "2017-09-08T12:00:00+00:00",
+          "captured_at": "2017-09-08T12:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2017-09-08T14:00:00+02:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "b08adc48207d3a69a0d7410dee40a2dedebb150b433120e17b96ee21c9c99e08",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "f06fe57bf70052c88b60d6329d218ba5586aecefdf592e087b03fe31a806d91d",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 1,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-08",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-620d77a989e4",
+          "kind": "message",
+          "source_key": "mail:e6509c2ed3857ae8950e9fe28163d1dfbe0617e2a8bbda0285e7b1a5ad05a3d9",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-08@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:10d1d78ff5b7a6c98a81099b5956551ef0775048c54e73db96eb994f443da0cb",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "89862dd88ab420344a16c2598c1574b9e2c0424664816072b8621f4f2a86af53",
+      "mail_folder": "Sent",
+      "original_body_sha256": "017ecbfb3024e67d00c70fbe33e39858d81e2768996b60dd61c2ebfb09fb88c9",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "Sent",
+        "uid": 8,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-09",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-0c14dde4fdd7",
+          "kind": "message",
+          "source_key": "mail:32a2e8f8a53d7a97879d865e0ccef1b65c108825df1cbd7cb6b55a2b4c5c6ca1",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-09@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:1fa7e85cb5bb4231ad73826cdfa1f17b2b03c2016400c2473b3e5d37744dde86",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "70a093b70d40b94c3bec8812bba6523f437cc2cc6381f04ddc834ffab1e53146",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "20b4587be4234a1b086af3a1a8ee43f96c6ff7a9ad3154dbace67de7388358d0",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 91,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "E10-10",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": null,
+      "file_sha256": null,
+      "episodes": [
+        {
+          "id": "e-86f62f32608d",
+          "kind": "message",
+          "source_key": "mail:0e4180c21587c1252b39f81d3a8dc26953316236fbf89945ae82a892a18211ac",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<E10-10@messlatte.example>",
+          "source_type": "email",
+          "body_digest": "sha256:5b235aa6634fcbadb3562a7b9f8629032e113e84e4a0020c00220b7214ec300b",
+          "occurred_at": "2026-11-03T09:00:00+00:00",
+          "captured_at": "2026-11-03T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": null,
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "905a7d7cefdd883d43afe6650d217f0a10efdf354f0d051542699396b63f5681",
+      "mail_folder": "INBOX",
+      "original_body_sha256": "9a9534b8bbf2b77cb145bbbc6f2a8c2a964720967843d1bf1475c42a3190290a",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 92,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "N01",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": "native/erle-parent.eml",
+      "file_sha256": "8eb498bea13847bb4e5c7c9145bf8a38ff9278aa93bf7b8b436db2a07e58e1a4",
+      "episodes": [
+        {
+          "id": "e-699081956ab9",
+          "kind": "message",
+          "source_key": "mail:3accabb6381d783248a628fbbbe4e9d5c20b15ad6aeaeac6765744127409265d",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<heldout-n01@fixtures.example>",
+          "source_type": "email",
+          "body_digest": "sha256:f690d8d55b19d57df7d177ee19f61287d659932ffacea4f93416c5af0b5d6e5a",
+          "occurred_at": "2026-11-03T10:00:00+00:00",
+          "captured_at": "2026-11-03T10:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "8eb498bea13847bb4e5c7c9145bf8a38ff9278aa93bf7b8b436db2a07e58e1a4",
+      "mail_folder": "INBOX",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 93,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "N02",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step → anhaenge.aus_mail/aufnehmen",
+      "file": "native/erle-lizenzbogen.pdf",
+      "file_sha256": "e7c11812ace436d5e2fde772c6768e8d39dac2c678ede5ce8b254e8215a5b505",
+      "episodes": [
+        {
+          "id": "e-ed035a5c5c45",
+          "kind": "document",
+          "source_key": "mail:3accabb6381d783248a628fbbbe4e9d5c20b15ad6aeaeac6765744127409265d:anhang:1",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<heldout-n01@fixtures.example>#anhang:1:erle-lizenzbogen.pdf",
+          "source_type": "email",
+          "body_digest": "sha256:bc80ca2b0bf9ef142b3a15817488c1787cac500d9559a00ce7b905e778227d02",
+          "occurred_at": "2026-11-03T10:00:00+00:00",
+          "captured_at": "2026-11-03T10:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": "N01",
+      "reasons": [],
+      "embedded_sha256": "e7c11812ace436d5e2fde772c6768e8d39dac2c678ede5ce8b254e8215a5b505",
+      "parent_mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 93,
+        "uidvalidity": "1"
+      },
+      "parent_episode_ids": [
+        "e-699081956ab9"
+      ],
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "N03",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step",
+      "file": "native/erlenhof-parent.eml",
+      "file_sha256": "bb1003bed7607f38bd527294c17612313ae0e02158d9d2ffb013638dec178c43",
+      "episodes": [
+        {
+          "id": "e-ddc5d5fc6b2c",
+          "kind": "message",
+          "source_key": "mail:1c65557b369effbcf41492720d5d763c92bcb4adf3512d3efc3f79e33948090c",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<heldout-n03@fixtures.example>",
+          "source_type": "email",
+          "body_digest": "sha256:6e7ddf603e7fb294d55c6c30e69694c47f992540312018b8bc6d2b018becf568",
+          "occurred_at": "2026-11-03T11:00:00+00:00",
+          "captured_at": "2026-11-03T11:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T12:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [],
+      "wire_sha256": "bb1003bed7607f38bd527294c17612313ae0e02158d9d2ffb013638dec178c43",
+      "mail_folder": "INBOX",
+      "mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 94,
+        "uidvalidity": "1"
+      },
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "N04",
+      "path": "MailConnector.message_mit_anhaengen → Intake.step → anhaenge.aus_mail/aufnehmen",
+      "file": "native/erlenhof-aufgaben.pdf",
+      "file_sha256": "cec9c46b3eebe397a861a7d5a44de224a954759c56bd38e4fb5e9fcc59a72129",
+      "episodes": [
+        {
+          "id": "e-2bc08c5426de",
+          "kind": "document",
+          "source_key": "mail:1c65557b369effbcf41492720d5d763c92bcb4adf3512d3efc3f79e33948090c:anhang:1",
+          "source_key_status": "persisted",
+          "source_ref": "heldout-v2:<heldout-n03@fixtures.example>#anhang:1:erlenhof-aufgaben.pdf",
+          "source_type": "email",
+          "body_digest": "sha256:fb321266ec885d16792d284f49e7928b4c43a5f3d51c164d0193163dd884b685",
+          "occurred_at": "2026-11-03T11:00:00+00:00",
+          "captured_at": "2026-11-03T11:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T12:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": "N03",
+      "reasons": [],
+      "embedded_sha256": "cec9c46b3eebe397a861a7d5a44de224a954759c56bd38e4fb5e9fcc59a72129",
+      "parent_mail_transport": {
+        "account_id": "heldout-v2",
+        "folder": "INBOX",
+        "uid": 94,
+        "uidvalidity": "1"
+      },
+      "parent_episode_ids": [
+        "e-ddc5d5fc6b2c"
+      ],
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "N05",
+      "path": "connectors.calendar.parse_events → KalenderGedaechtnis.abgleichen",
+      "file": "native/erle-sichtpruefung.ics",
+      "file_sha256": "f6024175ab1ee774cdc7fcbd974c12c5c88ea19c2c4c9e97b4ae1c525752c87c",
+      "episodes": [
+        {
+          "id": "e-0c1291a69158",
+          "kind": "event",
+          "source_key": "cal:heldout-v2-ics:9903d0bb0156c8246bed32996497540b",
+          "source_key_status": "persisted",
+          "source_ref": "calendar:heldout-v2-ics:erle-visit-1@fixtures.example",
+          "source_type": "calendar",
+          "body_digest": "sha256:555451d214be3d024286d96b6378263265ac0e96b474bdd66d76f1d8e9c2ae37",
+          "occurred_at": "2026-11-27T09:00:00+00:00",
+          "captured_at": "2026-11-27T09:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [],
+      "coverage": "admitted"
+    },
+    {
+      "fixture_id": "N06",
+      "path": null,
+      "file": "native/erle-sichtpruefung-absage.ics",
+      "file_sha256": "72141215504b60eab7bde9426f2f3d25e122cb6547df1e89ecd1b1495e8961ea",
+      "episodes": [],
+      "original_at": "2026-11-04T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [
+        "Für spätere Kalenderänderung reserviert. Nur Datei-Hash geprüft."
+      ],
+      "coverage": "withheld"
+    },
+    {
+      "fixture_id": "N07",
+      "path": "ingest_directory(dateien)",
+      "file": "native/besprechung-tanne.txt",
+      "file_sha256": "bfbe7ac6bab721f3e9d701a1fdcb7c6803b8d6dc25c30762b31901a1f51c741d",
+      "episodes": [
+        {
+          "id": "e-f8e510716b69",
+          "kind": "document",
+          "source_key": "20c5dc10100a300aad8b3478bf7f5fabf72d132e1c776d324328ea5775bff7b4",
+          "source_key_status": "persisted",
+          "source_ref": "datei:besprechung-tanne.txt",
+          "source_type": "document",
+          "body_digest": "sha256:0767af7ed375f1ba9d2377c7a25a59a877c717fb9371b0293d69eee0913e609c",
+          "occurred_at": null,
+          "captured_at": "2026-11-04T15:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [
+        "Der Dateipfad übernimmt die externe Quellenzeit nicht exakt."
+      ],
+      "coverage": "partial"
+    },
+    {
+      "fixture_id": "N08",
+      "path": "ingest_directory(transkripte)",
+      "file": "native/transkript-weiler.txt",
+      "file_sha256": "5ab3b68ad4040d890d9e0f9ff0cd9eab0a5eaa1e1e1c498117d06866363ad94c",
+      "episodes": [
+        {
+          "id": "e-6464e115e85b",
+          "kind": "document",
+          "source_key": "88f873c52fe93e1e952f03c9c4a904b4f289f2beb6ddb2022c4e923765cd5551",
+          "source_key_status": "persisted",
+          "source_ref": "transkript:transkript-weiler.txt",
+          "source_type": "document",
+          "body_digest": "sha256:f1b41e4b36fdb4671339c32892c7a9f2fa0af545064b9b51535fab3b45368718",
+          "occurred_at": null,
+          "captured_at": "2026-11-04T15:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [
+        "Der Dateipfad übernimmt die externe Quellenzeit nicht exakt."
+      ],
+      "coverage": "partial"
+    },
+    {
+      "fixture_id": "N09",
+      "path": "ingest_directory(transkripte)",
+      "file": "native/transkript-stimme-unklar.txt",
+      "file_sha256": "356da6f46ece96b55ec2b3c59b755779ced4d279a541710036d498cec251d74b",
+      "episodes": [
+        {
+          "id": "e-81d4c47fd01e",
+          "kind": "document",
+          "source_key": "008bcf52a29add449077d7951825a170d95a044fb7b79309a606f9fed2aba89c",
+          "source_key_status": "persisted",
+          "source_ref": "transkript:transkript-stimme-unklar.txt",
+          "source_type": "document",
+          "body_digest": "sha256:bb3b8af7c33d4b0695c1619d7f10af6303d91a4e6a3fbedca7c95a919d529c92",
+          "occurred_at": null,
+          "captured_at": "2026-11-04T15:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T11:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [
+        "Der Dateipfad übernimmt die externe Quellenzeit nicht exakt."
+      ],
+      "coverage": "partial"
+    },
+    {
+      "fixture_id": "N10",
+      "path": "POST /api/v1/sources/documents/preview-docx → POST /api/v1/sources/documents",
+      "file": "native/birkensteg-auftrag.docx",
+      "file_sha256": "945f89c0c3a4a753603cf3bbb84482b86b6e897279545559715715ec0840a466",
+      "episodes": [
+        {
+          "id": "e-547cad8c182c",
+          "kind": "document",
+          "source_key": null,
+          "source_key_status": "unversioned",
+          "source_ref": "upload:birkensteg-auftrag.docx",
+          "source_type": "document",
+          "body_digest": "sha256:32b0ec100073b0303b9fbaa4e390675cf6f0888fd27da91c138b19cd1a293722",
+          "occurred_at": null,
+          "captured_at": "2026-11-04T15:00:00+00:00",
+          "recorded_at": "2026-11-04T15:00:00+00:00"
+        }
+      ],
+      "original_at": "2026-11-03T10:00:00+01:00",
+      "fixture_captured_at": "2026-11-04T16:00:00+01:00",
+      "parent_fixture_id": null,
+      "reasons": [
+        "Der Dateipfad übernimmt die externe Quellenzeit nicht exakt."
+      ],
+      "coverage": "partial"
+    }
+  ]
+}

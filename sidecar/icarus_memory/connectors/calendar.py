@@ -6,7 +6,7 @@ keine Schnittstelle, die in zwei Jahren abgekündigt wird.
 
 Der iCalendar-Leser deckt ab, was Anzeige, Gedächtnis und Anlegen brauchen:
 Zeitpunkt samt Zeitzone (`zeitzonen.py`), Titel, Ort, Teilnehmer, Notiz,
-Absagen (`STATUS:CANCELLED` fehlt) und Serien. Serien werden im gelesenen
+Absagen (nur im Gedächtnis) und Serien. Serien werden im gelesenen
 Zeitfenster ausgeklappt (`parse_events`); die Regeln rechnet `dateutil.rrule`,
 hier stehen nur Ausnahmen (EXDATE, geänderte Einzeltermine per RECURRENCE-ID),
 Kennungen und Grenzen.
@@ -34,7 +34,7 @@ import math
 import re
 import uuid
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, time, timedelta, timezone
 from functools import cached_property, lru_cache
 from itertools import islice
@@ -69,6 +69,22 @@ class CalendarConfig:
         return cls(url=url, username=user, password=password)
 
 
+class CalendarRevision(NamedTuple):
+    sequence: int | None
+    modified: datetime | None
+
+    def compare(self, other: CalendarRevision) -> int | None:
+        """Explizite Versionsordnung, oder None ohne vergleichbare Angaben."""
+        if self.sequence is not None and other.sequence is not None and self.sequence != other.sequence:
+            return 1 if self.sequence > other.sequence else -1
+        if self.modified is not None and other.modified is not None and self.modified != other.modified:
+            return 1 if self.modified > other.modified else -1
+        if (self.sequence is not None and other.sequence is not None
+                or self.modified is not None and other.modified is not None):
+            return 0
+        return None
+
+
 @dataclass
 class Event:
     uid: str
@@ -87,6 +103,10 @@ class Event:
     source_copies: list[dict[str, str]] = field(default_factory=list)
     view_source_id: str = ""
     """Display filter/color identity only; never a provider or permission destination."""
+    cancelled: bool = field(default=False, compare=False)
+    ical_revision: CalendarRevision | None = field(default=None, compare=False)
+    ical_stamp: datetime | None = field(default=None, compare=False)
+    ical_sparse_master_cancel: bool = field(default=False, compare=False)
 
     def to_dict(self) -> dict[str, Any]:
         def iso(v: datetime | None) -> str | None:
@@ -109,6 +129,14 @@ class Event:
         if self.view_source_id:
             result["view_source_id"] = self.view_source_id
         return result
+
+
+@dataclass
+class CalendarMemoryRead:
+    """Positive Kalenderbelege und ob fehlende Termine als entfernt gelten dürfen."""
+
+    events: list[Event]
+    complete: bool = True
 
 
 # -- iCalendar -------------------------------------------------------------
@@ -298,6 +326,7 @@ class _Komponente:
     """Je Eigenschaft das erste Vorkommen: Wert und Parameter."""
     teilnehmer: list[str]
     mehrfach: dict[str, list[tuple[str, dict[str, str]]]] = field(default_factory=dict)
+    absagemethode: bool = False
 
     def wert(self, name: str, vorgabe: str = "") -> str:
         return self.felder.get(name, (vorgabe, {}))[0]
@@ -313,7 +342,20 @@ class _Komponente:
 
     @property
     def abgesagt(self) -> bool:
-        return self.wert("STATUS").strip().upper() == "CANCELLED"
+        return self.absagemethode or self.wert("STATUS").strip().upper() == "CANCELLED"
+
+    @cached_property
+    def revision(self) -> CalendarRevision:
+        wert = self.wert("SEQUENCE").strip()
+        sequenz = int(wert) if re.fullmatch(r"[0-9]{1,10}", wert) else None
+        return CalendarRevision(sequenz, self.utc_stempel("LAST-MODIFIED"))
+
+    def utc_stempel(self, name: str) -> datetime | None:
+        # Versionsstempel sind UTC; bei einer lokalen oder unlesbaren Angabe nicht raten.
+        if name in self.felder and self.wert(name).endswith("Z"):
+            zeit = _zeit(*self.felder[name])
+            return zeit.moment if zeit else None
+        return None
 
     @property
     def wiederholt(self) -> bool:
@@ -364,7 +406,7 @@ def ascii_kompatibel(kodierung: str | None) -> bool:
         return False
 
 
-def _bloecke(ical: str | bytes, kodierung: str) -> Iterator[str]:
+def _bloecke(ical: str | bytes, kodierung: str) -> Iterator[tuple[int, str]]:
     """Der Text jedes VEVENT, entfaltet.
 
     Bytes werden je Termin dekodiert, nicht als ganze Datei: Python hält einen
@@ -377,17 +419,22 @@ def _bloecke(ical: str | bytes, kodierung: str) -> Iterator[str]:
             ical = ical.decode(kodierung, errors="replace")
         else:
             for treffer in re.finditer(rb"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
-                yield _FALTUNG.sub(b"", treffer.group(1)).decode(kodierung, errors="replace")
+                yield treffer.start(), _FALTUNG.sub(b"", treffer.group(1)).decode(kodierung, errors="replace")
             return
     for treffer in re.finditer(r"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
-        yield _unfold(treffer.group(1))
+        yield treffer.start(), _unfold(treffer.group(1))
 
 
-def _komponenten(ical: str | bytes, kodierung: str = "utf-8") -> list[_Komponente]:
+def _komponenten(ical: str | bytes, kodierung: str = "utf-8", *,
+                 absagen: list[tuple[int, int]] | None = None) -> list[_Komponente]:
     """Die VEVENTs des Textes. Zeilen eingebetteter Komponenten (Erinnerungen, VALARM) gehören nicht dazu."""
     ergebnis = []
-    for block in _bloecke(ical, kodierung):
-        termin = _Komponente({}, [])
+    absagebereiche = iter(absagen or ())
+    bereich = next(absagebereiche, None)
+    for stelle, block in _bloecke(ical, kodierung):
+        while bereich is not None and stelle >= bereich[1]:
+            bereich = next(absagebereiche, None)
+        termin = _Komponente({}, [], absagemethode=bereich is not None and stelle >= bereich[0])
         tiefe = 0
         for line in block.strip().splitlines():
             zerlegt = _zeile(line)
@@ -902,7 +949,8 @@ def _beruehrt(beginn: datetime, ende: datetime | None, von: datetime, bis: datet
     return ende > von if ende is not None and ende > beginn else beginn >= von
 
 
-def _termin(termin: _Komponente, uid: str, beginn: _Zeit | None = None, ende: datetime | None = None) -> Event:
+def _termin(termin: _Komponente, uid: str, beginn: _Zeit | None = None, ende: datetime | None = None, *,
+            memory: bool = False) -> Event:
     """Ein Event aus einer Komponente; `beginn` und `ende` setzen eine Wiederholung an ihre Stelle."""
     if beginn is None:
         beginn = _zeit(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else None
@@ -918,16 +966,46 @@ def _termin(termin: _Komponente, uid: str, beginn: _Zeit | None = None, ende: da
         all_day=bool(beginn and beginn.ganztags),
         notes=notiz,
         external_uid=termin.wert("UID"),
+        cancelled=memory and termin.abgesagt,
+        ical_revision=termin.revision if memory else None,
+        ical_stamp=termin.utc_stempel("DTSTAMP") if memory and termin.abgesagt else None,
+        ical_sparse_master_cancel=(
+            memory and termin.abgesagt and not termin.wiederholt
+            and "RECURRENCE-ID" not in termin.felder
+        ),
     )
 
 
+def _fassung(komponenten: list[_Komponente]) -> list[_Komponente]:
+    """Löst konkurrierende aktive/abgesagte Fassungen derselben Identität auf."""
+    if not any(t.abgesagt for t in komponenten):
+        return komponenten
+    beste = komponenten
+    if all(t.revision.sequence is not None for t in beste):
+        sequenz = max(t.revision.sequence for t in beste)
+        beste = [t for t in beste if t.revision.sequence == sequenz]
+    if all(t.revision.modified is not None for t in beste):
+        geaendert = max(t.revision.modified for t in beste)
+        beste = [t for t in beste if t.revision.modified == geaendert]
+    if all(not t.abgesagt for t in beste):
+        return beste
+    if any(t != beste[0] for t in beste[1:]):
+        raise _WiderspruechlicherStatus
+    return beste[:1]
+
+
+class _WiderspruechlicherStatus(ValueError):
+    pass
+
+
 def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
-           fenster: tuple[datetime, datetime] | None) -> list[Event]:
+           fenster: tuple[datetime, datetime] | None, *, memory: bool = False) -> list[Event]:
     """Die Termine einer Serie: Hauptkomponente `serie` und ihre geänderten Einzeltermine (`RECURRENCE-ID`)."""
-    if serie is not None and serie.wiederholt and serie.abgesagt:
+    serienabsage = serie is not None and serie.wiederholt and serie.abgesagt
+    if serienabsage and not memory:
         return []  # eine abgesagte Serie sagt auch ihre verschobenen Termine ab
     beginn = _zeit(*serie.felder["DTSTART"]) if serie is not None and "DTSTART" in serie.felder else None
-    ersatz: dict[str, _Komponente] = {}
+    einzeln_je_kennung: dict[str, list[_Komponente]] = {}
     ergebnis: list[Event] = []
     for termin in einzeln:
         rid = (_zeit_zur_serie(*termin.felder["RECURRENCE-ID"], beginn) if beginn
@@ -935,17 +1013,27 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
         kennung = _kennung(rid, beginn or rid) if rid is not None else None
         if kennung is None:
             # Unlesbar oder jenseits des Jahres 9999: ein Termin für sich, die Serie bleibt.
-            if not termin.abgesagt:
-                ergebnis.append(_termin(termin, uid))
+            if termin.abgesagt and memory:
+                raise _WiderspruechlicherStatus  # eine unlesbare RECURRENCE-ID sagt nicht die ganze Serie ab
+            if not termin.abgesagt and not serienabsage:
+                ergebnis.append(_termin(termin, uid, memory=memory))
             continue
-        ersatz[kennung] = termin
+        einzeln_je_kennung.setdefault(kennung, []).append(termin)
+    ersatz = {k: _fassung(t)[-1] for k, t in einzeln_je_kennung.items()}
+
+    def einzeltermin(kennung: str, termin: _Komponente) -> Event:
+        if serienabsage and not termin.abgesagt:
+            absage = _termin(serie, f"{uid}#{kennung}", memory=True)
+            return replace(absage, start=None, end=None, all_day=False)
+        return _termin(termin, f"{uid}#{kennung}", memory=memory)
+
     if fenster is None:
         # Ohne Fenster nichts ausklappen: Die Serie bleibt ein Termin, wie bisher.
-        if serie is not None and not serie.abgesagt:
-            ergebnis.append(_termin(serie, uid))
-        return ergebnis + [_termin(t, f"{uid}#{k}") for k, t in ersatz.items() if not t.abgesagt]
+        if serie is not None and (not serie.abgesagt or memory):
+            ergebnis.append(_termin(serie, uid, memory=memory))
+        return ergebnis + [einzeltermin(k, t) for k, t in ersatz.items() if not t.abgesagt or memory]
     von, bis = fenster
-    if serie is not None and not serie.abgesagt:
+    if serie is not None and (not serie.abgesagt or serienabsage):
         ende = _ende(serie, beginn)
         dauer = ende - beginn.moment if ende is not None and beginn is not None else None
         # Was vor `ab` beginnt, endet vor dem Fenster (ein Tag Spielraum für die Zeitumstellung).
@@ -967,31 +1055,39 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
             # Kein lesbarer Beginn, oder die Regel wird nicht ausgeklappt: nur der erste Termin.
             if satz:
                 logger.warning("%s; sie erscheint nur mit ihrem ersten Termin.", satz)
-            ergebnis.append(_termin(serie, uid))
+            ergebnis.append(_termin(serie, uid, memory=memory))
         else:
-            ergebnis += [_termin(serie, f"{uid}#{kennung}", _Zeit(moment, beginn.ganztags, beginn.schwebend), schluss)
-                         for kennung, moment, schluss in treffer]
+            ergebnis += [_termin(serie, f"{uid}#{kennung}", _Zeit(moment, beginn.ganztags, beginn.schwebend), schluss,
+                                  memory=memory) for kennung, moment, schluss in treffer]
+    elif serie is not None and memory:
+        ergebnis.append(_termin(serie, uid, memory=True))
     for kennung, termin in ersatz.items():
-        if termin.abgesagt:
+        if termin.abgesagt and not memory:
             continue
-        einzel = _termin(termin, f"{uid}#{kennung}")
-        if einzel.start is not None and _beruehrt(einzel.start, einzel.end, von, bis):
+        einzel = einzeltermin(kennung, termin)
+        if einzel.cancelled or (memory and (einzel.start is None or einzel.end is None)):
+            # Unlesbar und außerhalb sind verschiedene Befunde. Der Speicher überspringt
+            # diesen defekten Termin, der Leser erkennt an ihm aber den unvollständigen Abruf.
+            ergebnis.append(einzel)
+        elif einzel.start is not None and _beruehrt(einzel.start, einzel.end, von, bis):
             ergebnis.append(einzel)
     return ergebnis
 
 
-def _gruppe(uid: str, gruppe: list[_Komponente], fenster: tuple[datetime, datetime] | None) -> list[Event]:
+def _gruppe(uid: str, gruppe: list[_Komponente], fenster: tuple[datetime, datetime] | None, *,
+            memory: bool = False) -> list[Event]:
     """Die Termine aller Komponenten mit derselben UID: Hauptkomponente(n) und geänderte Einzeltermine."""
     haupt = [t for t in gruppe if "RECURRENCE-ID" not in t.felder]
     einzeln = [t for t in gruppe if "RECURRENCE-ID" in t.felder]
+    haupt = _fassung(haupt)
     serie = next((t for t in haupt if t.wiederholt), None)
     if serie is None and einzeln and haupt:
         # Ein Termin ohne Regel, aber mit Einzelterminen: der erste Termin einer
         # Serie, die schon ein Server ausgeklappt hat (RFC 4791, 9.6.5).
         serie = haupt[0]
-    ergebnis = [_termin(t, uid) for t in haupt if t is not serie and not t.abgesagt]
+    ergebnis = [_termin(t, uid, memory=memory) for t in haupt if t is not serie and (not t.abgesagt or memory)]
     if serie is not None or einzeln:
-        ergebnis += _serie(serie, einzeln, uid, fenster)
+        ergebnis += _serie(serie, einzeln, uid, fenster, memory=memory)
     return ergebnis
 
 
@@ -999,8 +1095,7 @@ def parse_events(ical: str | bytes, von: datetime | None = None, bis: datetime |
                  kodierung: str = "utf-8") -> list[Event]:
     """Zieht die Termine aus iCalendar-Text (oder seinen Bytes in `kodierung`, dann je Termin dekodiert).
 
-    Abgesagte Termine (`STATUS:CANCELLED`) fehlen, wie bei Google und Microsoft:
-    Für das Gedächtnis ist eine Absage damit eine entzogene Quelle.
+    Abgesagte Termine (`STATUS:CANCELLED`) fehlen in dieser Anzeigeprojektion.
 
     **Serien** (`RRULE`, `RDATE`, mit `EXDATE` und geänderten Einzelterminen per
     `RECURRENCE-ID`) werden nur mit Fenster ausgeklappt: Geliefert wird jeder
@@ -1010,19 +1105,102 @@ def parse_events(ical: str | bytes, von: datetime | None = None, bis: datetime |
     Wiederholung kommen unabhängig vom Fenster; das Filtern ist Sache des
     Aufrufers (Anzeige, Gedächtnis), so wie bisher.
     """
+    ical = _dekodiere_nicht_ascii(ical, kodierung)
+    methode = rb"METHOD:" if isinstance(ical, bytes) else r"METHOD:"
+    absagen, _ = _kalenderrahmen(ical) if re.search(methode, ical, re.IGNORECASE) else ([], True)
+    return _parse_events(_komponenten(ical, kodierung, absagen=absagen), von, bis).events
+
+
+def _dekodiere_nicht_ascii(ical: str | bytes, kodierung: str) -> str | bytes:
+    if isinstance(ical, bytes):
+        zeichensatz = kodierung_der_daten(ical, kodierung)
+        if not ascii_kompatibel(zeichensatz):
+            return ical.decode(zeichensatz, errors="replace")
+    return ical
+
+
+def _kalenderrahmen(ical: str | bytes) -> tuple[list[tuple[int, int]], bool]:
+    """Findet Absagenachrichten und prüft, ob die Kalender-/Terminrahmen vollständig sind."""
+    marker = r"(BEGIN:VCALENDAR|END:VCALENDAR|BEGIN:VEVENT|END:VEVENT|METHOD:[^\r\n]+)(?=[\r\n]|\Z)"
+    if isinstance(ical, bytes):
+        muster = rb"(?:\A(?:\xef\xbb\xbf)?|[\r\n])" + marker.encode()
+    else:
+        muster = r"(?:\A\ufeff?|[\r\n])" + marker
+    absagen = []
+    vollstaendig, kalender_gelesen = True, False
+    tiefe = rahmenbeginn = 0
+    absagemethode = False
+    for treffer in re.finditer(muster, ical, re.IGNORECASE):
+        wert = treffer[1]
+        zeile = (wert.decode("ascii", errors="replace") if isinstance(wert, bytes) else wert).upper()
+        if zeile == "BEGIN:VCALENDAR" and tiefe == 0:
+            tiefe, rahmenbeginn, absagemethode = 1, treffer.start(1), False
+        elif zeile == "BEGIN:VEVENT" and tiefe == 1:
+            tiefe = 2
+        elif zeile == "END:VEVENT" and tiefe == 2:
+            tiefe = 1
+        elif zeile == "END:VCALENDAR" and tiefe == 1:
+            if absagemethode:
+                absagen.append((rahmenbeginn, treffer.end(1)))
+            tiefe, kalender_gelesen = 0, True
+        elif zeile.startswith("METHOD:") and tiefe == 1:
+            absagemethode |= zeile == "METHOD:CANCEL"
+            vollstaendig = False  # auch PUBLISH ist eine Nachricht, kein vollständiger Kalender
+        else:
+            vollstaendig = False
+    if tiefe and absagemethode:
+        absagen.append((rahmenbeginn, len(ical)))
+    return absagen, vollstaendig and kalender_gelesen and tiefe == 0
+
+
+def parse_memory_events(ical: str | bytes, von: datetime | None = None, bis: datetime | None = None, *,
+                        kodierung: str = "utf-8") -> CalendarMemoryRead:
+    """Liest auch explizite Absagen. Teil- und Nachrichtenabrufe belegen keine Abwesenheit."""
+    ical = _dekodiere_nicht_ascii(ical, kodierung)
+    absagen, vollstaendig = _kalenderrahmen(ical)
+    return _parse_events(_komponenten(ical, kodierung, absagen=absagen), von, bis, memory=True,
+                         complete=vollstaendig)
+
+
+def _parse_events(komponenten: list[_Komponente], von: datetime | None, bis: datetime | None, *,
+                  memory: bool = False, complete: bool = True) -> CalendarMemoryRead:
     fenster = (von, bis) if von is not None and bis is not None else None
     gruppen: dict[str, list[_Komponente]] = {}
-    for termin in _komponenten(ical, kodierung):
+    for termin in komponenten:
+        if memory and termin.abgesagt and not termin.wert("UID"):
+            complete = False  # eine Ersatzkennung aus dem Text kann keine Absage zuordnen
+            continue
         gruppen.setdefault(termin.uid, []).append(termin)
     events: list[Event] = []
     for uid, gruppe in gruppen.items():
         try:
-            events += _gruppe(uid, gruppe, fenster)
+            ereignisse = _gruppe(uid, gruppe, fenster, memory=memory)
+            if memory:
+                # Ein sparsam beschriebener Absage-Master kann ein Teildelta sein,
+                # auch wenn er einen Zeitpunkt trägt oder keine Vorkommen verknüpft werden können.
+                complete &= not any(
+                    t.ical_sparse_master_cancel or (not t.cancelled and (t.start is None or t.end is None))
+                    for t in ereignisse
+                )
+                if fenster is not None and any(t.wiederholt for t in gruppe):
+                    complete &= not any(not t.cancelled and t.uid == uid for t in ereignisse)
+            events += ereignisse
+        except _WiderspruechlicherStatus:
+            complete = False
         except Exception as fehler:  # noqa: BLE001 - ein Termin darf die Quelle nicht mitnehmen
             # Ein Termin, der sich nicht rechnen lässt (etwa am Rand des Jahres 9999, oder ein Fehler in dateutil),
             # fehlt allein; die anderen Termine der Quelle bleiben. Ins Protokoll nur die Art, kein Inhalt.
             logger.warning("Ein Termin ließ sich nicht lesen und wurde übersprungen (%s).", type(fehler).__name__)
-    return sorted(events, key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
+            complete = False
+    if memory:
+        # Eine rohe UID darf nie eine gleich geschriebene, zusammengesetzte Serienkennung überschreiben.
+        ursprung: dict[str, str] = {}
+        konflikte = {t.uid for t in events if ursprung.setdefault(t.uid, t.external_uid) != t.external_uid}
+        if konflikte:
+            events = [t for t in events if t.uid not in konflikte]
+            complete = False
+    events.sort(key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
+    return CalendarMemoryRead(events, complete)
 
 
 def build_event(
@@ -1085,6 +1263,38 @@ def _kalenderdaten(antwort: bytes) -> str:
     return "\n".join(knoten.text or "" for knoten in wurzel.iter(f"{{{_CALDAV}}}calendar-data"))
 
 
+def _kalenderdaten_fuer_gedaechtnis(antwort: bytes) -> tuple[str | bytes, bool]:
+    """Positive calendar-data aus erfolgreichen Eigenschaften eines CalDAV-REPORT."""
+    try:
+        wurzel = ET.fromstring(antwort)
+    except ET.ParseError:
+        return (b"", False) if antwort.lstrip().startswith(b"<") else (antwort, True)
+    if wurzel.tag != "{DAV:}multistatus":
+        return "", False
+    teile = []
+    vollstaendig = True
+    for response in wurzel.findall("{DAV:}response"):
+        status = response.findtext("{DAV:}status")
+        if status is not None and not _dav_erfolg(status):
+            vollstaendig = False
+            continue
+        daten_gelesen = False
+        for propstat in response.findall("{DAV:}propstat"):
+            if not _dav_erfolg(propstat.findtext("{DAV:}status", "")):
+                vollstaendig = False
+                continue
+            for knoten in propstat.findall(f"{{DAV:}}prop/{{{_CALDAV}}}calendar-data"):
+                if knoten.text:
+                    daten_gelesen = True
+                    teile.append(knoten.text)
+        vollstaendig &= daten_gelesen
+    return "\n".join(teile), vollstaendig
+
+
+def _dav_erfolg(status: str) -> bool:
+    return re.match(r"^HTTP/\S+ 2[0-9]{2}(?: |$)", status.strip()) is not None
+
+
 class CalendarConnector:
     def __init__(self, config: CalendarConfig) -> None:
         self._config = config
@@ -1100,6 +1310,19 @@ class CalendarConnector:
         """Termine im Zeitfenster ab jetzt; Serien ausgeklappt (`parse_events`)."""
         von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
         bis = von + timedelta(days=days)
+        # Der Server liefert die Serien als Ganzes; ausgeklappt wird wie beim Abo.
+        return parse_events(_kalenderdaten(self._read(von, bis).content), von, bis)
+
+    def memory_events(self, days: int = 7, at: datetime | None = None) -> CalendarMemoryRead:
+        von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        bis = von + timedelta(days=days)
+        response = self._read(von, bis)
+        daten, vollstaendig = _kalenderdaten_fuer_gedaechtnis(response.content)
+        ergebnis = parse_memory_events(daten, von, bis)
+        ergebnis.complete &= vollstaendig and response.status_code in (200, 207)
+        return ergebnis
+
+    def _read(self, von: datetime, bis: datetime) -> httpx.Response:
         body = _REPORT.format(start=von.strftime("%Y%m%dT%H%M%SZ"), end=bis.strftime("%Y%m%dT%H%M%SZ"))
         try:
             with self._client() as client:
@@ -1112,9 +1335,7 @@ class CalendarConnector:
         except httpx.HTTPError as exc:
             raise CalendarError(f"CalDAV-Zugriff fehlgeschlagen: {exc}") from exc
 
-        # Der Server liefert jede Serie, die das Fenster berührt, als Ganzes (Regel und Ausnahmen);
-        # ausgeklappt wird hier, auf demselben Weg wie beim Abo (siehe Modulbeschreibung).
-        return parse_events(_kalenderdaten(response.content), von, bis)
+        return response
 
     def create(
         self,
@@ -1148,7 +1369,9 @@ __all__ = [
     "CalendarConfig",
     "CalendarConnector",
     "CalendarError",
+    "CalendarMemoryRead",
     "Event",
     "build_event",
     "parse_events",
+    "parse_memory_events",
 ]

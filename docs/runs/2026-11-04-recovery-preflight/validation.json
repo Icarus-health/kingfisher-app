@@ -1,0 +1,23 @@
+{
+  "scope": "synthetic-only read-only recovery preflight",
+  "base_commit": "bf78d7640df156223bd58ba433cd7b58f9d34617",
+  "sha256": {
+    "sidecar/icarus_memory/recovery_preflight.py": "b25925b241788160e90253688b44a9f564686c40caaa7e8919cb627de9fd4fe2",
+    "sidecar/icarus_memory/restore_inspection.py": "6c728dd24a7bc37d395637dc7eb0de0a76d6b0ab18697460e55bbc040bfedf85",
+    "sidecar/tests/test_recovery_preflight.py": "69bb65bde9e3f505ad8b78bf1a71345b76735f4095434993b22c0ba5257e76f3",
+    "sidecar/tests/test_complete_recovery.py": "9cd1cacaa8ede00f4305505d5b19849fd014c5b98e7aab9d45cb4515854dc218",
+    "app/kingfisher/tests/recovery-preflight-ui.test.mjs": "a6488bdf79603925fa0c06bbd59013b4807e785e0fe23e58eac72d154e86b601"
+  },
+  "tests": {
+    "affected_backend": 82,
+    "final_direct_and_adjacent_backend": 20,
+    "final_frontend": 1083,
+    "new_preflight_backend": 18,
+    "new_controller_unit": 7
+  },
+  "real_browser": false,
+  "native_window": false,
+  "cloud_calls": 0,
+  "private_data": false,
+  "operational_recovery_complete": false
+}

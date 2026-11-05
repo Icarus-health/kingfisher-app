@@ -1,0 +1,116 @@
+{
+  "code_commit": "09bd4af7a501bd13dc465911a0d87e88d89791ce",
+  "dataset": "docs/fixtures/memory-acceptance-20261104/pilot-v2",
+  "catalog_sha256": "036fbf45fe33b7329f49c60e6183d13126daa8731bc922545cd7333d2a63f388",
+  "execution": "stopped_for_memory_pressure",
+  "quality": "not_evaluated",
+  "completed_model_responses": 0,
+  "paid_provider_calls": 0,
+  "bulk_import_authorized": false,
+  "followup_readback": {
+    "loaded_ollama_models": 0,
+    "memory_free_percent": 49,
+    "kind": "observed_after_automatic_keep_alive_expiry"
+  },
+  "harness_tests": {
+    "command": "python -m pytest scripts/test_mail_intake_quality.py -q",
+    "passed": 65,
+    "elapsed_seconds": 10.4
+  },
+  "artifacts": {
+    "local-attempt.json": "b143120ac692a4051d6782dd06fcf034d37224f6f46e072f1a819440457dbddd",
+    "local-runner.py": "4c369b209767ba929aa13c18eb8b5efac16b075ccaf3f6f20276afe030198fb4",
+    "mistral-offline-preview.json": "449341df194b55fe31aa298d66dbf6efb778f1cceffd6e8dbd3363ed911a5349",
+    "heldout-static-validation.json": "81d69a30c8a2caf1fc642fcbeeddf433a7f31bd7b31ef87eb96560cf0b5a66c2",
+    "heldout-validator-original.py": "fe5179baacbf61f73447ca21580acfcc025012a1cb55743987798597df54858d",
+    "memory-pilot-review.md": "1bdaa97685bbc58e21ee9adbc505e6cdefbd2fcf82331da4cd72524fa93e019e",
+    "memory-pilot-round1-review.md": "ff6d8eaea440956b6077b805cf8f1c956299e729d9bb4a9c8d5bedb806524706",
+    "memory-pilot-round2-review.md": "9bb7f4f439643de2977068c52f4df3bc1a793d44cd6f6632cf7e624fe30548c1",
+    "memory-pilot-round3-review.md": "6460b534402aa14fab05bca5f9f75202a42b7c7316b26fa2b325e0eb26780d71"
+  },
+  "migration_regression": {
+    "prior_failures": 2,
+    "cause": "schema assertions expected1 instead of3",
+    "production_changed": false,
+    "tests_passed": 122,
+    "seconds": 7.64,
+    "test_file_sha256": "20c92c3c247b9a5a60b5c59caef09cc719d0b6baff131ae7c318f3f08c08d049",
+    "restored_checkout_repeat": {
+      "passed": 122,
+      "seconds": 8.66,
+      "warning": "existing Starlette TestClient deprecation"
+    }
+  },
+  "mistral_preparation": {
+    "live_api_calls": 0,
+    "offline_preview": true,
+    "semantic_quality": "not_evaluated",
+    "review": "passed_after_3_scoped_fix_rounds",
+    "runner_tests": 46,
+    "previous_runner_tests": 31,
+    "original_metadata_verified": true,
+    "absolute_deadline_and_held_receipt_tested": true,
+    "source_hashes": {
+      "probe_mistral_memory_pilot.py": "f2115550aa8614f6af5cb7077bc01bfe62f1bf3cf7df29fd0e325ded8b29a2d6",
+      "test_probe_mistral_memory_pilot.py": "535450c66b31b43d3bc827046a96ac5f228c1860146746669d10390647e7c3c7"
+    },
+    "final_runner_suite_passed": 77,
+    "final_runner_suite_seconds": 16.69,
+    "prior_adjacent_regression": {
+      "passed": 173,
+      "seconds": 28.08,
+      "state": "before_final_deadline_only_fix"
+    },
+    "open_important_or_critical_findings": 0
+  },
+  "ci_before_migration_test_correction": {
+    "commit": "09bd4af7a501bd13dc465911a0d87e88d89791ce",
+    "run_id": 41923104978,
+    "python310": {
+      "failed": 2,
+      "passed": 10196,
+      "skipped": 2,
+      "subtests_passed": 26
+    },
+    "python312": {
+      "failed": 2,
+      "passed": 10196,
+      "skipped": 2,
+      "subtests_passed": 26
+    },
+    "failure_names": [
+      "test_conversation_migration_and_restart",
+      "test_known_unversioned_conversation_schema_is_upgraded"
+    ],
+    "mac_build": "success",
+    "container": "success",
+    "ui": "success",
+    "manual_reruns": 0
+  },
+  "heldout_preparation": {
+    "dataset": "docs/fixtures/memory-acceptance-20261104/heldout-v2",
+    "freeze_sha256": "5f9e54252b0513d58dffaa0e943e471431e0f3759866af171f559b37e289a39e",
+    "execution": "not_run",
+    "authorship": "independent_ai_agent_with_prerun_reference_review",
+    "human_gold_reference": false,
+    "mail_sources": 100,
+    "native_originals": 10,
+    "mail_questions": 40,
+    "native_questions": 7,
+    "state_questions": 11,
+    "current_action_denominator": 46,
+    "mandatory_historical_cancelled_gates": 2,
+    "critical_errors_allowed": 0,
+    "verified_original_mail_records": 100,
+    "verified_native_file_bytes": 10,
+    "verified_artifact_hashes": 15,
+    "full_execution_adapter": "not_yet_implemented"
+  },
+  "development_checkout_recovery": {
+    "base": "09bd4af7a501bd13dc465911a0d87e88d89791ce",
+    "known_changed_and_new_files_preserved": 72,
+    "hashes_verified": true,
+    "reason": "older temporary checkout files disappeared at date boundary; cause not established",
+    "personal_app_changed": false
+  }
+}

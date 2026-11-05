@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: navigation searches message bodies via server pages, appends pages, and ignores stale queries
+ok 1 - navigation searches message bodies via server pages, appends pages, and ignores stale queries
+  ---
+  duration_ms: 621.114833
+  type: 'test'
+  ...
+# Subtest: selecting the open conversation closes the drawer without navigating or losing keyboard focus
+ok 2 - selecting the open conversation closes the drawer without navigating or losing keyboard focus
+  ---
+  duration_ms: 888.644417
+  type: 'test'
+  ...
+# Subtest: safe message formatting renders paragraphs lists strong and code while escaping raw HTML
+ok 3 - safe message formatting renders paragraphs lists strong and code while escaping raw HTML
+  ---
+  duration_ms: 4.961916
+  type: 'test'
+  ...
+# Subtest: old send cannot replace a new conversation and sources stay behind the explicit toggle
+ok 4 - old send cannot replace a new conversation and sources stay behind the explicit toggle
+  ---
+  duration_ms: 2.211833
+  type: 'test'
+  ...
+# Subtest: thread follows the final answer near the bottom and respects reading older messages
+ok 5 - thread follows the final answer near the bottom and respects reading older messages
+  ---
+  duration_ms: 2.83775
+  type: 'test'
+  ...
+# Subtest: start workspace binds its saved first draft once and opens the durable handoff without sending itself
+ok 6 - start workspace binds its saved first draft once and opens the durable handoff without sending itself
+  ---
+  duration_ms: 0.927541
+  type: 'test'
+  ...
+# Subtest: without a known chat status the start input stays disabled and says why
+ok 7 - without a known chat status the start input stays disabled and says why
+  ---
+  duration_ms: 0.120667
+  type: 'test'
+  ...
+# Subtest: review button opens the exact procedure id through an encoded settings link
+ok 8 - review button opens the exact procedure id through an encoded settings link
+  ---
+  duration_ms: 1.225
+  type: 'test'
+  ...
+# Subtest: only latest skill conflict offers a one-time selection through the chat API
+ok 9 - only latest skill conflict offers a one-time selection through the chat API
+  ---
+  duration_ms: 1.59125
+  type: 'test'
+  ...
+# Subtest: expired skill choice offers explicit retry of original request without automatic model work
+ok 10 - expired skill choice offers explicit retry of original request without automatic model work
+  ---
+  duration_ms: 2.140541
+  type: 'test'
+  ...
+# Subtest: unverified original fallback keeps the whole source behind a closed accessible disclosure
+ok 11 - unverified original fallback keeps the whole source behind a closed accessible disclosure
+  ---
+  duration_ms: 2.731833
+  type: 'test'
+  ...
+# Subtest: opening a ready durable handoff sends once and keeps the editable follow-up draft
+ok 12 - opening a ready durable handoff sends once and keeps the editable follow-up draft
+  ---
+  duration_ms: 2.146417
+  type: 'test'
+  ...
+# Subtest: accepted first handoff neither clears later send busy state nor schedules a stale extra history GET
+ok 13 - accepted first handoff neither clears later send busy state nor schedules a stale extra history GET
+  ---
+  duration_ms: 1.876625
+  type: 'test'
+  ...
+# Subtest: intake notice remains visible once outside collapsed originals and sentence answers
+ok 14 - intake notice remains visible once outside collapsed originals and sentence answers
+  ---
+  duration_ms: 1.397
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1847.834334

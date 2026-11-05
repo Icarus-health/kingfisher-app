@@ -17,6 +17,7 @@ class EpisodeSupportSnapshot:
     correction_valid: bool = True
     mail_parent_valid: bool = True
     mail_parent_fingerprint: str | None = None
+    recall_archive_generation: int | None = None
 
     def fingerprint(self):
         value = {'episode': self.episode.to_dict(), 'source_key': self.source_key,
@@ -34,6 +35,8 @@ class EpisodeSupportSnapshot:
                        'generation': self.generation, 'head_id': self.head_id}
         if self.mail_parent_fingerprint is not None:
             value['mail_parent'] = self.mail_parent_fingerprint
+        if self.recall_archive_generation is not None:
+            value['recall_archive_generation'] = self.recall_archive_generation
         return digest(value)
 
     def current(self):
@@ -45,7 +48,7 @@ class EpisodeSupportSnapshot:
 EpisodeSnapshotProvider = Callable[[str], EpisodeSupportSnapshot | None]
 
 
-def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
+def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=(), require_unarchived=False):
     if identifier in _seen or len(_seen) >= 8:
         return None
     row = connection.execute('SELECT e.*, h.episode_id AS head_id, (SELECT COUNT(*) FROM source_heads r WHERE r.episode_id=e.id) AS reverse_count, (SELECT MIN(source_key) FROM source_heads r WHERE r.episode_id=e.id) AS reverse_key FROM episodes e '
@@ -55,6 +58,8 @@ def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
     if row is None:
         return None
     episode = parse(row)
+    if require_unarchived and episode.state is EpisodeState.ARCHIVED:
+        return None
     document = episode.to_dict()
     if (any(document[k] != row[k] for k in ('id','digest','kind','state','body','title','project_id'))
             or any(canonical_instant(document[k]) != canonical_instant(row[k]) for k in ('recorded_at','occurred_at'))
@@ -68,7 +73,7 @@ def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
     parent_valid, parent_fingerprint = True, None
     if is_attachment:
         parent = read_snapshot(connection, parent_id, parse, max_bytes=max_bytes,
-                               _seen=(*_seen, identifier)) if parent_id else None
+                               _seen=(*_seen, identifier), require_unarchived=require_unarchived) if parent_id else None
         parent_valid = bool(parent and parent.current())
         # Die exakte Mailfassung und ihr Entzug tragen den Anhang. Beratende
         # Header-/Abrufberichte entwerten seinen unveränderten Originaltext nicht.
@@ -76,6 +81,7 @@ def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
             'id': parent.episode.id, 'digest': parent.episode.digest,
             'source_key': parent.source_key, 'head_id': parent.head_id,
             'ignored': parent.episode.state is EpisodeState.IGNORED,
+            **({'support': parent.support_fingerprint()} if require_unarchived else {}),
         }) if parent else ''
     correction_valid = True
     if row['source_key'].startswith('source-correction:'):
@@ -91,9 +97,12 @@ def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
                 and target.episode.state is EpisodeState.IGNORED
                 and (not target.source_key or target.head_id == target.episode.id)
                 and target.support_fingerprint() == match[2])
+    archive_generation = row['recall_archive_generation'] if require_unarchived else None
+    if require_unarchived and (type(archive_generation) is not int or archive_generation < 0):
+        raise ValueError('Inkonsistente Archivierungsgeneration')
     return EpisodeSupportSnapshot(episode, row['source_key'], row['metadata_digest'],
                                   row['support_generation'], row['head_id'], correction_valid,
-                                  parent_valid, parent_fingerprint)
+                                  parent_valid, parent_fingerprint, archive_generation)
 
 
 def quote_matches(quote, body):

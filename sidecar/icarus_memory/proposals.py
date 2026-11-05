@@ -566,13 +566,13 @@ class ProposalStore:
             # Ein explizit entschiedener Altvorschlag wird nicht wieder vorgelegt.
             legacy = self._conn.execute("SELECT state FROM proposals WHERE id=?", (legacy_id,)).fetchone()
             if task_context is not None:
-                accepted = self._conn.execute(
-                    "SELECT 1 FROM proposals WHERE kind='task' AND state='accepted' "
+                decided = self._conn.execute(
+                    "SELECT 1 FROM proposals WHERE kind='task' AND state IN ('accepted','rejected') "
                     "AND json_extract(document,'$.evidence[0].episode_id')=? "
                     "AND json_extract(document,'$.evidence[0].digest')=? "
                     "AND json_extract(document,'$.evidence[0].quote')=? LIMIT 1",
                     (episode_id, digest, quote)).fetchone()
-                if accepted or (legacy and legacy['state'] in {'accepted', 'rejected'}):
+                if decided or (legacy and legacy['state'] in {'accepted', 'rejected'}):
                     continue
                 if legacy and legacy['state'] == 'pending':
                     self.supersede(legacy_id)

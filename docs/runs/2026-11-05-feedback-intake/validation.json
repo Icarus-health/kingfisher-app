@@ -1,0 +1,36 @@
+{
+  "base_commit": "6731dd5faf24b0d829a9054143e025d473309ae6",
+  "code_commit": "f98944a8d1d0e1e9ca6c70839d1b9703062d971a",
+  "source_hashes": {
+    "sidecar/icarus_memory/rueckmeldung_routes.py": "0cf4b3ea8136bc44a4c2ba3592d24fe044ea0f4ed571a7f19d43bb85444e7ec4",
+    "sidecar/icarus_memory/rueckmeldung_faelle.py": "9e857ed27a054a818a7b732a2ab2354b96cf0f608d7b0f066805111f300bc160",
+    "sidecar/tests/test_rueckmeldung.py": "61cedfe424022b77fe1d63e91ccc00a406830dfc931d0ccdd6010fe708b18c62"
+  },
+  "initial_candidate": {
+    "affected_backend_passed": 94,
+    "seconds": 39.51
+  },
+  "final_fix": {
+    "affected_backend_passed": 35,
+    "seconds": 7.29,
+    "warning": "Existing Starlette TestClient deprecation"
+  },
+  "independent_review": {
+    "spec": "PASS",
+    "quality": "PASS",
+    "important_open": 0,
+    "minor_open": [
+      "Existing TestClient deprecation"
+    ]
+  },
+  "original_bug_reproduced": true,
+  "storage_cap_bug_reproduced": true,
+  "full_display_snapshot_preserved": true,
+  "schema_migration": false,
+  "new_skill_activation": false,
+  "real_model_quality": "NOT EVALUATED",
+  "native_gui": "NOT RUN",
+  "personal_app_updated": false,
+  "bulk_import_resumed": false,
+  "cloud_calls": 0
+}

@@ -254,8 +254,8 @@ def _aufgaben(app, von: datetime, bis: datetime, zone: Any, jetzt: datetime) -> 
         if task.wartet_auf:
             seit = task.wartet_tage(jetzt)
             dauer = f' seit {seit} Tagen' if seit else ''
-            wartend.append(f'„{titel}“ liegt bei {task.wartet_auf}{dauer}, fällig {wann} (Aufgabe)')
-        else:
+            wartend.append(f'„{titel}“ wartet auf {task.wartet_auf}{dauer}, fällig {wann} (Aufgabe)')
+        elif task.user_actionable:
             eigene.append(f'„{titel}“, fällig {wann} (Aufgabe)')
     return eigene[:MAX_ZEILEN], wartend[:MAX_ZEILEN]
 
