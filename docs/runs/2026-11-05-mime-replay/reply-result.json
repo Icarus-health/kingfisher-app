@@ -1,0 +1,16 @@
+{
+  "code_commit": "9e17e2b33922526869c0ec3ea1341b6f9492121c",
+  "status": "PASS",
+  "synthetic_pair": [
+    "reply-persist-parent",
+    "reply-persist-child"
+  ],
+  "account_count": 2,
+  "episode_count": 4,
+  "cross_account_false_relation": false,
+  "persisted_relation_after_restart": true,
+  "actual_full_mime_reads": 4,
+  "model_calls": 0,
+  "network_calls": 0,
+  "semantic_relationship_or_task_quality": "NOT EVALUATED"
+}

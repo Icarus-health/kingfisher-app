@@ -1,0 +1,38 @@
+{
+  "base_commit": "9e17e2b33922526869c0ec3ea1341b6f9492121c",
+  "code_commit": "9ecbc10d916740b2b92d9fe3a757c2ec39013d57",
+  "source_hashes": {
+    "sidecar/icarus_memory/mail_intake.py": "28958f93d5cbd688a68c6b3273636ae40e88eff7193476891c18d89d29706a9d",
+    "sidecar/icarus_memory/server.py": "52786b5be764f465d6b00963e4631c1b736e9196c5eb3e6131af706c93bda5b2",
+    "sidecar/tests/test_intake_coverage_recall.py": "ac20706230617d8c405a4a07623af09aac33b945c7ecddd7a641b49787b7f5c7",
+    "app/kingfisher/src/App.tsx": "ba20ebbeaacf84e6d6891036501f72b626d1b632b2a6dd37b546b6a0ac27e179",
+    "app/kingfisher/src/api.ts": "92ba71e68be2199dd607a2b205a1f0e5af41cbc5a9aa9dc23fbd0dfb15d38c85",
+    "app/kingfisher/tests/conversation-workspace.test.mjs": "12c58b8ddc0fdf921758a4fdca81b42ec2d457d6b9314d2d4635c807d5c2be05"
+  },
+  "initial_candidate": {
+    "affected_backend_passed": 176,
+    "ui_passed": 14,
+    "typescript": "PASS"
+  },
+  "final_fix": {
+    "affected_backend_passed": 70,
+    "ui_and_projection_unchanged": true,
+    "warning": "Existing Starlette TestClient deprecation"
+  },
+  "independent_review": {
+    "spec": "PASS",
+    "quality": "PASS",
+    "important_open": 0,
+    "minor_open": [
+      "Feedback snapshot may retain transient suffix and weaken plain/multisentence literal regression matching; static finding deferred to P2/final review",
+      "Existing test dependency warning"
+    ]
+  },
+  "baseline": "Source-qualified answer lacked known intake-gap disclosure; no categorical no-deadline statement reproduced",
+  "real_model_quality": "NOT EVALUATED",
+  "native_gui": "NOT RUN",
+  "personal_app_updated": false,
+  "bulk_import_resumed": false,
+  "cloud_calls": 0,
+  "manual_ci_rerun": false
+}

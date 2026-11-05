@@ -1,0 +1,234 @@
+{
+  "code_commit": "9e17e2b33922526869c0ec3ea1341b6f9492121c",
+  "case": "S08 original MIME/PDF exact replay only",
+  "status": "PASS",
+  "wire_sha256": "8eb498bea13847bb4e5c7c9145bf8a38ff9278aa93bf7b8b436db2a07e58e1a4",
+  "embedded_pdf_sha256": "e7c11812ace436d5e2fde772c6768e8d39dac2c678ede5ce8b254e8215a5b505",
+  "fetches": [
+    1,
+    2
+  ],
+  "parent_child_documents_and_support_identical": true,
+  "episode_count": 2,
+  "task_count": 0,
+  "network_calls": 0,
+  "model_calls": 0,
+  "semantic_license_obligation_and_answer": "NOT EVALUATED",
+  "scope_limits": [
+    "synthetic IMAP transport; no provider authentication or TLS",
+    "same account, folder and UIDVALIDITY/UID only",
+    "no MIME cursor shortcut; both calls fetched and parsed original bytes"
+  ],
+  "observations": [
+    {
+      "attempt": 1,
+      "new": true,
+      "changed": false,
+      "fetch_count": 1,
+      "sources": [
+        {
+          "id": "e-56b42e85a02c",
+          "source_key": "mail:99614ab1bd0f21a7ea58f55d810555321eaabba30c484eb4d265498836e188ea",
+          "head_id": "e-56b42e85a02c",
+          "body_digest": "sha256:f690d8d55b19d57df7d177ee19f61287d659932ffacea4f93416c5af0b5d6e5a",
+          "support": "c44c48c82cd7d1eea91d0469bb0a50315fd65cc3faacba2f238b11887ba14a8b",
+          "document": {
+            "id": "e-56b42e85a02c",
+            "kind": "message",
+            "title": "Erle: Lizenzbogen in Anlage",
+            "body": "Jona, beigefügt ist der verbindliche Lizenzbogen für Werkhaus Erle. Die konkrete Abgabefrist steht nur in der Anlage. Der Anhang gehört zu Werkhaus Erle, nicht zum Projekt Erlenhof.\r\n",
+            "digest": "sha256:f690d8d55b19d57df7d177ee19f61287d659932ffacea4f93416c5af0b5d6e5a",
+            "provenance": {
+              "source_type": "email",
+              "source_ref": "heldout-v2:<heldout-n01@fixtures.example>",
+              "captured_at": "2026-11-03T10:00:00Z"
+            },
+            "recorded_at": "2026-11-04T16:00:00+01:00",
+            "occurred_at": "2026-11-03T11:00:00+01:00",
+            "state": "new",
+            "project_id": null,
+            "participants": [
+              "Leona Kahl <leona@werkhaus-erle.example>"
+            ],
+            "contacts": [
+              {
+                "name": "Leona Kahl",
+                "adresse": "leona@werkhaus-erle.example",
+                "rolle": "von",
+                "ich": false
+              },
+              {
+                "name": "Jona Seidel",
+                "adresse": "jona@atelier-kiesel.example",
+                "rolle": "an",
+                "ich": true
+              }
+            ],
+            "produced": [],
+            "consolidated_at": null,
+            "tags": [
+              "mail:message:7ba2de484da8dbfe4f0bb0bf93826d1ca035ce113de12e58bcffcdbf41fa641a",
+              "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[{\"art\":\"pdf\",\"dateiname\":\"erle-lizenzbogen.pdf\",\"gesamt\":1,\"hinweis\":\"\",\"seiten\":1,\"status\":\"gelesen\",\"ungelesene_seiten\":[],\"vollstaendig\":true}],\"doppelt\":0,\"gefunden\":1,\"gelesen\":1,\"geprueft\":true,\"hinweis\":\"Text der erkannten unterstützten Anlagen erfasst. Texterkennung und eingebettete Bilder können Informationen auslassen.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+            ],
+            "covers": [],
+            "period": ""
+          }
+        },
+        {
+          "id": "e-5abcf2cba6af",
+          "source_key": "mail:99614ab1bd0f21a7ea58f55d810555321eaabba30c484eb4d265498836e188ea:anhang:1",
+          "head_id": "e-5abcf2cba6af",
+          "body_digest": "sha256:bc80ca2b0bf9ef142b3a15817488c1787cac500d9559a00ce7b905e778227d02",
+          "support": "acf97bc0a6016476edf5bcc31efa70ff14ffe5a58197080b7a4e6cfdc8157b57",
+          "document": {
+            "id": "e-5abcf2cba6af",
+            "kind": "document",
+            "title": "erle-lizenzbogen.pdf (Anhang zu „Erle: Lizenzbogen in Anlage“)",
+            "body": "Anhang „erle-lizenzbogen.pdf“ der Mail „Erle: Lizenzbogen in Anlage“ vom 03.11.2026.\n\nSeite 1\nWerkhaus Erle - Lizenzbogen 2026\nEmpfänger: Jona Seidel\nBitte den ausgefüllten Lizenzbogen bis 24. November 2026\num 16:00 Uhr Berliner Zeit an Leona Kahl zurücksenden.\nDie Sichtprüfung findet am 27. November 2026 um 10:00 Uhr statt.\nDie Sichtprüfung ist keine Abgabefrist.\nNur Werkhaus Erle, nicht Erlenhof.",
+            "digest": "sha256:bc80ca2b0bf9ef142b3a15817488c1787cac500d9559a00ce7b905e778227d02",
+            "provenance": {
+              "source_type": "email",
+              "source_ref": "heldout-v2:<heldout-n01@fixtures.example>#anhang:1:erle-lizenzbogen.pdf",
+              "captured_at": "2026-11-03T10:00:00Z"
+            },
+            "recorded_at": "2026-11-04T16:00:00+01:00",
+            "occurred_at": "2026-11-03T11:00:00+01:00",
+            "state": "new",
+            "project_id": null,
+            "participants": [
+              "Leona Kahl <leona@werkhaus-erle.example>"
+            ],
+            "contacts": [
+              {
+                "name": "Leona Kahl",
+                "adresse": "leona@werkhaus-erle.example",
+                "rolle": "von",
+                "ich": false
+              },
+              {
+                "name": "Jona Seidel",
+                "adresse": "jona@atelier-kiesel.example",
+                "rolle": "an",
+                "ich": true
+              }
+            ],
+            "produced": [],
+            "consolidated_at": null,
+            "tags": [
+              "anhang",
+              "anhang:gelesen",
+              "mail-parent:e-56b42e85a02c"
+            ],
+            "covers": [],
+            "period": ""
+          }
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "new": false,
+      "changed": false,
+      "fetch_count": 2,
+      "sources": [
+        {
+          "id": "e-56b42e85a02c",
+          "source_key": "mail:99614ab1bd0f21a7ea58f55d810555321eaabba30c484eb4d265498836e188ea",
+          "head_id": "e-56b42e85a02c",
+          "body_digest": "sha256:f690d8d55b19d57df7d177ee19f61287d659932ffacea4f93416c5af0b5d6e5a",
+          "support": "c44c48c82cd7d1eea91d0469bb0a50315fd65cc3faacba2f238b11887ba14a8b",
+          "document": {
+            "id": "e-56b42e85a02c",
+            "kind": "message",
+            "title": "Erle: Lizenzbogen in Anlage",
+            "body": "Jona, beigefügt ist der verbindliche Lizenzbogen für Werkhaus Erle. Die konkrete Abgabefrist steht nur in der Anlage. Der Anhang gehört zu Werkhaus Erle, nicht zum Projekt Erlenhof.\r\n",
+            "digest": "sha256:f690d8d55b19d57df7d177ee19f61287d659932ffacea4f93416c5af0b5d6e5a",
+            "provenance": {
+              "source_type": "email",
+              "source_ref": "heldout-v2:<heldout-n01@fixtures.example>",
+              "captured_at": "2026-11-03T10:00:00Z"
+            },
+            "recorded_at": "2026-11-04T16:00:00+01:00",
+            "occurred_at": "2026-11-03T11:00:00+01:00",
+            "state": "new",
+            "project_id": null,
+            "participants": [
+              "Leona Kahl <leona@werkhaus-erle.example>"
+            ],
+            "contacts": [
+              {
+                "name": "Leona Kahl",
+                "adresse": "leona@werkhaus-erle.example",
+                "rolle": "von",
+                "ich": false
+              },
+              {
+                "name": "Jona Seidel",
+                "adresse": "jona@atelier-kiesel.example",
+                "rolle": "an",
+                "ich": true
+              }
+            ],
+            "produced": [],
+            "consolidated_at": null,
+            "tags": [
+              "mail:message:7ba2de484da8dbfe4f0bb0bf93826d1ca035ce113de12e58bcffcdbf41fa641a",
+              "mail:attachments:{\"abruf_vollstaendig\":true,\"ausgelassen\":0,\"dateien\":[{\"art\":\"pdf\",\"dateiname\":\"erle-lizenzbogen.pdf\",\"gesamt\":1,\"hinweis\":\"\",\"seiten\":1,\"status\":\"gelesen\",\"ungelesene_seiten\":[],\"vollstaendig\":true}],\"doppelt\":0,\"gefunden\":1,\"gelesen\":1,\"geprueft\":true,\"hinweis\":\"Text der erkannten unterstützten Anlagen erfasst. Texterkennung und eingebettete Bilder können Informationen auslassen.\",\"mime_fehler\":0,\"nicht_unterstuetzt\":0,\"teilweise\":0,\"unbenannt\":0,\"ungelesen\":0,\"vollstaendig\":true,\"zuordnung_vollstaendig\":true}"
+            ],
+            "covers": [],
+            "period": ""
+          }
+        },
+        {
+          "id": "e-5abcf2cba6af",
+          "source_key": "mail:99614ab1bd0f21a7ea58f55d810555321eaabba30c484eb4d265498836e188ea:anhang:1",
+          "head_id": "e-5abcf2cba6af",
+          "body_digest": "sha256:bc80ca2b0bf9ef142b3a15817488c1787cac500d9559a00ce7b905e778227d02",
+          "support": "acf97bc0a6016476edf5bcc31efa70ff14ffe5a58197080b7a4e6cfdc8157b57",
+          "document": {
+            "id": "e-5abcf2cba6af",
+            "kind": "document",
+            "title": "erle-lizenzbogen.pdf (Anhang zu „Erle: Lizenzbogen in Anlage“)",
+            "body": "Anhang „erle-lizenzbogen.pdf“ der Mail „Erle: Lizenzbogen in Anlage“ vom 03.11.2026.\n\nSeite 1\nWerkhaus Erle - Lizenzbogen 2026\nEmpfänger: Jona Seidel\nBitte den ausgefüllten Lizenzbogen bis 24. November 2026\num 16:00 Uhr Berliner Zeit an Leona Kahl zurücksenden.\nDie Sichtprüfung findet am 27. November 2026 um 10:00 Uhr statt.\nDie Sichtprüfung ist keine Abgabefrist.\nNur Werkhaus Erle, nicht Erlenhof.",
+            "digest": "sha256:bc80ca2b0bf9ef142b3a15817488c1787cac500d9559a00ce7b905e778227d02",
+            "provenance": {
+              "source_type": "email",
+              "source_ref": "heldout-v2:<heldout-n01@fixtures.example>#anhang:1:erle-lizenzbogen.pdf",
+              "captured_at": "2026-11-03T10:00:00Z"
+            },
+            "recorded_at": "2026-11-04T16:00:00+01:00",
+            "occurred_at": "2026-11-03T11:00:00+01:00",
+            "state": "new",
+            "project_id": null,
+            "participants": [
+              "Leona Kahl <leona@werkhaus-erle.example>"
+            ],
+            "contacts": [
+              {
+                "name": "Leona Kahl",
+                "adresse": "leona@werkhaus-erle.example",
+                "rolle": "von",
+                "ich": false
+              },
+              {
+                "name": "Jona Seidel",
+                "adresse": "jona@atelier-kiesel.example",
+                "rolle": "an",
+                "ich": true
+              }
+            ],
+            "produced": [],
+            "consolidated_at": null,
+            "tags": [
+              "anhang",
+              "anhang:gelesen",
+              "mail-parent:e-56b42e85a02c"
+            ],
+            "covers": [],
+            "period": ""
+          }
+        }
+      ]
+    }
+  ]
+}
