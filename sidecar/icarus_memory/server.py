@@ -2558,7 +2558,7 @@ def create_app(
 
     @app.post("/chat", dependencies=guard)
     def chat(body: ChatIn) -> dict[str, Any]:
-        return app.state.agent.send(body.message).to_dict()
+        return app.state.agent.send(body.message).to_dict(local=True)
 
     @app.get("/context", dependencies=tuer_guard)
     def context() -> dict[str, str]:
@@ -2591,7 +2591,9 @@ def create_app(
                     context={"items": [], "history_egress": "local_only"})
 
     @app.get("/approvals", dependencies=guard)
-    def approvals() -> list[dict[str, Any]]:
+    def approvals(local_preview: bool = False) -> list[dict[str, Any]]:
+        # The MCP bridge also lists these requests; the default is safe even
+        # for older bridges. Local conversation cards get the title separately.
         with app.state.conversation_lock:
             visible = []
             validity_cache = {}
@@ -2606,7 +2608,7 @@ def create_app(
                         from .mail_reply_suggestions import context_active
                         if not context_active(app, context):
                             continue
-                visible.append(approval.to_dict())
+                visible.append(approval.to_dict(local=local_preview))
             return visible
 
     @app.post("/approvals/{approval_id}", dependencies=guard)
@@ -2632,7 +2634,7 @@ def create_app(
                         if item.get("id") == approval_id), None)
                 return app.state.agent.resolve(
                     approval_id, body.granted, body.confirmation
-                ).to_dict()
+                ).to_dict(local=True)
             except PolicyError as exc:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
             finally:
@@ -4225,7 +4227,7 @@ def create_app(
                               lineages: dict[str, list[dict[str, str]]] | None = None,
                               validity_cache: dict | None = None) -> list[dict[str, Any]]:
         policy = getattr(app.state.agent, "policy", None)
-        pending = {item.id for item in policy.pending()} if policy is not None else set()
+        pending = {item.id: item for item in policy.pending()} if policy is not None else {}
         outcomes = {message.metadata["resolved_approval_id"]: message.metadata.get("approval_outcome", "unknown")
                     for message in messages if "resolved_approval_id" in message.metadata}
         lineages = lineages or _conversation_lineages(messages)
@@ -4239,6 +4241,10 @@ def create_app(
                     continue
                 action = {**approval, "message_id": message.id,
                           "state": outcomes.get(approval["id"], "pending" if approval["id"] in pending else "expired")}
+                if action["state"] == "pending":
+                    live = pending[approval["id"]]
+                    if live.local_dry_run is not None:
+                        action["dry_run"] = live.local_dry_run
                 if not valid:
                     action.update(dry_run="Grundlage dieser Freigabe geändert oder ausgeschlossen.",
                                   arguments={}, confirmation_phrase=None, reasons=[])
@@ -5400,7 +5406,7 @@ def create_app(
     @app.post("/api/v1/tasks/{task_id}/done", dependencies=guard)
     def complete_kingfisher_task(task_id: str) -> dict[str, Any]:
         try:
-            return app.state.tasks.complete(task_id).to_dict()
+            return app.state.tasks.confirm_completion(task_id).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -5556,7 +5562,7 @@ def create_app(
     @app.post("/tasks/{task_id}/done", dependencies=guard)
     def complete_task(task_id: str) -> dict[str, Any]:
         try:
-            return app.state.tasks.complete(task_id).to_dict()
+            return app.state.tasks.confirm_completion(task_id).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

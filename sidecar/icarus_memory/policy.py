@@ -85,7 +85,10 @@ class PendingApproval:
     confirmation_phrase: str | None = None
     """Bei CONFIRM_STRICT: Text, den der Nutzer bestätigen muss."""
 
-    def to_dict(self) -> dict[str, Any]:
+    execution_snapshot: Any = field(default=None, repr=False)
+    local_dry_run: str | None = field(default=None, repr=False)
+
+    def to_dict(self, *, local: bool = False) -> dict[str, Any]:
         return {
             "id": self.id,
             "tool": self.tool,
@@ -93,7 +96,7 @@ class PendingApproval:
             "action_class": self.decision.action_class.value,
             "level": self.decision.level.value,
             "reasons": self.decision.reasons,
-            "dry_run": self.dry_run,
+            "dry_run": self.local_dry_run if local and self.local_dry_run is not None else self.dry_run,
             "requested_at": self.requested_at.isoformat(),
             "expires_at": self.expires_at.isoformat(),
             "confirmation_phrase": self.confirmation_phrase,
@@ -167,6 +170,8 @@ class Policy:
         level = self._overrides.get(tool, self._levels[action_class])
         if tool in self._overrides:
             reasons.append(f"Für '{tool}' ist die Stufe ausdrücklich auf {level.value} gesetzt.")
+        elif tool == "aufgabe_erledigt" and _RANG[level] < _RANG[ApprovalLevel.CONFIRM]:
+            level = ApprovalLevel.CONFIRM
 
         # Constraints aus dem Selbstmodell schlagen alles andere. Sie sind die
         # Grenzen, die der Nutzer selbst gezogen hat. **Vor** der Dauerregel
@@ -183,6 +188,10 @@ class Policy:
         # Runde. Steht fremder Text im Kontext, ist nicht feststellbar, ob die
         # Absicht vom Nutzer kommt; dann wäre die Regel der bequemste Weg, die
         # Eskalation auszuhebeln. Also gilt sie genau dann nicht.
+        # A standing permission to complete tasks cannot override an explicit
+        # completion denial (including a denial at the WRITE_LOCAL level).
+        if tool == "aufgabe_erledigt" and level is ApprovalLevel.DENY:
+            return Decision(level, action_class, reasons)
         if regel is not None and not tainted:
             gesenkt = ApprovalLevel(regel.stufe)
             if _RANG[gesenkt] < _RANG[level]:
@@ -238,6 +247,9 @@ class Policy:
         decision: Decision,
         dry_run: str,
         at: datetime | None = None,
+        *,
+        execution_snapshot: Any = None,
+        local_dry_run: str | None = None,
     ) -> PendingApproval:
         at = at or now()
         strict = decision.level is ApprovalLevel.CONFIRM_STRICT
@@ -253,6 +265,8 @@ class Policy:
             # Ein Klick auf "OK" ist kein Beleg dafür, dass jemand gelesen hat,
             # an wen die Mail geht.
             confirmation_phrase=self._phrase(tool, arguments) if strict else None,
+            execution_snapshot=deepcopy(execution_snapshot),
+            local_dry_run=local_dry_run,
         )
         self._pending[approval.id] = approval
         return deepcopy(approval)

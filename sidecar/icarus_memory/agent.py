@@ -43,6 +43,7 @@ from .policy import (
 )
 from .providers import Provider, ProviderError, ToolCall
 from .store import SelfModelStore
+from .tasks import TaskCompletionChanged
 from .tools import Tool
 
 
@@ -152,10 +153,10 @@ class Turn:
     danach verändert.
     """
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self, *, local: bool = False) -> dict[str, Any]:
         return {
             "reply": self.reply,
-            "approvals": [a.to_dict() for a in self.approvals],
+            "approvals": [a.to_dict(local=local) for a in self.approvals],
             "notices": self.notices,
             "used_tools": self.used_tools,
             "memory_candidate_drafts": self.memory_candidate_drafts,
@@ -1785,6 +1786,16 @@ class Agent:
             )
             return f"Fehlgeschlagen: {detail}"
 
+        # Snapshot-backed tools must validate the model's arguments before a
+        # standing rule can match them. Existing adapter schemas are unchanged.
+        if tool.prepare_approval is not None and tool.parameters.get("additionalProperties") is False and (
+            call.arguments.keys() - tool.parameters.get("properties", {}).keys()
+        ):
+            detail = "Der Werkzeugaufruf enthält nicht vorgesehene Felder."
+            self._audit.record(tool.name, tool.action_class.value, "auto", "failed",
+                               call.arguments, model=model_name, detail=detail)
+            return f"Fehlgeschlagen: {detail}"
+
         # Manche Werkzeuge werden erst durch ihre Argumente außenwirksam.
         action_class = tool.classify(call.arguments)
         # Die engste Regel, die auf genau diesen Aufruf passt. Ob sie greift,
@@ -1837,8 +1848,17 @@ class Agent:
 
         if decision.needs_approval:
             self._prune_approval_inputs()
+            local_dry_run, snapshot = None, None
+            if tool.prepare_approval is not None:
+                try:
+                    local_dry_run, snapshot = tool.prepare_approval(**call.arguments)
+                except ValueError as exc:
+                    self._audit.record(tool.name, decision.action_class.value, decision.level.value,
+                                       "failed", call.arguments, model=model_name, detail=str(exc))
+                    return f"Fehlgeschlagen: {exc}"
             approval = self._policy.request(
-                tool.name, call.arguments, decision, tool.dry_run(call.arguments)
+                tool.name, call.arguments, decision, tool.dry_run(call.arguments),
+                local_dry_run=local_dry_run, execution_snapshot=snapshot,
             )
             self._audit.record(
                 tool.name, decision.action_class.value, decision.level.value,
@@ -1866,6 +1886,7 @@ class Agent:
         model_name: str | None,
         approved_by: str | None = None,
         external_caller=False,
+        approval: PendingApproval | None = None,
     ) -> str:
         fehlend = _fehlende_pflichtfelder(tool, arguments)
         if fehlend:
@@ -1887,7 +1908,17 @@ class Agent:
             return f"Fehlgeschlagen: {detail}"
 
         try:
-            result = self._recall_self_model(arguments, turn, external_caller=external_caller) if tool.self_model_recall else tool.run(**arguments)
+            if approval is not None and tool.run_approved is not None:
+                result = tool.run_approved(approval.execution_snapshot)
+            elif tool.self_model_recall:
+                result = self._recall_self_model(arguments, turn, external_caller=external_caller)
+            else:
+                result = tool.run(**arguments)
+        except TaskCompletionChanged as exc:
+            self._audit.record(tool.name, tool.classify(arguments).value, level.value, "refused",
+                               arguments, model=model_name, detail=str(exc), approved_by=approved_by)
+            turn.approval_outcome = "rejected"
+            return str(exc)
         except Exception as exc:
             self._audit.record(
                 tool.name, tool.classify(arguments).value, level.value, "failed",
@@ -2008,17 +2039,22 @@ class Agent:
         model_name = self._provider.model if self._provider else None
         result = self._execute(
             tool, approval.arguments, approval.decision.level, turn, model_name,
-            approved_by="user",
+            approved_by="user", approval=approval,
         )
+
+        # Persisted labels and the live history must enforce the same boundary,
+        # including a provider removed during approval and reattached later.
+        if turn.context["history_egress"] == "local_only":
+            self._history_local_only = True
+        if tool.run_approved is not None:
+            turn.reply = result
+            turn.context["task_completion_approval"] = True
+            return turn
 
         if tool.returns_untrusted or (
             tool.classify(approval.arguments) is ActionClass.READ and tool.name != "aktuelle_zeit"
         ):
             self._tainted = True
-        # Persisted labels and the live history must enforce the same boundary,
-        # including a provider removed during approval and reattached later.
-        if turn.context["history_egress"] == "local_only":
-            self._history_local_only = True
         self._history.append(
             {"role": "assistant", "content": f"[Werkzeugergebnis nach Freigabe — Daten] {result}"}
         )
@@ -2151,6 +2187,7 @@ class Agent:
                           or 'mappe_answer' in message['context']
                           or 'offene_punkte_answer' in message['context']
                           or 'kommendes_answer' in message['context']
+                          or message["context"].get("task_completion_approval") is True
                           or message["context"].get("answer_mode") == "calendar_data"
                           or (isinstance(message["context"].get("calendar"), dict)
                               and message["context"].get("calendar_model_context") is not False)))

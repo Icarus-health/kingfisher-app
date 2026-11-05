@@ -43,6 +43,13 @@ class TaskChangedError(ValueError):
     """The displayed reminder no longer matches the stored task."""
 
 
+class TaskCompletionChanged(TaskChangedError):
+    """The task no longer matches the completion approval."""
+
+    def __init__(self) -> None:
+        super().__init__("Die Aufgabe wurde inzwischen geändert. Bitte stelle die Anfrage erneut.")
+
+
 class TaskRequestConflict(ValueError):
     """A saved request may not be reused for a different task payload."""
 
@@ -56,6 +63,12 @@ class TaskStatus(str, Enum):
     Der Unterschied zu `done` ist für ein System, das Jahre läuft, wichtig:
     Sonst sieht es später aus, als wäre alles geschafft worden.
     """
+
+
+@dataclass(frozen=True)
+class TaskCompletionSnapshot:
+    task_id: str
+    sequence: int
 
 
 @dataclass
@@ -522,6 +535,52 @@ class TaskStore:
                 task.status = TaskStatus.DONE
                 task.done_at = ensure_aware(at) or now()
         return self._change(task_id, "completed", change, at)
+
+    def completion_snapshot(self, task_id: str) -> tuple[TaskCompletionSnapshot, str, TaskStatus]:
+        """Read the approval title and revision in one SQLite snapshot."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT title, status, (SELECT max(sequence) FROM task_events WHERE task_id = tasks.id) AS sequence "
+                "FROM tasks WHERE id = ?", (task_id,),
+            ).fetchone()
+        if row is None or row["sequence"] is None:
+            raise TaskCompletionChanged()
+        return TaskCompletionSnapshot(task_id, row["sequence"]), row["title"], TaskStatus(row["status"])
+
+    def confirm_completion(self, task_id: str, *, expected: TaskCompletionSnapshot | None = None) -> Task:
+        """Record an explicit user action, optionally bound to a prior approval preview."""
+        with self._transaction():
+            row = self._conn.execute(
+                "SELECT document FROM tasks WHERE id = ?", (task_id,),
+            ).fetchone()
+            if expected is not None:
+                sequence = self._conn.execute(
+                    "SELECT max(sequence) FROM task_events WHERE task_id = ?", (task_id,),
+                ).fetchone()[0]
+                if row is None or (task_id, sequence) != (expected.task_id, expected.sequence):
+                    raise TaskCompletionChanged()
+            if row is None:
+                raise KeyError(f"Unbekannte Aufgabe: {task_id}")
+            task = self._from_row(row)
+            before = _state(task.to_dict())
+            if task.status is TaskStatus.DONE:
+                # Edits keep the active completion. A new status/time or a
+                # restored task starts a different run, even at the same time.
+                latest = self._conn.execute(
+                    """SELECT kind FROM task_events WHERE task_id = ? AND (
+                        kind = 'user_confirmed_completion' OR before_state IS NULL
+                        OR json_extract(before_state, '$.status') IS NOT json_extract(after_state, '$.status')
+                        OR json_extract(before_state, '$.done_at') IS NOT json_extract(after_state, '$.done_at')
+                    ) ORDER BY sequence DESC LIMIT 1""", (task_id,),
+                ).fetchone()
+                if latest is not None and latest["kind"] == "user_confirmed_completion":
+                    return task
+            else:
+                task.status = TaskStatus.DONE
+                task.done_at = now()
+                self._write(task)
+            self._append_event(task, "user_confirmed_completion", before, None)
+            return task
 
     def drop(self, task_id: str, at: datetime | None = None) -> Task:
         def change(task: Task) -> None:

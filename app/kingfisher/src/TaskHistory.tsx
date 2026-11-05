@@ -5,7 +5,8 @@ import { reminderLabel } from "./reminderDates";
 type History = Awaited<ReturnType<typeof api.taskHistory>>;
 const labels: Record<string, string> = {
   created: "Aufgabe angelegt", from_suggestion: "Vorschlag als Aufgabe übernommen",
-  completed: "Als erledigt markiert", dropped: "Fallengelassen", reopened: "Wieder geöffnet",
+  completed: "Als erledigt markiert", user_confirmed_completion: "Erledigung ausdrücklich bestätigt",
+  dropped: "Fallengelassen", reopened: "Wieder geöffnet",
   waiting_for: "Wartestatus geändert", returned: "Zurück zu mir", project_assigned: "Projektzuordnung geändert",
   edited: "Details bearbeitet",
   reminder_changed: "Wiedervorlage geändert", remind_at_changed: "Wiedervorlage geändert",
