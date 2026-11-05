@@ -192,15 +192,17 @@ def test_reanalysis_reuses_proven_original_statement_after_task_title_edit(env):
     assert app.state.workspace.projects() == []
 
 
-def test_correction_before_final_acceptance_leaves_no_new_project(env, monkeypatch, tmp_path):
+@pytest.mark.parametrize('shortened', [False, True], ids=['exact', 'shortened'])
+def test_correction_before_final_acceptance_leaves_no_new_project(env, monkeypatch, tmp_path, shortened):
     from icarus_memory.proposals import Evidence
     from icarus_memory.tasks import TaskStore
 
     app, client, episode, original = env
     task_id = client.post(f'/api/v1/task-candidates/{original.id}/accept',
                           json={'title': original.statement}).json()['id']
-    candidate, _ = app.state.proposals.propose(ProposalKind.TASK, 'Zweite Handlung aus demselben Beleg', 'Race',
-        evidence=[Evidence(episode.id, episode.body, episode.digest)])
+    quote = 'schicke das Angebot.' if shortened else episode.body
+    candidate, _ = app.state.proposals.propose(ProposalKind.TASK, 'Angebot überprüfen', 'Race',
+        evidence=[Evidence(episode.id, quote, episode.digest)])
     writer = TaskStore(tmp_path / 'tasks.sqlite3')
     from_suggestion = app.state.tasks.from_suggestion
 

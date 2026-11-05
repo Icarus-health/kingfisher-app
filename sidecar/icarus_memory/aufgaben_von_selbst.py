@@ -43,7 +43,8 @@ from .neu_eingegangen import aus_bestandsaufnahme, fenster_beginn, ist_neu
 from .people_quality import ist_sammelpostfach, lokalteil, person_quality
 from .proposals import ProposalError, ProposalKind, ProposalState
 from .task_review import REVIEW_MARKER, hard_details_supported, task_context_matches
-from .tasks import Task, TaskStatus
+from .task_responsibility import ResponsibilityLookupIncomplete, citations_may_overlap
+from .tasks import Task, TaskRequestConflict, TaskStatus
 from .word_forms import umschrift_gleich
 
 logger = logging.getLogger(__name__)
@@ -249,7 +250,7 @@ def pruefen(proposal: Any, episode: Any, *, eigene: Iterable[str], jetzt: dateti
             return nein('kopie', 'Du stehst nur in Kopie.')
         satz = f'Eine Bitte von {_name(person) or "der Gegenseite"} direkt an dich, aus einer neuen Mail.'
     if dublette:
-        return nein('dublette', 'Diese Aufgabe gibt es schon.')
+        return nein('dublette', 'Bitte prüfe, ob es diese Aufgabe schon gibt.')
     frist_erkannt, frist = _frist_aufloesen(zitat, episode.occurred_at)
     if frist_erkannt and frist is None:
         return nein('frist_unklar', _FRIST_UNKLAR)
@@ -315,11 +316,24 @@ class Durchlauf:
         return episode
 
     def _dublette(self, proposal: Any, episode: Any, offene_titel: set[str]) -> bool:
-        titel, zitat = schluessel(proposal.statement), schluessel(proposal.evidence[0].quote)
+        quote = proposal.evidence[0].quote
+        titel, zitat = schluessel(proposal.statement), schluessel(quote)
         if self.tasks.get(f't-suggestion-{proposal.id}') is not None or titel in offene_titel:
             return True
-        return any(schluessel(t.title) == titel or schluessel(t.provenance.verbatim or '') == zitat
-                   for t in self.tasks.mit_quelle(f'episode:{episode.id}'))
+        try:
+            linked = self.tasks.mit_quelle(f'episode:{episode.id}', limit=100)
+        except ResponsibilityLookupIncomplete:
+            return True  # Ohne vollständige Prüfung bleibt die Übernahme beim Nutzer.
+        if len(linked) == 100:
+            return True
+        source_text = None if 'source:truncated' in episode.tags else episode.body
+        for task in linked:
+            saved_quote = task.provenance.verbatim or ''
+            if schluessel(task.title) == titel or schluessel(saved_quote) == zitat:
+                return True
+            if task.responsibility is not None and citations_may_overlap(saved_quote, quote, source_text):
+                return True
+        return False
 
     def _kandidaten(self, jetzt: datetime) -> list[tuple[Any, Any]]:
         beginn = fenster_beginn(jetzt)
@@ -375,6 +389,8 @@ class Durchlauf:
                 try:
                     self._anlegen(proposal, episode, urteil, jetzt)
                     bericht['angelegt'] += 1
+                except TaskRequestConflict:
+                    ergebnis = 'dublette'  # Eine Korrektur kann nach der Vorprüfung eingehen.
                 except Exception:  # noqa: BLE001 - fail closed: bleibt Vorschlag, nichts halb angelegt
                     logger.exception('Aufgabe von selbst konnte nicht angelegt werden')
                     ergebnis = 'fehler'
@@ -406,7 +422,8 @@ class Durchlauf:
             Provenance(source_type=SourceType.INFERENCE, source_ref=f'episode:{episode.id}', captured_at=jetzt,
                        extracted_by=EXTRACTED_BY, verbatim=zitat),
             due=frist_aus(zitat, episode.occurred_at), project_id=projekt['project_id'] if projekt else None,
-            person=urteil.person, angelegt=angelegt)
+            person=urteil.person, angelegt=angelegt,
+            source_text=None if 'source:truncated' in episode.tags else episode.body)
         self.proposals.accept(proposal.id, produced=task.id)
         logbuch.vermerke('aufgabe_post', sorte='angelegt', aufgabe=task.id, mail=episode.id, wie=urteil.richtung or '')
         return task

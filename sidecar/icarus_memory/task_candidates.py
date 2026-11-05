@@ -3,7 +3,7 @@ from .episodes import AUSGEBLENDETE_ZUSTAENDE, QUELLEN_ARTEN
 from .model import Provenance, SourceType, now
 from .proposals import ProposalError, ProposalKind, ProposalState
 from .task_review import task_context_matches
-from .tasks import TaskRequestConflict
+from .tasks import CORRECTED_CITATION_REVIEW, TaskRequestConflict
 
 
 class TaskCandidates:
@@ -116,7 +116,8 @@ class TaskCandidates:
                 project_id = projekt['project_id'] if projekt else None
             # A reanalysis can have a new proposal ID. A shared quotation alone
             # is ambiguous, so use the accepted proposal's original statement.
-            proven_retry_id = self._proven_retry_id(candidate, evidence)
+            source_text = None if 'source:truncated' in episode.tags else episode.body
+            proven_retry_id = self._proven_retry_id(candidate, evidence, source_text)
             create_project = None
             if proven_retry_id is not None:
                 project_id = None  # Existing task and project assignment are preserved.
@@ -136,35 +137,30 @@ class TaskCandidates:
                 Provenance(source_type=SourceType.USER_STATED, source_ref=f'episode:{episode.id}',
                            captured_at=now(), verbatim=evidence.quote),
                 due=due, project_id=project_id, waiting_for=waiting, person=person, angelegt=angelegt,
-                proven_retry_id=proven_retry_id, create_project=create_project,
+                proven_retry_id=proven_retry_id, create_project=create_project, source_text=source_text,
             )
             self.proposals.accept(candidate.id, produced=task.id)
             return task
 
-    def _proven_retry_id(self, candidate, evidence):
+    def _proven_retry_id(self, candidate, evidence, source_text):
         prefix = "t-suggestion-"
-        corrected = [
-            task for task in self.tasks.mit_quelle(f"episode:{evidence.episode_id}")
-            if task.responsibility is not None and task.provenance.verbatim == evidence.quote
-        ]
+        corrected = self.tasks.corrected_source_citations(f"episode:{evidence.episode_id}", evidence.quote, source_text)
         if not corrected:
             return None
-        if len(corrected) == 1 and corrected[0].id.startswith(prefix):
-            task = corrected[0]
+        exact = [task_id for task_id, quote in corrected if quote == evidence.quote]
+        if len(exact) == 1 and exact[0].startswith(prefix):
+            task_id = exact[0]
             try:
-                original = self.proposals.get(task.id[len(prefix):])
+                original = self.proposals.get(task_id[len(prefix):])
             except ProposalError:
                 original = None
             if (original is not None and original.kind is ProposalKind.TASK and original.state is ProposalState.ACCEPTED
-                    and original.produced == task.id and original.statement == candidate.statement
+                    and original.produced == task_id and original.statement == candidate.statement
                     and len(original.evidence) == 1
                     and original.evidence[0].episode_id == evidence.episode_id
                     and original.evidence[0].quote == evidence.quote):
-                return task.id
-        raise TaskRequestConflict(
-            "Zu dieser Quellenstelle gibt es bereits eine Aufgabe mit bestätigter Zuständigkeit. "
-            "Bitte die vorhandene Aufgabe und den neuen Vorschlag prüfen."
-        )
+                return task_id
+        raise TaskRequestConflict(CORRECTED_CITATION_REVIEW)
 
     def reject(self, proposal_id):
         with self.lock:

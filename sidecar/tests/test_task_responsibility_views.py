@@ -131,7 +131,8 @@ def test_reanalysis_same_citation_preserves_corrected_task_across_restart(tmp_pa
         assert retry.provenance == original.provenance
         assert len(store.mit_quelle(source.source_ref)) == 1
         distinct = Provenance(SourceType.EMAIL, source_ref=source.source_ref, verbatim="Zweite, getrennte Aufgabe")
-        assert store.from_suggestion("different-citation", "Andere Aufgabe", distinct).id != original.id
+        assert store.from_suggestion("different-citation", "Andere Aufgabe", distinct,
+                                     source_text=f"{source.verbatim}. {distinct.verbatim}.").id != original.id
     finally:
         store.close()
 
@@ -191,3 +192,31 @@ def test_graph_project_person_and_open_points_keep_their_distinct_roles(monkeypa
         }]}, "zugesagt")
         assert "eigene Zusage" in text and "Bestätigte Zuständigkeit der verknüpften Aufgabe: Alex <alex@example.invalid>" in text
         assert links[0]["episode_id"] == "synthetic-source"
+
+
+@pytest.mark.parametrize("old_quote,new_quote,source_text,requires_review", [
+    ("ABCX", "CXYZ", "ABCX | CXYZ | ABCXYZ", True),  # first occurrences are disjoint
+    ("ABCX", "XYZ", "ABCXXYZ", False),  # exact adjacency is disjoint
+    ("ABCX", "XYZ", "ABCX " * 129 + "XYZ", True),  # occurrence budget cannot prove disjointness
+    ("ABCX", "XYZ", "ABCX" + " " * 256_000 + "XYZ", True),  # source budget
+    ("ABCX", "XYZ", "XYZ", True),  # old citation absent from the supplied text
+    ("ABCX", "XYZ", None, True),  # no complete source text
+    (None, "XYZ", "ABCXXYZ", True),  # prior corrected task did not have a citation
+])
+def test_source_span_review_limits_are_fail_closed(tmp_path, old_quote, new_quote, source_text, requires_review):
+    store = TaskStore(tmp_path / "bounded-citations.db")
+    try:
+        source_ref = "episode:synthetic-bounded"
+        previous = store.from_suggestion("previous", "Ursprüngliche Aufgabe",
+            Provenance(SourceType.EMAIL, source_ref=source_ref, verbatim=old_quote))
+        decide(store, previous)
+        incoming = Provenance(SourceType.EMAIL, source_ref=source_ref, verbatim=new_quote)
+        if requires_review:
+            with pytest.raises(TaskRequestConflict, match="Quellenstelle"):
+                store.from_suggestion("incoming", "Neue Formulierung", incoming, source_text=source_text)
+            assert len(store.open_tasks()) == 1
+        else:
+            created = store.from_suggestion("incoming", "Getrennte Aufgabe", incoming, source_text=source_text)
+            assert created.id != previous.id and created.user_actionable
+    finally:
+        store.close()

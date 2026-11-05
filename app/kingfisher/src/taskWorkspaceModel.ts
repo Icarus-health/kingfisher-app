@@ -4,7 +4,7 @@ type Dated = {due?: string | null};
 type BoardTask = {status?: string; wartet_auf?: string | null} & Partial<Pick<Task, "user_actionable" | "responsibility" | "effective_responsibility">>;
 
 export const projectBoardViews = [
-  {view: "mine", label: "Offen"},
+  {view: "mine", label: "Meine Aufgaben"},
   {view: "waiting", label: "Wartend"},
   {view: "done", label: "Erledigt"},
   {view: "others", label: "Bei anderen"},

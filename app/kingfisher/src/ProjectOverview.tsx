@@ -32,13 +32,13 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
       neben={[`Zuständigkeit: ${responsibilityLabel(task.responsibility)}`, task.wartet_auf && `Wartet auf ${task.wartet_auf}`].filter(Boolean).join(' · ')}
       wert={dateLabel(task.due)} wertZeit={task.due ?? ''} wertKlasse={task.overdue ? 'overdue' : undefined} />)}</div>;
   }
-  // Projekt auf einen Blick: drei Kacheln (offen, wartet, erledigt), jede öffnet die passende Liste; darunter leise die
+  // Projekt auf einen Blick: drei Kacheln (eigene Aufgaben, wartet, erledigt), jede öffnet die passende Liste; darunter leise die
   // nächsten Schritte. Die Zahlen gelten für das ganze Projekt, unabhängig von der Suche.
   return <section className="project-overview" aria-label="Projekt auf einen Blick">
     {/* Kein eigener Knopf zum Aktualisieren: Der Überblick lädt nach jeder Änderung in der Liste neu (`revision`). */}
     {error ? <p className="project-overview-satz" role="alert">{error}</p> : !data ? <p className="project-overview-satz" role="status">Projektüberblick wird geladen …</p> : <>
       <div className="project-counts">
-        <button type="button" onClick={()=>onView('mine')}><strong>{data.counts.mine}</strong>Offen{(data.counts.overdue > 0 || data.counts.undated > 0) && <small>{[data.counts.overdue ? `${data.counts.overdue} überfällig` : '', data.counts.undated ? `${data.counts.undated} ohne Termin` : ''].filter(Boolean).join(' · ')}</small>}</button>
+        <button type="button" onClick={()=>onView('mine')}><strong>{data.counts.mine}</strong>Meine Aufgaben{(data.counts.overdue > 0 || data.counts.undated > 0) && <small>{[data.counts.overdue ? `${data.counts.overdue} überfällig` : '', data.counts.undated ? `${data.counts.undated} ohne Termin` : ''].filter(Boolean).join(' · ')}</small>}</button>
         <button type="button" onClick={()=>onView('waiting')}><strong>{data.counts.waiting}</strong>Wartet</button>
         <button type="button" onClick={()=>onView('done')}><strong>{data.counts.done}</strong>Erledigt{data.counts.dropped > 0 && <small>{data.counts.dropped} verworfen</small>}</button>
       </div>
@@ -46,6 +46,7 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
         {Boolean(data.counts.others) && <button className="text-action" type="button" onClick={() => onView('others')}>Bei anderen ({data.counts.others})</button>}
         {Boolean(data.counts.unassigned) && <button className="text-action" type="button" onClick={() => onView('unassigned')}>Zu klären ({data.counts.unassigned})</button>}
       </div>}
+      {data.counts.waiting > 0 && <p className="project-overview-help">Warten zählt unabhängig von der Zuständigkeit. Eine Aufgabe kann in mehreren Ansichten stehen.</p>}
       <details className="g-aufklapper project-next-details"><summary><span className="g-aufklapper-titel">Nächste Schritte</span></summary><div className="project-next">
         <div><h3>Als Nächstes</h3>{data.next_tasks.length ? preview(data.next_tasks,'mine') : <p>Keine eigenen offenen Aufgaben.</p>}</div>
         <div><h3>Wartet</h3>{data.waiting_tasks.length ? preview(data.waiting_tasks,'waiting') : <p>Keine wartenden Aufgaben.</p>}</div>

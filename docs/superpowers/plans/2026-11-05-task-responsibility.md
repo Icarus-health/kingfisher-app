@@ -71,7 +71,7 @@
 - [x] Test initial/retry/reopen, reset/undo, duplicate names/titles, unrelated tasks, source changes/withdraw/archive, event-history link, old metadata, model-history isolation and changed task during response. Independently review, then grouped affected tests.
 - [ ] Fresh semantic acceptance through authorized real model remains separate. Mark full P1 incomplete if unavailable; do not use exposed S05 as blind evidence. Final subplan review before grouped publication; no user installation or goal completion from technical tests.
 
-**Technical Task 3 gate:** scoped review fix01 approved; real semantic/native acceptance and the subplan integration review remain separate. The last checkbox intentionally stays open.
+**Technical Task 3 gate:** scoped review fix01 approved; the subplan integration review and its single fix wave passed. Real semantic/native acceptance remains open; the last checkbox intentionally stays open.
 
 ## Execution and acceptance
 

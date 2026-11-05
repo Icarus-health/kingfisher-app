@@ -2956,7 +2956,7 @@ def create_app(
                 projekt, person = aufgaben_von_selbst.zuordnung_fuer_quelle(app, episode['id'])
                 try:
                     return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
-                                                           person=person).to_dict()
+                                                           person=person, source_text=None if message.truncated else message.body).to_dict()
                 except TaskRequestConflict as exc:
                     raise HTTPException(409, str(exc)) from exc
             if body.request_id is not None:

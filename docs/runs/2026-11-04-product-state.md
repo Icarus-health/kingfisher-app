@@ -35,14 +35,14 @@ Mac-Abnahme nicht:
 | Kalenderabsagen | Explizite ICS-Absagen erhalten den Originalverlauf und entziehen dem alten Termin die aktuelle Belegberechtigung; Änderungen entfernen keine ungenannten Nachbartermine. | Echte Kalenderanbieter, native Bedienung und vollständige Antwort mit unabhängig weiter gültiger Abgabefrist. |
 | Bestätigte Erledigung | Unterstützte Statusfragen verwenden den gespeicherten Aufgabenstand und einen neu geprüften Ereignisverweis. | Beliebige Umformulierungen und zusammenhängende Modellabnahme. |
 | Unvollständiger Eingang | Antworten unterscheiden bekannte Aufnahme-/Analyse-Lücken von ungeprüfter Vollständigkeit. Die vorübergehende Anzeige wird nicht als verbotene Musterantwort in eine Lernregel übernommen. | Vollständigkeit des persönlichen Postfachs und reale Lern-/Abrufabnahme. |
-| Bestätigte Zuständigkeit | Lokale Entwicklungscommits `6880d67` und `ed9b190`: Korrektur, Rücknahme, Listen, Profile und Mailaktionen unabhängig geprüft. Auftraggeber, Ausführender und Warten auf Rückmeldung bleiben getrennt. | Gesprächsintegration ebenfalls technisch geprüft; gemeinsamer Integrationsreview, Veröffentlichung und native Prüfung noch offen. |
+| Bestätigte Zuständigkeit | Lokale Entwicklungscommits `6880d67` und `ed9b190`: Korrektur, Rücknahme, Listen, Profile und Mailaktionen unabhängig geprüft. Auftraggeber, Ausführender und Warten auf Rückmeldung bleiben getrennt. | Gesprächsintegration und gemeinsamer technischer Integrationsreview bestanden; echte Modell-/Mac-Prüfung und persönliche Installation noch offen. |
 | Lokale Modelllast | Der unveränderte kleine Pilot wurde unter zunächst normalem Speicherdruck erneut begonnen, aber nach 6,1 Sekunden wegen zu geringer Reserve gestoppt. Keine fertige Antwort; Modell anschließend entladen. | Keine neue Qualitätsaussage. Keine weitere Wiederholung bei unveränderter Last. Mistral-Probe wartet auf Schlüssel und konkrete Kostenfreigabe. |
 
 Die letzte veröffentlichte PR-Fassung `f4be125` besteht UI-, Mac-Bau- und
 Containerprüfung. Beide Python-CI-Jobs scheitern an derselben zentralen
-Quellenfilter-Regel; jeweils 10.293 weitere Tests bestehen. Die lokal geprüfte
-Korrektur `7523853` verwendet die maßgeblichen Quellenhelfer und wird mit dem
-zusammenhängenden Zuständigkeitspaket veröffentlicht. Dieser Absatz ist kein
+Quellenfilter-Regel; jeweils 10.293 weitere Tests bestehen. Die geprüfte
+Korrektur `7523853` verwendet die maßgeblichen Quellenhelfer und ist im
+zusammenhängenden Zuständigkeitspaket enthalten. Dieser Absatz ist kein
 grüner CI-Nachweis der noch unveröffentlichten Entwicklung.
 
 Nachweise: [Quellenaufnahme und Kalenderabsagen](2026-11-05-memory-source-acceptance/README.md),

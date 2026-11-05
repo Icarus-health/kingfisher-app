@@ -15,6 +15,8 @@ RESPONSIBILITY_KINDS = {
     "undo": "responsibility_undone",
 }
 MAX_SEQUENCE = 2**63 - 1
+_MAX_CITATION_TEXT = 256_000
+_MAX_OCCURRENCE_STEPS = 128
 _REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,99}")
 _LOCAL_PART = re.compile(r"[\w!#$%&'*+\-/=?^`{|}~]+(?:\.[\w!#$%&'*+\-/=?^`{|}~]+)*")
 _DOMAIN_LABEL = re.compile(r"[^\W_](?:(?:[^\W_]|-){0,61}[^\W_])?")
@@ -22,6 +24,34 @@ _DOMAIN_LABEL = re.compile(r"[^\W_](?:(?:[^\W_]|-){0,61}[^\W_])?")
 
 class ResponsibilityLookupIncomplete(RuntimeError):
     """A bounded history scan could not establish the current state or receipt."""
+
+
+def citations_may_overlap(previous: str, incoming: str, source_text: str | None) -> bool:
+    """Hold a changed citation for review unless its positions are provably disjoint."""
+    if not previous or not incoming or max(len(previous), len(incoming)) > _MAX_CITATION_TEXT:
+        return True
+    if previous in incoming or incoming in previous:
+        return True
+    if source_text is None or len(source_text) > _MAX_CITATION_TEXT:
+        return True
+    earlier, later = source_text.find(previous), source_text.find(incoming)
+    if earlier < 0 or later < 0:
+        return True
+
+    # Walk the two ordered occurrence streams. Check all possible positions
+    # within the budget because a quote may appear more than once in one source.
+    for _ in range(_MAX_OCCURRENCE_STEPS):
+        if earlier + len(previous) <= later:
+            earlier = source_text.find(previous, earlier + 1)
+            if earlier < 0:
+                return False
+        elif later + len(incoming) <= earlier:
+            later = source_text.find(incoming, later + 1)
+            if later < 0:
+                return False
+        else:
+            return True
+    return True
 
 
 def _sequence(value: object) -> bool:

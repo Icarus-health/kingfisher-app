@@ -696,10 +696,11 @@ def test_quick_mail_task_corrected_citation_returns_review_conflict():
     from icarus_memory.mail_task_suggestions import source_digest
 
     app, first, second = mail_app()
-    second.item = replace(second.item, date=datetime.now(timezone.utc), body='Bitte das Angebot prüfen.')
+    quote = 'Bitte das Angebot prüfen.'
+    second.item = replace(second.item, date=datetime.now(timezone.utc), body=quote + ' Vielen Dank!')
     client = TestClient(app, raise_server_exceptions=False)
     path = '/api/v1/messages/work:1/task'
-    payload = {'title': 'Angebot prüfen', 'source_quote': second.item.body,
+    payload = {'title': 'Angebot prüfen', 'source_quote': quote,
                'source_digest': source_digest(app.state.mail.message('work:1')), 'quick_accept': True}
     saved = client.post(path, json=payload)
     assert saved.status_code == 201, saved.text
@@ -707,7 +708,8 @@ def test_quick_mail_task_corrected_citation_returns_review_conflict():
     store = app.state.tasks
     correction = store.change_responsibility(original['id'], request_id='synthetic-mail-quick-correction',
         expected_revision=store.responsibility_snapshot(original['id'])['revision'], operation='reset')
-    conflict = client.post(path, json={**payload, 'title': 'Anderer Vorschlag aus derselben Textstelle'})
+    conflict = client.post(path, json={**payload, 'title': 'Anderer Vorschlag aus derselben Textstelle',
+                                       'source_quote': second.item.body})
     assert conflict.status_code == 409, conflict.text
     assert 'vorhandene Aufgabe und den neuen Vorschlag prüfen' in conflict.json()['detail']
     retry = client.post(path, json=payload)

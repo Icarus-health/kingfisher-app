@@ -42,9 +42,17 @@ from .model import Provenance, SourceType, ensure_aware, now
 from .task_responsibility import (
     RESPONSIBILITY_KINDS,
     ResponsibilityLookupIncomplete,
+    citations_may_overlap,
     responsibility_command,
     unknown_responsibility,
 )
+
+
+CORRECTED_CITATION_REVIEW = (
+    "Eine Aufgabe mit bestätigter Zuständigkeit bezieht sich möglicherweise auf dieselbe Quellenstelle. "
+    "Bitte die vorhandene Aufgabe und den neuen Vorschlag prüfen."
+)
+_CORRECTED_CITATION_LIMIT = 64
 
 
 class TaskChangedError(ValueError):
@@ -608,7 +616,8 @@ class TaskStore:
                         project_id: str | None = None, waiting_for: str | None = None,
                         person: dict[str, str] | None = None, angelegt: dict[str, Any] | None = None,
                         proven_retry_id: str | None = None,
-                        create_project: Callable[[], str] | None = None) -> Task:
+                        create_project: Callable[[], str] | None = None,
+                        source_text: str | None = None) -> Task:
         """Eine ausdrückliche Übernahme bleibt auch nach einem Abbruch einmalig."""
         if not proposal_id or not title.strip():
             raise ValueError("Vorschlag und Aufgabentitel dürfen nicht leer sein.")
@@ -625,22 +634,15 @@ class TaskStore:
             row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task.id,)).fetchone()
             if row:
                 return self._from_row(row)
-            source_ref, quote = provenance.source_ref or "", provenance.verbatim
-            if source_ref.startswith("episode:") and quote:
-                corrected = self._conn.execute(
-                    """SELECT id, document FROM tasks
-                       WHERE json_extract(document, '$.provenance.source_ref') = ?
-                         AND json_extract(document, '$.provenance.verbatim') = ?
-                         AND json_extract(document, '$.responsibility.decision') IS NOT NULL
-                       LIMIT 2""", (source_ref, quote),
-                ).fetchall()
+            source_ref, quote = provenance.source_ref or "", provenance.verbatim or ""
+            if source_ref.startswith("episode:"):
+                corrected = self._corrected_source_citations(source_ref, quote, source_text)
+                exact = [task_id for task_id, saved_quote in corrected if quote and saved_quote == quote]
+                if proven_retry_id is not None and exact == [proven_retry_id]:
+                    existing = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (proven_retry_id,)).fetchone()
+                    return self._from_row(existing)
                 if corrected or proven_retry_id is not None:
-                    if len(corrected) == 1 and corrected[0]["id"] == proven_retry_id:
-                        return self._from_row(corrected[0])
-                    raise TaskRequestConflict(
-                        "Zu dieser Quellenstelle gibt es bereits eine Aufgabe mit bestätigter Zuständigkeit. "
-                        "Bitte die vorhandene Aufgabe und den neuen Vorschlag prüfen."
-                    )
+                    raise TaskRequestConflict(CORRECTED_CITATION_REVIEW)
             if create_project is not None:
                 # The local, deterministic project write must follow the final
                 # correction barrier and must never run for a reused task.
@@ -648,6 +650,28 @@ class TaskStore:
             self._write(task)
             self._append_event(task, "from_suggestion", None, None)
         return task
+
+    def corrected_source_citations(self, source_ref: str, quote: str, source_text: str | None) -> list[tuple[str, str]]:
+        """Corrected task IDs and citations whose source positions may overlap."""
+        with self._lock:
+            return self._corrected_source_citations(source_ref, quote, source_text)
+
+    def _corrected_source_citations(self, source_ref: str, quote: str, source_text: str | None) -> list[tuple[str, str]]:
+        try:
+            with self._responsibility_budget():
+                rows = self._conn.execute(
+                    """SELECT id, json_extract(document, '$.provenance.verbatim') AS quote FROM tasks
+                       WHERE json_extract(document, '$.provenance.source_ref') = ?
+                         AND json_extract(document, '$.responsibility.decision') IS NOT NULL
+                       LIMIT ?""", (source_ref, _CORRECTED_CITATION_LIMIT + 1),
+                ).fetchall()
+        except ResponsibilityLookupIncomplete as exc:
+            raise TaskRequestConflict(CORRECTED_CITATION_REVIEW) from exc
+        if len(rows) > _CORRECTED_CITATION_LIMIT:
+            raise TaskRequestConflict(CORRECTED_CITATION_REVIEW)
+        citations = [(row["id"], row["quote"] or "") for row in rows]
+        return [(task_id, saved_quote) for task_id, saved_quote in citations
+                if citations_may_overlap(saved_quote, quote, source_text)]
 
     def complete(self, task_id: str, at: datetime | None = None) -> Task:
         def change(task: Task) -> None:
