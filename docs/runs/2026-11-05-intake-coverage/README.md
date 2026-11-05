@@ -37,11 +37,11 @@ ein ausdrücklich gespeicherter Feedback-Snapshot ist davon getrennt.
   entfernen ausschließlich Leerzeichen am Zeilenende. Rohprotokolle sind im
   Autorbericht angegeben. Bestehende Starlette-TestClient-Warnung dokumentiert.
 
-Ein kleiner Befund bleibt für P2 beziehungsweise das Gesamtbranch-Review:
-Explizite Feedback-Snapshots können den aktuellen Hinweis mit speichern. Bei
-unstrukturierten oder mehrsätzigen Antworten kann dies den späteren wörtlichen
-Regressionstest der eigentlichen Antwort beeinträchtigen. Das ist ein statischer
-Befund; keine behauptete Weitergabe an ein Modell oder neue Wissensaussage.
+Der damalige kleine Befund zur Rückmeldungsablage wurde anschließend im
+[separaten P2-Paket](../2026-11-05-feedback-intake/README.md) tatsächlich
+reproduziert und behoben. Die ursprünglichen Reviewberichte dokumentieren den
+damaligen Stand; der spätere Fix erhält den sichtbaren Snapshot und trennt den
+technischen Hinweis ausschließlich für den Regressionsexport.
 
 Keine reale Modellqualität, native Klickprüfung oder vollständige P1-Abnahme
 wird aus diesen technischen Tests abgeleitet. Keine persönlichen Quellen,

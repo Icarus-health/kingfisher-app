@@ -34,5 +34,10 @@
   "personal_app_updated": false,
   "bulk_import_resumed": false,
   "cloud_calls": 0,
-  "manual_ci_rerun": false
+  "manual_ci_rerun": false,
+  "followup_feedback_finding": {
+    "status": "RESOLVED",
+    "code_commit": "f98944a8d1d0e1e9ca6c70839d1b9703062d971a",
+    "evidence": "../2026-11-05-feedback-intake/README.md"
+  }
 }
