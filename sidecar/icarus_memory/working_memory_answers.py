@@ -510,7 +510,7 @@ def lookup_of(answer):
 def prepare(question, episodes, claims, provider, *, conflict_status=None, retrieval_query=None,
             projects=None, sender_scope=None, meaning_scope=None, also_found=None, person_ids=None,
             anfrage=None, saetze=False, zeiten=None, namensvettern=(), pruefung=None, search_state=None,
-            semantic_search=DEFAULT_SEMANTIC_SEARCH):
+            semantic_search=DEFAULT_SEMANTIC_SEARCH, tasks=None):
     """Quellen zur Frage auswählen.
 
     ``sender_scope`` ({'account', 'address'}) begrenzt die Suche auf Mails genau
@@ -626,6 +626,28 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
                   lookup, episode_ids=_scope_ids(episodes, claims, sender_scope, meaning_scope)[0]),
               'status': 'reports', 'uncertainty': 'none',
               'limited': limited or confirmed_limited or semantic_status in {'partial', 'unavailable'}}
+    from . import task_responsibility_answers as owners
+    owner_basis = owners.capture(tasks, owners.episode_ids({'working_answer': answer}), episodes)
+    answer[owners.CONTEXT] = owner_basis
+    owner_lines, owner_ambiguous = owners.describe(owner_basis, tasks)
+    if owner_lines is None:
+        answer.update(status='unavailable')
+        return answer
+    if owner_lines:
+        # Render historical originals separately; never synthesize current ownership
+        # from them. Task decisions stay local even under approved source-only cloud.
+        saetze = False
+        if not cloud:
+            source_by_row = {f'S{i}': ref['episode_id'] for i, ref in enumerate(refs, 1)}
+            source_by_row.update({f'K{i}': entry['primary_episode_id'] for i, entry in enumerate(lineage.values(), 1)})
+            for row in rows:
+                source_id = source_by_row.get(row['id'])
+                local_basis = {**owner_basis, 'sources': [source for source in owner_basis['sources']
+                                                        if source['episode_id'] == source_id]}
+                local_lines, local_ambiguity = owners.describe(local_basis, tasks)
+                if local_lines:
+                    row['current_task_responsibilities'] = local_lines
+                    row['task_association_ambiguous'] = local_ambiguity
     answer['project_assignment_basis'] = {ref['episode_id']: episodes.get(ref['episode_id']).project_id
                                           for ref in refs}
     if search_stats:
@@ -701,7 +723,11 @@ Projekte: Betrifft der erfragte Name verschiedene Projekte/Vorgänge ohne gewäh
 Wandel: ueberholt ist nur eine automatische Vermutung. Originale unabhängig prüfen, passenden Beleg deswegen nicht weglassen. Gleiche Person/Kategorie/Veranstaltung beweist nicht dieselbe Aufgabe. Bei ungeklärter Zugehörigkeit beide Originale mit unresolved_conflicting_sources wählen; keine sichere Absage/Erledigung behaupten. Nur eine belegte explizite Änderung im eindeutig selben Vorgang erlaubt für die aktuelle Frage, die bisherige Angabe durch die geänderte zu ersetzen; bloßes Neuestsein genügt nicht. Relevante widersprechende Angaben zum eindeutig selben Personen-/Vorgangsbezug: unresolved_conflicting_sources mit allen betroffenen Stellen.
 Zeit: needs_missing_time_reference nur, wenn die Frage einen fehlenden/mehrdeutigen Zeitbezug oder Umrechnung relativer Zeit verlangt. Relative Termine ohne belegbaren Bezug nie konkretisieren; passende relative Angabe ohne Quellenzeit ergibt diesen Status, nicht no_relevant_sources. Vollständiges Datum (Tag, Monat, Jahr), ausdrücklich genannte Uhrzeit/Tageszeit für ein Anruf-/Erreichbarkeitsfenster oder im Text beantwortete Bedingungen erlauben source_reports trotz unbekannter Quellenzeit. Fehlende Freigabe macht das Datum bedingt, nicht unlesbar. „Nächsten Freitag“ braucht weiterhin einen Bezug. Trägt eine Quelle das Feld ausserhalb_zeitraum, nennen datum_der_quelle/gefragter_zeitraum den Zeitrahmen: nur wählen, wenn trotzdem gefragt, dann als außerhalb behandeln.
 Status bezeichnet nötige Klärung, nicht das Thema. Wirklich unklare Person/Zeit: passende Rückfrage; unabhängige eindeutige Angaben brauchen keine.'''
-    if not _fresh(answer, episodes, claims):
+    def fresh():
+        return (_fresh(answer, episodes, claims)
+                and owner_basis == owners.capture(tasks, owners.episode_ids({'working_answer': answer}), episodes))
+
+    if not fresh():
         answer.update(status='unavailable')
         return answer
     if not rows:
@@ -715,7 +741,7 @@ Status bezeichnet nötige Klärung, nicht das Thema. Wirklich unklare Person/Zei
         from .source_selection_pages import select
         with zeitmessung.messen(zeiten, 'antwort_modell'):
             selection = select(provider, question, rows, instruction, schema, MODEL_DECISIONS,
-                               fresh=lambda: _fresh(answer, episodes, claims))
+                               fresh=fresh)
         page_uncertainty = ((selection['status'], frozenset(selection['ids']))
                             if selection.get('_page_uncertainty') is True else None)
         if selection['status'] in {'reports', 'person', 'conflict'}:
@@ -809,7 +835,7 @@ Status bezeichnet nötige Klärung, nicht das Thema. Wirklich unklare Person/Zei
     if cloud and provider.aufrufe:
         # Ehrlich vermerkt: Frage und Textstellen gingen an diesen Anbieter (Kontext der Antwort, `agent._working_turn`).
         answer['gedaechtnis_cloud'] = provider.metadaten()
-    if not _fresh(answer, episodes, claims):
+    if not fresh():
         answer.update(status='unavailable', refs=[])
     return answer
 

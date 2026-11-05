@@ -22,7 +22,7 @@ import sqlite3
 import threading
 import unicodedata
 import uuid
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -987,11 +987,14 @@ class TaskStore:
                 "SELECT 1 FROM aufgaben_auto_zurueck WHERE episode_id = ? AND (titel_schluessel = ? OR zitat_schluessel = ?)",
                 (episode_id, titel_schluessel, zitat_schluessel)).fetchone() is not None
 
-    def mit_quelle(self, source_ref: str) -> list[Task]:
-        """Alle Aufgaben (jeder Zustand) aus dieser Quelle (`episode:<id>`)."""
-        with self._lock:
-            rows = self._conn.execute("SELECT document FROM tasks WHERE json_extract(document,'$.provenance.source_ref') = ?",
-                                      (source_ref,)).fetchall()
+    def mit_quelle(self, source_ref: str, *, limit: int | None = None) -> list[Task]:
+        """Alle Zustände aus dieser Quelle; optional bounded for conversation reads."""
+        if limit is not None and (type(limit) is not int or not 1 <= limit <= 100):
+            raise ValueError("invalid source task limit")
+        with self._lock, (self._responsibility_budget() if limit is not None else nullcontext()):
+            rows = self._conn.execute(
+                "SELECT document FROM tasks WHERE json_extract(document,'$.provenance.source_ref') = ? "
+                "ORDER BY id LIMIT ?", (source_ref, limit if limit is not None else -1)).fetchall()
         return [self._from_row(row) for row in rows]
 
     def angelegt_seit(self, seit: datetime, art: str = "automatisch", limit: int = 200) -> list[Task]:

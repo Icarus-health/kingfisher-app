@@ -37,3 +37,16 @@ test('a current or dropped task links to its selected receipt; withheld text has
   const hidden = renderToStaticMarkup(createElement(TaskStatusAnswer, {content: 'Nicht verfügbar.', messageId: 'synthetic'}));
   assert.doesNotMatch(hidden, /href|Aufgabe und Verlauf ansehen/);
 });
+
+test('responsibility answers use the exact task event and escape confirmed labels', async () => {
+  const {TaskStatusAnswer} = await server.ssrLoadModule('/src/TaskStatusAnswer.tsx');
+  const html = renderToStaticMarkup(createElement(TaskStatusAnswer, {
+    content: 'Aktuelle Zuständigkeit: Mara <mara@example.invalid> (ausdrücklich bestätigt).',
+    link: {id: 't-000000000002', status: 'open', sequence: '41'}, messageId: 'owner-answer'}));
+  assert.match(html, /Mara &lt;mara@example.invalid&gt;/);
+  const href = html.match(/href="([^"]+)"/)[1].replaceAll('&amp;', '&');
+  const url = new URL(href, 'https://example.invalid');
+  assert.equal(url.searchParams.get('task'), 't-000000000002');
+  assert.equal(url.searchParams.get('history'), '41');
+  assert.equal(url.searchParams.get('from'), 'conversation');
+});

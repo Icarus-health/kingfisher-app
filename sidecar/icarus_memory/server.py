@@ -107,7 +107,7 @@ from .providers_mail import guess as guess_mail_provider
 from .secrets import Keychain, load_into_env
 from .security import SecurityError, file_roots_from_env
 from .store import ConflictError, SelfModelStore
-from . import task_status_answers
+from . import task_status_answers, task_responsibility_answers
 from .tasks import TaskStore, TaskChangedError, TaskRequestConflict
 from .tools import build_registry
 from .zeitgrenze import mit_zeitgrenze
@@ -4340,6 +4340,7 @@ def create_app(
             resolved_source_turns = 0
             resolved_task_turns = 0
             resolved_knowledge_turns = 0
+            resolved_owner_sources = 0
             mappen_neu, mappen_memo = 0, {}
             # POST, retry and GET all use this view. Coverage is current local
             # intake state, never stored as a turn, claim, or model input.
@@ -4492,6 +4493,10 @@ def create_app(
                         app.state.knowledge_service.answer_conflict_status,
                         resolve=resolved_knowledge_turns < 20)
                     resolved_knowledge_turns += 1
+                if message.role == 'assistant' and isinstance(stored_context, dict) and task_responsibility_answers.episode_ids(stored_context):
+                    value = task_responsibility_answers.project_sources(value, stored_context, app.state.tasks, app.state.episodes,
+                                                                        resolve=resolved_owner_sources < 20)
+                    resolved_owner_sources += 1
                 view = value['metadata'].get('context')
                 contract = view.get('answer_contract') if isinstance(view, dict) else None
                 if (message.role == 'assistant' and message.status == 'complete'

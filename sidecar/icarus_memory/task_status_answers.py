@@ -19,6 +19,7 @@ _GENERIC = {
     'coverage_limited': 'Ich konnte die Aufgaben nicht vollständig prüfen. Bitte nenne die Kennung der Aufgabe.',
     'history_limited': 'Ich konnte den gespeicherten Aufgabenverlauf nicht vollständig prüfen.',
     'withheld': WITHHELD,
+    'owner_clarify': 'Welche gespeicherte Aufgabe meinst du? Bitte nenne ihre Kennung oder den vollständigen Titel in Anführungszeichen.',
 }
 _FLAGS = re.IGNORECASE
 _PATTERNS = (
@@ -127,6 +128,10 @@ def base_context():
 
 
 def answer(question, tasks, episodes, *, retry=False):
+    from . import task_responsibility_answers as owners
+    owner = owners.answer(question, tasks)
+    if owner is not None:
+        return owner
     reference = parse(question)
     if reference is None:
         return generic('not_found') if retry else None
@@ -196,7 +201,8 @@ def _generic_outcome(record):
 
 def storage_context(context):
     record = context[KEY]
-    if _valid_record(record) or _generic_outcome(record):
+    from . import task_responsibility_answers as owners
+    if _valid_record(record) or _generic_outcome(record) or owners.valid(record):
         return {**base_context(), KEY: record}
     return generic('withheld')
 
@@ -229,6 +235,9 @@ def _render(proof):
 def project_message(value, tasks, episodes, *, resolve):
     """Never surface internal IDs, sequences or stamps unless proof validates."""
     record = value['metadata']['context'].get(KEY)
+    from . import task_responsibility_answers as owners
+    if isinstance(record, dict) and record.get('kind') == owners.KIND:
+        return owners.project_message(value, tasks, resolve=resolve)
     value['content'] = NEUTRAL if not resolve else WITHHELD
     context = {**base_context(), 'task_status_view': True}
     value['metadata'] = {**value['metadata'], 'context': context}
