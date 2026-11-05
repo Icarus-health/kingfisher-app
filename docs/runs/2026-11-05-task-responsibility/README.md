@@ -68,3 +68,25 @@ The source/quote cap is 256,000 characters, the occurrence walk is bounded to 12
 Actual automatic RED tests reproduced four bypasses while the disjoint control passed. A manual race also reproduced unwanted task/project creation. The final affected run passed 81 Python tests; three further focused race/rebind cases passed. Fourteen UI checks and TypeScript/Vite passed. The full design layout emitted all seven checked assets byte for byte; only the existing chunk-size and TestClient warnings remain. No full-suite or native result is implied by these focused runs.
 
 The one scoped final re-review approved I1 and M1 with no new Critical/Important finding. The completed technical subplan now joins storage, UI/classification, automation and actual conversation projection. Real-model semantic quality, native interaction, exact-head CI, personal installation and usage-week acceptance remain separate open gates. No bulk import, private-source upload or model-provider call occurred.
+
+## Published-head CI follow-up
+
+At `bb1ecec`, CI run 41965994776 completed the Python 3.10 and 3.12 backend
+suites with the same single failure: the sent-mail integration test still
+expected the old “vermutlich noch offen” opening. Each run passed 10,361
+other tests and 26 subtests, with two skips. Later steps did not run after
+that failure. UI, Mac build and Container passed; this is not an all-green
+CI result or a native acceptance.
+
+The local reproduction reached that exact assertion using the real synthetic
+TLS IMAP fixture. The test now requires the intended source-qualified own
+commitment and the explicit statement that its open state is not established.
+Existing source quotation, role, proposal and model-free checks are unchanged.
+The only production-file edit corrects the module docstring; executable AST
+is unchanged. Both affected test files passed (37 tests), and an independent
+scoped review confirmed the contract and unchanged semantics. The default
+all-socket guard initially blocked fixture setup; the successful runs used
+a temporary exception limited to that fake listener's live loopback port,
+while external destinations remained blocked. The existing TestClient
+deprecation warning remains. CI for the resulting correction is a separate
+pending check, not inferred from the local result.

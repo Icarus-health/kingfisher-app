@@ -43,9 +43,13 @@ zentralen Quellenfilter-Regel; jeweils 10.293 weitere Tests bestanden. Die
 geprüfte Korrektur `7523853` verwendet die maßgeblichen Quellenhelfer und ist
 im veröffentlichten Zuständigkeitspaket bis `bb1ecec` enthalten.
 Für diesen exakten Stand sind UI-, Mac-Bau- und Containerprüfung erfolgreich.
-Beim Readback am 5. November liefen beide Python-Jobs in CI-Lauf
+Beide Python-Jobs in CI-Lauf
 [41965994776](https://github.com/Icarus-health/kingfisher-app/actions/runs/41965994776)
-noch; ein vollständiger grüner CI-Nachweis ist hier damit nicht behauptet.
+endeten mit derselben veralteten Text-Erwartung zur eigenen Zusage; je
+10.361 Tests und 26 Untertests bestanden, zwei wurden übersprungen. Der
+Testvertrag ist inzwischen lokal korrigiert und unabhängig geprüft: 37
+betroffene Tests bestehen, ausführbarer Produktcode blieb unverändert.
+Die vollständige CI der Korrektur steht noch aus.
 PR124 bleibt Entwurf und ungemergt. Ein erfolgreicher Mac-Bau ist keine
 Installation oder native Bedienabnahme.
 

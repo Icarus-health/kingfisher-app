@@ -9,7 +9,8 @@ Richtung (`von_mir` oder `an_mich`, nur bei Mails) und die Entscheidungen des Nu
 
 Wie die Mappe im Gespräch ist die Antwort eine Ansicht: Gespeichert wird nur die Frage, nie ein Zitat; beim Öffnen
 des Gesprächs wird sie neu aus den Akten zusammengestellt (`conversations.py`, `server.py`). Jede Zeile nennt ihre
-Quelle. Die Antwort behauptet nicht, dass etwas offen ist: Es heißt „vermutlich“.
+Quelle. Die Antwort lässt den offenen Stand ausdrücklich ungewiss. Bei eigenen Zusagen benennt der Einstieg
+den Aktenfund und die fehlende spätere Erledigung.
 """
 from __future__ import annotations
 
