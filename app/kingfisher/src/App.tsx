@@ -43,7 +43,8 @@ import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
-import { endOfTaskDay } from "./taskWorkflow";
+import { endOfTaskDay, taskHistorySequence } from "./taskWorkflow";
+import { TaskStatusAnswer } from "./TaskStatusAnswer";
 import { ProfileSource } from "./ProfileSource";
 import { MemoryGraph } from "./MemoryGraph";
 import { MemoryProfile, RegistryProfile } from "./MemoryProfile";
@@ -541,6 +542,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
               const beleg = belegStand(message);
+              const taskStatus = message.role === "assistant" && message.metadata?.context?.task_status_view === true;
               const procedureProposal = message.role === "assistant" ? message.metadata?.context?.procedure_proposal : undefined;
               const candidate = card?.candidate;
               const requiresReplacement = Boolean(card?.conflicts.length);
@@ -551,7 +553,8 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 : "Derzeit nicht als Wissen verwendbar.";
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
                 <span className="message-wer">{message.role === "user" ? "Du" : "Kingfisher"}</span>
-                {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} />
+                {taskStatus ? <TaskStatusAnswer content={message.content} link={message.metadata?.context?.task_link} messageId={message.id} />
+                  : message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} />
                   : message.role === "assistant" && message.metadata?.context?.original_fallback === true
                     ? <div className="antwort-originale"><p>Die Quellen sind gefunden. Eine geprüfte Zusammenfassung fehlt noch.</p>
                       <details className="antwort-arbeitsweise"><summary>Originalangaben lesen</summary><MessageText content={message.content} /></details></div>
@@ -565,7 +568,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {beleg.art === "quellenlinks" ? <div className="beleg-links" role="group" aria-label="Worauf die Antwort sich stützt"><p className="beleg-kopf">{GESTUETZT_AUF}</p>
                   {message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet={false} />)}
                 </div> : null}
-                {beleg.art === "ohne" && !procedureProposal && !message.metadata?.context?.procedure_choice ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
+                {!taskStatus && beleg.art === "ohne" && !procedureProposal && !message.metadata?.context?.procedure_choice ? <p className="beleg-ohne">{OHNE_BELEG}</p> : null}
                 {procedureProposal ? <button type="button" className="g-knopf-schlicht" onClick={() => navigate(`/settings?ablauf=${encodeURIComponent(procedureProposal.id)}#ich-ablaeufe`)}>Ablauf prüfen</button> : null}
                 {meldbar(message) ? <div className="antwort-rueckkanal">
                   <StimmtNicht conversationId={data.conversation.id} messageId={message.id} saved={message.metadata?.workflow_feedback} />
@@ -696,6 +699,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
+  const [historySequence, setHistorySequence] = useState(() => taskHistorySequence(new URLSearchParams(window.location.search)));
   // 0: Aufgabe nur öffnen; sonst eine fortlaufende Nummer, damit jeder Klick auf einen Titel das Bearbeiten öffnet.
   const [detailEdit, setDetailEdit] = useState(0);
   const editRequests = useRef(0);
@@ -748,6 +752,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   function openTask(id: string | null, edit = false) {
     setDetailEdit(edit ? ++editRequests.current : 0);
     setSelectedTask(id);
+    setHistorySequence(undefined);
   }
 
   function loadProjects() {
@@ -797,10 +802,12 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     url.searchParams.set("view", view);
     if (selectedTask) url.searchParams.set("task", selectedTask);
     else url.searchParams.delete("task");
+    if (selectedTask && historySequence) url.searchParams.set("history", historySequence);
+    else url.searchParams.delete("history");
     if (projectId) url.searchParams.set("project", projectId);
     else url.searchParams.delete("project");
     window.history.replaceState(window.history.state, "", url);
-  }, [view, projectId, selectedTask]);
+  }, [view, projectId, selectedTask, historySequence]);
 
   useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search]);
 
@@ -942,7 +949,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <Seitenkopf className="tasks-heading" titel="Aufgaben" zeile={kopfZeile}
         aktionen={view !== "decisions" && view !== "goals" ? <button className={formOffen ? "g-knopf-getoent" : "tasks-add"} disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : undefined} />
       {selectedTask && <DetailPanel title="Aufgabe" onClose={() => openTask(null)}>
-        <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} editing={detailEdit > 0} onChanged={() => load()} />
+        <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} historySequence={historySequence} editing={detailEdit > 0} onChanged={() => load()} />
       </DetailPanel>}
       <Segmente className="aufgaben-segmente" label="Aufgabenansichten" optionen={tabs} wert={activeTab} onWahl={chooseTab} />
       <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>

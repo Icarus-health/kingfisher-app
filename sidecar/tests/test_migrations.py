@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Barrier
@@ -121,7 +122,7 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (26 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
+    assert _version(path) == (27 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
     assert _tables(path) == expected
 
 
@@ -496,7 +497,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (26 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
+        assert _version(paths[name]) == (27 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]
@@ -532,7 +533,8 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
                     continue  # Inhalt des Volltextindex und seiner Schattentabellen
                 else:
                     assert values == []
-            actual_snapshot["episodes"] = [row[:-3] for row in actual_snapshot["episodes"]]
+            assert all(row[-1] == 0 for row in actual_snapshot["episodes"])
+            actual_snapshot["episodes"] = [row[:-4] for row in actual_snapshot["episodes"]]
         if name == "proposals":
             actual_snapshot["proposals"] = [row[:-2] for row in actual_snapshot["proposals"]]
         if name == "tasks":
@@ -717,3 +719,81 @@ def test_encrypted_recovery_restores_pre_migration_schema_and_keeps_newer_data(t
     restored_conversations=ConversationStore(result/'data/conversations.sqlite3')
     assert [message.content for message in restored_conversations.messages(conversation.id)]==['Gesicherte Frage']
     restored_conversations.close()
+
+
+def test_episode_v26_upgrade_preserves_source_head_and_existing_claim_support(tmp_path, monkeypatch):
+    from icarus_memory import episodes as episode_module
+    from icarus_memory.claims import ClaimStore
+    from icarus_memory.knowledge_render import KnowledgeInputBuild
+    from tests.test_attachment_lifecycle import KEY, accept, attachment, mail
+
+    path = tmp_path / 'episodes.sqlite3'
+    claims = ClaimStore(tmp_path / 'claims.sqlite3')
+    proposals = ProposalStore(tmp_path / 'proposals.sqlite3')
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(episode_module, '_MIGRATIONS', episode_module._MIGRATIONS[:26])
+            with closing(EpisodeStore(path)) as previous:
+                stores = previous, claims, proposals
+                parent = mail(stores)
+                child = attachment(stores, parent)
+                claim = accept(stores, child)
+                document = previous.get(child.id).to_dict()
+                default_fingerprint = previous.support_snapshot(child.id).support_fingerprint()
+                claim_support = KnowledgeInputBuild(claims, previous.support_snapshot).capture(claim.id)
+                assert claim_support is not None
+        assert _version(path) == 26
+
+        with closing(EpisodeStore(path)) as upgraded:
+            assert _version(path) == 27
+            assert upgraded.source_head(KEY) == parent.id
+            assert upgraded.source_head(KEY + ':anhang:1') == child.id
+            assert upgraded.get(child.id).to_dict() == document
+            assert upgraded.support_snapshot(child.id).support_fingerprint() == default_fingerprint
+            assert KnowledgeInputBuild(claims, upgraded.support_snapshot).capture(claim.id) == claim_support
+            upgraded.mark_consolidated(parent.id, at=T0)
+            assert upgraded.archive_before(datetime(2099, 1, 1, tzinfo=timezone.utc)) == 1
+            assert upgraded.belegbarer_snapshot(child.id, require_unarchived=True) is None
+            upgraded.mark_consolidated(parent.id, at=T0)
+            assert upgraded.support_snapshot(child.id).support_fingerprint() == default_fingerprint
+            assert KnowledgeInputBuild(claims, upgraded.support_snapshot).capture(claim.id) == claim_support
+            assert claims.get(claim.id).status.value == 'active'
+    finally:
+        claims.close()
+        proposals.close()
+
+
+def test_episode_archive_generation_migration_rolls_back_on_verification_error(tmp_path, monkeypatch):
+    from dataclasses import replace
+    from icarus_memory import episodes as episode_module
+
+    path = tmp_path / 'episodes.sqlite3'
+    migrations = episode_module._MIGRATIONS
+    with monkeypatch.context() as patch:
+        patch.setattr(episode_module, '_MIGRATIONS', migrations[:26])
+        with closing(EpisodeStore(path)) as previous:
+            previous.record(EpisodeKind.MESSAGE, 'Original', 'Unveränderter Text', Provenance(SourceType.EMAIL))
+    previous_rows = _snapshot(path)
+    assert _version(path) == 26
+
+    def reject_after_check(connection):
+        migrations[-1].verify(connection)
+        raise RuntimeError('synthetic verification failure')
+
+    assert migrations[-1].version == 27
+    monkeypatch.setattr(episode_module, '_MIGRATIONS', (*migrations[:-1], replace(migrations[-1], verify=reject_after_check)))
+    with pytest.raises(MigrationError, match='Migration 27'):
+        EpisodeStore(path)
+    assert _version(path) == 26
+    assert _snapshot(path) == previous_rows
+    with sqlite3.connect(path) as conn:
+        assert conn.execute("SELECT 1 FROM sqlite_schema WHERE name='trg_episode_recall_archive_generation'").fetchone() is None
+
+
+def test_episode_store_rejects_missing_archive_generation_trigger(tmp_path):
+    path = tmp_path / 'episodes.sqlite3'
+    EpisodeStore(path).close()
+    with sqlite3.connect(path) as conn:
+        conn.execute('DROP TRIGGER trg_episode_recall_archive_generation')
+    with pytest.raises(MigrationError, match='Version 27'):
+        EpisodeStore(path)

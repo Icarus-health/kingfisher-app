@@ -384,7 +384,7 @@ def test_logbuch_haelt_annehmen_und_ablehnen_fest(api):
 def test_migration_24_legt_die_tabelle_an_und_laesst_entscheidungen_stehen(tmp_path):
     pfad = tmp_path / 'episodes.sqlite3'
     store = EpisodeStore(pfad)
-    assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 26
+    assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 27
     store._conn.execute("INSERT INTO akten_entscheidungen VALUES ('t:e-1', 'erledigt', 1.0)")
     store._conn.commit()
     store.close()
@@ -394,12 +394,14 @@ def test_migration_24_legt_die_tabelle_an_und_laesst_entscheidungen_stehen(tmp_p
     from icarus_memory.projekt_automatik import TABLES as AUTOMATIK   # Migration 25 kommt danach
     for tabelle in AUTOMATIK:
         verbindung.execute(f'DROP TABLE {tabelle}')
+    from tests.working_memory_legacy import drop_recall_archive_generation
+    drop_recall_archive_generation(verbindung)
     verbindung.execute('ALTER TABLE mail_intake_items DROP COLUMN mime_refresh_version')
     verbindung.execute('PRAGMA user_version = 23')
     verbindung.commit()
     verbindung.close()
     wieder = EpisodeStore(pfad)
-    assert wieder._conn.execute('PRAGMA user_version').fetchone()[0] == 26
+    assert wieder._conn.execute('PRAGMA user_version').fetchone()[0] == 27
     assert wieder._conn.execute("SELECT entscheidung FROM akten_entscheidungen WHERE ziel = 't:e-1'").fetchone()[0] == 'erledigt'
     ablage = Entscheidungen(wieder)
     ablage.merken('0123456789abcdef', 'abgelehnt')

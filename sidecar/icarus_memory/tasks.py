@@ -17,15 +17,17 @@ es sich ausgedacht.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import threading
+import unicodedata
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, Literal
 
 from .datumstext import iso_lesen as _parse
 from .migrations import (
@@ -69,6 +71,56 @@ class TaskStatus(str, Enum):
 class TaskCompletionSnapshot:
     task_id: str
     sequence: int
+
+
+class _RecallBudgetExceeded(Exception):
+    pass
+
+
+_RECALL_OPCODE_BUDGET = 250_000
+_RECALL_PROGRESS_STEPS = 1_000
+RECALL_OPERAND_MAX = 256
+_TASK_ID = re.compile(r"t-(?:[0-9a-f]{12}|[0-9a-f]{32}|suggestion-[a-zA-Z0-9_-]{1,128})")
+
+
+def is_task_id(value: object) -> bool:
+    return isinstance(value, str) and _TASK_ID.fullmatch(value) is not None
+
+
+def _normalize_title(value: str) -> str:
+    return ' '.join(unicodedata.normalize('NFC', value.lower()).split())
+
+
+def _recall_title_match(title: str, operand: str, quoted: int) -> int:
+    normalized = _normalize_title(title)
+    if normalized == operand:
+        return 1
+    if not quoted and re.search(r"(?<![\w-])" + re.escape(operand) + r"(?![\w-])", normalized):
+        return 2
+    return 0
+
+
+@dataclass(frozen=True)
+class TaskRecallProof:
+    task_id: str
+    title: str
+    state: TaskStatus
+    task_revision: int
+    state_event_sequence: int | None
+    confirmation_event_sequence: int | None
+    confirmed_at: str | None
+    done_at: str | None
+    history_incomplete: bool
+    manual_creation: bool
+    creation_episode: str | None
+    mail_completion: bool
+    completion_episode: str | None
+
+
+@dataclass(frozen=True)
+class TaskRecallLookup:
+    status: Literal["unique", "ambiguous", "not_found", "coverage_limited"]
+    proof: TaskRecallProof | None = None
 
 
 @dataclass
@@ -433,6 +485,7 @@ class TaskStore:
         # Wie SqliteBackend: FastAPI bedient aus einem Threadpool.
         self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
+        self._conn.create_function("recall_title_match", 3, _recall_title_match, deterministic=True)
         self._lock = threading.Lock()
         try:
             with self._lock:
@@ -887,6 +940,161 @@ class TaskStore:
 
     # -- Lesen -------------------------------------------------------------
 
+    @contextmanager
+    def _recall_snapshot(self) -> Iterator[None]:
+        with self._lock:
+            self._conn.execute("BEGIN")
+            try:
+                yield
+            finally:
+                self._conn.rollback()
+
+    @contextmanager
+    def _recall_sql_budget(self) -> Iterator[None]:
+        remaining = _RECALL_OPCODE_BUDGET
+
+        def progress() -> int:
+            nonlocal remaining
+            remaining -= _RECALL_PROGRESS_STEPS
+            return int(remaining <= 0)
+
+        self._conn.set_progress_handler(progress, _RECALL_PROGRESS_STEPS)
+        try:
+            yield
+        except sqlite3.OperationalError as exc:
+            if remaining <= 0:
+                raise _RecallBudgetExceeded from exc
+            raise
+        finally:
+            # All progress handlers on this private connection run under its lock.
+            self._conn.set_progress_handler(None, 0)
+
+    def status_for_recall(self, reference: str, *, quoted: bool = False) -> TaskRecallLookup:
+        """Literal whole-title lookup across all states; partial titles never resolve."""
+        if not 0 < len(reference) <= RECALL_OPERAND_MAX:
+            return TaskRecallLookup("coverage_limited")
+        operand = _normalize_title(reference)
+        if not operand:
+            return TaskRecallLookup("not_found")
+        with self._recall_snapshot():
+            try:
+                with self._recall_sql_budget():
+                    matches = self._conn.execute(
+                        "SELECT id, recall_title_match(title, :operand, :quoted) AS match FROM tasks "
+                        "WHERE match > 0 LIMIT 2", {"operand": operand, "quoted": int(quoted)},
+                    ).fetchall()
+            except _RecallBudgetExceeded:
+                return TaskRecallLookup("coverage_limited")
+            if not matches:
+                return TaskRecallLookup("not_found")
+            if len(matches) > 1 or matches[0]["match"] != 1:
+                return TaskRecallLookup("ambiguous")
+            return self._task_recall_proof(matches[0]["id"])
+
+    def status_for_recall_id(self, task_id: str) -> TaskRecallLookup:
+        if not is_task_id(task_id):
+            return TaskRecallLookup("not_found")
+        with self._recall_snapshot():
+            return self._task_recall_proof(task_id)
+
+    def _recall_state_event(self, task_id: str, *, before: int | None = None) -> sqlite3.Row | None:
+        bound = "AND sequence < ?" if before is not None else ""
+        parameters = (task_id, before) if before is not None else (task_id,)
+        return self._conn.execute(
+            f"""SELECT sequence, kind, after_state, json_extract(after_state, '$.status') AS status,
+                       json_extract(after_state, '$.done_at') AS done_at
+                FROM task_events WHERE task_id = ? {bound} AND (
+                    before_state IS NULL OR kind IN ('auto_removed','auto_restored','post_undone')
+                    OR json_extract(before_state, '$.status') IS NOT json_extract(after_state, '$.status')
+                    OR json_extract(before_state, '$.done_at') IS NOT json_extract(after_state, '$.done_at')
+                ) ORDER BY sequence DESC LIMIT 1""", parameters,
+        ).fetchone()
+
+    def _restored_completion_origin(self, task_id: str, restored: sqlite3.Row) -> str | None:
+        # A remembered document can outlive recreation under the same ID.
+        # The old event history cannot pair such a document with a removal.
+        creations = self._conn.execute(
+            """SELECT sequence FROM task_events WHERE task_id = ?
+               AND kind IN ('created','from_suggestion','preexisting_snapshot')
+               ORDER BY sequence DESC LIMIT 2""", (task_id,),
+        ).fetchall()
+        if len(creations) != 1:
+            return None
+        for _ in range(8):
+            removal = self._conn.execute(
+                """SELECT sequence, kind, before_state FROM task_events
+                   WHERE task_id = ? AND sequence < ? ORDER BY sequence DESC LIMIT 1""",
+                (task_id, restored["sequence"]),
+            ).fetchone()
+            if (removal is None or removal["kind"] != "auto_removed"
+                    or removal["before_state"] != restored["after_state"]):
+                return None
+            origin = self._recall_state_event(task_id, before=removal["sequence"])
+            if (origin is None or origin["status"] != "done"
+                    or origin["done_at"] != restored["done_at"]):
+                return None
+            if origin["kind"] in ("post_completed", "completed", "user_confirmed_completion"):
+                return origin["kind"]
+            if origin["kind"] != "auto_restored":
+                return None
+            restored = origin
+        return None
+
+    def _task_recall_proof(self, task_id: str) -> TaskRecallLookup:
+        row = self._conn.execute(
+            """SELECT title, status, json_extract(document, '$.done_at') AS done_at,
+                json_extract(document, '$.provenance.source_type') AS source_type,
+                json_extract(document, '$.provenance.source_ref') AS source_ref,
+                json_extract(document, '$.provenance.extracted_by') AS extracted_by,
+                NULLIF(json_type(document, '$.angelegt'), 'null') AS creation_kind,
+                json_extract(document, '$.erledigt_grund.episode_id') AS completion_episode,
+                (SELECT max(sequence) FROM task_events WHERE task_id = tasks.id) AS revision
+                FROM tasks WHERE id = ?""", (task_id,),
+        ).fetchone()
+        if row is None:
+            return TaskRecallLookup("not_found")
+        if row["revision"] is None:
+            return TaskRecallLookup("coverage_limited")
+
+        # Read the active interval and any restored completion origin under one budget.
+        state_event = confirmation = None
+        restored_origin = None
+        history_interrupted = False
+        try:
+            with self._recall_sql_budget():
+                state_event = self._recall_state_event(task_id)
+                if state_event and row["status"] == "done" and state_event["status"] == "done":
+                    if state_event["kind"] == "auto_restored":
+                        restored_origin = self._restored_completion_origin(task_id, state_event)
+                    confirmation = self._conn.execute(
+                        """SELECT sequence, recorded_at FROM task_events WHERE task_id = ?
+                           AND sequence >= ? AND kind = 'user_confirmed_completion'
+                           AND json_extract(after_state, '$.status') = 'done'
+                           ORDER BY sequence DESC LIMIT 1""", (task_id, state_event["sequence"]),
+                    ).fetchone()
+        except _RecallBudgetExceeded:
+            history_interrupted = True
+        if state_event is not None:
+            if (state_event["status"], state_event["done_at"]) != (row["status"], row["done_at"]):
+                state_event = confirmation = None
+            elif row["status"] == "done" and state_event["kind"] == "auto_restored" and restored_origin is None:
+                state_event = confirmation = None
+        source_ref = row["source_ref"]
+        creation = source_ref[8:] if isinstance(source_ref, str) and source_ref.startswith("episode:") else None
+        manual = (row["source_type"] in ("user_stated", "manual_correction") and source_ref is None
+                  and row["extracted_by"] is None and row["creation_kind"] is None)
+        mail_completion = (row["status"] == "done" and state_event is not None
+                           and (restored_origin or state_event["kind"]) == "post_completed")
+        return TaskRecallLookup("unique", TaskRecallProof(
+            task_id, row["title"], TaskStatus(row["status"]), row["revision"],
+            state_event["sequence"] if state_event else None,
+            confirmation["sequence"] if confirmation else None,
+            confirmation["recorded_at"] if confirmation else None,
+            row["done_at"] if row["status"] == "done" else None,
+            history_interrupted or state_event is None or state_event["kind"] in ("preexisting_snapshot", "auto_restored"),
+            manual, creation, mail_completion, row["completion_episode"] if mail_completion else None,
+        ))
+
     def history(self, task_id: str, limit: int = 100) -> list[dict[str, Any]]:
         """Newest recorded events first, bounded to 200; [] for an unknown task.
 
@@ -905,11 +1113,22 @@ class TaskStore:
                 "SELECT * FROM task_events WHERE task_id = ? ORDER BY sequence DESC LIMIT ?",
                 (task_id, limit),
             ).fetchall()
-        return [{"sequence": row["sequence"], "task_id": row["task_id"],
-                 "kind": row["kind"], "recorded_at": row["recorded_at"],
-                 "business_at": row["business_at"], "actor_id": None,
-                 "before": json.loads(row["before_state"]) if row["before_state"] else None,
-                 "after": json.loads(row["after_state"])} for row in rows]
+        return [self._history_document(row) for row in rows]
+
+    def history_event(self, task_id: str, sequence: int) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM task_events WHERE task_id = ? AND sequence = ?", (task_id, sequence),
+            ).fetchone()
+        return self._history_document(row) if row else None
+
+    @staticmethod
+    def _history_document(row: sqlite3.Row) -> dict[str, Any]:
+        return {"sequence": row["sequence"], "task_id": row["task_id"],
+                "kind": row["kind"], "recorded_at": row["recorded_at"],
+                "business_at": row["business_at"], "actor_id": None,
+                "before": json.loads(row["before_state"]) if row["before_state"] else None,
+                "after": json.loads(row["after_state"])}
 
     def get(self, task_id: str) -> Task | None:
         with self._lock:

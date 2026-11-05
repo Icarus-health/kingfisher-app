@@ -102,13 +102,15 @@ export type AntwortZeitenProtokoll = {
   pruefung?: SatzpruefungStand;
 };
 
+export type TaskStatusLink = {id: string; status: "open" | "done" | "dropped"; sequence: string};
+
 export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { workflow_feedback?:WorkflowFeedback; resolved_approval_id?: string; context?: { original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { workflow_feedback?:WorkflowFeedback; resolved_approval_id?: string; context?: { task_status_view?: boolean; task_link?: TaskStatusLink; original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -148,6 +150,7 @@ export type ContextItem = {
 };
 
 export type ContextPacket = {
+  task_link?: TaskStatusLink;
   query: string;
   generated_at: string | null;
   items: ContextItem[];
@@ -1357,7 +1360,7 @@ export const api = {
   previewSupportReassessment: (id: string) => request<SupportReassessmentPreview>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment/preview`, {method: "POST"}),
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
   task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
-  taskHistory: (id: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history`),
+  taskHistory: (id: string, sequence?: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history${sequence ? `?sequence=${encodeURIComponent(sequence)}` : ""}`),
   memoryCoverage: (signal?: AbortSignal) => request<MemoryCoverage>("/api/v1/memory/coverage", {signal}),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
   setMemoryAutomation: (enabled: boolean, vormerken = false) => request<MemoryAutomation>("/api/v1/memory/automation", {method: "PUT", body: JSON.stringify(vormerken ? {enabled, vormerken} : {enabled})}),

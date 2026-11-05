@@ -431,9 +431,13 @@ class ConversationStore:
                 """SELECT c.id, c.title, c.updated_at,
                           COUNT(m.id) AS message_count,
                           COALESCE((
-                            SELECT CASE WHEN last.role = 'assistant' AND json_valid(last.metadata)
+                            SELECT CASE WHEN last.role = 'user' AND json_valid(last.metadata)
+                              AND json_type(last.metadata, '$.task_status_lookup') = 'true'
+                              THEN 'Frage zum Aufgabenstatus.'
+                              WHEN last.role = 'assistant' AND json_valid(last.metadata)
                               AND (json_extract(last.metadata, '$.context.answer_mode') = 'memory_evidence'
-                                OR json_array_length(json_extract(last.metadata, '$.context.knowledge_claim_ids')) > 0)
+                                OR json_array_length(json_extract(last.metadata, '$.context.knowledge_claim_ids')) > 0
+                                OR json_type(last.metadata, '$.context.task_status_answer') IS NOT NULL)
                               THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.'
                               ELSE last.content END
                             FROM conversation_messages AS last
@@ -485,11 +489,15 @@ class ConversationStore:
              OR COALESCE(json_array_length(json_extract(m.metadata, '$.context.knowledge_claim_ids')), 0) > 0
              OR json_type(m.metadata, '$.context.source_answer') IS NOT NULL
              OR json_type(m.metadata, '$.context.working_answer') IS NOT NULL
-             OR json_type(m.metadata, '$.context.mappe_answer') IS NOT NULL)
+             OR json_type(m.metadata, '$.context.mappe_answer') IS NOT NULL
+             OR json_type(m.metadata, '$.context.task_status_answer') IS NOT NULL)
             ELSE 1 END"""
+        typed_user = """CASE WHEN json_valid(m.metadata)
+            THEN COALESCE(json_type(m.metadata, '$.task_status_lookup') = 'true', 0) ELSE 0 END"""
         match = f"""(kingfisher_casefold(c.title) LIKE ? ESCAPE '\\' OR EXISTS (
             SELECT 1 FROM conversation_messages m WHERE m.conversation_id = c.id
-              AND (m.role = 'user' OR (m.role = 'assistant' AND NOT ({protected})))
+              AND ((m.role = 'user' AND NOT ({typed_user}))
+                   OR (m.role = 'assistant' AND NOT ({protected})))
               AND kingfisher_casefold(m.content) LIKE ? ESCAPE '\\'))"""
         parameters: list[Any] = [pattern, pattern]
         after = ""
@@ -497,7 +505,9 @@ class ConversationStore:
             after = " AND (kingfisher_time(c.updated_at) < ? OR (kingfisher_time(c.updated_at) = ? AND c.id < ?))"
         projection = f"""SELECT c.id, c.title, c.updated_at,
                 (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) AS message_count,
-                COALESCE((SELECT CASE WHEN m.role = 'assistant' AND ({protected})
+                COALESCE((SELECT CASE WHEN m.role = 'user' AND ({typed_user})
+                    THEN 'Frage zum Aufgabenstatus.'
+                    WHEN m.role = 'assistant' AND ({protected})
                     THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.' ELSE substr(m.content,1,600) END
                     FROM conversation_messages m WHERE m.conversation_id = c.id
                     ORDER BY kingfisher_time(m.created_at) DESC, m.rowid DESC LIMIT 1), '') AS preview
@@ -618,7 +628,14 @@ class ConversationStore:
         content = content.strip()
         if not content:
             raise ValueError("Eine Nachricht darf nicht leer sein")
+        from . import task_status_answers
         if (role == 'assistant' and isinstance(metadata, dict)
+                and isinstance(metadata.get('context'), dict) and task_status_answers.KEY in metadata['context']):
+            content = task_status_answers.NEUTRAL
+            metadata = {'context': task_status_answers.storage_context(metadata['context']),
+                        **({'retry_of': metadata['retry_of']} if 'retry_of' in metadata else {}),
+                        'conversation_source_lineage': []}
+        elif (role == 'assistant' and isinstance(metadata, dict)
                 and isinstance(metadata.get('context'), dict) and 'mappe_answer' in metadata['context']):
             # Die Mappe ist eine Ansicht: gespeichert wird nur, welche es war,
             # nie ein kopiertes Zitat. Beim Öffnen wird sie neu zusammengestellt.
@@ -658,7 +675,7 @@ class ConversationStore:
                     raise KeyError(conversation_id)
                 title = conversation["title"]
                 stored_metadata = copy.deepcopy(metadata or {})
-                if role == "user" and title == "Neues Gespräch":
+                if role == "user" and title == "Neues Gespräch" and stored_metadata.get(task_status_answers.USER_FLAG) is not True:
                     title = content[:60].rstrip()
                     stored_metadata["generated_conversation_title"] = True
                 self._conn.execute(

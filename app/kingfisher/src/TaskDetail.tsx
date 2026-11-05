@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, type Project, type Task} from './api';
 import {TaskRow} from './TaskRow';
+import {TaskHistory} from './TaskHistory';
 import {navigate} from './ui';
 import {zeigeHinweis, zitat, type HinweisDaten} from './grundlage';
 import {erledigtHinweis, POST_ZURUECK, verworfenHinweis, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis} from './aufgabenHinweis';
@@ -8,7 +9,7 @@ import {anlageZuruecknehmen} from './AufgabenSelbstHeute';
 import {ANLAGE_ZURUECK} from './aufgabenVonSelbst';
 
 /** Exact lookup also works when a task is outside the current list/filter. */
-export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string; onChanged: () => void; editing?: boolean}) {
+export function TaskDetail({taskId, onChanged, editing = false, historySequence}: {taskId: string; onChanged: () => void; editing?: boolean; historySequence?: string}) {
   const [task, setTask] = useState<Task | null>(null);
   const [goalStatement, setGoalStatement] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -72,14 +73,16 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
     const daten = wegZurueck ? {...hinweis, rueckgaengig: async () => { if (!await wegZurueck()) throw new Error('nicht bestätigt'); }} : hinweis;
     if (await change(operation)) zeigeHinweis(daten);
   }
+  const from = new URLSearchParams(window.location.search).get('from');
   return <div className="task-detail">
-    {new URLSearchParams(window.location.search).get('from')==='memory'&&<button type="button" className="text-action" onClick={()=>window.history.back()}>Zur vorherigen Gedächtnisansicht</button>}
+    {historySequence && from === 'conversation' && <button type="button" className="text-action" onClick={() => window.history.back()}>Zurück zum Gespräch</button>}
+    {from==='memory'&&<button type="button" className="text-action" onClick={()=>window.history.back()}>Zur vorherigen Gedächtnisansicht</button>}
     {zurueckgenommen && <p className="task-detail-satz" role="status">{ANLAGE_ZURUECK}</p>}
     {!task && !error && !zurueckgenommen && <p className="task-detail-satz" role="status">Aufgabe wird geladen …</p>}
     {error && <p className="task-detail-satz task-detail-fehler" role="alert">{error}{!task && <> <button type="button" className="text-action" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></>}</p>}
     {task?.goal_id && <p className="task-goal-link"><strong>Zielbezug:</strong> {goalStatement ?? "Ziel wird geladen …"}</p>}
     {projectsFailed && <p className="task-detail-satz" role="status">Projekte konnten nicht geladen werden. Die Projektzuordnung bleibt erhalten. <button type="button" className="text-action" disabled={busy} onClick={() => setProjectRevision(value => value + 1)}>Projekte erneut laden</button></p>}
-    {task?.status === "dropped" && <div className="task-detail-verworfen"><p>Diese Aufgabe wurde verworfen: {task.title}</p><button type="button" className="secondary-action" disabled={busy} onClick={()=>void mitHinweis(()=>api.reopenTask(task.id), {text: `${zitat(task.title)} ist wieder offen.`, rueckgaengig: () => change(() => api.dropTask(task.id)), danach: `${zitat(task.title)} verworfen.`})}>Aufgabe wieder aufnehmen</button></div>}
+    {task?.status === "dropped" && <div className="task-detail-verworfen"><p>Diese Aufgabe wurde verworfen: {task.title}</p><button type="button" className="secondary-action" disabled={busy} onClick={()=>void mitHinweis(()=>api.reopenTask(task.id), {text: `${zitat(task.title)} ist wieder offen.`, rueckgaengig: () => change(() => api.dropTask(task.id)), danach: `${zitat(task.title)} verworfen.`})}>Aufgabe wieder aufnehmen</button><TaskHistory taskId={task.id} revision={String(revision)} sequence={historySequence} /></div>}
     {task && task.status !== "dropped" && <TaskRow task={task} view={task.status === 'done' ? 'done' : task.wartet_auf ? 'waiting' : 'mine'} completing={busy}
       projects={projects} projectDisabled={projectsFailed || projectsLoading} onProjectChange={id => {void change(() => api.assignTaskProject(task.id, id || null));}}
       onEdit={data => change(() => api.editTask(task.id, data))}
@@ -91,7 +94,7 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
         : erledigtHinweis(task, () => change(() => api.reopenTask(task.id))));}}
       onRueckgaengig={() => {void mitHinweis(() => api.taskRueckgaengig(task.id), {text: POST_ZURUECK});}}
       onAnlageZurueck={() => {void anlageZuruecknehmen(task.id, () => { setTask(null); setZurueckgenommen(true); onChanged(); }, setError,
-        () => { onChanged(); setRevision(value => value + 1); });}} startEditing={editing} />}
+        () => { onChanged(); setRevision(value => value + 1); });}} startEditing={editing} historySequence={historySequence} />}
     {/* Seltenes steht unter der Aufgabe, nicht davor: erst die Sache, dann der Weg weg von ihr. */}
     {task && (task.project_id || task.status === 'open') && <p className="task-detail-more">
       {task.project_id&&<button type="button" className="text-action" onClick={()=>navigate(`/memory/projects/${encodeURIComponent(task.project_id!)}?${new URLSearchParams({return_to:'/memory?tab=projects'})}`)}>Projekt im Gedächtnis öffnen</button>}

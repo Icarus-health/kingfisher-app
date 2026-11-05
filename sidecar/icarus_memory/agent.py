@@ -2132,7 +2132,8 @@ class Agent:
         # Rebuild instead of unioning across conversations. Apply both reset
         # boundaries before examining old lineage or calendar fingerprints.
         self._clear_model_history()
-        messages = knowledge_history.after_last_reset(messages)
+        from .task_status_answers import hidden_from_history
+        messages = knowledge_history.after_last_reset([m for m in messages if not hidden_from_history(m)])
         self._working_profile_signature = next((m.get('context', {}).get('working_profile_signature')
             for m in reversed(messages) if m.get('role') == 'assistant'
             and isinstance(m.get('context'), dict)), None) or {'ids':[], 'conflicts':[], 'overrides':{}}

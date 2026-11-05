@@ -13,6 +13,12 @@ export function taskHref(task: TaskTarget) {
   return `/vorhaben?view=${view}&task=${encodeURIComponent(task.id)}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ''}`;
 }
 
+export function taskHistorySequence(query: URLSearchParams) {
+  const sequence = query.get('history');
+  return sequence && /^[1-9][0-9]{0,18}$/.test(sequence) && BigInt(sequence) <= 9223372036854775807n
+    ? sequence : undefined;
+}
+
 function validDay(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T12:00:00`);

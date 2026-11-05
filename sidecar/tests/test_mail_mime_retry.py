@@ -208,6 +208,8 @@ def test_migration26_keeps_old_original_and_capture_checkpoint(partial):
     path, ep, _, _, _, parent, original=partial
     ep.close()
     with sqlite3.connect(path) as connection:
+        from tests.working_memory_legacy import drop_recall_archive_generation
+        drop_recall_archive_generation(connection)
         connection.execute('ALTER TABLE mail_intake_items DROP COLUMN mime_refresh_version')
         connection.execute('PRAGMA user_version=25')
     upgraded=EpisodeStore(path)
@@ -215,7 +217,7 @@ def test_migration26_keeps_old_original_and_capture_checkpoint(partial):
         assert upgraded.get(parent).to_dict()==original
         item=upgraded._conn.execute('SELECT status,episode_id,mime_refresh_version FROM mail_intake_items').fetchone()
         assert tuple(item)==('captured',parent,0)
-        assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0]==26
+        assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0]==27
         assert Intake(upgraded).status('qa')['mime_refreshable']==1
     finally: upgraded.close()
 

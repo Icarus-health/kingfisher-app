@@ -627,15 +627,29 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
     compact_index(connection)
 
 
+_RECALL_ARCHIVE_TRIGGER = {
+    "trg_episode_recall_archive_generation": """CREATE TRIGGER trg_episode_recall_archive_generation
+    AFTER UPDATE OF state ON episodes
+    WHEN NEW.state='archived' AND OLD.state!='archived'
+    BEGIN
+        UPDATE episodes SET recall_archive_generation=OLD.recall_archive_generation+1 WHERE id=NEW.id;
+    END""",
+}
+
+
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False, vorschlaege=False, automatik=False, mime_refresh=False) -> None:
+                entscheidungen=False, vorschlaege=False, automatik=False, mime_refresh=False,
+                recall_archive=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES_V26 if mime_refresh else mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
     extra_indexes = dict(mail_intake.INDEXES) if intake else {}
-    extra_triggers = {}
+    extra_triggers = dict(_RECALL_ARCHIVE_TRIGGER) if recall_archive else {}
+    episode_columns = _LEGACY_SCHEMA["episodes"] | {"source_key", "metadata_digest", "support_generation"}
+    if recall_archive:
+        episode_columns.add("recall_archive_generation")
     if vorschlaege:
         from . import akten_vorschlaege
         extra_tables.update(akten_vorschlaege.TABLES)
@@ -687,7 +701,7 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         extra_tables.update({**kreis_modul.TABLES, **akten_arten.TABLES})
         extra_keys.update({**kreis_modul.PRIMARY_KEYS, **akten_arten.PRIMARY_KEYS})
     verify_schema(connection,
-        expected_tables={**extra_tables,"episodes": _LEGACY_SCHEMA["episodes"] | {"source_key", "metadata_digest", "support_generation"},
+        expected_tables={**extra_tables,"episodes": episode_columns,
                          "mail_progress": {"account_id", "cursor"},
                          "source_heads": {"source_key", "episode_id"}, **support_schema.EPISODE_TABLES,
                          "working_memory_sources": ({"episode_id", "fingerprint", "status", "model", "retry_after"}
@@ -849,11 +863,12 @@ def _migrate_v20(connection):
 
 
 def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False,
-               automatik=False, mime_refresh=False):
+               automatik=False, mime_refresh=False, recall_archive=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
                 task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
-                vorschlaege=vorschlaege, automatik=automatik, mime_refresh=mime_refresh)
+                vorschlaege=vorschlaege, automatik=automatik, mime_refresh=mime_refresh,
+                recall_archive=recall_archive)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -925,6 +940,19 @@ def _verify_v26(connection):
                 automatik=True, mime_refresh=True)
 
 
+def _migrate_v27(connection):
+    # A private archive counter invalidates task recall without changing legacy source support.
+    connection.execute("""ALTER TABLE episodes ADD COLUMN recall_archive_generation INTEGER NOT NULL DEFAULT 0
+                       CHECK(typeof(recall_archive_generation)='integer' AND recall_archive_generation>=0)""")
+    for statement in _RECALL_ARCHIVE_TRIGGER.values():
+        connection.execute(statement)
+
+
+def _verify_v27(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True,
+                automatik=True, mime_refresh=True, recall_archive=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -952,6 +980,7 @@ _MIGRATIONS = (
     Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
     Migration(25, "projekt_automatik", _migrate_v25, _verify_v25),
     Migration(26, "mail_mime_refresh", _migrate_v26, _verify_v26),
+    Migration(27, "task_recall_archive_generation", _migrate_v27, _verify_v27),
 )
 
 
@@ -2241,16 +2270,21 @@ class EpisodeStore:
         with self._lock:
             return read_snapshot(self._conn, episode_id, self._from_row)
 
-    def belegbarer_snapshot(self, episode_id: str, *, max_bytes: int | None = None):
+    def belegbarer_snapshot(self, episode_id: str, *, max_bytes: int | None = None,
+                            require_unarchived: bool = False):
         """Stand einer Quelle, wenn sie als Beleg taugt; sonst `None`.
 
         Tauglich ist die geltende Fassung einer Rohquelle, die weder eine eigene Suchfrage des
         Gesprächs ist noch selbst abgeleitete Aussagen trägt. Eine Quelle über `max_bytes` (Größe des
         Dokuments) gilt als nicht tauglich; ein unstimmiger Bestand wirft ValueError wie `read_snapshot`.
+        `require_unarchived` schließt für den Aufgabenabruf auch archivierte Mail-Eltern aus und bindet
+        die Archivierungsgeneration von Quelle und Eltern in den Beleg ein. Andere Aufrufer
+        behalten die bisherige Geltung.
         """
         from .source_snapshot import read_snapshot
         with self._lock:
-            snapshot = read_snapshot(self._conn, episode_id, self._from_row, max_bytes=max_bytes)
+            snapshot = read_snapshot(self._conn, episode_id, self._from_row, max_bytes=max_bytes,
+                                     require_unarchived=require_unarchived)
             if (snapshot is None or not snapshot.current()
                     or snapshot.episode.kind not in QUELLEN_ARTEN
                     or CHAT_LOOKUP_TAG in snapshot.episode.tags
