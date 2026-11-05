@@ -1,0 +1,71 @@
+{
+  "base_commit": "c6903f931670de4f232334da0a79b4612a3097a1",
+  "code_commit": "2e47086e8d4706e8fa6c4d21d8fe8877c6b27755",
+  "source_hashes": {
+    "app/kingfisher/src/TaskStatusAnswer.tsx": "a31f2cd822632a3f8d5d5a334a352270797efe8ef8824cdc1f4abb72f0ceb97b",
+    "app/kingfisher/tests/task-status-recall-ui.test.mjs": "a2c53bec5a43980842fb0e639e11dd1a25cfaeb855ec55893f450c3b5a70905a",
+    "sidecar/icarus_memory/task_status_answers.py": "4e724ba29e13833f2455c37bbdb762d9d74175e77600c8baec3c6cae1f598417",
+    "sidecar/tests/test_task_status_recall.py": "078372539d21b19770912a3aa5b67f65839254a2c5beaab38c7212e28a04e53c",
+    "app/kingfisher/src/App.tsx": "caa4a3705eb64c37b891d5a6bb2b4e48d5f1d218fcc9ce8f458b584cda00a915",
+    "app/kingfisher/src/TaskDetail.tsx": "6ce479888210f988cd5c2b2fb47a03662ecdc89c2b6f87e62c9e22c1f9e1adc7",
+    "app/kingfisher/src/TaskHistory.tsx": "5dbf7039bda6e2cdacd09bc9bf425d3d48394aa8806fa6b3abd5d4fd60a8edae",
+    "app/kingfisher/src/TaskRow.tsx": "dffffe04ace861fffe1e729cf236952b98686f5932312af83effe843a5a91a7d",
+    "app/kingfisher/src/api.ts": "53f256c5c5cd94e0b5b97654d028dae3b79cb53d279bd589eb3ac8a89e8c3daa",
+    "app/kingfisher/src/taskWorkflow.ts": "d6f0a713909c547d9b969545ec931b0b55a6bea7008dc1ffd9e201dd327ca034",
+    "sidecar/icarus_memory/agent.py": "41e1713b9e2b6b28cac44fb0d1e56fdafbcabed4a1e87f6165ea2d4c001e81f0",
+    "sidecar/icarus_memory/conversations.py": "652e03b5bec16063ed2de3d0f254ac9cdde76526e50e9fd9605c0c355c99d18b",
+    "sidecar/icarus_memory/episodes.py": "3d6367b3c39f660dbecada32094f6b772a6a963b4652f367aac8f58aec80cb22",
+    "sidecar/icarus_memory/server.py": "b081d955f5df084e072b8fb2a53c5d6002f279cf2dffce281b1cad105f9c5f8d",
+    "sidecar/icarus_memory/source_snapshot.py": "beb397e3145955b24427c080de6ba9dee34bfd68b970beb5ca76252ab6318213",
+    "sidecar/icarus_memory/tasks.py": "06fe37a68f679512ec135ca3fc81cad5c0205330fc40790cadfc46142174e041",
+    "sidecar/tests/test_akten_vorschlaege.py": "0651e620705f3fabdd00fad429ac8e640a15162ccd0a14ff84c0fdb387fc77ff",
+    "sidecar/tests/test_bezuege.py": "cb1acf41f1e0303abfca1a6c14a68bf0a5b3bd7d0586e113146484f7b24a8053",
+    "sidecar/tests/test_category_diagnostics.py": "a8150522084741054e0afd7c798a71f4e30b0ba19e9eb8232d9f4bc768c76e6e",
+    "sidecar/tests/test_compact_search_index.py": "1efd1bf4a4ad0a88db57dc4dfd48f6fb5517180b611d2943a57dc13b84a76f6d",
+    "sidecar/tests/test_mail_header_index.py": "461cc5ebf9b9d18ad3d7ece65779365f2814ea6aee7b070e5cb54254cfa81471",
+    "sidecar/tests/test_mail_ingestion.py": "f78fa134ea394d6709cb1edaaa0d1cd347b52132b18c5941e91f0b4fe34da208",
+    "sidecar/tests/test_mail_mime_retry.py": "992215c4a89017793a914bebd388ed5c2894a2c6c52a3145bbebd15dab01f96c",
+    "sidecar/tests/test_memory_areas.py": "4e5167145d8b052ea78007cc8704e2ce619ce99e80c21112c463c7b8ae914b8b",
+    "sidecar/tests/test_migrations.py": "15ec4ae3b0154384aaeb3d3d2e07d46c28e093361d554e301aa266d971ecbe13",
+    "sidecar/tests/test_projekt_automatik.py": "0350b0fb3051a1974ea8697a6e4cff6e3ffcf6fd6c419029492d6280b0905a95",
+    "sidecar/tests/test_source_index.py": "99c0f83a321b40c207d1d6bbac2c0d857b2b10bc5ee9985de2f7a9eb7124e78a",
+    "sidecar/tests/test_source_project_link.py": "941a33e3649abd8eb83a64c981cc59d69bc8d41ef3f180f63035f9ee68ed0edf",
+    "sidecar/tests/test_task_rechecks.py": "12034c025ee17cc35b86efcc9467ddf13db61eba9f00e0de37bdc234219b71d0",
+    "sidecar/tests/test_update_backup.py": "359b57c6b81a3a210c2ad2cc055ad34cf49ebb0b48816efd3ae884872414557d",
+    "sidecar/tests/working_memory_legacy.py": "3763aac7171b88428b6b8cb955fe27a1b7ffee72ed295532a8a5d9be823cd9b9"
+  },
+  "initial_candidate": {
+    "backend_passed": 406,
+    "ui_passed": 18,
+    "typescript": "pass",
+    "note": "Before review fixes; UI bytes unchanged by fixes"
+  },
+  "review_fix01": {
+    "core_passed": 194,
+    "schema_neighbor_passed": 19,
+    "schema_neighbor_deselected": 197,
+    "warning": "Existing Starlette/httpx deprecation",
+    "note": "Overlaps initial suite; counts must not be added as distinct cases"
+  },
+  "independent_review": {
+    "spec": "PASS",
+    "quality": "PASS",
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "addressed_findings": [
+      "Restored mail completion provenance",
+      "Archived source readmission non-revival"
+    ]
+  },
+  "episode_schema": 27,
+  "default_evidence_fingerprint_unchanged": true,
+  "real_model_quality": "NOT EVALUATED",
+  "native_gui": "NOT RUN",
+  "paraphrase_and_mixed_recall": "OPEN",
+  "heldout_semantic_quality": "NOT EVALUATED",
+  "personal_app_updated": false,
+  "bulk_import_resumed": false,
+  "cloud_calls": 0,
+  "manual_ci_rerun": false
+}

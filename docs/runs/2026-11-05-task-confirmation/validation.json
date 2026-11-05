@@ -40,5 +40,22 @@
   "personal_app_updated": false,
   "bulk_import_resumed": false,
   "cloud_calls": 0,
-  "manual_ci_rerun": false
+  "manual_ci_rerun": false,
+  "subsequent_ci": {
+    "commit": "c6903f931670de4f232334da0a79b4612a3097a1",
+    "run_id": 41942957100,
+    "jobs": {
+      "126968054421": "success",
+      "126968054633": "success",
+      "126968054872": "success"
+    },
+    "python312_log": {
+      "passed": 10247,
+      "skipped": 2,
+      "warnings": 4,
+      "subtests_passed": 26
+    },
+    "scope": "Part A and its documentation; does not validate subsequent task-status recall edits",
+    "manual_rerun": false
+  }
 }
