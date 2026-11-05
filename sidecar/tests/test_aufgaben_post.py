@@ -246,7 +246,7 @@ def test_wartet_auf_anna_und_antwort_von_anna_im_verlauf_geht_zurueck_zu_dir(wel
     assert lauf.schritt() == {'geprueft': 2, 'erledigt': 0, 'zurueck': 1, 'vorschlaege': 0}
     zurueck = tasks.get(task.id)
     assert zurueck.status is TaskStatus.OPEN and zurueck.wartet_auf is None and zurueck.wartet_seit is None
-    assert zurueck.geaendert_grund['satz'] == 'Wieder bei dir, weil Anna Berg am 21. Oktober geantwortet hat.'
+    assert zurueck.geaendert_grund['satz'] == 'Warten beendet, weil Anna Berg am 21. Oktober geantwortet hat.'
     assert zurueck.geaendert_grund['episode_id'] == antwort.id and zurueck.erledigt_grund is None
     assert [e['kind'] for e in tasks.history(task.id)][0] == 'post_returned'
     ereignisse = [e for e in buch.ereignisse(JETZT - timedelta(days=1)) if e.art == 'aufgabe_post']
@@ -260,7 +260,7 @@ def test_wartet_auf_ohne_verlauf_und_wort_nur_vorschlag_verwerfen_trennt(welt):
     assert lauf.schritt() == {'geprueft': 1, 'erledigt': 0, 'zurueck': 0, 'vorschlaege': 1}
     assert tasks.get(task.id).wartet_auf == 'Anna Berg'
     [vorschlag] = vorschlaege(proposals, ProposalKind.TASK_WAITING_RESOLVED)
-    assert vorschlag.statement == 'Wieder bei dir? „Freigabe Flyer von Anna“'
+    assert vorschlag.statement == 'Warten beenden? „Freigabe Flyer von Anna“'
     lauf.vorschlag_verwerfen(vorschlag.id)
     assert proposals.get(vorschlag.id).state is ProposalState.REJECTED
     assert tasks.post_getrennt(task.id, andere.id) is True
@@ -496,3 +496,63 @@ def test_mailaufnahme_stoesst_den_lauf_an(api, monkeypatch):
     app.state.scheduler._run_mail_intake(nur_neue_post=True)
     app.state.scheduler._run_mail_intake()
     assert aufrufe == [app, app]
+
+
+@pytest.mark.parametrize("owner", [None, {"decision": "person", "address": "alex@example.invalid"}])
+def test_corrected_owner_is_not_a_completion_proposal(welt, owner):
+    episodes, tasks, proposals, lauf, _ = welt
+    source = bitte_von_anna(episodes)
+    task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=source)
+    tasks.change_responsibility(task.id, request_id="synthetic-other",
+        expected_revision=tasks.responsibility_snapshot(task.id)["revision"],
+        operation="set" if owner else "reset", decision=owner)
+    response = mail(episodes, 'AW: Druckdaten', 'Anbei die Druckdaten.', von=LENA, an=[ANNA],
+                    kennung='corrected-owner', antwort_auf=['a1'])
+    assert lauf.verarbeiten(response)['vorschlaege'] == 0
+    assert vorschlaege(proposals, ProposalKind.TASK_DONE) == []
+
+
+def test_correction_between_matching_and_commit_blocks_completion(welt, tmp_path, monkeypatch):
+    episodes, tasks, proposals, lauf, _ = welt
+    task = aufgabe(tasks, 'Druckdaten an Anna schicken', quelle=bitte_von_anna(episodes))
+    response = mail(episodes, 'AW: Druckdaten', 'Anbei die Druckdaten.', von=LENA, an=[ANNA],
+                    kennung='during-confirmation', antwort_auf=['a1'])
+    assert lauf.verarbeiten(response)['vorschlaege'] == 1
+    [proposal] = vorschlaege(proposals, ProposalKind.TASK_DONE)
+    writer = TaskStore(tmp_path / 'tasks.sqlite3')
+    commit = tasks.post_erledigen
+
+    def correct_before_commit(task_id, reason, **options):
+        writer.change_responsibility(task_id, request_id='synthetic-correction-between',
+            expected_revision=writer.responsibility_snapshot(task_id)['revision'], operation='reset')
+        return commit(task_id, reason, **options)
+
+    monkeypatch.setattr(tasks, 'post_erledigen', correct_before_commit)
+    try:
+        with pytest.raises(ProposalError, match='inzwischen geändert'):
+            lauf.vorschlag_annehmen(proposal.id)
+        unchanged = tasks.get(task.id)
+        assert unchanged.status is TaskStatus.OPEN and unchanged.responsibility['decision'] == 'unknown'
+        assert not any(event['kind'] == 'post_completed' for event in tasks.history(task.id))
+        assert lauf.vorschlaege() == []
+    finally:
+        writer.close()
+
+
+def test_mail_release_undo_and_reopen_keep_confirmed_owner(welt):
+    episodes, tasks, _, lauf, _ = welt
+    task = aufgabe(tasks, 'Freigabe Flyer von Anna', quelle=bitte_von_anna(episodes), wartet_auf='Anna Berg')
+    owner = {"decision": "person", "address": "alex@example.invalid"}
+    saved = tasks.change_responsibility(task.id, request_id='synthetic-release-owner',
+        expected_revision=tasks.responsibility_snapshot(task.id)['revision'], operation='set', decision=owner)
+    reply = mail(episodes, 'AW: Freigabe Flyer', 'Hier die Freigabe.', von=ANNA, an=[LENA],
+                 kennung='separate-owner', antwort_auf=['a1'])
+    assert lauf.verarbeiten(reply)['zurueck'] == 1
+    released = tasks.get(task.id)
+    assert released.wartet_auf is None and released.responsibility == saved['task'].responsibility
+    assert released.geaendert_grund['satz'].startswith('Warten beendet')
+    assert released.user_actionable is False
+    assert lauf.rueckgaengig(task.id).responsibility == released.responsibility
+    assert tasks.get(task.id).wartet_auf == 'Anna Berg'
+    tasks.complete(task.id)
+    assert tasks.reopen(task.id).responsibility == released.responsibility

@@ -23,10 +23,10 @@ test("Die Zeile zeigt den Satz des Sidecars nur, solange die Änderung gilt", ()
 
 test("Die Knöpfe des Vorschlags sagen, was passiert, und die Antwort nennt Rückgängig", () => {
   assert.equal(annehmenText({art: "erledigt"}), "Ja, erledigt");
-  assert.equal(annehmenText({art: "zurueck"}), "Ja, wieder bei mir");
+  assert.equal(annehmenText({art: "zurueck"}), "Ja, Warten beenden");
   // „Rückgängig“ steht im Hinweis daneben (V4); der Satz verweist nicht mehr auf die Liste.
   assert.equal(angenommenText({art: "erledigt"}), "Als erledigt abgelegt.");
-  assert.match(angenommenText({art: "zurueck"}), /wieder bei dir/);
+  assert.match(angenommenText({art: "zurueck"}), /Warten.*beendet/);
 });
 
 test("TaskRow zeigt die Zeile mit Rückgängig; die Aufgabenseite und die Aufgabe hängen den Aufruf an", () => {

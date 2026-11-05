@@ -2954,8 +2954,11 @@ def create_app(
                 # the checks above, even if an earlier task already exists.
                 key = mail_task_identity(message, title, body.source_quote)
                 projekt, person = aufgaben_von_selbst.zuordnung_fuer_quelle(app, episode['id'])
-                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
-                                                       person=person).to_dict()
+                try:
+                    return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
+                                                           person=person).to_dict()
+                except TaskRequestConflict as exc:
+                    raise HTTPException(409, str(exc)) from exc
             if body.request_id is not None:
                 payload = {'uid': uid, 'source_digest': body.source_digest, 'source_quote': body.source_quote,
                            'title': title, 'project_id': body.project_id, 'waiting_for': waiting_for,
@@ -5306,37 +5309,8 @@ def create_app(
 
     # -- Aufgaben ----------------------------------------------------------
 
-    def _task_view(view: str, project_id: str | None = None) -> list[dict[str, Any]]:
-        """Die drei belegten Aufgabensichten für die Produktoberfläche.
-
-        `delegated` fehlt bewusst: Die aktuelle Ablage kennt den tatsächlichen
-        Wartezustand, aber keine davon unabhängige Delegationssemantik.
-        """
-        tasks = app.state.tasks
-        if project_id:
-            _validate_task_project(project_id, allow_closed=True)
-            items = tasks.by_project(project_id, include_closed=True)
-            if view == "mine":
-                items = [task for task in items if task.status.value == "open" and task.wartet_auf is None]
-            elif view == "waiting":
-                items = [task for task in items if task.status.value == "open" and task.wartet_auf is not None]
-                items.sort(key=lambda task: task.wartet_seit or task.created_at)
-            elif view == "done":
-                items = [task for task in items if task.status.value == "done"]
-                items.sort(key=lambda task: task.done_at or task.created_at, reverse=True)
-            return [task.to_dict() for task in items]
-        if view == "mine":
-            return [task.to_dict() for task in tasks.open_tasks() if task.wartet_auf is None]
-        if view == "waiting":
-            return [task.to_dict() for task in tasks.wartend()]
-        if view == "done":
-            completed = [task for task in tasks.all_tasks() if task.status.value == "done"]
-            completed.sort(key=lambda task: task.done_at or task.created_at, reverse=True)
-            return [task.to_dict() for task in completed]
-        raise HTTPException(status_code=400, detail="Unbekannte Aufgabenansicht.")
-
     @app.get("/api/v1/tasks", dependencies=guard)
-    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None,
+    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done|others|unassigned)$"), project_id: str | None = None,
                               q: str = Query(default='', max_length=200), limit: int = Query(default=200, ge=1, le=200),
                               cursor: str | None = Query(default=None, max_length=2048)) -> dict[str, Any]:
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
@@ -5616,7 +5590,7 @@ def create_app(
                 project_id=body.project_id, new_project_name=body.new_project_name,
                 due=body.due, waiting_for=body.waiting_for, zuordnung_aus_vorschlag=body.zuordnung_aus_vorschlag,
                 eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None))).to_dict()
-        except (ProposalError, EpisodeError) as exc:
+        except (ProposalError, EpisodeError, TaskRequestConflict) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -6591,8 +6565,10 @@ def create_app(
                 status_code=409,
                 detail=f"„{name}“ gehört mehreren Menschen: {'; '.join(adressen)}. Bitte die Adresse angeben.")
         key = personen.schluessel(name)
+        owner_address = parseaddr(name)[1] if '@' in name else (adressen[0] if adressen else '')
         tasks = [task for task in app.state.tasks.open_tasks(limit=None)
-                 if task.wartet_auf and personen.schluessel(task.wartet_auf) == key]
+                 if (task.wartet_auf and personen.schluessel(task.wartet_auf) == key)
+                 or personen.verantwortet(task, owner_address)]
         if not ids and not tasks:
             raise HTTPException(status_code=404, detail=f"In deinen Aufzeichnungen kommt „{name}“ nicht vor.")
         # Name gegen Titel und Ort, Adresse gegen die Gäste; nie gemischt.

@@ -219,7 +219,7 @@ def test_guarded_api_persists_confirmed_decision_and_bounded_event(api):
     }
     assert saved["task"]["provenance"] == before["task"]["provenance"]
     assert client.get(path).json() == {
-        key: saved[key] for key in ("task", "revision", "responsibility_event_sequence")
+        key: saved[key] for key in ("task", "revision", "responsibility_event_sequence", "own_address_overlap")
     }
     event = app.state.tasks.history_event(task.id, saved["applied_event_sequence"])
     assert event["kind"] == "responsibility_confirmed"

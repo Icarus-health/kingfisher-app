@@ -19,11 +19,11 @@ export function postSatz(task: Pick<Task, "erledigt_grund" | "geaendert_grund" |
 
 /** Der Knopf, der den Vorschlag annimmt: dieselbe Änderung, die der Durchlauf sonst selbst gemacht hätte. */
 export function annehmenText(vorschlag: Pick<AufgabenPostVorschlag, "art">): string {
-  return vorschlag.art === "erledigt" ? "Ja, erledigt" : "Ja, wieder bei mir";
+  return vorschlag.art === "erledigt" ? "Ja, erledigt" : "Ja, Warten beenden";
 }
 
 /** Die Antwort nach dem Klick, mit „Rückgängig“ im Blick (Grundsatz 4 und 5). */
 export function angenommenText(vorschlag: Pick<AufgabenPostVorschlag, "art">): string {
   // „Rückgängig“ steht im Hinweis gleich daneben (V4).
-  return vorschlag.art === "erledigt" ? "Als erledigt abgelegt." : "Die Aufgabe liegt wieder bei dir.";
+  return vorschlag.art === "erledigt" ? "Als erledigt abgelegt." : "Das Warten auf die Antwort ist beendet.";
 }

@@ -23,6 +23,7 @@ import {
   type ConversationPayload,
   type MorningBriefing,
   type Task as LocalTask,
+  type TaskListView,
   type Project,
 } from "./api";
 import { Sidebar } from "./chrome";
@@ -36,14 +37,14 @@ import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
-import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
+import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, wartenBeendetHinweis } from "./aufgabenHinweis";
 import { anlageZuruecknehmen } from "./AufgabenSelbstHeute";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
-import { endOfTaskDay, taskHistorySequence } from "./taskWorkflow";
+import { endOfTaskDay, taskHistorySequence, taskListView } from "./taskWorkflow";
 import { TaskStatusAnswer } from "./TaskStatusAnswer";
 import { ProfileSource } from "./ProfileSource";
 import { MemoryGraph } from "./MemoryGraph";
@@ -681,11 +682,13 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
   </div>;
 }
 
-type TaskView = "mine" | "waiting" | "done" | "decisions" | "goals";
+type TaskView = TaskListView | "decisions" | "goals";
 
 const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
   { id: "mine", label: "Meine Aufgaben" },
   { id: "waiting", label: "Warte auf andere" },
+  { id: "others", label: "Bei anderen" },
+  { id: "unassigned", label: "Zu klären" },
   { id: "done", label: "Erledigt" },
   { id: "decisions", label: "Entscheidungen" },
   { id: "goals", label: "Ziele" },
@@ -701,7 +704,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(()=>{const id=window.setInterval(()=>setGroupTime(new Date()),60000);return()=>window.clearInterval(id);},[]);
   const [view, setView] = useState<TaskView>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
-    return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
+    return TASK_VIEWS.find(item => item.id === requested)?.id ?? "mine";
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
   const [historySequence, setHistorySequence] = useState(() => taskHistorySequence(new URLSearchParams(window.location.search)));
@@ -877,7 +880,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       else await api.unwaitTask(taskId);
       load();
       zeigeHinweis(name ? wartetHinweis(aufgabe, name, async () => { await api.unwaitTask(taskId); load(); })
-        : zurueckZuMirHinweis(aufgabe, "wartet_auf" in aufgabe ? aufgabe.wartet_auf : null, async vorher => { await api.waitTask(taskId, vorher); load(); }));
+        : wartenBeendetHinweis(aufgabe, "wartet_auf" in aufgabe ? aufgabe.wartet_auf : null, async vorher => { await api.waitTask(taskId, vorher); load(); }));
     } catch { setError("Der Wartestatus konnte nicht gespeichert werden."); }
     finally { setCompleting(null); }
   }
@@ -911,7 +914,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     try {taskSave.current.resetAfterReview(); setCreateReviewed(false); setCreateError("");}
     catch {setCreateError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher und andere offene Aufgabenfenster prüfen. Es wurde keine Aufgabe gesendet.');}
   }
-  function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
+  function openProjectView(nextView: TaskListView, taskId: string | null = null) {
     currentSearch.current = '';
     setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
@@ -922,7 +925,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => kontenFuerFilter(setBereichKonten), []);
   const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
   const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId) && bereichFilter.passt(task));
-  const listView = view === "mine" || view === "waiting" || view === "done";
+  const listView = view !== "decisions" && view !== "goals";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
   // Segmente statt Reiter: alle bleiben erreichbar; „Zur Prüfung“ nur, wenn etwas zu prüfen ist (sonst über „Gedächtnis
@@ -942,8 +945,10 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
   const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
   const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
-  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as "mine" | "waiting" | "done"} />;
-  const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
+  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as TaskListView} />;
+  const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden."
+    : view === "others" ? "Keine offenen Aufgaben bei anderen."
+    : view === "unassigned" ? "Keine offenen Aufgaben mit ungeklärter Zuständigkeit." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
   // „Zur Prüfung“ ist das Prüfen die Hauptsache, dort ist „Aufgabe“ ebenfalls nur getönt.
   const formOffen = (creating && panel === "tasks" && listView) || (panel === "projects" && projektFormular) || panel === "review";
@@ -964,7 +969,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
       </section>
       <div className="task-review" hidden={panel !== "review"}>
-        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
+        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(taskListView(task)); load(taskListView(task)); }} />
         {panel === "review" && reviewTotal === 0 ? <Leer className="task-empty" zeichen="check" satz="Nichts zu prüfen." /> : null}
       </div>
       {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}

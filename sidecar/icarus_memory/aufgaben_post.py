@@ -5,7 +5,7 @@ Wörter in Betreff, Text oder Anhang ordnen die Mail zu; sie belegen weder Versa
 bestimmter Unterlagen noch Erfüllung der Aufgabe. Der Erledigungsgrund nennt
 entsprechend die Bestätigung des Nutzers.
 
-Ein Wartestatus geht nur automatisch zurück zu „bei dir“, wenn eine bekannte
+Ein Wartestatus endet nur automatisch, wenn eine bekannte
 exakte Gegenseitenadresse und Verlauf oder tragende Wörter zusammenpassen.
 Bloße Namensgleichheit liefert höchstens einen Vorschlag; eine widersprechende
 bekannte Adresse schließt den Treffer aus. Mehrdeutige Empfänger, Rundmails,
@@ -33,7 +33,7 @@ from .lexical import _STOP_WORDS
 from .model import SourceType, user_timezone
 from .personen import schluessel
 from .proposals import Evidence, ProposalError, ProposalKind, ProposalState
-from .tasks import Task, TaskStatus
+from .tasks import Task, TaskChangedError, TaskStatus
 from .word_forms import umschrift_gleich
 
 logger = logging.getLogger(__name__)
@@ -205,14 +205,17 @@ class Lauf:
         mail = self._mail(episode)
         if mail is None:
             return ergebnis
-        treffer = self._treffer(mail, self.tasks.open_tasks(limit=None))
+        treffer = self._treffer(mail, self.tasks.open_tasks(limit=None, include_revision=True))
         if not treffer:
             return ergebnis
         sichere = sorted((t for t in treffer if t.sicher), key=lambda t: t.rang, reverse=True)
         automatisch = sichere[0] if sichere and (len(sichere) == 1 or sichere[0].rang > sichere[1].rang) else None
         for t in treffer:
             if t is automatisch:
-                self._anwenden(t, mail, wie='verlauf' if t.verlauf else 'person')
+                try:
+                    self._anwenden(t, mail, wie='verlauf' if t.verlauf else 'person')
+                except (KeyError, TaskChangedError):
+                    continue  # Die betrachtete Aufgabe wurde geändert oder entfernt.
                 ergebnis[t.art] += 1
             elif self._vorschlagen(t, mail):
                 ergebnis['vorschlaege'] += 1
@@ -320,7 +323,7 @@ class Lauf:
             im_verlauf = quelle is not None and faeden.get(quelle.id) == faeden.get(mail.episode.id)
             person = self._gegenseite(quelle, eigene)
             if mail.richtung == 'von_mir':
-                if task.wartet_auf is not None:
+                if not task.user_actionable:
                     continue
                 an_person = person is not None and any(e.get('adresse') == person['adresse'] for e in mail.empfaenger)
                 if not (im_verlauf or an_person):
@@ -355,21 +358,23 @@ class Lauf:
         if t.art == 'erledigt':
             satz = f'Erledigt nach deiner Bestätigung zur Mail an {wer} vom {tag}.'
         elif t.verlauf:
-            satz = f'Wieder bei dir, weil {wer} am {tag} geantwortet hat.'
+            satz = f'Warten beendet, weil {wer} am {tag} geantwortet hat.'
         elif t.woerter:
-            satz = f'Wieder bei dir, weil {wer} am {tag} zu {_aufzaehlung(t.woerter)} geschrieben hat.'
+            satz = f'Warten beendet, weil {wer} am {tag} zu {_aufzaehlung(t.woerter)} geschrieben hat.'
         else:
-            satz = f'Wieder bei dir, weil {wer} am {tag} geschrieben hat.'
+            satz = f'Warten beendet, weil {wer} am {tag} geschrieben hat.'
         return {'art': t.art, 'satz': satz, 'episode_id': mail.episode.id, 'mail_titel': (mail.episode.title or '')[:120],
                 'wer': wer, 'datum': mail.zeit.isoformat() if mail.zeit else None,
                 'am': self._jetzt().astimezone(timezone.utc).isoformat(), 'verlauf': t.verlauf, 'woerter': list(t.woerter)}
 
     def _anwenden(self, t: Treffer, mail: _Mail, *, wie: str) -> Task:
+        if t.aufgabe.revision is None:
+            raise TaskChangedError('Der Aufgabenstand konnte nicht bestätigt werden.')
         grund = self._grund(t, mail)
         if t.art == 'erledigt':
-            task = self.tasks.post_erledigen(t.aufgabe.id, grund, at=mail.zeit)
+            task = self.tasks.post_erledigen(t.aufgabe.id, grund, at=mail.zeit, expected_revision=t.aufgabe.revision)
         else:
-            task = self.tasks.post_zurueckholen(t.aufgabe.id, grund, at=mail.zeit)
+            task = self.tasks.post_zurueckholen(t.aufgabe.id, grund, at=mail.zeit, expected_revision=t.aufgabe.revision)
         logbuch.vermerke('aufgabe_post', sorte=t.art, aufgabe=task.id, mail=mail.episode.id, wie=wie)
         return task
 
@@ -383,8 +388,8 @@ class Lauf:
             if len(mail.empfaenger) > MAX_EMPFAENGER:
                 satz = f'Du hast am {tag} an {len(mail.empfaenger)} Empfänger geschrieben („{titel}“), darunter {wer}. Ist die Aufgabe damit erledigt?'
         else:
-            kind, statement = ProposalKind.TASK_WAITING_RESOLVED, f'Wieder bei dir? „{t.aufgabe.title}“'
-            satz = f'{wer} hat dir am {tag} geschrieben („{titel}“). Liegt die Aufgabe damit wieder bei dir?'
+            kind, statement = ProposalKind.TASK_WAITING_RESOLVED, f'Warten beenden? „{t.aufgabe.title}“'
+            satz = f'{wer} hat dir am {tag} geschrieben („{titel}“). Beendet diese Antwort das Warten?'
         return kind, statement, satz
 
     def _vorschlagen(self, t: Treffer, mail: _Mail) -> bool:
@@ -398,9 +403,14 @@ class Lauf:
 
     def _paar(self, proposal: Any) -> tuple[Task, Any] | None:
         """Aufgabe und Mail eines Vorschlags, oder None, wenn eines davon nicht mehr passt (dann ist er überholt)."""
-        task = self.tasks.get(str(proposal.target_ref or '')[len('task:'):]) if (proposal.target_ref or '').startswith('task:') else None
-        art = 'erledigt' if proposal.kind is ProposalKind.TASK_DONE else 'zurueck'
-        if task is None or task.status is not TaskStatus.OPEN or (task.wartet_auf is None) != (art == 'erledigt'):
+        target = proposal.target_ref or ''
+        task = self.tasks.get(target[len('task:'):], include_revision=True) if target.startswith('task:') else None
+        if task is None or task.status is not TaskStatus.OPEN:
+            return None
+        if proposal.kind is ProposalKind.TASK_DONE:
+            if not task.user_actionable:
+                return None
+        elif task.wartet_auf is None:
             return None
         if not proposal.evidence:
             return None
@@ -460,7 +470,10 @@ class Lauf:
         if not treffer:
             self.proposals.supersede(proposal.id)
             raise ProposalError('Die Mail passt nicht mehr zu dieser Aufgabe; der Vorschlag ist überholt.')
-        geaendert = self._anwenden(treffer[0], mail, wie='vorschlag')
+        try:
+            geaendert = self._anwenden(treffer[0], mail, wie='vorschlag')
+        except (KeyError, TaskChangedError) as exc:
+            raise ProposalError('Die Aufgabe hat sich inzwischen geändert. Bitte erneut prüfen.') from exc
         self.proposals.accept(proposal.id, produced=geaendert.id)
         return geaendert
 

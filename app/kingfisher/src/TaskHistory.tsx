@@ -1,3 +1,4 @@
+import {responsibilityLabel} from "./taskResponsibilityModel";
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { reminderLabel } from "./reminderDates";
@@ -8,8 +9,11 @@ const labels: Record<string, string> = {
   completed: "Als erledigt markiert", user_confirmed_completion: "Erledigung ausdrücklich bestätigt",
   dropped: "Fallengelassen", reopened: "Wieder geöffnet",
   post_completed: "Erledigung mit Mailbezug erfasst", post_undone: "Änderung durch die Post zurückgenommen",
-  waiting_for: "Wartestatus geändert", returned: "Zurück zu mir", project_assigned: "Projektzuordnung geändert",
+  waiting_for: "Wartestatus geändert", returned: "Warten beendet", post_returned: "Warten nach Antwort beendet", project_assigned: "Projektzuordnung geändert",
   edited: "Details bearbeitet",
+  responsibility_confirmed: "Zuständigkeit bestätigt",
+  responsibility_reset: "Zuständigkeit auf Ungeklärt gesetzt",
+  responsibility_undone: "Zuständigkeitsänderung zurückgenommen",
   reminder_changed: "Wiedervorlage geändert", remind_at_changed: "Wiedervorlage geändert",
   preexisting_snapshot: "Bereits vorhandener Stand erfasst",
 };
@@ -45,6 +49,10 @@ export function TaskHistory({ taskId, revision, sequence }: { taskId: string; re
               {changed && <p>Wieder vorlegen: {after.remind_at ? reminderLabel(after.remind_at) : "keine Wiedervorlage"}</p>}</>;
           })()}
           <p>Aufgezeichnet: {new Date(event.recorded_at).toLocaleString("de-DE")}</p>
+          {event.kind.startsWith("responsibility_") && <>
+            <p>Zuständigkeit: {responsibilityLabel(event.after.responsibility)}</p>
+            <p>Bestätigende Person: nicht erfasst.</p>
+          </>}
           {event.kind === "preexisting_snapshot" && <p>Frühere Änderungen sind nicht bekannt. Dieser Eintrag rekonstruiert keine Vergangenheit.</p>}
           {event.after.wartet_auf && event.before?.wartet_auf !== event.after.wartet_auf && <p>Wartet auf: {event.after.wartet_auf}</p>}
         </li>)}</ol>

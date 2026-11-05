@@ -50,7 +50,7 @@ def test_worauf_warte_ich_und_was_habe_ich_zugesagt(welt, akten):
                       'automatic_memory': True}]
     zugesagt = offene_punkte.sammeln(akten, bezuege, 'zugesagt', jetzt=JETZT)
     assert [p['text'] for p in zugesagt['punkte']] == [NACHHOLEN]
-    assert offene_punkte.als_text(zugesagt, 'zugesagt')[0].startswith('Du hast vermutlich noch eine Zusage offen')
+    assert offene_punkte.als_text(zugesagt, 'zugesagt')[0].startswith('In deinen Akten steht eine eigene Zusage')
     # Abgelegt heißt: nicht mehr offen, auch hier.
     Entscheidungen(episodes).setzen(warten['punkte'][0]['ziel'], 'erledigt')
     leer = offene_punkte.sammeln(akten, bezuege, 'wartet_auf', jetzt=JETZT)

@@ -1,4 +1,18 @@
-type TaskTarget = {id: string; status?: string; wartet_auf?: string | null; project_id?: string | null};
+import type {Task, TaskListView} from "./api";
+
+type TaskTarget = Pick<Task, "id"> & Partial<Pick<Task, "status" | "wartet_auf" | "project_id" | "responsibility" | "effective_responsibility" | "user_actionable">>;
+
+export function taskListView(task: Omit<TaskTarget, "id">): TaskListView {
+  if (task.status === "done") return "done";
+  const decision = task.effective_responsibility ?? task.responsibility?.decision;
+  if (decision === "person") return "others";
+  if (decision === "unknown") return "unassigned";
+  return task.wartet_auf ? "waiting" : "mine";
+}
+
+export function taskUserActionable(task: Omit<TaskTarget, "id">) {
+  return task.user_actionable ?? ((task.status == null || task.status === "open") && taskListView(task) === "mine");
+}
 type CandidateTime = {temporal_status?: string; valid_until?: string | null; frist_vorschlag?: string | null};
 
 export function localTaskDay(value: string | null | undefined) {
@@ -9,7 +23,7 @@ export function localTaskDay(value: string | null | undefined) {
 }
 
 export function taskHref(task: TaskTarget) {
-  const view = task.status === 'done' ? 'done' : task.wartet_auf ? 'waiting' : 'mine';
+  const view = taskListView(task);
   return `/vorhaben?view=${view}&task=${encodeURIComponent(task.id)}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ''}`;
 }
 

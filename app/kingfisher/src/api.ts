@@ -503,6 +503,20 @@ export type AufgabenPostVorschlag = {
   mail: { episode_id: string; titel: string; datum: string }; erstellt: string;
 };
 
+export type TaskListView = "mine" | "waiting" | "done" | "others" | "unassigned";
+export type TaskResponsibility = {version: 1; decision: "self" | "person" | "unknown"; address: string | null; label: string | null};
+export type TaskResponsibilitySnapshot = {
+  task: Task; revision: number; responsibility_event_sequence: number | null; own_address_overlap: boolean;
+};
+export type TaskResponsibilityOperation =
+  | {operation: "set"; owner: {decision: "self"} | {decision: "person"; address: string; label?: string}}
+  | {operation: "reset"}
+  | {operation: "undo"; target_event_sequence: number};
+export type TaskResponsibilityCommand = TaskResponsibilityOperation & {
+  request_id: string; expected_revision: number; confirmed: true;
+};
+export type ResponsibilityContact = {name: string; adressen?: string[]};
+
 export type Task = {
   provenance?: {source_ref?: string | null};
   /** Gesetzt, wenn die eigene Post die Aufgabe erledigt hat; leer nach „Rückgängig“ oder beim Abhaken von Hand. */
@@ -511,6 +525,9 @@ export type Task = {
   geaendert_grund?: AufgabenPostGrund | null;
   /** Wer zur Aufgabe gehört: wer darum bat oder wem zugesagt wurde (Adresse führt zur Akte). */
   person?: AufgabePerson | null;
+  responsibility?: TaskResponsibility | null;
+  effective_responsibility?: TaskResponsibility["decision"] | "unconfirmed";
+  user_actionable?: boolean;
   /** Wie die Aufgabe entstand, wenn nicht von Hand (Aufgaben von selbst, `aufgaben_von_selbst.py`). */
   angelegt?: AufgabeAngelegt | null;
   id: string;
@@ -545,7 +562,7 @@ export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler:
 export type ProjectTaskOverview = {
   project_id: string;
   as_of: string;
-  counts: {mine: number; waiting: number; done: number; dropped: number; overdue: number; undated: number};
+  counts: {mine: number; waiting: number; others?: number; unassigned?: number; done: number; dropped: number; overdue: number; undated: number};
   next_tasks: Task[];
   waiting_tasks: Task[];
 };
@@ -865,7 +882,7 @@ export type MappeEinzelheiten = {
   entwicklungen: MappeListe<MappeZitat>;
   angaben: MappeListe<MappeZitat>;
   einordnung: { eingeordnet: number; offen: number; ausgeschlossen: number };
-  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null }>;
+  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null; responsibility_label?: string }>;
   termine: MappeListe<{ uid: string | null; titel: string; ort: string; start: string; ganztags?: boolean }> & { kalender: "ok" | "nicht_erreichbar" };
 };
 
@@ -917,7 +934,7 @@ export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
   verlauf: { eintraege: Array<{ episode_id: string; titel: string; datum: string; grundlagen: string[]; archiviert: boolean; art: string | null; text: string | null; gekuerzt: boolean; quelle_art: string }>; gesamt: number };
-  offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string } | null; ziel?: string; richtung?: AkteRichtung; bestaetigt?: boolean }>; gesamt: number; vermutlich: boolean;
+  offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string; responsibility_label?: string } | null; ziel?: string; richtung?: AkteRichtung; bestaetigt?: boolean }>; gesamt: number; vermutlich: boolean;
     erledigt: { eintraege: Array<AkteZeile & { grund: string; durch: AkteZeile | null; ziel?: string; richtung?: AkteRichtung }>; gesamt: number } };
   fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number }; abgelegt?: number;
     ohne_datum: { eintraege: Array<{ ausdruck: string; episode_id: string; titel: string }>; gesamt: number };
@@ -926,7 +943,7 @@ export type Akte = {
   stand_der_dinge: { aktuell: AkteZeile | null; vorher: AkteZeile[]; vorher_gesamt: number; weitere: Array<{ aktuell: AkteZeile; vorher: AkteZeile[]; vorher_gesamt: number }>; weitere_gesamt: number };
   beteiligte: { eintraege: Array<{ sache: string; art: AkteSachenArt; anzahl: number; name: string }>; gesamt: number };
   termine: { kommend: AkteTermin[]; vergangen: AkteTermin[]; gesamt: { kommend: number; vergangen: number } };
-  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null }>;
+  aufgaben: MappeListe<{ id: string; title: string; due: string | null; overdue: boolean; wartet_auf: string | null; responsibility_label?: string }>;
   einordnung: { eingeordnet: number; offen: number; ausgeschlossen: number };
   /** Aussagen, die ein Mensch aus einer Antwort übernommen und bestätigt hat („In die Akte übernehmen“). Als Aussage, nie als Zitat. */
   aussagen?: AkteAussagen;
@@ -1164,7 +1181,9 @@ export type MemoryTimeline = {
 
 export type TaskHistoryEvent = {
   sequence: number; kind: string; recorded_at: string; business_at: string | null;
-  before: {wartet_auf?: string | null} | null; after: {wartet_auf?: string | null};
+  actor_id?: string | null;
+  before: {wartet_auf?: string | null; responsibility?: TaskResponsibility | null} | null;
+  after: {wartet_auf?: string | null; responsibility?: TaskResponsibility | null};
 };
 
 export type WorkingPreference = { id: string; statement: string; status: string; expires_at: string | null; provenance: { source_type: string; source_ref: string | null }; structured: { key: string; value: string; scope: string; scope_key: string | null } };
@@ -1360,6 +1379,11 @@ export const api = {
   previewSupportReassessment: (id: string) => request<SupportReassessmentPreview>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment/preview`, {method: "POST"}),
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
   task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
+  taskResponsibility: (id: string) => request<TaskResponsibilitySnapshot>(`/api/v1/tasks/${encodeURIComponent(id)}/responsibility`),
+  changeTaskResponsibility: (id: string, command: TaskResponsibilityCommand) =>
+    request<TaskResponsibilitySnapshot & {applied_event_sequence: number; replayed: boolean}>(
+      `/api/v1/tasks/${encodeURIComponent(id)}/responsibility`, {method: "POST", body: JSON.stringify(command)}),
+  responsibilityContacts: () => request<ResponsibilityContact[]>("/people"),
   taskHistory: (id: string, sequence?: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history${sequence ? `?sequence=${encodeURIComponent(sequence)}` : ""}`),
   memoryCoverage: (signal?: AbortSignal) => request<MemoryCoverage>("/api/v1/memory/coverage", {signal}),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
@@ -1541,7 +1565,7 @@ export const api = {
     request<KalenderAnmeldung>("/api/v1/integrations/calendar/anmelden", { method: "POST", body: JSON.stringify(data) }),
   removeIntegration: (kind: "mail" | "calendar", id: string) =>
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
-  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
+  tasks: (view: TaskListView, projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
   projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),

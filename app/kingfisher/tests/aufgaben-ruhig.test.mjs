@@ -186,7 +186,8 @@ test('Listenzeile: Projekt nur wenn gesetzt, Aktionen per Tastatur erreichbar un
   assert.equal(nodes(tree, n => n.props?.className?.split?.(' ').includes('task-title-link')).length, 1);
   tree = await rowTree({task: task('t', 'Fachartikel gliedern'), compact: true, onOpen() {}});
   const copy = nodes(tree, n => n.props?.className === 'task-copy')[0];
-  assert.equal(nodes(copy, n => n.type === 'small').length, 0, 'no project, no date: nothing extra under the title');
+  assert.deepEqual(nodes(copy, n => n.type === 'small').map(text), ['Zuständigkeit: Nicht bestätigt'],
+    'no project or date label, and the legacy decision stays explicitly unconfirmed');
   assert.equal(nodes(tree, n => n.type === 'time').length, 0, 'no „Ohne Termin“ in the row');
   // Sichtbar bei Zeiger oder Tastaturfokus (über der Fälligkeit, ohne Platz in der Zeile), ohne Zeiger oder schmal
   // ausgeblendet (dort öffnet die Zeile die Aufgabe mit allem).

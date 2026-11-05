@@ -1,5 +1,15 @@
+import type {Task, TaskListView} from "./api";
+
 type Dated = {due?: string | null};
-type BoardTask = {status?: string; wartet_auf?: string | null};
+type BoardTask = {status?: string; wartet_auf?: string | null} & Partial<Pick<Task, "user_actionable" | "responsibility" | "effective_responsibility">>;
+
+export const projectBoardViews = [
+  {view: "mine", label: "Offen"},
+  {view: "waiting", label: "Wartend"},
+  {view: "done", label: "Erledigt"},
+  {view: "others", label: "Bei anderen"},
+  {view: "unassigned", label: "Zu klären"},
+] as const satisfies ReadonlyArray<{view: TaskListView; label: string}>;
 
 export function groupTasks<T extends Dated>(tasks: T[], now = new Date()) {
   const groups: Array<{label: string; items: T[]}> = [
@@ -21,11 +31,15 @@ export function visibleTaskGroups<T extends Dated>(tasks: T[], now = new Date())
 }
 
 export function projectColumns<T extends BoardTask>(tasks: T[]) {
-  return [
-    {label:'Offen',items:tasks.filter(t=>t.status==='open' && !t.wartet_auf)},
-    {label:'Wartend',items:tasks.filter(t=>t.status==='open' && Boolean(t.wartet_auf))},
-    {label:'Erledigt',items:tasks.filter(t=>t.status==='done')},
-  ];
+  const decision = (task: BoardTask) => task.effective_responsibility ?? task.responsibility?.decision;
+  return projectBoardViews.map(({view, label}) => ({view, label, items: tasks.filter(task => {
+    if (view === "done") return task.status === "done";
+    if (task.status !== "open") return false;
+    if (view === "waiting") return Boolean(task.wartet_auf);
+    if (view === "others") return decision(task) === "person";
+    if (view === "unassigned") return decision(task) === "unknown";
+    return task.user_actionable ?? (!task.wartet_auf && decision(task) !== "person" && decision(task) !== "unknown");
+  })}));
 }
 
 /** Fälligkeit, wie man sie sagt: „Heute“, „Morgen“, „Gestern“, sonst „2. Okt.“ (mit Jahr, wenn es ein anderes ist). */

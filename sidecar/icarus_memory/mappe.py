@@ -27,6 +27,7 @@ from typing import Any, Iterable
 
 from .datumstext import iso_versuchen_utc as _zeit
 from .model import readable_time
+from .tasks import responsibility_label
 from .working_memory_store import WorkingMemoryStore
 
 JE_LISTE = 5
@@ -120,11 +121,11 @@ def _aufgaben(tasks: Iterable[Any], jetzt: datetime, anzahl: int = JE_LISTE) -> 
     offen = [task for task in tasks if getattr(task.status, 'value', task.status) == 'open']
     # Überfällige und bald fällige zuerst, dann die ohne Termin nach Alter.
     offen.sort(key=lambda task: (task.due is None, task.due or task.created_at))
-    # Auch wo auf jemanden gewartet wird, ist ein verstrichenes Datum verstrichen.
     return {'eintraege': [{
         'id': task.id, 'title': task.title,
         'due': task.due.isoformat() if task.due else None,
-        'overdue': bool(task.due and task.due < jetzt),
+        'overdue': task.is_overdue(jetzt),
+        'responsibility_label': responsibility_label(task),
         'wartet_auf': task.wartet_auf,
     } for task in offen[:anzahl]], 'gesamt': len(offen)}
 
@@ -220,7 +221,7 @@ def als_text(daten: dict[str, Any], titel: str) -> tuple[str, list[dict[str, Any
             wann = (f"{'überfällig seit' if aufgabe['overdue'] else 'fällig'} {_datum(aufgabe['due'])}"
                     if aufgabe['due'] else 'ohne Termin')
             warten = f", wartet auf {aufgabe['wartet_auf']}" if aufgabe.get('wartet_auf') else ''
-            lines.append(f"· {aufgabe['title']} ({wann}{warten})")
+            lines.append(f"· {aufgabe['title']} ({wann}{warten}) · Zuständigkeit: {aufgabe['responsibility_label']}")
         mehr(aufgaben)
     termine = daten['termine']
     if termine['eintraege']:

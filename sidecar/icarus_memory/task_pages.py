@@ -4,13 +4,15 @@ import binascii
 import hashlib
 import json
 
+from .tasks import TASK_VIEW_SQL, TASK_WAITING_SQL
+
 
 class TaskPageChanged(ValueError):
     pass
 
 
 def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cursor=None):
-    if view not in ('mine', 'waiting', 'done') or type(limit) is not int or not 1 <= limit <= 200:
+    if view not in (*TASK_VIEW_SQL, 'done') or type(limit) is not int or not 1 <= limit <= 200:
         raise ValueError('Ungültige Aufgabenansicht oder Seitengröße.')
     if not isinstance(q, str) or len(q) > 200:
         raise ValueError('Die Suche darf höchstens 200 Zeichen enthalten.')
@@ -35,13 +37,12 @@ def query_page(connection, view='mine', *, project_id=None, q='', limit=200, cur
             if value[1] != stand:
                 raise TaskPageChanged('Der Aufgabenbestand oder die Auswahl wurde geändert. Bitte die Liste neu laden.')
         conditions, params = ['status = ?'], ['done' if view == 'done' else 'open']
-        waiting = "json_extract(document, '$.wartet_auf')"
         if view != 'done':
-            conditions.append(waiting + (' IS NOT NULL' if view == 'waiting' else ' IS NULL'))
+            conditions.append(TASK_VIEW_SQL[view])
         if project_id:
             conditions.append('project_id = ?')
             params.append(project_id)
-        searchable = "kf_casefold(title || char(10) || COALESCE(json_extract(document, '$.notes'), '') || char(10) || COALESCE(" + waiting + ", ''))"
+        searchable = "kf_casefold(title || char(10) || COALESCE(json_extract(document, '$.notes'), '') || char(10) || COALESCE(" + TASK_WAITING_SQL + ", ''))"
         for term in terms:
             conditions.append('instr(' + searchable + ', ?) > 0')
             params.append(term)

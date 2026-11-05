@@ -48,7 +48,7 @@ from .task_responsibility import (
 
 
 class TaskChangedError(ValueError):
-    """The displayed reminder no longer matches the stored task."""
+    """The displayed task revision no longer matches the stored task."""
 
 
 class TaskCompletionChanged(TaskChangedError):
@@ -142,16 +142,10 @@ class Task:
     done_at: datetime | None = None
     tags: list[str] = field(default_factory=list)
     wartet_auf: str | None = None
-    """Bei wem die Aufgabe gerade liegt.
-
-    Ein Stabschef unterscheidet zwei Dinge, die eine flache Liste in einen Topf
-    wirft: was **du** noch tun musst, und worauf du **wartest**. Beides ist
-    offen, aber nur das erste ist Arbeit für dich. Solange hier ein Name steht,
-    liegt die Aufgabe bei jemand anderem.
-    """
+    """Von wem noch eine Antwort oder Zuarbeit fehlt."""
 
     wartet_seit: datetime | None = None
-    """Seit wann sie dort liegt — die Grundlage jedes Nachfassens."""
+    """Seit wann diese Abhängigkeit besteht."""
 
     project_id: str | None = None
     """Zu welchem Projekt die Aufgabe gehört.
@@ -195,6 +189,12 @@ class Task:
     (`aufgaben_von_selbst.py`)."""
 
     responsibility: dict[str, Any] | None = None
+    revision: int | None = field(default=None, repr=False, compare=False)
+
+    @property
+    def user_actionable(self) -> bool:
+        return (self.status is TaskStatus.OPEN and self.wartet_auf is None
+                and effective_responsibility(self) in {"self", "unconfirmed"})
 
     def is_overdue(self, at: datetime | None = None) -> bool:
         """Überfällig ist nur, was bei **dir** liegt.
@@ -205,8 +205,7 @@ class Task:
         eigentlich handlungsfähig machen soll, wird zur Anklage.
         """
         return (
-            self.status is TaskStatus.OPEN
-            and self.wartet_auf is None
+            self.user_actionable
             and self.due is not None
             and (at or now()) > self.due
         )
@@ -238,12 +237,42 @@ class Task:
             "wartet_seit": iso(self.wartet_seit),
             "wartet_tage": self.wartet_tage(),
             "overdue": self.is_overdue(),
+            "user_actionable": self.user_actionable,
+            "effective_responsibility": effective_responsibility(self),
             "erledigt_grund": dict(self.erledigt_grund) if self.erledigt_grund else None,
             "geaendert_grund": dict(self.geaendert_grund) if self.geaendert_grund else None,
             "person": dict(self.person) if self.person else None,
             "responsibility": dict(self.responsibility) if self.responsibility is not None else None,
             "angelegt": dict(self.angelegt) if self.angelegt else None,
         }
+
+
+def effective_responsibility(task: Task | dict[str, Any]) -> str:
+    """An explicit decision, or the provisional classification of an older task."""
+    decision = task.get("responsibility") if isinstance(task, dict) else task.responsibility
+    return decision["decision"] if decision else "unconfirmed"
+
+
+def responsibility_label(task: Task | dict[str, Any]) -> str:
+    responsibility = task.get("responsibility") if isinstance(task, dict) else task.responsibility
+    decision = effective_responsibility(task)
+    if decision == "person" and responsibility:
+        address = responsibility["address"]
+        return f'{responsibility["label"]} <{address}>' if responsibility.get("label") else address
+    return {"self": "Ich", "unknown": "Ungeklärt", "unconfirmed": "Nicht bestätigt"}[decision]
+
+
+# Shared by the page and project queries. Keep the mine predicate equivalent
+# to Task.user_actionable. Waiting is independent of the explicit decision.
+TASK_WAITING_SQL = "json_extract(document, '$.wartet_auf')"
+_TASK_DECISION_SQL = "json_extract(document, '$.responsibility.decision')"
+TASK_VIEW_SQL = {
+    "mine": f"{TASK_WAITING_SQL} IS NULL AND coalesce({_TASK_DECISION_SQL}, 'unconfirmed') IN ('self', 'unconfirmed')",
+    "waiting": f"{TASK_WAITING_SQL} IS NOT NULL",
+    "others": f"{_TASK_DECISION_SQL} = 'person'",
+    "unassigned": f"{_TASK_DECISION_SQL} = 'unknown'",
+}
+_TASK_REVISION_SQL = "(SELECT max(sequence) FROM task_events WHERE task_id = tasks.id)"
 
 
 _CREATE_TASKS = """
@@ -577,10 +606,14 @@ class TaskStore:
 
     def from_suggestion(self, proposal_id: str, title: str, provenance: Provenance, *, due: datetime | None = None,
                         project_id: str | None = None, waiting_for: str | None = None,
-                        person: dict[str, str] | None = None, angelegt: dict[str, Any] | None = None) -> Task:
+                        person: dict[str, str] | None = None, angelegt: dict[str, Any] | None = None,
+                        proven_retry_id: str | None = None,
+                        create_project: Callable[[], str] | None = None) -> Task:
         """Eine ausdrückliche Übernahme bleibt auch nach einem Abbruch einmalig."""
         if not proposal_id or not title.strip():
             raise ValueError("Vorschlag und Aufgabentitel dürfen nicht leer sein.")
+        if create_project is not None and project_id is not None:
+            raise ValueError("Bitte ein vorhandenes oder ein neues Projekt wählen.")
         at = now()
         task = Task(
             id=f"t-suggestion-{proposal_id}", title=title.strip(), provenance=provenance,
@@ -592,6 +625,26 @@ class TaskStore:
             row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task.id,)).fetchone()
             if row:
                 return self._from_row(row)
+            source_ref, quote = provenance.source_ref or "", provenance.verbatim
+            if source_ref.startswith("episode:") and quote:
+                corrected = self._conn.execute(
+                    """SELECT id, document FROM tasks
+                       WHERE json_extract(document, '$.provenance.source_ref') = ?
+                         AND json_extract(document, '$.provenance.verbatim') = ?
+                         AND json_extract(document, '$.responsibility.decision') IS NOT NULL
+                       LIMIT 2""", (source_ref, quote),
+                ).fetchall()
+                if corrected or proven_retry_id is not None:
+                    if len(corrected) == 1 and corrected[0]["id"] == proven_retry_id:
+                        return self._from_row(corrected[0])
+                    raise TaskRequestConflict(
+                        "Zu dieser Quellenstelle gibt es bereits eine Aufgabe mit bestätigter Zuständigkeit. "
+                        "Bitte die vorhandene Aufgabe und den neuen Vorschlag prüfen."
+                    )
+            if create_project is not None:
+                # The local, deterministic project write must follow the final
+                # correction barrier and must never run for a reused task.
+                task.project_id = create_project()
             self._write(task)
             self._append_event(task, "from_suggestion", None, None)
         return task
@@ -784,20 +837,22 @@ class TaskStore:
 
     _VORHER = ("status", "done_at", "wartet_auf", "wartet_seit")
 
-    def post_erledigen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None) -> Task:
+    def post_erledigen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None,
+                       *, expected_revision: int | None = None) -> Task:
         """Erledigt durch die eigene Post. Nur eine offene Aufgabe, die bei dir liegt; sonst `ValueError`."""
         def change(task: Task) -> None:
-            if task.status is not TaskStatus.OPEN or task.wartet_auf is not None:
+            if not task.user_actionable:
                 raise ValueError("Nur eine offene Aufgabe, die bei dir liegt, kann die Post erledigen.")
             vorher = {k: v for k, v in task.to_dict().items() if k in self._VORHER}
             task.status = TaskStatus.DONE
             task.done_at = ensure_aware(at) or now()
             task.erledigt_grund = {**grund, "vorher": vorher}
             task.geaendert_grund = None
-        return self._change(task_id, "post_completed", change, at)
+        return self._change(task_id, "post_completed", change, at, expected_revision=expected_revision)
 
-    def post_zurueckholen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None) -> Task:
-        """Wieder bei dir, weil die Person geantwortet hat. Nur eine offene, wartende Aufgabe; sonst `ValueError`."""
+    def post_zurueckholen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None,
+                          *, expected_revision: int | None = None) -> Task:
+        """Löst die Warteabhängigkeit einer offenen Aufgabe auf."""
         def change(task: Task) -> None:
             if task.status is not TaskStatus.OPEN or task.wartet_auf is None:
                 raise ValueError("Nur eine Aufgabe, die bei jemandem liegt, kann die Post zurückholen.")
@@ -805,7 +860,7 @@ class TaskStore:
             task.wartet_auf = None
             task.wartet_seit = None
             task.geaendert_grund = {**grund, "vorher": vorher}
-        return self._change(task_id, "post_returned", change, at)
+        return self._change(task_id, "post_returned", change, at, expected_revision=expected_revision)
 
     def post_rueckgaengig(self, task_id: str, at: datetime | None = None) -> Task:
         """Stellt den Zustand vor der Änderung durch die Post wieder her und trennt Aufgabe und Mail dauerhaft.
@@ -1266,11 +1321,10 @@ class TaskStore:
                 "before": json.loads(row["before_state"]) if row["before_state"] else None,
                 "after": json.loads(row["after_state"])}
 
-    def get(self, task_id: str) -> Task | None:
+    def get(self, task_id: str, *, include_revision: bool = False) -> Task | None:
+        columns = f"document, {_TASK_REVISION_SQL} AS revision" if include_revision else "document"
         with self._lock:
-            row = self._conn.execute(
-                "SELECT document FROM tasks WHERE id = ?", (task_id,)
-            ).fetchone()
+            row = self._conn.execute(f"SELECT {columns} FROM tasks WHERE id = ?", (task_id,)).fetchone()
         return self._from_row(row) if row else None
 
     def reminders_due(self, at: datetime | None = None, limit: int = 100) -> list[Task]:
@@ -1301,16 +1355,17 @@ class TaskStore:
         page['tasks'] = [self._from_row(row).to_dict() for row in page.pop('rows')]
         return page
 
-    def open_tasks(self, limit: int | None = 200) -> list[Task]:
+    def open_tasks(self, limit: int | None = 200, *, include_revision: bool = False) -> list[Task]:
         """Offene Aufgaben, überfällige und bald fällige zuerst.
 
         Aufgaben ohne Fälligkeit landen hinten — sonst verdrängen sie das,
         was tatsächlich ansteht.
         Für vollständige fachliche Auswertungen hebt None die Listengrenze auf.
         """
+        columns = f"document, {_TASK_REVISION_SQL} AS revision" if include_revision else "document"
         with self._lock:
             rows = self._conn.execute(
-                "SELECT document FROM tasks WHERE status = ? "
+                f"SELECT {columns} FROM tasks WHERE status = ? "
                 "ORDER BY due IS NULL, due ASC, created_at ASC LIMIT ?",
                 (TaskStatus.OPEN.value, -1 if limit is None else limit),
             ).fetchall()
@@ -1320,12 +1375,12 @@ class TaskStore:
         at = at or now()
         limit = at + timedelta(days=days)
         return [
-            t for t in self.open_tasks()
-            if t.due is not None and t.due <= limit
+            t for t in self.open_tasks(limit=None)
+            if t.user_actionable and t.due is not None and t.due <= limit
         ]
 
     def wartend(self, at: datetime | None = None) -> list[Task]:
-        """Alles, was gerade bei anderen liegt — am längsten Wartendes zuerst."""
+        """Offene Warteabhängigkeiten, am längsten Wartendes zuerst."""
         offen = [t for t in self.open_tasks() if t.wartet_auf is not None]
         return sorted(offen, key=lambda t: t.wartet_seit or t.created_at)
 
@@ -1352,26 +1407,29 @@ class TaskStore:
         completed tasks. No task, event, or deadline is changed by this read.
         """
         moment = ensure_aware(at) or now()
-        waiting = "json_extract(document, '$.wartet_auf')"
+        mine_filter = TASK_VIEW_SQL["mine"]
+        waiting_filter = TASK_VIEW_SQL["waiting"]
         with self._lock:
             self._conn.execute('BEGIN')
             try:
                 counts = self._conn.execute(f"""
                     SELECT
-                      coalesce(sum(status='open' AND {waiting} IS NULL),0) AS mine,
-                      coalesce(sum(status='open' AND {waiting} IS NOT NULL),0) AS waiting,
+                      coalesce(sum(status='open' AND {mine_filter}),0) AS mine,
+                      coalesce(sum(status='open' AND {waiting_filter}),0) AS waiting,
+                      coalesce(sum(status='open' AND {TASK_VIEW_SQL['others']}),0) AS others,
+                      coalesce(sum(status='open' AND {TASK_VIEW_SQL['unassigned']}),0) AS unassigned,
                       coalesce(sum(status='done'),0) AS done,
                       coalesce(sum(status='dropped'),0) AS dropped,
-                      coalesce(sum(status='open' AND {waiting} IS NULL AND julianday(due)<julianday(?)),0) AS overdue,
-                      coalesce(sum(status='open' AND {waiting} IS NULL AND due IS NULL),0) AS undated
+                      coalesce(sum(status='open' AND {mine_filter} AND julianday(due)<julianday(?)),0) AS overdue,
+                      coalesce(sum(status='open' AND {mine_filter} AND due IS NULL),0) AS undated
                     FROM tasks WHERE project_id=?
                 """, (moment.isoformat(), project_id)).fetchone()
                 mine = self._conn.execute(f"""
-                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NULL
+                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {mine_filter}
                     ORDER BY due IS NULL, julianday(due), julianday(created_at), id LIMIT 3
                 """, (project_id,)).fetchall()
                 waiting_rows = self._conn.execute(f"""
-                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NOT NULL
+                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting_filter}
                     ORDER BY coalesce(julianday(json_extract(document,'$.wartet_seit')),julianday(created_at)), id LIMIT 3
                 """, (project_id,)).fetchall()
             finally:
@@ -1409,12 +1467,15 @@ class TaskStore:
                 raise
 
     def _change(self, task_id: str, kind: str, mutate: Callable[[Task], None],
-                at: datetime | None = None) -> Task:
+                at: datetime | None = None, *, expected_revision: int | None = None) -> Task:
+        columns = f"document, {_TASK_REVISION_SQL} AS revision" if expected_revision is not None else "document"
         with self._transaction():
-            row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task_id,)).fetchone()
+            row = self._conn.execute(f"SELECT {columns} FROM tasks WHERE id = ?", (task_id,)).fetchone()
             if row is None:
                 raise KeyError(f"Unbekannte Aufgabe: {task_id}")
             task = self._from_row(row)
+            if expected_revision is not None and task.revision != expected_revision:
+                raise TaskChangedError("Die Aufgabe wurde inzwischen geändert. Bitte erneut prüfen.")
             before = _state(task.to_dict())
             mutate(task)
             if _state(task.to_dict()) != before:
@@ -1460,6 +1521,7 @@ class TaskStore:
         p = d["provenance"]
         return Task(
             id=d["id"],
+            revision=row["revision"] if "revision" in row.keys() else None,
             title=d["title"],
             provenance=Provenance(
                 source_type=SourceType(p["source_type"]),

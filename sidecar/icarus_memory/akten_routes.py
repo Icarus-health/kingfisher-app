@@ -88,7 +88,9 @@ def aufgaben_zu(app, bezuege: Bezuege, sache: str, ids: list[str]) -> list[Any]:
         gefunden.update({t.id: t for t in tasks.by_project(kennung, include_closed=True)})
     elif art == 'person':
         name = bezuege.beschriftung(sache)
-        gefunden.update({t.id: t for t in tasks.open_tasks(limit=None) if personen.wartet_auf(t, name)})
+        adresse = kennung[2:] if kennung.startswith('a:') else ''
+        gefunden.update({t.id: t for t in tasks.open_tasks(limit=None)
+                         if personen.wartet_auf(t, name) or personen.verantwortet(t, adresse)})
     quellen = {f'episode:{i}' for i in ids}
     if quellen:
         gefunden.update({t.id: t for t in tasks.all_tasks(limit=500)

@@ -26,6 +26,7 @@ from .datumstext import iso_versuchen
 from .episodes import Episode, EpisodeState
 from .model import Assertion, now
 from .people_quality import annotate_people, ist_sammelpostfach, lokalteil
+from .tasks import responsibility_label
 
 
 def _stable(prefix: str, value: str) -> str:
@@ -480,7 +481,8 @@ def build(
             f"task:{task.id}",
             "task",
             task.title,
-            {"status": task.status.value, "due": task.to_dict()["due"]},
+            {"status": task.status.value, "due": task.to_dict()["due"],
+             "responsibility_label": responsibility_label(task)},
         )
         builder.node(node)
         if task.project_id and task.project_id in projects:

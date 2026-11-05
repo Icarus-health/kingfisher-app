@@ -265,7 +265,7 @@ function Zeitstrahl({ strahl }: { strahl: NonNullable<Akte["zeitstrahl"]> }) {
 /** Ein offener Punkt: wer, wann, das Zitat, die Quelle und ein Klick für „erledigt“. */
 function OffenZeile({ e, arbeitet, entscheiden, zuruecknehmen }: { e: Akte["offen"]["eintraege"][number]; arbeitet: string | null; entscheiden: Entscheiden; zuruecknehmen: (ziel: string) => void }) {
   return <article aria-busy={arbeitet === e.ziel}>
-    <small>{herkunft(e)} · {datum(e)}{e.aufgabe ? ` · Aufgabe: ${e.aufgabe.title}` : ""}{e.bestaetigt ? " · laut dir weiter offen" : ""}</small>
+    <small>{herkunft(e)} · {datum(e)}{e.aufgabe ? ` · Aufgabe: ${e.aufgabe.title}` : ""}{e.aufgabe?.responsibility_label ? ` · Zuständigkeit: ${e.aufgabe.responsibility_label}` : ""}{e.bestaetigt ? " · laut dir weiter offen" : ""}</small>
     <blockquote>{e.text}</blockquote>
     {e.danach_geaendert ? <p className="mappe-mehr">Danach: „{e.danach_geaendert.text}“ ({datum(e.danach_geaendert)})</p> : null}
     <div className="akte-zeile-fuss">
@@ -597,7 +597,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     </Teil> : null}
 
     {data.aufgaben.eintraege.length ? <Teil titel="Aufgaben" kind="aufgaben">
-      {data.aufgaben.eintraege.map(a => <article key={a.id}><button type="button" className="task-title-link" onClick={()=>navigate(`/vorhaben?${new URLSearchParams({task:a.id,from:'memory'})}`)}>{a.title}</button><small className={a.overdue ? "mappe-ueberfaellig" : undefined}>{a.due ? `${a.overdue ? "Überfällig seit" : "Fällig"} ${tag(a.due)}` : "Ohne Termin"}{a.wartet_auf ? ` · wartet auf ${displayLabel(a.wartet_auf).name}` : ""}</small></article>)}
+      {data.aufgaben.eintraege.map(a => <article key={a.id}><button type="button" className="task-title-link" onClick={()=>navigate(`/vorhaben?${new URLSearchParams({task:a.id,from:'memory'})}`)}>{a.title}</button><small className={a.overdue ? "mappe-ueberfaellig" : undefined}>{a.due ? `${a.overdue ? "Überfällig seit" : "Fällig"} ${tag(a.due)}` : "Ohne Termin"}{a.wartet_auf ? ` · wartet auf ${displayLabel(a.wartet_auf).name}` : ""}{a.responsibility_label ? ` · Zuständigkeit: ${a.responsibility_label}` : ""}</small></article>)}
       <Gesamt gezeigt={data.aufgaben.eintraege.length} gesamt={data.aufgaben.gesamt} />
     </Teil> : null}
 

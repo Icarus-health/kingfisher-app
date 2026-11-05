@@ -1,6 +1,6 @@
-import type {Task} from './api';
+import type {Task, TaskListView} from './api';
 
-export type TaskSelection = {view: 'mine' | 'waiting' | 'done'; projectId: string; q: string};
+export type TaskSelection = {view: TaskListView; projectId: string; q: string};
 type Page = {tasks: Task[]; total: number; next_cursor: string | null};
 export type TaskPageState = {tasks: Task[] | null; total: number; loading: boolean; error: string; notice: string; canPrevious: boolean; canNext: boolean; page: number; selectionKey: string};
 export const initialTaskPage = (): TaskPageState => ({tasks: null, total: 0, loading: false, error: '', notice: '', canPrevious: false, canNext: false, page: 1, selectionKey: ''});

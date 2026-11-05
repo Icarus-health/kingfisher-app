@@ -6,6 +6,7 @@ from typing import Any, Literal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
+from .identitaet import eigene_adressen
 from .task_responsibility import MAX_SEQUENCE, ResponsibilityLookupIncomplete
 from .tasks import TaskChangedError, TaskRequestConflict
 
@@ -29,15 +30,19 @@ class _ResponsibilityIn(BaseModel):
     target_event_sequence: int | None = Field(default=None, ge=1, le=MAX_SEQUENCE)
 
 
-def _response(snapshot: dict[str, Any]) -> dict[str, Any]:
-    return {**snapshot, "task": snapshot["task"].to_dict()}
+def _response(app: FastAPI, snapshot: dict[str, Any]) -> dict[str, Any]:
+    task = snapshot["task"]
+    responsibility = task.responsibility or {}
+    overlap = (responsibility.get("decision") == "person"
+               and responsibility.get("address") in {a.casefold() for a in eigene_adressen(getattr(app.state, "settings", None))})
+    return {**snapshot, "task": task.to_dict(), "own_address_overlap": overlap}
 
 
 def register_task_responsibility_routes(app: FastAPI, guard: list[Any]) -> None:
     @app.get("/api/v1/tasks/{task_id}/responsibility", dependencies=guard)
     def get_responsibility(task_id: str) -> dict[str, Any]:
         try:
-            return _response(app.state.tasks.responsibility_snapshot(task_id))
+            return _response(app, app.state.tasks.responsibility_snapshot(task_id))
         except KeyError as exc:
             raise HTTPException(404, "Aufgabe nicht gefunden.") from exc
         except ResponsibilityLookupIncomplete as exc:
@@ -52,7 +57,7 @@ def register_task_responsibility_routes(app: FastAPI, guard: list[Any]) -> None:
                 or ("target_event_sequence" in fields) != (body.operation == "undo")):
             raise HTTPException(422, "Ungültige Änderung der Zuständigkeit.")
         try:
-            return _response(app.state.tasks.change_responsibility(
+            return _response(app, app.state.tasks.change_responsibility(
                 task_id, request_id=body.request_id, expected_revision=body.expected_revision,
                 operation=body.operation, decision=body.owner.model_dump(exclude_unset=True) if body.owner else None,
                 target_event_sequence=body.target_event_sequence,
