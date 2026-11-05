@@ -55,3 +55,35 @@ begrenzte Chat-Completion-API und keinen zweiten gehosteten Gedächtnisbestand.
 Mistral kann bei Rechenlast helfen; Identitätsverwechslungen, veraltete Quellen
 und falsche Fristen müssen weiterhin durch den gesamten Kingfisher-Ablauf
 verhindert beziehungsweise als unklar ausgewiesen werden.
+
+## Aktualisierung der Anbieterprüfung am 05.11.2026
+
+Die offizielle Modellkarte führt Small 4 (`mistral-small-2603`) weiterhin als
+GA mit 0,15/0,60 USD je Million Eingabe-/Ausgabetokens. Der vorhandene feste
+Modell- und Preisstand braucht deshalb derzeit keinen Austausch. Ob dieses
+Modell für das konkrete Konto am regionalen Endpunkt verfügbar ist, muss nach
+Einrichtung des Schlüssels über dessen Modellliste geprüft werden. Heute gab
+es keinen authentifizierten Anbieteraufruf und keinen Qualitätsvergleich.
+[Small 4](https://docs.mistral.ai/models/mistral-small-4-0-26-03)
+
+Der regionale EU-Endpunkt kostet weiterhin 10 % zusätzlich. Die Dokumentation
+nennt EU-/EFTA-Rechenzentren und nimmt Verwaltungs-/Abrechnungsmetadaten von der
+regionalen Verarbeitungsgarantie aus. Agents, Files und Batch sind dort nicht
+verfügbar. Kingfishers begrenztes Quellenpaket bleibt daher eine lokale
+Warteschlange einzelner Chat-Anfragen; es darf nicht mit dem günstigeren
+Anbieter-Batchdienst gleichgesetzt werden.
+[Regionale Verarbeitung](https://docs.mistral.ai/inference/regional-inference)
+
+Medium 3.5 ist seit 31.10.2026 als abgekündigt markiert. Der dort genannte
+Nachfolger Large 4 befindet sich in Public Preview. Daraus folgt keine
+automatische Umstellung: Ein stärkeres Modell wäre erst nach einer gemessenen
+Small-Lücke, bestätigter EU-Verfügbarkeit und passendem Budget ein eigener
+Vergleich. [Medium 3.5](https://docs.mistral.ai/models/mistral-medium-3-5-26-04),
+[Large 4](https://docs.mistral.ai/models/mistral-large-4-0)
+
+ZDR und Trainings-Opt-out bleiben getrennte Einstellungen. Auch bei aktiviertem
+ZDR werden ausdrücklich an Studio Observability gesendete Traces nicht dadurch
+geschützt. Kingfisher muss deshalb seinen tatsächlichen Anfragepfad prüfen;
+eine europäische Anbieteradresse allein belegt keine vollständige Freigabe für
+persönliche oder besondere Daten.
+[ZDR und ausgeschlossene Dienste](https://docs.mistral.ai/admin/monitor-comply/zero-data-retention)
