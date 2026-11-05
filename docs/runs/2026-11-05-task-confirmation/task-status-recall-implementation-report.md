@@ -143,3 +143,5 @@ f78fa134ea394d6709cb1edaaa0d1cd347b52132b18c5941e91f0b4fe34da208  sidecar/tests/
 359b57c6b81a3a210c2ad2cc055ad34cf49ebb0b48816efd3ae884872414557d  sidecar/tests/test_update_backup.py
 3763aac7171b88428b6b8cb955fe27a1b7ffee72ed295532a8a5d9be823cd9b9  sidecar/tests/working_memory_legacy.py
 ```
+
+Published console excerpts remove trailing whitespace only. The raw output remains at the recorded temporary paths; test results and trace content are unchanged.
