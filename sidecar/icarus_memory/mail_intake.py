@@ -8,7 +8,7 @@ from collections import Counter
 
 from . import logbuch
 from .mail_filter import Decision, excluded_folder, intake_screen
-from .episodes import sql_nicht_ignoriert, sql_aktuell, sql_aktuelle_fassung
+from .episodes import sql_nicht_ignoriert, sql_aktuell, sql_aktuelle_fassung, sql_nachricht
 from .mail_ingestion import remember, source_key_for_message
 from .connectors.mail import MailboxGenerationChanged, MailError
 from .mail_intake_grund import einordnen as grund_einordnen
@@ -700,7 +700,7 @@ class Intake:
                     LEFT JOIN working_memory_sources s ON s.episode_id=e.id
                     LEFT JOIN mail_intake_analysis a ON a.episode_id=e.id
                     WHERE i.status IN ('captured','duplicate')
-                      AND e.kind='message' AND e.state<>'ignored' AND {sql_aktuelle_fassung('e')}
+                      AND {sql_nachricht('e')} AND {sql_aktuelle_fassung('e')}
                       AND (s.status IS NULL OR (s.status<>'dismissed' AND
                          (s.status<>'complete' OR s.analysis_version<>? OR
                           NOT COALESCE(({analysis_marker_matches_sql()}),0)))) LIMIT 1""",

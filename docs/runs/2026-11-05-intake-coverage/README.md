@@ -50,3 +50,9 @@ Cloudaufrufe, Kosten, App-Installation oder Fortsetzung des Großimports.
 Die getrennten [MIME- und Antwortverknüpfungsproben](../2026-11-05-mime-replay/README.md)
 verwenden den unveränderten vorherigen Codecommit. Sie belegen tatsächliches
 Wiederlesen und gespeicherte Kontotrennung, nicht semantische Aufgabenqualität.
+
+## CI correction: central source eligibility
+
+The full CI runs for published `f4be125` exposed a duplicated source predicate in the intake-gap query. Both Python 3.10 and 3.12 reported one failure in `test_geltende_quelle`, 10,293 passing tests, two skips and 26 passing subtests. The correction consumes `sql_nachricht` plus `sql_aktuelle_fassung`, keeping message scope and current version while respecting the central ignored-state and parent-withdrawal policy. The source-authority guard was not relaxed.
+
+On an isolated archive of `c70acac` with only this correction applied, Python 3.12 passed 77 source/intake tests and three targeted parent-lifecycle cases. Independent scoped review approved the change; the existing TestClient deprecation warning remains. UI, Mac build and container CI on the prior published head passed. No CI rerun was triggered; a future published revision still requires its own result. No actual model, private mailbox, native window or bulk import was used in this correction.
