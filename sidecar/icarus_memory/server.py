@@ -5378,6 +5378,9 @@ def create_app(
             return {"items": events[:100], "truncated": len(events) > 100,
                     "scope": "Gespeicherte Änderungen dieser Aufgabe, neueste zuerst."}
 
+    from .task_responsibility_routes import register_task_responsibility_routes
+    register_task_responsibility_routes(app, guard)
+
     @app.get("/api/v1/tasks/{task_id}/source", dependencies=guard)
     def task_source(task_id: str) -> dict[str, Any]:
         task = app.state.tasks.get(task_id)

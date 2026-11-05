@@ -39,6 +39,12 @@ from .migrations import (
     verify_schema,
 )
 from .model import Provenance, SourceType, ensure_aware, now
+from .task_responsibility import (
+    RESPONSIBILITY_KINDS,
+    ResponsibilityLookupIncomplete,
+    responsibility_command,
+    unknown_responsibility,
+)
 
 
 class TaskChangedError(ValueError):
@@ -77,6 +83,7 @@ class _RecallBudgetExceeded(Exception):
     pass
 
 
+_RESPONSIBILITY_EVENT_FILTER = "kind IN ('responsibility_confirmed', 'responsibility_reset', 'responsibility_undone')"
 _RECALL_OPCODE_BUDGET = 250_000
 _RECALL_PROGRESS_STEPS = 1_000
 RECALL_OPERAND_MAX = 256
@@ -187,6 +194,8 @@ class Task:
     Klick zusammen mit anderen Vorschlägen übernommen, mit `gruppe`). Beides lässt sich zurücknehmen
     (`aufgaben_von_selbst.py`)."""
 
+    responsibility: dict[str, Any] | None = None
+
     def is_overdue(self, at: datetime | None = None) -> bool:
         """Überfällig ist nur, was bei **dir** liegt.
 
@@ -232,6 +241,7 @@ class Task:
             "erledigt_grund": dict(self.erledigt_grund) if self.erledigt_grund else None,
             "geaendert_grund": dict(self.geaendert_grund) if self.geaendert_grund else None,
             "person": dict(self.person) if self.person else None,
+            "responsibility": dict(self.responsibility) if self.responsibility is not None else None,
             "angelegt": dict(self.angelegt) if self.angelegt else None,
         }
 
@@ -310,6 +320,7 @@ def _verify_v1(connection: sqlite3.Connection) -> None:
 # No copied title, notes, source quote or claimed authenticated actor.
 _HISTORY_FIELDS = ("id", "created_at", "status", "due", "remind_at", "done_at", "project_id", "goal_id",
                    "wartet_auf", "wartet_seit")
+_HISTORY_FIELDS += ("responsibility",)
 _HISTORY_SCHEMA = {"sequence", "task_id", "kind", "recorded_at", "business_at",
                    "before_state", "after_state"}
 _HISTORY_INDEX = IndexContract("task_events", ("task_id", "sequence"))
@@ -329,7 +340,10 @@ _HISTORY_TRIGGERS["task_events_no_replace"] = (
 
 
 def _state(document: dict[str, Any]) -> dict[str, Any]:
-    return {key: document.get(key) for key in _HISTORY_FIELDS}
+    # Keep unconfirmed state byte-compatible with legacy history snapshots.
+    # Status recall compares removal and restore snapshots to bind proof.
+    return {key: document.get(key) for key in _HISTORY_FIELDS
+            if key != "responsibility" or document.get(key) is not None}
 
 
 def _migrate_v2(connection: sqlite3.Connection) -> None:
@@ -588,6 +602,104 @@ class TaskStore:
                 task.status = TaskStatus.DONE
                 task.done_at = ensure_aware(at) or now()
         return self._change(task_id, "completed", change, at)
+
+    def responsibility_snapshot(self, task_id: str) -> dict[str, Any]:
+        """Read the task, its revision and active decision in one read transaction."""
+        with self._recall_snapshot(), self._responsibility_budget():
+            return self._read_responsibility(task_id)[0]
+
+    def change_responsibility(
+        self, task_id: str, *, request_id: str, expected_revision: int, operation: str,
+        decision: dict[str, Any] | None = None, target_event_sequence: int | None = None,
+    ) -> dict[str, Any]:
+        """Commit a decision and its retry receipt under the same SQLite write lock."""
+        state, receipt = responsibility_command(request_id, expected_revision, operation, decision, target_event_sequence)
+        with self._transaction():
+            with self._responsibility_budget():
+                # Removed tasks never return a receipt, even though history persists.
+                if self._conn.execute("SELECT 1 FROM tasks WHERE id = ?", (task_id,)).fetchone() is None:
+                    raise KeyError(task_id)
+                previous = self._conn.execute(
+                    f"""SELECT sequence, json_extract(after_state, '$.responsibility_operation.digest') AS digest
+                        FROM task_events WHERE task_id = ? AND {_RESPONSIBILITY_EVENT_FILTER}
+                        AND json_extract(after_state, '$.responsibility_operation.request_id') = ?
+                        ORDER BY sequence DESC LIMIT 1""", (task_id, request_id),
+                ).fetchone()
+                if previous is not None and (
+                    previous["digest"] != receipt["digest"]
+                    or previous["sequence"] <= self._responsibility_lifetime_start(task_id)
+                ):
+                    raise TaskRequestConflict("Der Auftrag gehört bereits zu einer anderen Änderung.")
+                snapshot, active = self._read_responsibility(task_id)
+                if previous is not None:
+                    return {**snapshot, "applied_event_sequence": previous["sequence"], "replayed": True}
+                if snapshot["revision"] != expected_revision:
+                    raise TaskChangedError("Die Aufgabe wurde inzwischen geändert. Bitte neu laden.")
+                if operation == "undo":
+                    if active is None or active["sequence"] != target_event_sequence:
+                        raise TaskChangedError("Diese Zuständigkeitsänderung ist nicht mehr die letzte.")
+                    state = json.loads(active["before_state"]).get("responsibility") or unknown_responsibility()
+
+            task = snapshot["task"]
+            before = _state(task.to_dict())
+            task.responsibility = state
+            self._write(task)
+            sequence = self._append_event(task, RESPONSIBILITY_KINDS[operation], before, None,
+                                          responsibility_operation=receipt)
+            return {"task": task, "revision": sequence, "responsibility_event_sequence": sequence,
+                    "applied_event_sequence": sequence, "replayed": False}
+
+    @contextmanager
+    def _responsibility_budget(self) -> Iterator[None]:
+        try:
+            with self._recall_sql_budget():
+                yield
+        except _RecallBudgetExceeded as exc:
+            raise ResponsibilityLookupIncomplete() from exc
+
+    def _responsibility_lifetime_start(self, task_id: str) -> int:
+        creations = self._conn.execute(
+            """SELECT sequence FROM task_events WHERE task_id = ?
+               AND kind IN ('created', 'from_suggestion', 'preexisting_snapshot')
+               ORDER BY sequence DESC LIMIT 2""", (task_id,),
+        ).fetchall()
+        if not creations:
+            raise ResponsibilityLookupIncomplete()
+        start = creations[0]["sequence"]
+        if len(creations) > 1:
+            # An unbound tombstone can restore an older incarnation. A restore
+            # paired with the latest removal keeps the preceding lifetime.
+            restored = self._conn.execute(
+                """SELECT max(sequence) FROM task_events WHERE task_id = ? AND sequence > ?
+                   AND kind = 'auto_restored'
+                   AND json_extract(after_state, '$.restored_removal_sequence') IS NULL""", (task_id, start),
+            ).fetchone()[0]
+            if restored is not None:
+                start = restored
+        return start
+
+    def _read_responsibility(self, task_id: str) -> tuple[dict[str, Any], sqlite3.Row | None]:
+        row = self._conn.execute(
+            """SELECT document, (SELECT max(sequence) FROM task_events WHERE task_id = tasks.id) AS revision
+               FROM tasks WHERE id = ?""", (task_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(task_id)
+        if row["revision"] is None:
+            raise ResponsibilityLookupIncomplete()
+        task = self._from_row(row)
+        active = None
+        if task.responsibility is not None:
+            active = self._conn.execute(
+                f"""SELECT sequence, before_state, json_extract(after_state, '$.responsibility') AS decision
+                    FROM task_events WHERE task_id = ? AND sequence > ? AND {_RESPONSIBILITY_EVENT_FILTER}
+                    ORDER BY sequence DESC LIMIT 1""",
+                (task_id, self._responsibility_lifetime_start(task_id)),
+            ).fetchone()
+            if active is not None and json.loads(active["decision"]) != task.responsibility:
+                active = None
+        return {"task": task, "revision": row["revision"],
+                "responsibility_event_sequence": active["sequence"] if active else None}, active
 
     def completion_snapshot(self, task_id: str) -> tuple[TaskCompletionSnapshot, str, TaskStatus]:
         """Read the approval title and revision in one SQLite snapshot."""
@@ -861,18 +973,20 @@ class TaskStore:
                 raise LookupError("Diese Aufgabe hat Kingfisher nicht selbst angelegt; sie bleibt.")
             before = _state(task.to_dict())
             self._conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-            self._conn.execute(
+            removal = self._conn.execute(
                 "INSERT INTO task_events (task_id, kind, recorded_at, business_at, before_state, after_state) "
                 "VALUES (?, 'auto_removed', ?, NULL, ?, ?)",
                 (task.id, now().isoformat(), json.dumps(before, ensure_ascii=False),
                  json.dumps({**before, "status": "removed"}, ensure_ascii=False)))
             if merken:
+                tombstone = json.loads(row["document"])
+                tombstone["removal_event_sequence"] = removal.lastrowid
                 self._conn.execute(
                     "INSERT INTO aufgaben_auto_zurueck (proposal_id, episode_id, titel_schluessel, zitat_schluessel, "
                     "task_id, dokument, zurueck_am) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(proposal_id) DO UPDATE SET "
                     "task_id=excluded.task_id, dokument=excluded.dokument, zurueck_am=excluded.zurueck_am",
                     (merken["proposal_id"], merken["episode_id"], merken["titel_schluessel"], merken["zitat_schluessel"],
-                     task.id, row["document"], now().isoformat()))
+                     task.id, json.dumps(tombstone, ensure_ascii=False), now().isoformat()))
             return task
 
     def anlage_wiederherstellen(self, task_id: str) -> tuple[Task, str]:
@@ -881,15 +995,33 @@ class TaskStore:
         Gibt die Aufgabe und den Vorschlag zurück. `KeyError`, wenn es nichts wiederherzustellen gibt; `ValueError`,
         wenn unter der Kennung inzwischen wieder eine Aufgabe steht."""
         with self._transaction():
-            row = self._conn.execute("SELECT proposal_id, dokument FROM aufgaben_auto_zurueck WHERE task_id = ? "
-                                     "ORDER BY zurueck_am DESC LIMIT 1", (task_id,)).fetchone()
+            row = self._conn.execute(
+                """SELECT proposal_id, dokument,
+                          json_extract(dokument, '$.removal_event_sequence') AS removal_event_sequence
+                   FROM aufgaben_auto_zurueck WHERE task_id = ? ORDER BY zurueck_am DESC LIMIT 1""",
+                (task_id,),
+            ).fetchone()
             if row is None:
                 raise KeyError(f"Nichts wiederherzustellen: {task_id}")
             if self._conn.execute("SELECT 1 FROM tasks WHERE id = ?", (task_id,)).fetchone():
                 raise ValueError("Diese Aufgabe steht schon wieder in der Liste.")
             task = self._from_row({"document": row["dokument"]})  # type: ignore[arg-type]
+            restored_removal_sequence = None
+            if row["removal_event_sequence"] is not None:
+                # The latest event belongs to the current lifetime. A tombstone
+                # for an earlier removal may carry exactly the same task state.
+                latest = self._conn.execute(
+                    """SELECT sequence, kind, before_state FROM task_events
+                       WHERE task_id = ? ORDER BY sequence DESC LIMIT 1""", (task_id,),
+                ).fetchone()
+                if (latest is not None and latest["kind"] == "auto_removed"
+                        and latest["sequence"] == row["removal_event_sequence"]
+                        and latest["before_state"] is not None
+                        and json.loads(latest["before_state"]) == _state(task.to_dict())):
+                    restored_removal_sequence = latest["sequence"]
             self._write(task)
-            self._append_event(task, "auto_restored", None, None)
+            self._append_event(task, "auto_restored", None, None,
+                               restored_removal_sequence=restored_removal_sequence)
             self._conn.execute("DELETE FROM aufgaben_auto_zurueck WHERE proposal_id = ?", (row["proposal_id"],))
             return task, row["proposal_id"]
 
@@ -1026,8 +1158,12 @@ class TaskStore:
                    WHERE task_id = ? AND sequence < ? ORDER BY sequence DESC LIMIT 1""",
                 (task_id, restored["sequence"]),
             ).fetchone()
-            if (removal is None or removal["kind"] != "auto_removed"
-                    or removal["before_state"] != restored["after_state"]):
+            if removal is None or removal["kind"] != "auto_removed" or removal["before_state"] is None:
+                return None
+            restored_state = json.loads(restored["after_state"])
+            restored_sequence = restored_state.pop("restored_removal_sequence", None)
+            if ((restored_sequence is not None and restored_sequence != removal["sequence"])
+                    or json.loads(removal["before_state"]) != restored_state):
                 return None
             origin = self._recall_state_event(task_id, before=removal["sequence"])
             if (origin is None or origin["status"] != "done"
@@ -1287,15 +1423,23 @@ class TaskStore:
             return task
 
     def _append_event(self, task: Task, kind: str, before: dict[str, Any] | None,
-                      at: datetime | None) -> None:
+                      at: datetime | None, *, responsibility_operation: dict[str, Any] | None = None,
+                      restored_removal_sequence: int | None = None) -> int:
         business_at = ensure_aware(at)
-        self._conn.execute(
+        after = _state(task.to_dict())
+        if responsibility_operation is not None:
+            after["responsibility_operation"] = responsibility_operation
+        if restored_removal_sequence is not None:
+            after["restored_removal_sequence"] = restored_removal_sequence
+        cursor = self._conn.execute(
             "INSERT INTO task_events (task_id, kind, recorded_at, business_at, before_state, after_state) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (task.id, kind, now().isoformat(), business_at.isoformat() if business_at else None,
              json.dumps(before, ensure_ascii=False) if before is not None else None,
-             json.dumps(_state(task.to_dict()), ensure_ascii=False)),
+             json.dumps(after, ensure_ascii=False)),
         )
+        assert cursor.lastrowid is not None
+        return cursor.lastrowid
 
     def _write(self, task: Task) -> None:
         """Write only inside the same transaction as the matching event."""
@@ -1339,6 +1483,7 @@ class TaskStore:
             geaendert_grund=d.get("geaendert_grund") or None,
             person=d.get("person") or None,
             angelegt=d.get("angelegt") or None,
+            responsibility=d.get("responsibility"),
         )
 
 
