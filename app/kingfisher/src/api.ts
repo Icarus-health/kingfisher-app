@@ -110,7 +110,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { workflow_feedback?:WorkflowFeedback; resolved_approval_id?: string; context?: { task_status_view?: boolean; task_link?: TaskStatusLink; original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { workflow_feedback?:WorkflowFeedback; resolved_approval_id?: string; context?: { mail_intake_notice?: string; task_status_view?: boolean; task_link?: TaskStatusLink; original_fallback?: boolean; procedure_choice?: ProcedureChoicePrompt; procedure_proposal?: { id: string; title: string; state: string }; satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {

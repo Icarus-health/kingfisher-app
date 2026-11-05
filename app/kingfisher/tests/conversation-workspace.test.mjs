@@ -228,3 +228,28 @@ test('accepted first handoff neither clears later send busy state nor schedules 
  try{d.render();d.runEffects();await tick();await drafts.loadConversationDraft('later-normal');await tick();assert.equal(reads,1,'an already accepted handoff must not request a second stale snapshot');const pending=nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.onSubmit('zweite Frage',{instanceId:remote.instance_id});assert.equal(nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.busy,true);drafts.writeConversationDraft('later-normal','dritte Frage');await drafts.flushConversationDraft('later-normal');assert.equal(nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.busy,true,'saving follow-up text must not unlock a different pending send');resolve({...payload,messages:[{id:'m-new',role:'assistant',status:'complete',content:'Neue Antwort'}]});await pending;assert.ok(nodes(d.render(),n=>n.type?.name==='MessageText'&&n.props.content==='Neue Antwort').length);assert.equal(reads,1);
  }finally{d.close();Object.assign(api,old);globalThis.window=oldWindow;globalThis.document=oldDocument;}
 });
+
+test('intake notice remains visible once outside collapsed originals and sentence answers',async()=>{
+ const {Conversation}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const oldWindow=globalThis.window,oldDocument=globalThis.document,oldGet=api.getConversation;
+ globalThis.window={location:{hash:''},addEventListener(){},removeEventListener(){}};
+ globalThis.document={getElementById(){return null;}};
+ const notice='Mailaufnahme: Noch nicht alle gefundenen Mails sind eingelesen.';
+ const messages=[{}, {original_fallback:true}, {satzantwort:{}}].map((fields,i)=>({
+   id:'m'+i,role:'assistant',status:'complete',content:'Quellenbericht\n\n'+notice,
+   metadata:{context:{...fields,mail_intake_notice:notice}},
+ }));
+ api.getConversation=async()=>({conversation:{id:'intake',title:'Test'},context:{items:[]},memory_candidates:[],messages});
+ const d=driver(Conversation,{id:'intake',recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try {
+  d.render();d.runEffects();await tick();
+  const articles=nodes(d.render(),n=>n.type==='article'&&n.props.id?.startsWith('message-'));
+  assert.equal(articles.length,3);
+  for(const article of articles){
+   const note=nodes(article,n=>n.type==='p'&&text(n)===notice);
+   assert.equal(note.length,1);
+   assert.equal(nodes(article,n=>n.type==='details'&&nodes(n,x=>x===note[0]).length).length,0);
+   assert.equal(nodes(article,n=>n.type?.name==='MessageText'&&n.props.content.includes(notice)).length,0);
+  }
+ } finally {d.close();api.getConversation=oldGet;globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});

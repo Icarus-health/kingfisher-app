@@ -4262,6 +4262,15 @@ def create_app(
                 actions.append(action)
         return actions
 
+    def _mail_intake_notice():
+        from .mail_intake import Intake
+
+        return {
+            'capture_pending': 'Mailaufnahme: Noch nicht alle gefundenen Mails sind eingelesen.',
+            'analysis_pending': 'Mailaufnahme: Ein Teil der eingelesenen Mails ist noch nicht eingeordnet.',
+            'unverified': 'Mailaufnahme: Den Stand konnte ich nicht verlässlich prüfen.',
+        }.get(Intake(app.state.episodes).recall_gap(app.state.settings.mail_accounts))
+
     def _conversation_payload(conversation_id: str) -> dict[str, Any]:
         # Keep the conversation, proposal and claim reads together. In
         # particular, a card must not combine a pre-retraction claim with a
@@ -4329,6 +4338,10 @@ def create_app(
             resolved_task_turns = 0
             resolved_knowledge_turns = 0
             mappen_neu, mappen_memo = 0, {}
+            # POST, retry and GET all use this view. Coverage is current local
+            # intake state, never stored as a turn, claim, or model input.
+            intake_checked, intake_notice = False, None
+            intake_turns = 0
             # Bound original-source reads when opening a long conversation.
             # Older references stay stored and neutral; no stale copied quotes.
             for message in reversed(messages):
@@ -4476,6 +4489,21 @@ def create_app(
                         app.state.knowledge_service.answer_conflict_status,
                         resolve=resolved_knowledge_turns < 20)
                     resolved_knowledge_turns += 1
+                view = value['metadata'].get('context')
+                contract = view.get('answer_contract') if isinstance(view, dict) else None
+                if (message.role == 'assistant' and message.status == 'complete'
+                        and isinstance(contract, dict) and view.get('answer_mode') == 'memory_evidence'
+                        and 'source_answer' not in view
+                        and contract.get('status') in {
+                            'working_reports', 'working_unknown', 'working_fallback', 'evidence', 'fallback', 'unknown'
+                        } and intake_turns < 20):
+                    intake_turns += 1
+                    if not intake_checked:
+                        intake_notice = _mail_intake_notice()
+                        intake_checked = True
+                    if intake_notice:
+                        value['content'] += '\n\n' + intake_notice
+                        value['metadata'] = {**value['metadata'], 'context': {**view, 'mail_intake_notice': intake_notice}}
                 projected.append(value)
             projected.reverse()
             from .workflow_learning import conversation_feedback
@@ -4500,6 +4528,10 @@ def create_app(
                          or 'working_answer' in item['metadata']['context']
                          or 'mappe_answer' in item['metadata']['context'])), current_context))
                 current_context['memory_revision'] = app.state.claims.revision
+            if 'mail_intake_notice' in latest_context:
+                current_context['mail_intake_notice'] = latest_context['mail_intake_notice']
+            else:
+                current_context.pop('mail_intake_notice', None)
             return {
                 "conversation": _conversation_title(conversation, messages, lineages, validity_cache),
                 "messages": projected,
