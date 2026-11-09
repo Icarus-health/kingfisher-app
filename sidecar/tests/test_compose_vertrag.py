@@ -56,6 +56,16 @@ def test_projekt_volume_und_port_bleiben(pfad):
     assert '- ICARUS_SECRETS_PASSPHRASE=${ICARUS_SECRETS_PASSPHRASE:?bitte setzen}' in text
 
 
+@pytest.mark.parametrize('pfad', [QUELLE, APP], ids=['compose.yaml', 'compose.app.yaml'])
+def test_mcp_tuer_laesst_sich_einschalten_und_ist_aus(pfad):
+    """Ohne Durchgriff ließe sich die Tür in der Mac-App nicht öffnen (docs/07-mcp-tuer.md).
+
+    Die Vorgabe bleibt leer, also aus: Erst eine Zeile in der Env-Datei schaltet sie ein.
+    """
+    zeilen_mit_tuer = [z.strip() for z in pfad.read_text(encoding='utf-8').splitlines() if 'KINGFISHER_MCP_TUER=' in z]
+    assert zeilen_mit_tuer == ['- KINGFISHER_MCP_TUER=${KINGFISHER_MCP_TUER:-}']
+
+
 def test_bilder():
     assert re.search(r'^    build: \.$', QUELLE.read_text(encoding='utf-8'), re.M)
     assert not re.search(r'^\s*build:', APP.read_text(encoding='utf-8'), re.M)
