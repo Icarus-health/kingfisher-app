@@ -16,6 +16,11 @@ Eingeschaltet wird sie vor dem Start des Sidecars, nicht in der Oberfläche:
 KINGFISHER_MCP_TUER=1
 ```
 
+In der Mac-App gehört die Zeile in `~/Library/Application Support/Kingfisher/kingfisher.env`;
+nach einem Neustart von Kingfisher gilt sie. Beide Compose-Dateien reichen den Schalter mit
+leerer Vorgabe in den Container durch (geprüft in `test_compose_vertrag.py`). Vorher kam er dort
+gar nicht an, die Tür ließ sich in der Mac-App also nicht öffnen.
+
 Gilt `1`, `true`, `ja`, `an`; alles andere ist aus. Der Schalter wird bei jedem
 Aufruf gelesen (`config.mcp_tuer_offen`).
 
@@ -270,7 +275,49 @@ schreibt den Eintrag fest — und auch das erst, nachdem der Dienst wirklich
 gestartet ist. Ein Eintrag, der nie funktioniert hat, soll gar nicht erst in
 der Liste stehen.
 
+## Hermes Agent
+
+Hermes Agent (Nous Research) spricht selbst MCP; `icarus-mcp` ließe sich dort wie in jedem
+anderen Assistenten eintragen. Dann sieht Hermes die Werkzeuge, ruft sie aber nur auf, wenn das
+Modell daran denkt. Hermes hat dafür eine eigene Stelle: einen **Gedächtnisanbieter**
+(`MemoryProvider`), der vor jeder Antwort passende Erinnerungen beisteuert. Den gibt es unter
+[`integrations/hermes/icarus/`](../integrations/hermes/icarus/README.md).
+
+```mermaid
+flowchart LR
+    H["Hermes Agent"] -->|"prefetch() je Nachricht,<br/>zwei Lesewerkzeuge"| P["Plugin icarus"]
+    P -->|"HTTP, Loopback, Token"| T["MCP-Tür<br/>/tools/gedaechtnis_suchen, /context"]
+    T --> S[Sidecar]
+    S --> L[(Audit-Log)]
+
+    classDef built fill:#dff5e1,stroke:#3b7a4b,color:#14311d
+    class H,P,T,S,L built
+```
+
+- **Nur lesen.** Das Plugin hat weder `sync_turn` noch `on_memory_write`; die Tür würde ein
+  Schreiben ohnehin abweisen. Hermes behält sein eigenes Gedächtnis daneben. Soll etwas in
+  Kingfisher dauerhaft gelten, sagt der Nutzer es dort; daraus wird ein Vorschlag.
+- **Dieselben Grenzen wie die Tür.** Gedeckelt auf `normal`, jeder Abruf im Audit-Log, Grenzen
+  aus dem Selbstmodell gelten. Kurze Bestätigungen („ok“) lösen keinen Abruf aus.
+- **Findet die Mac-App selbst.** Token aus `kingfisher.env` (nur diese eine Zeile), Adresse
+  `127.0.0.1:8890`. Ein von Hand gestarteter Sidecar wird über `verbindung.json` gefunden.
+  Beides wird bei jeder Anfrage neu gelesen; ein neues Token nach einem Neustart von Kingfisher
+  braucht keinen Neustart von Hermes.
+- **Fehler kosten nur den Abruf.** Geschlossene Tür, falsches Token, App aus: Hermes antwortet
+  trotzdem, die Werkzeuge melden einen Satz mit dem Weg, `hermes icarus pruefen` ebenso.
+
+Belegt in `sidecar/tests/test_hermes_plugin.py` gegen den echten Sidecar-Stapel, einmal davon
+über echtes HTTP. Vier Sabotageproben (Schreiben in `sync_turn`, Abruf bei „ok“, Verbindung nur
+einmal bestimmt, Deckel im Sidecar aufgehoben) fielen jeweils im zuständigen Test. Die
+Hermes-Seite läuft in der Prüfung gegen eine schmale Nachbildung von `agent.memory_provider`;
+mit `HERMES_AGENT_SRC` gegen die echte Schnittstelle. Ein Lauf in einem echten Hermes steht aus.
+
 ## Was offen ist
+
+**`icarus-mcp` findet die Mac-App nicht.** Er sucht `verbindung.json` unter
+`~/Library/Application Support/Icarus`; die Mac-App betreibt den Sidecar im Container, und die
+Datei liegt dort im Datenvolume. Außerdem gibt es `icarus-mcp` bei der Mac-App nur im Bild, nicht auf dem Mac selbst. Das
+Hermes-Plugin umgeht beides über `kingfisher.env`; für Claude Desktop fehlt ein solcher Weg noch.
 
 **Das Token wechselt bei jedem Start der App.** Der MCP-Server liest
 `verbindung.json` einmal beim Start. Startet die App danach neu, meldet er
